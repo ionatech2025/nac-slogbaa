@@ -223,6 +223,7 @@ Then run the backend and frontend locally as in [Getting Started](#getting-start
 | [STRUCTURE.md](src/main/resources/documentation/STRUCTURE.md) | Full target file tree and Maven layout. |
 | [Domain model design](src/main/resources/documentation/domain-model-design.md) | Bounded contexts, aggregates, use cases, events. |
 | [Admin and content management](src/main/resources/documentation/admin-and-content-management.md) | SuperAdmin vs Admin, who manages homepage/learning content, admin dashboard approach. |
+| [Development roadmap and user flows](src/main/resources/documentation/development-roadmap-and-user-flows.md) | What to build first (IAM → trainee flow → admin), and how trainees, staff, and visitors move through the platform. |
 
 Start with **project-structure-explained.md** for a concise overview of the repo and how backend and frontend are organized.
 
