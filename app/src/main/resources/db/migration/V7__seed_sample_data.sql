@@ -3,16 +3,17 @@
 -- Uses fixed UUIDs for predictable cross-table references
 -- ---------------------------------------------------------------------------
 
--- Staff users (no dependencies)
+-- Staff users (no dependencies). Password for all seed accounts: password
+-- BCrypt hash for "password" (cost 10):
 INSERT INTO staff_user (id, full_name, email, password_hash, staff_role, is_active, created_at) VALUES
-('11111111-1111-1111-1111-111111111101', 'Super Admin User', 'superadmin@slogbaa.nac.go.ug', '$2a$10$placeholder-hash-change-in-production', 'SUPER_ADMIN', true, current_timestamp - INTERVAL '30 days'),
-('11111111-1111-1111-1111-111111111102', 'Admin User', 'admin@slogbaa.nac.go.ug', '$2a$10$placeholder-hash-change-in-production', 'ADMIN', true, current_timestamp - INTERVAL '20 days');
+('11111111-1111-1111-1111-111111111101', 'Super Admin User', 'superadmin@slogbaa.nac.go.ug', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'SUPER_ADMIN', true, current_timestamp - INTERVAL '30 days'),
+('11111111-1111-1111-1111-111111111102', 'Admin User', 'admin@slogbaa.nac.go.ug', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'ADMIN', true, current_timestamp - INTERVAL '20 days');
 
--- Trainees
+-- Trainees. Password for all: password
 INSERT INTO trainee (id, first_name, last_name, email, password_hash, street, city, postal_code, gender, district_name, region, trainee_category, is_active, registration_date, email_verified, created_at, updated_at) VALUES
-('22222222-2222-2222-2222-222222222201', 'Jane', 'Akello', 'jane.akello@example.com', '$2a$10$placeholder-hash', 'Plot 10 Main St', 'Kampala', '256', 'FEMALE', 'Kampala', 'Central', 'LEADER', true, current_date - 45, true, current_timestamp - INTERVAL '45 days', current_timestamp),
-('22222222-2222-2222-2222-222222222202', 'John', 'Ocen', 'john.ocen@example.com', '$2a$10$placeholder-hash', 'Church Road', 'Gulu', '414', 'MALE', 'Gulu', 'Northern', 'CIVIL_SOCIETY_MEMBER', true, current_date - 30, true, current_timestamp - INTERVAL '30 days', current_timestamp),
-('22222222-2222-2222-2222-222222222203', 'Mary', 'Nabukenya', 'mary.nabukenya@example.com', '$2a$10$placeholder-hash', NULL, 'Masaka', NULL, 'FEMALE', 'Masaka', 'Central', 'COMMUNITY_MEMBER', true, current_date - 14, false, current_timestamp - INTERVAL '14 days', current_timestamp);
+('22222222-2222-2222-2222-222222222201', 'Jane', 'Akello', 'jane.akello@example.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Plot 10 Main St', 'Kampala', '256', 'FEMALE', 'Kampala', 'Central', 'LEADER', true, current_date - 45, true, current_timestamp - INTERVAL '45 days', current_timestamp),
+('22222222-2222-2222-2222-222222222202', 'John', 'Ocen', 'john.ocen@example.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'Church Road', 'Gulu', '414', 'MALE', 'Gulu', 'Northern', 'CIVIL_SOCIETY_MEMBER', true, current_date - 30, true, current_timestamp - INTERVAL '30 days', current_timestamp),
+('22222222-2222-2222-2222-222222222203', 'Mary', 'Nabukenya', 'mary.nabukenya@example.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', NULL, 'Masaka', NULL, 'FEMALE', 'Masaka', 'Central', 'COMMUNITY_MEMBER', true, current_date - 14, false, current_timestamp - INTERVAL '14 days', current_timestamp);
 
 -- Course (depends: staff_user)
 INSERT INTO course (id, title, description, is_published, created_by, created_at, updated_at) VALUES
