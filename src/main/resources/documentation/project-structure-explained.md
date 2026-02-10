@@ -154,6 +154,8 @@ New backend contexts (learning, assessment, progress, etc.) will get correspondi
 
 The built output can be copied into `app/src/main/resources/static/` and served by Spring Boot in production if desired.
 
+**Brand and colours:** The UI uses a palette aligned with [slogbaa.org](https://slogbaa.org/). See [frontend-design-notes.md](frontend-design-notes.md) and `frontend/src/index.css` for variables.
+
 ---
 
 ## 3. Inside Each (Domain) Module: Hexagonal Layers
