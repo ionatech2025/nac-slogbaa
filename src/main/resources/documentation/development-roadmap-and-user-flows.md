@@ -10,11 +10,11 @@ This document guides the dev team on **what to build first** and **how users mov
 
 **Do IAM before anything else.** All other features depend on it:
 
-- **Trainees** must register and log in to enroll and take courses.
-- **Staff** must log in with a role (SuperAdmin / Admin) for the admin dashboard and content management.
+- **Trainees** must register (self-service) and log in to enroll and take courses.
+- **Staff** (SuperAdmin and Admin) do **not** self-register; they are **created by a SuperAdmin**. They then log in with the credentials they receive.
 - Every other API (learning, progress, assessment, website) needs to know **who** the user is and **what** they are allowed to do.
 
-**Deliver:** Registration, login, JWT/session, role on the backend; login and register pages and auth state on the frontend. Then move on.
+**Deliver:** Trainee registration and login; staff **creation** (by SuperAdmin) and login; JWT/session and role on the backend; login and register pages for trainees, login-only for staff, and auth state on the frontend. Then move on.
 
 ---
 
@@ -48,9 +48,21 @@ Use this only if the priority is “visible public site and admin” before “t
 
 ---
 
-## 2. User Flows
+## 2. How Staff Get Accounts (No Self-Registration)
 
-### 2.1 Trainee Flow
+**Trainees** use the public **Register** flow (self-service).  
+**Staff (SuperAdmin and Admin)** do **not** register themselves:
+
+- A **SuperAdmin** creates staff accounts (email, role, initial password or “set password” link). The domain rule “SuperAdmin can … manage users” covers this.
+- The **first** SuperAdmin is usually created via **seed data** (e.g. Flyway or initial data script) or a one-time setup; after that, that person creates other staff.
+
+So: staff **receive** an account from a SuperAdmin (or from seed), then **log in**. There is no public “Register as staff” flow.
+
+---
+
+## 3. User Flows
+
+### 3.1 Trainee Flow
 
 1. **Land** on the platform (public homepage or login page).
 2. **Register** (IAM): email, password, profile (name, district, category, etc.).
@@ -66,44 +78,46 @@ Use this only if the priority is “visible public site and admin” before “t
 
 ---
 
-### 2.2 Staff (SuperAdmin) Flow
+### 3.2 Staff (SuperAdmin) Flow
 
-1. **Log in** (IAM) with SuperAdmin role.
-2. **Open admin dashboard** (e.g. `/admin`).
-3. **Manage content:** homepage (banners, stories, news, etc.), courses/modules/content blocks, library, quizzes.
-4. **Manage users:** staff (create/edit/delete), view/filter trainees.
-5. **Reports:** view analytics, progress, certificates; revoke certificate if needed.
-
----
-
-### 2.3 Staff (Admin) Flow
-
-1. **Log in** (IAM) with Admin role.
-2. **Open admin dashboard** (same entry point, reduced permissions).
-3. **View only** content and users; **filter and search** trainees; **run reports** (progress, analytics). No create/edit/delete of content or staff.
+1. **Account created** by another SuperAdmin (or via seed for the first one); **receive** credentials (or set password on first login).
+2. **Log in** (IAM) with SuperAdmin role.
+3. **Open admin dashboard** (e.g. `/admin`).
+4. **Manage content:** homepage (banners, stories, news, etc.), courses/modules/content blocks, library, quizzes.
+5. **Manage users:** staff (create/edit/delete), view/filter trainees.
+6. **Reports:** view analytics, progress, certificates; revoke certificate if needed.
 
 ---
 
-### 2.4 Public Visitor (Not Logged In) Flow
+### 3.3 Staff (Admin) Flow
+
+1. **Account created** by a SuperAdmin; **receive** credentials (or set password on first login).
+2. **Log in** (IAM) with Admin role.
+3. **Open admin dashboard** (same entry point, reduced permissions).
+4. **View only** content and users; **filter and search** trainees; **run reports** (progress, analytics). No create/edit/delete of content or staff.
+
+---
+
+### 3.4 Public Visitor (Not Logged In) Flow
 
 1. **Land** on public homepage.
 2. **Browse** public content (about the program, impact stories, news).
-3. **Register** or **Log in** when they decide to become a trainee (or when given a staff account).
+3. **Register** or **Log in** when they decide to become a trainee. (Staff do not register here; they get an account from a SuperAdmin.)
 
 ---
 
-## 3. Quick Reference
+## 4. Quick Reference
 
-| User type | First step | Main journey |
-|-----------|------------|--------------|
-| **Trainee** | Register / Log in | Browse → Enroll → Learn (modules, content) → Quiz → Complete course → Certificate |
-| **SuperAdmin** | Log in | Admin dashboard → Manage content (homepage, courses, library, quizzes) and users → Reports |
-| **Admin** | Log in | Admin dashboard → View content/users → Filter, search, reports (no edit) |
-| **Public visitor** | Land on homepage | Browse → Register or Log in when ready |
+| User type | How they get an account | First step | Main journey |
+|-----------|--------------------------|------------|---------------|
+| **Trainee** | Self-register (public form) | Register / Log in | Browse → Enroll → Learn (modules, content) → Quiz → Complete course → Certificate |
+| **SuperAdmin** | Created by another SuperAdmin (or seed) | Log in | Admin dashboard → Manage content (homepage, courses, library, quizzes) and users → Reports |
+| **Admin** | Created by SuperAdmin | Log in | Admin dashboard → View content/users → Filter, search, reports (no edit) |
+| **Public visitor** | — | Land on homepage | Browse → Register (trainee) or Log in when ready |
 
 ---
 
-## 4. Related Documentation
+## 5. Related Documentation
 
 - [Project structure explained](project-structure-explained.md) — Repo layout, modules, frontend.
 - [Domain model design](domain-model-design.md) — Bounded contexts, aggregates, business rules.
