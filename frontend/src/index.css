@@ -1,0 +1,52 @@
+/**
+ * SLOGBAA palette — from https://slogbaa.org/ header (NAC / SLOGBAA branding).
+ */
+:root {
+  /* Brand: orange (NAC, SLOGBAA text, Live Session button) */
+  --slogbaa-orange: #F18625;
+  --slogbaa-orange-hover: #d9751a;
+  /* Brand: blue (NETWORK FOR ACTIVE CITIZENS, active nav) */
+  --slogbaa-blue: #2781BF;
+  --slogbaa-blue-hover: #2069a3;
+  /* Brand: green (divider, tagline “Putting Communities Before Self”) */
+  --slogbaa-green: #51AF38;
+  /* Dark top bar */
+  --slogbaa-dark: #20232B;
+  /* Surfaces and text */
+  --slogbaa-surface: #FFFFFF;
+  --slogbaa-text: #404040;
+  --slogbaa-text-muted: #6b6b6b;
+  --slogbaa-border: #e0e0e0;
+  --slogbaa-error: #c53030;
+  /* Aliases for components: primary = orange (main CTAs), accent = blue (links) */
+  --slogbaa-primary: var(--slogbaa-orange);
+  --slogbaa-primary-light: var(--slogbaa-orange-hover);
+  --slogbaa-accent: var(--slogbaa-blue);
+  --slogbaa-accent-light: var(--slogbaa-blue-hover);
+  --slogbaa-bg: var(--slogbaa-surface);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  background: var(--slogbaa-bg);
+  color: var(--slogbaa-text);
+  line-height: 1.5;
+}
+
+a {
+  color: var(--slogbaa-blue);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+input, button {
+  font: inherit;
+}
