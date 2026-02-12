@@ -23,3 +23,29 @@ export async function login(email, password) {
     },
   }
 }
+
+/**
+ * Register a trainee. Returns { data: { traineeId, email } } on success or { error } on failure.
+ * Backend: POST /auth/register -> 201 or 403 (staff email) / 409 (duplicate) with problem detail.
+ */
+export async function register(payload) {
+  const res = await client.post('/auth/register', {
+    email: payload.email?.trim(),
+    password: payload.password,
+    firstName: payload.firstName?.trim(),
+    lastName: payload.lastName?.trim(),
+    gender: payload.gender,
+    traineeCategory: payload.traineeCategory,
+    districtName: payload.districtName?.trim(),
+    region: payload.region?.trim() || undefined,
+    street: payload.street?.trim() || undefined,
+    city: payload.city?.trim() || undefined,
+    postalCode: payload.postalCode?.trim() || undefined,
+  })
+  const body = await res.json().catch(() => ({}))
+  if (!res.ok) {
+    const message = body.detail ?? body.title ?? `Request failed (${res.status}).`
+    return { error: message, status: res.status }
+  }
+  return { data: { traineeId: body.traineeId, email: body.email } }
+}

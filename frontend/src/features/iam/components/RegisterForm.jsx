@@ -1,4 +1,7 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../hooks/useAuth.js'
+import { register as registerApi, login as loginApi } from '../../../api/iam/auth.js'
 
 const TRAINEE_CATEGORIES = [
   { value: '', label: 'Select category' },
@@ -85,10 +88,12 @@ export function RegisterForm() {
   })
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
+  const { login: setAuth } = useAuth()
+  const navigate = useNavigate()
 
   const update = (name, value) => setForm((prev) => ({ ...prev, [name]: value }))
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     setError(null)
     const required = ['firstName', 'lastName', 'email', 'password', 'gender', 'districtName', 'traineeCategory']
@@ -102,11 +107,25 @@ export function RegisterForm() {
       return
     }
     setLoading(true)
-    // TODO: call registration API when backend is ready
-    setTimeout(() => {
+    try {
+      const result = await registerApi(form)
+      if (result.error) {
+        setError(result.error)
+        return
+      }
+      const loginResult = await loginApi(form.email.trim(), form.password)
+      if (loginResult.error) {
+        setError('Account created but sign-in failed. Please sign in manually.')
+        return
+      }
+      const { token, userId, email: userEmail, role, fullName } = loginResult.data
+      setAuth(token, { userId, email: userEmail, role, fullName })
+      navigate('/dashboard', { replace: true })
+    } catch (err) {
+      setError(err?.message ?? 'Network error. Is the backend running?')
+    } finally {
       setLoading(false)
-      setError('Backend not connected. Registration will work when the API is ready.')
-    }, 300)
+    }
   }
 
   return (
