@@ -1,6 +1,9 @@
 package com.nac.slogbaa.iam.config;
 
 import com.nac.slogbaa.iam.adapters.security.JwtAuthenticationFilter;
+
+import jakarta.servlet.http.HttpServletResponse;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -29,12 +32,23 @@ public class IamSecurityConfiguration {
 
 	@Bean
 	SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-		http.csrf(csrf -> csrf.disable())
-				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-				.authorizeHttpRequests(auth -> auth.requestMatchers("/auth/**").permitAll()
-						.requestMatchers("/actuator/health").permitAll().anyRequest().authenticated())
-				.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-		return http.build();
+	    http.csrf(csrf -> csrf.disable())
+	        .sessionManagement(session ->
+	            session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+	        )
+	        .authorizeHttpRequests(auth -> auth
+	            .requestMatchers("/auth/**").permitAll()
+	            .requestMatchers("/actuator/health").permitAll()
+	            .anyRequest().authenticated()
+	        )
+	        .exceptionHandling(exception -> exception
+	            .authenticationEntryPoint((request, response, ex) ->
+	                response.sendError(HttpServletResponse.SC_UNAUTHORIZED)
+	            )
+	        )
+	        .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
+	    return http.build();
 	}
 
 	@Bean // TODO: remove this later - using it to get seeds
