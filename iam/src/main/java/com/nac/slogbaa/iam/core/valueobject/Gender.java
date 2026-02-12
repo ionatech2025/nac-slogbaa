@@ -1,4 +1,6 @@
 package com.nac.slogbaa.iam.core.valueobject;
 
-public class Gender {
+public enum Gender {
+    MALE,
+    FEMALE
 }

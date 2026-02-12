@@ -1,4 +1,40 @@
 package com.nac.slogbaa.iam.adapters.persistence.adapter;
 
-public class TraineeRepositoryAdapter {
+import com.nac.slogbaa.iam.adapters.persistence.mappers.TraineeEntityMapper;
+import com.nac.slogbaa.iam.adapters.persistence.repository.JpaTraineeRepository;
+import com.nac.slogbaa.iam.application.port.out.TraineeRepositoryPort;
+import com.nac.slogbaa.iam.core.aggregate.Trainee;
+import com.nac.slogbaa.iam.core.valueobject.Email;
+import org.springframework.stereotype.Component;
+
+import java.util.Optional;
+import java.util.UUID;
+
+@Component
+public class TraineeRepositoryAdapter implements TraineeRepositoryPort {
+
+    private final JpaTraineeRepository jpaRepository;
+    private final TraineeEntityMapper mapper;
+
+    public TraineeRepositoryAdapter(JpaTraineeRepository jpaRepository, TraineeEntityMapper mapper) {
+        this.jpaRepository = jpaRepository;
+        this.mapper = mapper;
+    }
+
+    @Override
+    public Trainee save(Trainee trainee) {
+        var entity = mapper.toEntity(trainee);
+        entity = jpaRepository.save(entity);
+        return mapper.toDomain(entity);
+    }
+
+    @Override
+    public Optional<Trainee> findByEmail(Email email) {
+        return jpaRepository.findByEmail(email.getValue()).map(mapper::toDomain);
+    }
+
+    @Override
+    public Optional<Trainee> findById(UUID id) {
+        return jpaRepository.findById(id).map(mapper::toDomain);
+    }
 }

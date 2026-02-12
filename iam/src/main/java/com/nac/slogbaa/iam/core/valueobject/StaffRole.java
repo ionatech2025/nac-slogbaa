@@ -1,4 +1,6 @@
 package com.nac.slogbaa.iam.core.valueobject;
 
-public class StaffRole {
+public enum StaffRole {
+    SUPER_ADMIN,
+    ADMIN
 }
