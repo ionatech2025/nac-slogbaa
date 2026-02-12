@@ -1,4 +1,7 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../hooks/useAuth.js'
+import { login as loginApi } from '../../../api/iam/auth.js'
 
 const styles = {
   form: {
@@ -23,11 +26,6 @@ const styles = {
     fontSize: '1rem',
     background: 'var(--slogbaa-surface)',
   },
-  inputFocus: {
-    outline: 'none',
-    borderColor: 'var(--slogbaa-orange)',
-    boxShadow: '0 0 0 2px rgba(26, 54, 93, 0.2)',
-  },
   submit: {
     marginTop: '0.25rem',
     padding: '0.625rem 1rem',
@@ -39,8 +37,9 @@ const styles = {
     fontWeight: 500,
     cursor: 'pointer',
   },
-  submitHover: {
-    background: 'var(--slogbaa-orange-hover)',
+  submitDisabled: {
+    opacity: 0.7,
+    cursor: 'not-allowed',
   },
   error: {
     fontSize: '0.875rem',
@@ -53,8 +52,10 @@ export function LoginForm() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
+  const { login: setAuth } = useAuth()
+  const navigate = useNavigate()
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     setError(null)
     if (!email.trim() || !password) {
@@ -62,11 +63,20 @@ export function LoginForm() {
       return
     }
     setLoading(true)
-    // TODO: call auth API when backend is ready
-    setTimeout(() => {
+    try {
+      const result = await loginApi(email.trim(), password)
+      if (result.error) {
+        setError(result.error)
+        return
+      }
+      const { token, userId, email: userEmail, role, fullName } = result.data
+      setAuth(token, { userId, email: userEmail, role, fullName })
+      navigate('/dashboard', { replace: true })
+    } catch (err) {
+      setError(err?.message ?? 'Network error. Is the backend running?')
+    } finally {
       setLoading(false)
-      setError('Backend not connected. Use seed credentials when API is ready.')
-    }, 300)
+    }
   }
 
   return (
@@ -100,7 +110,11 @@ export function LoginForm() {
         />
       </div>
       {error && <p style={styles.error}>{error}</p>}
-      <button type="submit" style={styles.submit} disabled={loading}>
+      <button
+        type="submit"
+        style={{ ...styles.submit, ...(loading ? styles.submitDisabled : {}) }}
+        disabled={loading}
+      >
         {loading ? 'Signing in…' : 'Sign in'}
       </button>
     </form>
