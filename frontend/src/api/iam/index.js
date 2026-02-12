@@ -1,1 +1,1 @@
-export { authApi } from './auth.js'
+export { login } from './auth.js'
