@@ -7,19 +7,25 @@ const TEST_ACCOUNTS = [
   {
     role: 'Trainee',
     email: 'jane.akello@example.com',
-    password: 'password',
+    password: 'trainee1',
     note: 'Trainee (Leader, Kampala)',
+  },
+  {
+    role: 'Trainee',
+    email: 'john.ocen@example.com',
+    password: 'trainee2',
+    note: 'Trainee (Civil Society Member, Gulu)',
   },
   {
     role: 'SuperAdmin',
     email: 'superadmin@slogbaa.nac.go.ug',
-    password: 'password',
+    password: 'superadmin123',
     note: 'Full access; manages content and users',
   },
   {
     role: 'Admin',
     email: 'admin@slogbaa.nac.go.ug',
-    password: 'password',
+    password: 'admin123',
     note: 'Read-only, filtering and reports',
   },
 ]
@@ -101,7 +107,7 @@ export function TestCredentialsSidebar() {
         </div>
       ))}
       <div style={styles.hint}>
-        Other trainees: john.ocen@example.com, mary.nabukenya@example.com (same password when set in backend).
+        Other trainees: john.ocen@example.com, mary.nabukenya@example.com.
       </div>
     </aside>
   )

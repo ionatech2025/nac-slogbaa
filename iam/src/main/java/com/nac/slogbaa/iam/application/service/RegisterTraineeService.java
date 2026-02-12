@@ -40,6 +40,11 @@ public final class RegisterTraineeService implements RegisterTraineeUseCase {
     @Override
     public RegisterTraineeResult register(RegisterTraineeCommand command) {
         Email email = new Email(command.getEmail());
+        // enforce only trainees can register with this service, so check both repositories for email uniqueness
+        if(staffUserRepository.findByEmail(email).isPresent()) {
+			throw new UnsupportedOperationException("Staff cannot register here");
+		}
+                
         if (traineeRepository.findByEmail(email).isPresent()
                 || staffUserRepository.findByEmail(email).isPresent()) {
             throw new DuplicateEmailException(email.getValue());
