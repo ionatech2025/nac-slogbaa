@@ -5,6 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.persistence.autoconfigure.EntityScan;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -30,5 +31,16 @@ public class SlogbaaApplication {
 //	    };
 //	}
 	
+	@Bean
+    ApplicationRunner runner(PasswordEncoder encoder) {
+        return args -> {
+            // This will print to your terminal every time the app starts
+            System.out.println("Encoded Password: " + encoder.encode("superadmin123"));
+            System.out.println("Encoded Password: " + encoder.encode("admin123"));
+            System.out.println("Encoded Password: " + encoder.encode("trainee1"));
+            System.out.println("Encoded Password: " + encoder.encode("trainee2"));
+            System.out.println("Encoded Password: " + encoder.encode("trainee3"));
+        };
+    }
 
 }
