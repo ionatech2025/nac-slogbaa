@@ -214,7 +214,7 @@ export function CourseCard({ course, enrolled, onEnroll, variant = 'vertical' })
             style={{ ...styles.button, ...(isHorizontal ? styles.buttonHorizontal : {}) }}
             onClick={() => onEnroll(course)}
           >
-            {isHorizontal ? 'COURSE IN ENGLISH →' : 'ENROLL'}
+            ENROLL NOW →
           </button>
         )}
       </div>
