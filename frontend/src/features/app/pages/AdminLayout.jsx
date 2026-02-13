@@ -108,6 +108,18 @@ const styles = {
     background: 'var(--slogbaa-bg)',
     borderLeft: '1px solid var(--slogbaa-border)',
   },
+  greeting: {
+    margin: '0 0 0.5rem',
+    fontSize: '1.5rem',
+    fontWeight: 700,
+    color: 'var(--slogbaa-text)',
+  },
+  greetingDivider: {
+    height: 0,
+    border: 'none',
+    borderBottom: '2px solid var(--slogbaa-orange)',
+    margin: '0 0 1.5rem',
+  },
 }
 
 export function AdminLayout() {
@@ -171,37 +183,41 @@ export function AdminLayout() {
             </div>
           </div>
 
-          {isSuperAdmin && (
-            <div style={{ ...styles.sidebarSection, ...styles.sidebarSectionLast }}>
-              <p style={styles.sidebarLabel}>Quick Actions</p>
-              <div style={styles.sidebarSectionInner}>
-                <button
-                  type="button"
-                  style={styles.quickActionBtn}
-                  onClick={() => setModal('updateCourses')}
-                >
-                  Update Courses
-                </button>
-                <button
-                  type="button"
-                  style={styles.quickActionBtn}
-                  onClick={() => setModal('createStaff')}
-                >
-                  Create Staff
-                </button>
-                <button
-                  type="button"
-                  style={styles.quickActionBtn}
-                  onClick={() => setModal('changePassword')}
-                >
-                  Change Password
-                </button>
-              </div>
+          <div style={{ ...styles.sidebarSection, ...styles.sidebarSectionLast }}>
+            <p style={styles.sidebarLabel}>Quick Actions</p>
+            <div style={styles.sidebarSectionInner}>
+              {isSuperAdmin && (
+                <>
+                  <button
+                    type="button"
+                    style={styles.quickActionBtn}
+                    onClick={() => setModal('updateCourses')}
+                  >
+                    Update Courses
+                  </button>
+                  <button
+                    type="button"
+                    style={styles.quickActionBtn}
+                    onClick={() => setModal('createStaff')}
+                  >
+                    Create Staff
+                  </button>
+                </>
+              )}
+              <button
+                type="button"
+                style={styles.quickActionBtn}
+                onClick={() => setModal('changePassword')}
+              >
+                Change Password
+              </button>
             </div>
-          )}
+          </div>
         </aside>
 
         <main style={styles.main}>
+          <h1 style={styles.greeting}>Welcome back, {displayName}! 👋</h1>
+          <hr style={styles.greetingDivider} aria-hidden />
           <Outlet context={outletContext} />
         </main>
       </div>

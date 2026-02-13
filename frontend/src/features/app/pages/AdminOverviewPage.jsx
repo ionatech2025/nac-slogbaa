@@ -6,18 +6,6 @@ const MOCK_TRAINEES = [
 ]
 
 const styles = {
-  greeting: {
-    margin: '0 0 0.5rem',
-    fontSize: '1.5rem',
-    fontWeight: 700,
-    color: 'var(--slogbaa-text)',
-  },
-  greetingDivider: {
-    height: 0,
-    border: 'none',
-    borderBottom: '2px solid var(--slogbaa-orange)',
-    margin: '0 0 1.5rem',
-  },
   pageTitle: {
     margin: '0 0 1rem',
     fontSize: '1.75rem',
@@ -107,12 +95,10 @@ const styles = {
 }
 
 export function AdminOverviewPage() {
-  const { staff, displayName } = useOutletContext()
+  const { staff } = useOutletContext()
 
   return (
     <>
-      <h1 style={styles.greeting}>Welcome back, {displayName}! 👋</h1>
-      <hr style={styles.greetingDivider} aria-hidden />
       <h2 style={styles.pageTitle}>Overview</h2>
 
       <section style={styles.section}>
