@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { FontAwesomeIcon, icons } from '../../shared/icons.js'
+import { FontAwesomeIcon, icons } from '../../../shared/icons.js'
 
 const styles = {
   wrap: {

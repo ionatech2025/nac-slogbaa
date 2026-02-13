@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { FontAwesomeIcon, icons } from '../../../../shared/icons.js'
+import { FontAwesomeIcon, icons } from '../../../shared/icons.js'
 import { useAuth } from '../hooks/useAuth.js'
 import { login as loginApi } from '../../../api/iam/auth.js'
 
