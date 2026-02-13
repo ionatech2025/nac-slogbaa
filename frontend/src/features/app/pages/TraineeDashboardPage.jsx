@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useAuth } from '../../iam/context/AuthContext.jsx'
 import { TraineeNav } from '../components/trainee/TraineeNav.jsx'
 import { CourseCard } from '../components/trainee/CourseCard.jsx'
 import { CertificateCard } from '../components/trainee/CertificateCard.jsx'
@@ -53,6 +54,18 @@ const styles = {
     margin: '0 auto',
     width: '100%',
   },
+  greeting: {
+    margin: '0 0 0.75rem',
+    fontSize: '1.5rem',
+    fontWeight: 700,
+    color: 'var(--slogbaa-text)',
+  },
+  greetingDivider: {
+    height: 0,
+    border: 'none',
+    borderBottom: '1px solid var(--slogbaa-border)',
+    margin: '0 0 1.5rem',
+  },
   tabs: {
     display: 'flex',
     gap: 0,
@@ -89,7 +102,9 @@ const styles = {
 }
 
 export function TraineeDashboardPage() {
+  const { user } = useAuth()
   const [activeTab, setActiveTab] = useState('courses')
+  const displayName = user?.fullName || user?.email || 'Trainee'
 
   const handleEnroll = (course) => {
     console.log('Enroll', course.id)
@@ -110,6 +125,8 @@ export function TraineeDashboardPage() {
     <div style={styles.layout}>
       <TraineeNav />
       <main style={styles.main}>
+        <h1 style={styles.greeting}>Welcome Back, {displayName}! 👋</h1>
+        <hr style={styles.greetingDivider} aria-hidden />
         <div style={styles.tabs}>
           <button
             type="button"
