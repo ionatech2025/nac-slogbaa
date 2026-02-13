@@ -71,7 +71,10 @@ export function LoginForm() {
       }
       const { token, userId, email: userEmail, role, fullName } = result.data
       setAuth(token, { userId, email: userEmail, role, fullName })
-      navigate('/dashboard', { replace: true })
+      const isStaff = Boolean(role && (String(role).toUpperCase() === 'SUPER_ADMIN' || String(role).toUpperCase() === 'ADMIN'))
+      const target = isStaff ? '/admin' : '/dashboard'
+      // Defer navigation so auth context state is committed before the new page reads it
+      setTimeout(() => navigate(target, { replace: true }), 0)
     } catch (err) {
       setError(err?.message ?? 'Network error. Is the backend running?')
     } finally {
