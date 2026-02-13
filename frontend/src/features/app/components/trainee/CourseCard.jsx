@@ -1,3 +1,5 @@
+import { FontAwesomeIcon, icons } from '../../../../shared/icons.js'
+
 const DEFAULT_IMG = 'https://placehold.co/400x200/e0e0e0/6b6b6b?text=Course'
 
 const styles = {
@@ -121,6 +123,9 @@ const styles = {
     alignSelf: 'flex-start',
   },
   button: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '0.4rem',
     padding: '0.5rem 1rem',
     background: 'var(--slogbaa-orange)',
     color: '#fff',
@@ -136,6 +141,9 @@ const styles = {
     alignSelf: 'flex-start',
     marginTop: 'auto',
     padding: '0.5rem 1.25rem',
+  },
+  badgeIcon: {
+    marginRight: '0.35rem',
   },
 }
 
@@ -204,7 +212,8 @@ export function CourseCard({ course, enrolled, onEnroll, variant = 'vertical' })
           course.meta && <p style={styles.meta}>{course.meta}</p>
         )}
         {enrolled && (
-          <span style={{ ...styles.badge, ...(isHorizontal ? styles.badgeHorizontal : {}) }}>
+          <span style={{ ...styles.badge, ...(isHorizontal ? styles.badgeHorizontal : {}), display: 'inline-flex', alignItems: 'center' }}>
+            <FontAwesomeIcon icon={icons.enrolled} style={styles.badgeIcon} />
             ENROLLED
           </span>
         )}
@@ -214,6 +223,7 @@ export function CourseCard({ course, enrolled, onEnroll, variant = 'vertical' })
             style={{ ...styles.button, ...(isHorizontal ? styles.buttonHorizontal : {}) }}
             onClick={() => onEnroll(course)}
           >
+            <FontAwesomeIcon icon={icons.enroll} />
             ENROLL NOW →
           </button>
         )}

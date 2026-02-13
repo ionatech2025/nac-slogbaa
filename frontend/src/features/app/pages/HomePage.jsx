@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { FontAwesomeIcon, icons } from '../../shared/icons.js'
 
 const styles = {
   wrap: {
@@ -21,6 +22,9 @@ const styles = {
     gap: '1rem',
   },
   link: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '0.4rem',
     padding: '0.5rem 1rem',
     background: 'var(--slogbaa-orange)',
     color: '#fff',
@@ -35,8 +39,14 @@ export function HomePage() {
     <div style={styles.wrap}>
       <h1 style={styles.title}>SLOGBAA Online Learning</h1>
       <div style={styles.links}>
-        <Link to="/auth/login" style={styles.link}>Sign in</Link>
-        <Link to="/auth/register" style={styles.link}>Register</Link>
+        <Link to="/auth/login" style={styles.link}>
+          <FontAwesomeIcon icon={icons.signIn} />
+          Sign in
+        </Link>
+        <Link to="/auth/register" style={styles.link}>
+          <FontAwesomeIcon icon={icons.register} />
+          Register
+        </Link>
       </div>
     </div>
   )

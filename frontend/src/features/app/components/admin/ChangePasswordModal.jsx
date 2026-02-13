@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { FontAwesomeIcon, icons } from '../../../../shared/icons.js'
 import { Modal } from '../../../../shared/components/Modal.jsx'
 
 const styles = {
@@ -44,6 +45,9 @@ const styles = {
     cursor: 'pointer',
   },
   btnPrimary: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '0.4rem',
     padding: '0.5rem 1.25rem',
     background: 'var(--slogbaa-orange)',
     color: '#fff',
@@ -142,6 +146,7 @@ export function ChangePasswordModal({ onClose, onSubmit }) {
             style={{ ...styles.btnPrimary, ...(loading ? styles.btnPrimaryDisabled : {}) }}
             disabled={loading}
           >
+            <FontAwesomeIcon icon={icons.changePassword} />
             {loading ? 'Updating…' : 'Update Password'}
           </button>
         </div>

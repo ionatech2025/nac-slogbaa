@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Navigate, NavLink, Outlet } from 'react-router-dom'
+import { FontAwesomeIcon, icons } from '../../../shared/icons.js'
 import { useAuth } from '../../iam/hooks/useAuth.js'
 import { AdminNav } from '../components/admin/AdminNav.jsx'
 import { CreateStaffModal } from '../components/admin/CreateStaffModal.jsx'
@@ -12,16 +13,16 @@ const MOCK_STAFF = [
 ]
 
 const MODULES_SUPER_ADMIN = [
-  { path: 'homepage', label: 'Homepage' },
-  { path: 'overview', label: 'Overview' },
-  { path: 'learning', label: 'Learning' },
-  { path: 'assessment', label: 'Assessment' },
-  { path: 'reports', label: 'Reports & Analytics' },
+  { path: 'homepage', label: 'Homepage', icon: icons.home },
+  { path: 'overview', label: 'Overview', icon: icons.overview },
+  { path: 'learning', label: 'Learning', icon: icons.learning },
+  { path: 'assessment', label: 'Assessment', icon: icons.assessment },
+  { path: 'reports', label: 'Reports & Analytics', icon: icons.reports },
 ]
 
 const MODULES_ADMIN = [
-  { path: 'overview', label: 'Overview' },
-  { path: 'reports', label: 'Reports & Analytics' },
+  { path: 'overview', label: 'Overview', icon: icons.overview },
+  { path: 'reports', label: 'Reports & Analytics', icon: icons.reports },
 ]
 
 const styles = {
@@ -66,7 +67,9 @@ const styles = {
     paddingBottom: '0.5rem',
   },
   navLink: {
-    display: 'block',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem',
     padding: '0.6rem 1rem',
     marginBottom: 2,
     fontSize: '0.9375rem',
@@ -75,13 +78,19 @@ const styles = {
     borderRadius: 6,
     transition: 'background 0.15s, color 0.15s',
   },
+  navLinkIcon: {
+    width: '1.1em',
+    opacity: 0.9,
+  },
   navLinkActive: {
     background: 'var(--slogbaa-orange)',
     color: '#fff',
     fontWeight: 600,
   },
   quickActionBtn: {
-    display: 'block',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem',
     width: '100%',
     padding: '0.6rem 1rem',
     marginBottom: 2,
@@ -93,6 +102,10 @@ const styles = {
     cursor: 'pointer',
     borderRadius: 6,
     transition: 'background 0.15s, color 0.15s',
+  },
+  quickActionIcon: {
+    width: '1.1em',
+    opacity: 0.9,
   },
   quickActionBtnHover: {
     background: 'rgba(241, 134, 37, 0.2)',
@@ -165,9 +178,9 @@ export function AdminLayout() {
       <div style={styles.body}>
         <aside style={styles.sidebar}>
           <div style={styles.sidebarSection}>
-            <p style={styles.sidebarLabel}>Modules</p>
+            <p style={styles.sidebarLabel}>Sections</p>
             <div style={styles.sidebarSectionInner}>
-              {modules.map(({ path, label }) => (
+              {modules.map(({ path, label, icon }) => (
                 <NavLink
                   key={path}
                   to={`/admin/${path}`}
@@ -177,6 +190,7 @@ export function AdminLayout() {
                     ...(isActive ? styles.navLinkActive : {}),
                   })}
                 >
+                  {icon && <FontAwesomeIcon icon={icon} style={styles.navLinkIcon} />}
                   {label}
                 </NavLink>
               ))}
@@ -193,6 +207,7 @@ export function AdminLayout() {
                     style={styles.quickActionBtn}
                     onClick={() => setModal('updateCourses')}
                   >
+                    <FontAwesomeIcon icon={icons.updateCourses} style={styles.quickActionIcon} />
                     Update Courses
                   </button>
                   <button
@@ -200,6 +215,7 @@ export function AdminLayout() {
                     style={styles.quickActionBtn}
                     onClick={() => setModal('createStaff')}
                   >
+                    <FontAwesomeIcon icon={icons.createStaff} style={styles.quickActionIcon} />
                     Create Staff
                   </button>
                 </>
@@ -209,6 +225,7 @@ export function AdminLayout() {
                 style={styles.quickActionBtn}
                 onClick={() => setModal('changePassword')}
               >
+                <FontAwesomeIcon icon={icons.changePassword} style={styles.quickActionIcon} />
                 Change Password
               </button>
             </div>

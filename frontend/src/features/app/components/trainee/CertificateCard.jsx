@@ -1,3 +1,5 @@
+import { FontAwesomeIcon, icons } from '../../../../shared/icons.js'
+
 const styles = {
   card: {
     background: 'var(--slogbaa-surface)',
@@ -37,6 +39,9 @@ const styles = {
     flexWrap: 'wrap',
   },
   button: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '0.4rem',
     padding: '0.5rem 1rem',
     borderRadius: 6,
     fontSize: '0.875rem',
@@ -79,6 +84,7 @@ export function CertificateCard({ certificate, onPreview, onDownload }) {
             style={{ ...styles.button, ...styles.primary }}
             onClick={() => onPreview?.(certificate)}
           >
+            <FontAwesomeIcon icon={icons.previewPdf} />
             Preview PDF
           </button>
           <button
@@ -86,6 +92,7 @@ export function CertificateCard({ certificate, onPreview, onDownload }) {
             style={{ ...styles.button, ...styles.secondary }}
             onClick={() => onDownload?.(certificate)}
           >
+            <FontAwesomeIcon icon={icons.download} />
             Download
           </button>
         </div>

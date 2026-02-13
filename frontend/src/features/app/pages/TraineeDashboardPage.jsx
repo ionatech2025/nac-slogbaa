@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { FontAwesomeIcon, icons } from '../../shared/icons.js'
 import { useAuth } from '../../iam/context/AuthContext.jsx'
 import { TraineeNav } from '../components/trainee/TraineeNav.jsx'
 import { CourseCard } from '../components/trainee/CourseCard.jsx'
@@ -80,6 +81,9 @@ const styles = {
     marginBottom: '1.5rem',
   },
   tab: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '0.4rem',
     padding: '0.75rem 1.25rem',
     border: 'none',
     background: 'none',
@@ -117,12 +121,19 @@ const styles = {
     background: 'var(--slogbaa-surface)',
   },
   viewToggleBtn: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '0.35rem',
     padding: '0.5rem 0.75rem',
     border: 'none',
     background: 'none',
     cursor: 'pointer',
     fontSize: '0.875rem',
     color: 'var(--slogbaa-text-muted)',
+  },
+  tabIcon: {
+    width: '1em',
+    opacity: 0.9,
   },
   viewToggleBtnActive: {
     background: 'var(--slogbaa-blue)',
@@ -175,6 +186,7 @@ export function TraineeDashboardPage() {
             style={{ ...styles.tab, ...(activeTab === 'courses' ? styles.tabActive : {}) }}
             onClick={() => setActiveTab('courses')}
           >
+            <FontAwesomeIcon icon={icons.course} style={styles.tabIcon} />
             Courses
           </button>
           <button
@@ -182,6 +194,7 @@ export function TraineeDashboardPage() {
             style={{ ...styles.tab, ...(activeTab === 'certificates' ? styles.tabActive : {}) }}
             onClick={() => setActiveTab('certificates')}
           >
+            <FontAwesomeIcon icon={icons.certificate} style={styles.tabIcon} />
             Certificates
           </button>
         </div>
@@ -201,6 +214,7 @@ export function TraineeDashboardPage() {
                   aria-pressed={courseView === 'vertical'}
                   title="Card view"
                 >
+                  <FontAwesomeIcon icon={icons.viewCards} style={styles.tabIcon} />
                   Cards
                 </button>
                 <button
@@ -213,6 +227,7 @@ export function TraineeDashboardPage() {
                   aria-pressed={courseView === 'horizontal'}
                   title="Row view"
                 >
+                  <FontAwesomeIcon icon={icons.viewList} style={styles.tabIcon} />
                   Rows
                 </button>
               </div>

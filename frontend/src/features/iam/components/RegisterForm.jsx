@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { FontAwesomeIcon, icons } from '../../../../shared/icons.js'
 import { useAuth } from '../hooks/useAuth.js'
 import { register as registerApi, login as loginApi } from '../../../api/iam/auth.js'
 
@@ -56,6 +57,10 @@ const styles = {
     cursor: 'pointer',
   },
   submit: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '0.4rem',
     marginTop: '0.25rem',
     padding: '0.625rem 1rem',
     background: 'var(--slogbaa-orange)',
@@ -273,6 +278,7 @@ export function RegisterForm() {
       </div>
       {error && <p style={styles.error}>{error}</p>}
       <button type="submit" style={styles.submit} disabled={loading}>
+        <FontAwesomeIcon icon={icons.register} />
         {loading ? 'Creating account…' : 'Create account'}
       </button>
     </form>

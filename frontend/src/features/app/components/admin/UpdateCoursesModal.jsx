@@ -1,3 +1,4 @@
+import { FontAwesomeIcon, icons } from '../../../../shared/icons.js'
 import { Modal } from '../../../../shared/components/Modal.jsx'
 
 const styles = {
@@ -15,6 +16,9 @@ const styles = {
     borderTop: '1px solid var(--slogbaa-border)',
   },
   btn: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '0.4rem',
     padding: '0.5rem 1.25rem',
     background: 'var(--slogbaa-orange)',
     color: '#fff',
@@ -34,6 +38,7 @@ export function UpdateCoursesModal({ onClose }) {
       </p>
       <div style={styles.actions}>
         <button type="button" style={styles.btn} onClick={onClose}>
+          <FontAwesomeIcon icon={icons.updateCourses} />
           OK
         </button>
       </div>

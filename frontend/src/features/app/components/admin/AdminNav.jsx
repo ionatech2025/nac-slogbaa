@@ -1,5 +1,6 @@
-import { useAuth } from '../../../iam/hooks/useAuth.js'
 import { Link } from 'react-router-dom'
+import { FontAwesomeIcon, icons } from '../../../../shared/icons.js'
+import { useAuth } from '../../../iam/hooks/useAuth.js'
 
 const styles = {
   nav: {
@@ -44,6 +45,9 @@ const styles = {
     color: 'rgba(255,255,255,0.9)',
   },
   signOut: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '0.4rem',
     padding: '0.4rem 0.75rem',
     background: 'transparent',
     color: '#fff',
@@ -70,6 +74,7 @@ export function AdminNav() {
       <div style={styles.right}>
         <span style={styles.userLabel}>{displayName}</span>
         <button type="button" style={styles.signOut} onClick={logout}>
+          <FontAwesomeIcon icon={icons.signOut} />
           Sign out
         </button>
       </div>

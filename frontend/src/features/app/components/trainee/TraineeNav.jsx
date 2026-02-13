@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { FontAwesomeIcon, icons } from '../../../../shared/icons.js'
 import { useAuth } from '../../../iam/hooks/useAuth.js'
 
 const styles = {
@@ -57,7 +58,9 @@ const styles = {
     zIndex: 200,
   },
   dropdownItem: {
-    display: 'block',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem',
     width: '100%',
     padding: '0.625rem 1rem',
     border: 'none',
@@ -66,6 +69,10 @@ const styles = {
     fontSize: '0.9375rem',
     color: 'var(--slogbaa-text)',
     textAlign: 'left',
+  },
+  dropdownItemIcon: {
+    width: '1em',
+    opacity: 0.85,
   },
   dropdownItemHover: {
     background: 'var(--slogbaa-bg)',
@@ -133,10 +140,20 @@ export function TraineeNav() {
             <button
               type="button"
               style={styles.dropdownItem}
+              onClick={() => handleAction('view-profile')}
+              role="menuitem"
+            >
+              <FontAwesomeIcon icon={icons.viewProfile} style={styles.dropdownItemIcon} />
+              View profile
+            </button>
+            <button
+              type="button"
+              style={styles.dropdownItem}
               onClick={() => handleAction('edit-profile')}
               role="menuitem"
             >
-              Profile
+              <FontAwesomeIcon icon={icons.editProfile} style={styles.dropdownItemIcon} />
+              Edit profile
             </button>
             <button
               type="button"
@@ -144,7 +161,8 @@ export function TraineeNav() {
               onClick={() => handleAction('grades')}
               role="menuitem"
             >
-              Grades
+              <FontAwesomeIcon icon={icons.grades} style={styles.dropdownItemIcon} />
+              Grades & progress
             </button>
             <button
               type="button"
@@ -152,6 +170,7 @@ export function TraineeNav() {
               onClick={() => handleAction('sign-out')}
               role="menuitem"
             >
+              <FontAwesomeIcon icon={icons.signOut} style={styles.dropdownItemIcon} />
               Sign out
             </button>
           </div>

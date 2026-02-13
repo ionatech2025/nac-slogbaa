@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { FontAwesomeIcon, icons } from '../icons.js'
 
 const styles = {
   overlay: {
@@ -35,13 +36,15 @@ const styles = {
     color: 'var(--slogbaa-text)',
   },
   closeBtn: {
-    padding: '0.25rem',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '0.35rem',
     border: 'none',
     background: 'none',
     cursor: 'pointer',
     color: 'var(--slogbaa-text-muted)',
-    fontSize: '1.5rem',
-    lineHeight: 1,
+    fontSize: '1.25rem',
     borderRadius: 4,
   },
   body: {
@@ -80,7 +83,7 @@ export function Modal({ title, onClose, children, showClose = true }) {
               onClick={onClose}
               aria-label="Close"
             >
-              ×
+              <FontAwesomeIcon icon={icons.close} />
             </button>
           )}
         </div>

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { FontAwesomeIcon, icons } from '../../../../shared/icons.js'
 import { useAuth } from '../hooks/useAuth.js'
 import { login as loginApi } from '../../../api/iam/auth.js'
 
@@ -27,6 +28,10 @@ const styles = {
     background: 'var(--slogbaa-surface)',
   },
   submit: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '0.4rem',
     marginTop: '0.25rem',
     padding: '0.625rem 1rem',
     background: 'var(--slogbaa-orange)',
@@ -118,6 +123,7 @@ export function LoginForm() {
         style={{ ...styles.submit, ...(loading ? styles.submitDisabled : {}) }}
         disabled={loading}
       >
+        <FontAwesomeIcon icon={icons.signIn} />
         {loading ? 'Signing in…' : 'Sign in'}
       </button>
     </form>
