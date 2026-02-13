@@ -11,7 +11,7 @@ const MOCK_MY_COURSES = [
     title: 'Introduction to Civic Engagement',
     description: 'Foundational course on civic participation and community leadership for youth across Uganda.',
     meta: '5 modules · Certificate on completion',
-    imageUrl: '/assets/images/courses/civic-engagement.jpg',
+    imageUrl: '/assets/images/courses/course1.jpg',
   },
 ]
 const MOCK_AVAILABLE_COURSES = [
@@ -20,14 +20,14 @@ const MOCK_AVAILABLE_COURSES = [
     title: 'Digital Literacy for Leaders',
     description: 'Building digital skills for effective communication and advocacy.',
     meta: '4 modules',
-    imageUrl: '/assets/images/courses/digital-literacy.jpg',
+    imageUrl: '/assets/images/courses/course2.jpg',
   },
   {
     id: '3',
     title: 'Budget Advocacy Basics',
     description: 'Understand local budgets and how to advocate for community priorities.',
     meta: '6 modules',
-    imageUrl: '/assets/images/courses/budget-advocacy.jpg',
+    imageUrl: '/assets/images/courses/course3.jpg',
   },
 ]
 const MOCK_CERTIFICATES = [
@@ -35,7 +35,14 @@ const MOCK_CERTIFICATES = [
     id: 'c1',
     title: 'Introduction to Civic Engagement',
     description: 'Completed on completion of all modules and passing the final assessment.',
-    imageUrl: '/assets/images/certificates/sample-cert.jpg',
+    imageUrl: '/assets/images/certificates/cert1.jpg',
+    pdfUrl: '#',
+  },
+  {
+    id: 'c2',
+    title: 'Digital Literacy for Leaders',
+    description: 'Completed on completion of all modules and passing the final assessment.',
+    imageUrl: '/assets/images/certificates/cert2.jpg',
     pdfUrl: '#',
   },
 ]
@@ -87,15 +94,49 @@ const styles = {
     color: 'var(--slogbaa-blue)',
     borderBottom: '2px solid var(--slogbaa-blue)',
   },
+  sectionHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    flexWrap: 'wrap',
+    gap: '0.75rem',
+    marginBottom: '1rem',
+  },
   sectionTitle: {
-    margin: '0 0 1rem',
+    margin: 0,
     fontSize: '1.125rem',
     fontWeight: 600,
     color: 'var(--slogbaa-text)',
   },
+  viewToggle: {
+    display: 'flex',
+    gap: 0,
+    border: '1px solid var(--slogbaa-border)',
+    borderRadius: 8,
+    overflow: 'hidden',
+    background: 'var(--slogbaa-surface)',
+  },
+  viewToggleBtn: {
+    padding: '0.5rem 0.75rem',
+    border: 'none',
+    background: 'none',
+    cursor: 'pointer',
+    fontSize: '0.875rem',
+    color: 'var(--slogbaa-text-muted)',
+  },
+  viewToggleBtnActive: {
+    background: 'var(--slogbaa-blue)',
+    color: '#fff',
+  },
   cardGrid: {
     display: 'grid',
     gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+    gap: '1.25rem',
+    marginBottom: '2rem',
+  },
+  cardList: {
+    display: 'flex',
+    flexDirection: 'column',
     gap: '1.25rem',
     marginBottom: '2rem',
   },
@@ -104,6 +145,7 @@ const styles = {
 export function TraineeDashboardPage() {
   const { user } = useAuth()
   const [activeTab, setActiveTab] = useState('courses')
+  const [courseView, setCourseView] = useState('vertical') // 'vertical' | 'horizontal'
   const displayName = user?.fullName || user?.email || 'Trainee'
 
   const handleEnroll = (course) => {
@@ -146,16 +188,54 @@ export function TraineeDashboardPage() {
 
         {activeTab === 'courses' && (
           <>
-            <h2 style={styles.sectionTitle}>My Courses</h2>
-            <div style={styles.cardGrid}>
+            <div style={styles.sectionHeader}>
+              <h2 style={styles.sectionTitle}>My Courses</h2>
+              <div style={styles.viewToggle} role="group" aria-label="Course view">
+                <button
+                  type="button"
+                  style={{
+                    ...styles.viewToggleBtn,
+                    ...(courseView === 'vertical' ? styles.viewToggleBtnActive : {}),
+                  }}
+                  onClick={() => setCourseView('vertical')}
+                  aria-pressed={courseView === 'vertical'}
+                  title="Card view"
+                >
+                  Cards
+                </button>
+                <button
+                  type="button"
+                  style={{
+                    ...styles.viewToggleBtn,
+                    ...(courseView === 'horizontal' ? styles.viewToggleBtnActive : {}),
+                  }}
+                  onClick={() => setCourseView('horizontal')}
+                  aria-pressed={courseView === 'horizontal'}
+                  title="Row view"
+                >
+                  Rows
+                </button>
+              </div>
+            </div>
+            <div style={courseView === 'horizontal' ? styles.cardList : styles.cardGrid}>
               {MOCK_MY_COURSES.map((course) => (
-                <CourseCard key={course.id} course={course} enrolled />
+                <CourseCard
+                  key={course.id}
+                  course={course}
+                  enrolled
+                  variant={courseView}
+                />
               ))}
             </div>
             <h2 style={styles.sectionTitle}>Available Courses</h2>
-            <div style={styles.cardGrid}>
+            <div style={courseView === 'horizontal' ? styles.cardList : styles.cardGrid}>
               {MOCK_AVAILABLE_COURSES.map((course) => (
-                <CourseCard key={course.id} course={course} onEnroll={handleEnroll} />
+                <CourseCard
+                  key={course.id}
+                  course={course}
+                  onEnroll={handleEnroll}
+                  variant={courseView}
+                />
               ))}
             </div>
           </>
