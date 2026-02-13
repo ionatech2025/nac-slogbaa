@@ -133,18 +133,10 @@ export function TraineeNav() {
             <button
               type="button"
               style={styles.dropdownItem}
-              onClick={() => handleAction('view-profile')}
-              role="menuitem"
-            >
-              View profile
-            </button>
-            <button
-              type="button"
-              style={styles.dropdownItem}
               onClick={() => handleAction('edit-profile')}
               role="menuitem"
             >
-              Edit profile
+              Profile
             </button>
             <button
               type="button"
@@ -152,7 +144,7 @@ export function TraineeNav() {
               onClick={() => handleAction('grades')}
               role="menuitem"
             >
-              Grades & progress
+              Grades
             </button>
             <button
               type="button"
