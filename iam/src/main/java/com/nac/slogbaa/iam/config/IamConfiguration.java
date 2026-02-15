@@ -6,6 +6,7 @@ import com.nac.slogbaa.iam.application.port.in.CreateStaffUseCase;
 import com.nac.slogbaa.iam.application.port.in.DeleteStaffUseCase;
 import com.nac.slogbaa.iam.application.port.in.DeleteTraineeUseCase;
 import com.nac.slogbaa.iam.application.port.in.GetAdminDashboardOverviewUseCase;
+import com.nac.slogbaa.iam.application.port.in.GetTraineeByIdUseCase;
 import com.nac.slogbaa.iam.application.port.in.RegisterTraineeUseCase;
 import com.nac.slogbaa.iam.application.port.out.AuthTokenPort;
 import com.nac.slogbaa.iam.application.port.out.EmailNotificationPort;
@@ -18,6 +19,7 @@ import com.nac.slogbaa.iam.application.service.CreateStaffService;
 import com.nac.slogbaa.iam.application.service.DeleteStaffService;
 import com.nac.slogbaa.iam.application.service.DeleteTraineeService;
 import com.nac.slogbaa.iam.application.service.GetAdminDashboardOverviewService;
+import com.nac.slogbaa.iam.application.service.GetTraineeByIdService;
 import com.nac.slogbaa.iam.application.service.RegisterTraineeService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -86,6 +88,11 @@ public class IamConfiguration {
                 passwordHasher,
                 emailNotificationPort
         );
+    }
+
+    @Bean
+    public GetTraineeByIdUseCase getTraineeByIdUseCase(TraineeRepositoryPort traineeRepository) {
+        return new GetTraineeByIdService(traineeRepository);
     }
 
     @Bean
