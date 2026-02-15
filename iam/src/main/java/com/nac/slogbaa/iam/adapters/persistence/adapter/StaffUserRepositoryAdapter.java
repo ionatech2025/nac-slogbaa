@@ -5,6 +5,7 @@ import com.nac.slogbaa.iam.adapters.persistence.repository.JpaStaffUserRepositor
 import com.nac.slogbaa.iam.application.port.out.StaffUserRepositoryPort;
 import com.nac.slogbaa.iam.core.aggregate.StaffUser;
 import com.nac.slogbaa.iam.core.valueobject.Email;
+import com.nac.slogbaa.iam.core.valueobject.StaffUserId;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -25,6 +26,19 @@ public class StaffUserRepositoryAdapter implements StaffUserRepositoryPort {
     @Override
     public Optional<StaffUser> findByEmail(Email email) {
         return jpaRepository.findByEmail(email.getValue()).map(mapper::toDomain);
+    }
+
+    @Override
+    public Optional<StaffUser> findById(StaffUserId id) {
+        return jpaRepository.findById(id.getValue()).map(mapper::toDomain);
+    }
+
+    @Override
+    public void updatePasswordHash(StaffUserId id, String newPasswordHash) {
+        jpaRepository.findById(id.getValue()).ifPresent(entity -> {
+            entity.setPasswordHash(newPasswordHash);
+            jpaRepository.save(entity);
+        });
     }
 
     @Override
