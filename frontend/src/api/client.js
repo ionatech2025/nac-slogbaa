@@ -35,5 +35,12 @@ export function apiClient(token = null) {
         },
         body: body != null ? JSON.stringify(body) : undefined,
       }),
+
+    delete: (path, options = {}) =>
+      fetch(buildUrl(path), {
+        ...options,
+        method: 'DELETE',
+        headers: { ...authHeaders, ...options.headers },
+      }),
   }
 }

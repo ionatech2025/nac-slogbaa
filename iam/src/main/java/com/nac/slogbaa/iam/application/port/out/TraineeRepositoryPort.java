@@ -22,4 +22,6 @@ public interface TraineeRepositoryPort {
     List<Trainee> findAll();
 
     long count();
+
+    void deleteById(UUID id);
 }

@@ -26,5 +26,7 @@ public interface StaffUserRepositoryPort {
 
     void save(StaffUser staffUser);
 
+    void deleteById(StaffUserId id);
+
     void updatePasswordHash(StaffUserId id, String newPasswordHash);
 }

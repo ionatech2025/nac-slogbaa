@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Navigate, NavLink, Outlet } from 'react-router-dom'
 import { FontAwesomeIcon, icons } from '../../../shared/icons.js'
 import { useAuth } from '../../iam/hooks/useAuth.js'
 import { getDashboardOverview } from '../../../api/admin/dashboard.js'
 import { changePassword as changePasswordApi } from '../../../api/admin/me.js'
-import { createStaff as createStaffApi } from '../../../api/admin/staff.js'
+import { createStaff as createStaffApi, deleteStaff as deleteStaffApi } from '../../../api/admin/staff.js'
+import { deleteTrainee as deleteTraineeApi } from '../../../api/admin/trainees.js'
 import { AdminNav } from '../components/admin/AdminNav.jsx'
 import { CreateStaffModal } from '../components/admin/CreateStaffModal.jsx'
 import { UpdateCoursesModal } from '../components/admin/UpdateCoursesModal.jsx'
@@ -141,7 +142,7 @@ export function AdminLayout() {
   const [overviewError, setOverviewError] = useState(null)
   const [modal, setModal] = useState(null)
 
-  useEffect(() => {
+  const refreshOverview = useCallback(() => {
     if (!token) return
     setOverviewLoading(true)
     setOverviewError(null)
@@ -156,6 +157,10 @@ export function AdminLayout() {
       })
       .finally(() => setOverviewLoading(false))
   }, [token])
+
+  useEffect(() => {
+    refreshOverview()
+  }, [refreshOverview])
 
   if (!isAuthenticated || !user) {
     return <Navigate to="/auth/login" replace />
@@ -188,12 +193,25 @@ export function AdminLayout() {
     await changePasswordApi(token, data)
   }
 
+  const handleDeleteStaff = async (id) => {
+    await deleteStaffApi(token, id)
+    refreshOverview()
+  }
+
+  const handleDeleteTrainee = async (id) => {
+    await deleteTraineeApi(token, id)
+    refreshOverview()
+  }
+
   const outletContext = {
     staff,
     trainees,
     overviewLoading,
     overviewError,
     handleCreateStaff,
+    handleDeleteStaff,
+    handleDeleteTrainee,
+    isSuperAdmin,
     displayName,
   }
 
