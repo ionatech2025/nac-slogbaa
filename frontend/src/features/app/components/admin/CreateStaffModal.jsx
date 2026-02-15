@@ -74,6 +74,10 @@ const styles = {
     fontSize: '0.875rem',
     color: 'var(--slogbaa-error)',
   },
+  success: {
+    fontSize: '0.875rem',
+    color: 'var(--slogbaa-success, #0a7c42)',
+  },
 }
 
 const ROLES = [
@@ -87,6 +91,7 @@ export function CreateStaffModal({ onClose, onSubmit }) {
   const [role, setRole] = useState('ADMIN')
   const [password, setPassword] = useState('')
   const [error, setError] = useState(null)
+  const [success, setSuccess] = useState(false)
   const [loading, setLoading] = useState(false)
 
   const handleSubmit = async (e) => {
@@ -108,7 +113,8 @@ export function CreateStaffModal({ onClose, onSubmit }) {
     setLoading(true)
     try {
       await onSubmit?.({ fullName: fullName.trim(), email: trimmedEmail, role, password })
-      onClose?.()
+      setSuccess(true)
+      setTimeout(() => onClose?.(), 2000)
     } catch (err) {
       setError(err?.message ?? 'Something went wrong.')
     } finally {
@@ -169,17 +175,22 @@ export function CreateStaffModal({ onClose, onSubmit }) {
           />
         </div>
         {error && <p style={styles.error}>{error}</p>}
+        {success && (
+          <p style={styles.success}>
+            Staff created. Credentials have been sent to their email.
+          </p>
+        )}
         <div style={styles.actions}>
           <button type="button" style={styles.btnSecondary} onClick={onClose}>
             Cancel
           </button>
           <button
             type="submit"
-            style={{ ...styles.btnPrimary, ...(loading ? styles.btnPrimaryDisabled : {}) }}
-            disabled={loading}
+            style={{ ...styles.btnPrimary, ...(loading || success ? styles.btnPrimaryDisabled : {}) }}
+            disabled={loading || success}
           >
             <FontAwesomeIcon icon={icons.createStaff} />
-            {loading ? 'Creating…' : 'Create Staff'}
+            {loading ? 'Creating…' : success ? 'Created' : 'Create Staff'}
           </button>
         </div>
       </form>

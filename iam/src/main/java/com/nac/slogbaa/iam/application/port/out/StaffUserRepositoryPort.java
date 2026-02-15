@@ -2,6 +2,7 @@ package com.nac.slogbaa.iam.application.port.out;
 
 import com.nac.slogbaa.iam.core.aggregate.StaffUser;
 import com.nac.slogbaa.iam.core.valueobject.Email;
+import com.nac.slogbaa.iam.core.valueobject.StaffRole;
 import com.nac.slogbaa.iam.core.valueobject.StaffUserId;
 
 import java.util.List;
@@ -20,6 +21,10 @@ public interface StaffUserRepositoryPort {
     List<StaffUser> findAll();
 
     long count();
+
+    long countByRole(StaffRole role);
+
+    void save(StaffUser staffUser);
 
     void updatePasswordHash(StaffUserId id, String newPasswordHash);
 }

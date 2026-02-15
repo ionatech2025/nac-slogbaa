@@ -4,6 +4,7 @@ import { FontAwesomeIcon, icons } from '../../../shared/icons.js'
 import { useAuth } from '../../iam/hooks/useAuth.js'
 import { getDashboardOverview } from '../../../api/admin/dashboard.js'
 import { changePassword as changePasswordApi } from '../../../api/admin/me.js'
+import { createStaff as createStaffApi } from '../../../api/admin/staff.js'
 import { AdminNav } from '../components/admin/AdminNav.jsx'
 import { CreateStaffModal } from '../components/admin/CreateStaffModal.jsx'
 import { UpdateCoursesModal } from '../components/admin/UpdateCoursesModal.jsx'
@@ -171,13 +172,14 @@ export function AdminLayout() {
   const modules = isSuperAdmin ? MODULES_SUPER_ADMIN : MODULES_ADMIN
 
   const handleCreateStaff = async (data) => {
+    const created = await createStaffApi(token, data)
     setStaff((prev) => [
       ...prev,
       {
-        id: `s-${Date.now()}`,
-        fullName: data.fullName,
-        email: data.email,
-        role: data.role,
+        id: created.id,
+        fullName: created.fullName,
+        email: created.email,
+        role: created.role,
       },
     ])
   }
