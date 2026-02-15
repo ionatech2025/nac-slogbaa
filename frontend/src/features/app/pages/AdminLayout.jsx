@@ -1,16 +1,12 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Navigate, NavLink, Outlet } from 'react-router-dom'
 import { FontAwesomeIcon, icons } from '../../../shared/icons.js'
 import { useAuth } from '../../iam/hooks/useAuth.js'
+import { getDashboardOverview } from '../../../api/admin/dashboard.js'
 import { AdminNav } from '../components/admin/AdminNav.jsx'
 import { CreateStaffModal } from '../components/admin/CreateStaffModal.jsx'
 import { UpdateCoursesModal } from '../components/admin/UpdateCoursesModal.jsx'
 import { ChangePasswordModal } from '../components/admin/ChangePasswordModal.jsx'
-
-const MOCK_STAFF = [
-  { id: 's1', fullName: 'Admin User', email: 'admin@slogbaa.org', role: 'ADMIN' },
-  { id: 's2', fullName: 'Super Admin', email: 'superadmin@slogbaa.org', role: 'SUPER_ADMIN' },
-]
 
 const MODULES_SUPER_ADMIN = [
   { path: 'homepage', label: 'Homepage', icon: icons.home },
@@ -136,9 +132,28 @@ const styles = {
 }
 
 export function AdminLayout() {
-  const { isAuthenticated, user } = useAuth()
-  const [staff, setStaff] = useState(MOCK_STAFF)
+  const { isAuthenticated, user, token } = useAuth()
+  const [staff, setStaff] = useState([])
+  const [trainees, setTrainees] = useState([])
+  const [overviewLoading, setOverviewLoading] = useState(true)
+  const [overviewError, setOverviewError] = useState(null)
   const [modal, setModal] = useState(null)
+
+  useEffect(() => {
+    if (!token) return
+    setOverviewLoading(true)
+    setOverviewError(null)
+    getDashboardOverview(token)
+      .then((result) => {
+        if (result.error) {
+          setOverviewError(result.error)
+          return
+        }
+        setStaff(result.data.staff ?? [])
+        setTrainees(result.data.trainees ?? [])
+      })
+      .finally(() => setOverviewLoading(false))
+  }, [token])
 
   if (!isAuthenticated || !user) {
     return <Navigate to="/auth/login" replace />
@@ -170,7 +185,14 @@ export function AdminLayout() {
     // TODO: call API when backend is ready
   }
 
-  const outletContext = { staff, setStaff, handleCreateStaff, displayName }
+  const outletContext = {
+    staff,
+    trainees,
+    overviewLoading,
+    overviewError,
+    handleCreateStaff,
+    displayName,
+  }
 
   return (
     <div style={styles.layout}>

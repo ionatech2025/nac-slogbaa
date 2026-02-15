@@ -1,10 +1,5 @@
 import { useOutletContext } from 'react-router-dom'
 
-const MOCK_TRAINEES = [
-  { id: 't1', fullName: 'Samuel Okello', email: 'samuel@example.org', district: 'Kampala' },
-  { id: 't2', fullName: 'Grace Akello', email: 'grace@example.org', district: 'Gulu' },
-]
-
 const styles = {
   pageTitle: {
     margin: '0 0 1rem',
@@ -92,10 +87,38 @@ const styles = {
     color: 'var(--slogbaa-text-muted)',
     fontSize: '0.9375rem',
   },
+  loading: {
+    padding: '1rem',
+    color: 'var(--slogbaa-text-muted)',
+    fontSize: '0.9375rem',
+  },
+  error: {
+    padding: '1rem',
+    color: 'var(--slogbaa-error)',
+    fontSize: '0.9375rem',
+  },
 }
 
 export function AdminOverviewPage() {
-  const { staff } = useOutletContext()
+  const { staff, trainees, overviewLoading, overviewError } = useOutletContext()
+
+  if (overviewLoading) {
+    return (
+      <>
+        <h2 style={styles.pageTitle}>Overview</h2>
+        <p style={styles.loading}>Loading dashboard…</p>
+      </>
+    )
+  }
+
+  if (overviewError) {
+    return (
+      <>
+        <h2 style={styles.pageTitle}>Overview</h2>
+        <p style={styles.error}>{overviewError}</p>
+      </>
+    )
+  }
 
   return (
     <>
@@ -108,7 +131,7 @@ export function AdminOverviewPage() {
             <p style={styles.statLabel}>Staff</p>
           </div>
           <div style={styles.statCard}>
-            <p style={styles.statValue}>{MOCK_TRAINEES.length}</p>
+            <p style={styles.statValue}>{trainees.length}</p>
             <p style={styles.statLabel}>Trainees</p>
           </div>
           <div style={styles.statCard}>
@@ -172,19 +195,27 @@ export function AdminOverviewPage() {
               </tr>
             </thead>
             <tbody>
-              {MOCK_TRAINEES.map((t, i) => (
-                <tr
-                  key={t.id}
-                  style={{
-                    ...(i === MOCK_TRAINEES.length - 1 ? styles.trLast : {}),
-                    ...(i % 2 === 1 ? styles.trStriped : {}),
-                  }}
-                >
-                  <td style={styles.td}>{t.fullName}</td>
-                  <td style={styles.td}>{t.email}</td>
-                  <td style={styles.td}>{t.district}</td>
+              {trainees.length === 0 ? (
+                <tr>
+                  <td colSpan={3} style={styles.empty}>
+                    No trainees registered yet.
+                  </td>
                 </tr>
-              ))}
+              ) : (
+                trainees.map((t, i) => (
+                  <tr
+                    key={t.id}
+                    style={{
+                      ...(i === trainees.length - 1 ? styles.trLast : {}),
+                      ...(i % 2 === 1 ? styles.trStriped : {}),
+                    }}
+                  >
+                    <td style={styles.td}>{t.fullName}</td>
+                    <td style={styles.td}>{t.email}</td>
+                    <td style={styles.td}>{t.districtName ?? t.district ?? '—'}</td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

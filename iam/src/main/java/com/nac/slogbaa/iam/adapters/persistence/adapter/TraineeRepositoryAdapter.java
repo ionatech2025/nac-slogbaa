@@ -7,8 +7,10 @@ import com.nac.slogbaa.iam.core.aggregate.Trainee;
 import com.nac.slogbaa.iam.core.valueobject.Email;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.StreamSupport;
 
 @Component
 public class TraineeRepositoryAdapter implements TraineeRepositoryPort {
@@ -36,5 +38,17 @@ public class TraineeRepositoryAdapter implements TraineeRepositoryPort {
     @Override
     public Optional<Trainee> findById(UUID id) {
         return jpaRepository.findById(id).map(mapper::toDomain);
+    }
+
+    @Override
+    public List<Trainee> findAll() {
+        return StreamSupport.stream(jpaRepository.findAll().spliterator(), false)
+                .map(mapper::toDomain)
+                .toList();
+    }
+
+    @Override
+    public long count() {
+        return jpaRepository.count();
     }
 }

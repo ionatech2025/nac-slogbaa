@@ -7,7 +7,9 @@ import com.nac.slogbaa.iam.core.aggregate.StaffUser;
 import com.nac.slogbaa.iam.core.valueobject.Email;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.StreamSupport;
 
 @Component
 public class StaffUserRepositoryAdapter implements StaffUserRepositoryPort {
@@ -23,5 +25,17 @@ public class StaffUserRepositoryAdapter implements StaffUserRepositoryPort {
     @Override
     public Optional<StaffUser> findByEmail(Email email) {
         return jpaRepository.findByEmail(email.getValue()).map(mapper::toDomain);
+    }
+
+    @Override
+    public List<StaffUser> findAll() {
+        return StreamSupport.stream(jpaRepository.findAll().spliterator(), false)
+                .map(mapper::toDomain)
+                .toList();
+    }
+
+    @Override
+    public long count() {
+        return jpaRepository.count();
     }
 }
