@@ -8,6 +8,7 @@ import com.nac.slogbaa.iam.application.port.in.DeleteTraineeUseCase;
 import com.nac.slogbaa.iam.application.port.in.GetAdminDashboardOverviewUseCase;
 import com.nac.slogbaa.iam.application.port.in.GetTraineeByIdUseCase;
 import com.nac.slogbaa.iam.application.port.in.RegisterTraineeUseCase;
+import com.nac.slogbaa.iam.application.port.in.UpdateTraineeProfileUseCase;
 import com.nac.slogbaa.iam.application.port.out.AuthTokenPort;
 import com.nac.slogbaa.iam.application.port.out.EmailNotificationPort;
 import com.nac.slogbaa.iam.application.port.out.PasswordHasherPort;
@@ -21,6 +22,7 @@ import com.nac.slogbaa.iam.application.service.DeleteTraineeService;
 import com.nac.slogbaa.iam.application.service.GetAdminDashboardOverviewService;
 import com.nac.slogbaa.iam.application.service.GetTraineeByIdService;
 import com.nac.slogbaa.iam.application.service.RegisterTraineeService;
+import com.nac.slogbaa.iam.application.service.UpdateTraineeProfileService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -93,6 +95,11 @@ public class IamConfiguration {
     @Bean
     public GetTraineeByIdUseCase getTraineeByIdUseCase(TraineeRepositoryPort traineeRepository) {
         return new GetTraineeByIdService(traineeRepository);
+    }
+
+    @Bean
+    public UpdateTraineeProfileUseCase updateTraineeProfileUseCase(TraineeRepositoryPort traineeRepository) {
+        return new UpdateTraineeProfileService(traineeRepository);
     }
 
     @Bean

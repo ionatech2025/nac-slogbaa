@@ -22,3 +22,21 @@ export async function getTraineeProfile(token) {
   }
   return res.json()
 }
+
+/**
+ * Update the current trainee's profile (PATCH /api/trainee/me). Requires auth token.
+ * Payload: { firstName, lastName, gender, districtName, region, category, street, city, postalCode }
+ */
+export async function updateTraineeProfile(token, payload) {
+  if (!token) {
+    throw new Error('Your session is missing. Please log in again.')
+  }
+  const client = apiClient(token)
+  const res = await client.patch('/api/trainee/me', payload)
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}))
+    const message = body.detail ?? body.message ?? (res.status === 400 && body.errors ? 'Please check the form and try again.' : null) ?? `Request failed (${res.status})`
+    throw new Error(message)
+  }
+  return res.status === 204 ? null : res.json()
+}
