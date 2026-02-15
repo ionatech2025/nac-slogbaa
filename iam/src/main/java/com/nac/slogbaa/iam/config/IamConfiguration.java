@@ -1,12 +1,14 @@
 package com.nac.slogbaa.iam.config;
 
 import com.nac.slogbaa.iam.application.port.in.AuthenticateUserUseCase;
+import com.nac.slogbaa.iam.application.port.in.GetAdminDashboardOverviewUseCase;
 import com.nac.slogbaa.iam.application.port.in.RegisterTraineeUseCase;
 import com.nac.slogbaa.iam.application.port.out.AuthTokenPort;
 import com.nac.slogbaa.iam.application.port.out.PasswordHasherPort;
 import com.nac.slogbaa.iam.application.port.out.StaffUserRepositoryPort;
 import com.nac.slogbaa.iam.application.port.out.TraineeRepositoryPort;
 import com.nac.slogbaa.iam.application.service.AuthenticateUserService;
+import com.nac.slogbaa.iam.application.service.GetAdminDashboardOverviewService;
 import com.nac.slogbaa.iam.application.service.RegisterTraineeService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -47,5 +49,12 @@ public class IamConfiguration {
                 staffUserRepository,
                 passwordHasher
         );
+    }
+
+    @Bean
+    public GetAdminDashboardOverviewUseCase getAdminDashboardOverviewUseCase(
+            StaffUserRepositoryPort staffUserRepository,
+            TraineeRepositoryPort traineeRepository) {
+        return new GetAdminDashboardOverviewService(staffUserRepository, traineeRepository);
     }
 }

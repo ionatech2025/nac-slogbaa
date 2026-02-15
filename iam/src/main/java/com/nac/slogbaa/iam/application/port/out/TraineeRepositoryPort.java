@@ -3,7 +3,9 @@ package com.nac.slogbaa.iam.application.port.out;
 import com.nac.slogbaa.iam.core.aggregate.Trainee;
 import com.nac.slogbaa.iam.core.valueobject.Email;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Port for trainee persistence. Implementations (JPA) in adapters.
@@ -15,5 +17,9 @@ public interface TraineeRepositoryPort {
 
     Optional<Trainee> findByEmail(Email email);
 
-    Optional<Trainee> findById(java.util.UUID id);
+    Optional<Trainee> findById(UUID id);
+
+    List<Trainee> findAll();
+
+    long count();
 }
