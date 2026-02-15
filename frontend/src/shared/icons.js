@@ -27,6 +27,7 @@ import {
   faXmark,
   faCertificate,
   faBookOpen,
+  faTrashCan,
 } from '@fortawesome/free-solid-svg-icons'
 
 export { FontAwesomeIcon }
@@ -55,4 +56,5 @@ export const icons = {
   close: faXmark,
   certificate: faCertificate,
   course: faBookOpen,
+  delete: faTrashCan,
 }

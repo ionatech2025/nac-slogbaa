@@ -65,4 +65,9 @@ public class StaffUserRepositoryAdapter implements StaffUserRepositoryPort {
         StaffUserEntity entity = mapper.toEntity(staffUser);
         jpaRepository.save(entity);
     }
+
+    @Override
+    public void deleteById(StaffUserId id) {
+        jpaRepository.deleteById(id.getValue());
+    }
 }

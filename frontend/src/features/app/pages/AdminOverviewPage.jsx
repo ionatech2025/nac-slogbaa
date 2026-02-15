@@ -1,4 +1,7 @@
+import { useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
+import { FontAwesomeIcon, icons } from '../../../shared/icons.js'
+import { ConfirmModal } from '../../../shared/components/ConfirmModal.jsx'
 
 const styles = {
   pageTitle: {
@@ -87,6 +90,18 @@ const styles = {
     color: 'var(--slogbaa-text-muted)',
     fontSize: '0.9375rem',
   },
+  deleteBtn: {
+    padding: '0.35rem 0.6rem',
+    border: 'none',
+    borderRadius: 6,
+    background: 'rgba(200, 60, 60, 0.12)',
+    color: 'var(--slogbaa-error, #c0392b)',
+    cursor: 'pointer',
+    fontSize: '0.875rem',
+  },
+  deleteBtnHover: {
+    background: 'rgba(200, 60, 60, 0.22)',
+  },
   loading: {
     padding: '1rem',
     color: 'var(--slogbaa-text-muted)',
@@ -100,7 +115,44 @@ const styles = {
 }
 
 export function AdminOverviewPage() {
-  const { staff, trainees, overviewLoading, overviewError } = useOutletContext()
+  const { staff, trainees, overviewLoading, overviewError, handleDeleteStaff, handleDeleteTrainee, isSuperAdmin } = useOutletContext()
+  const [deleteError, setDeleteError] = useState(null)
+  const [deletingId, setDeletingId] = useState(null)
+  const [confirmTarget, setConfirmTarget] = useState(null) // { type: 'staff', item } | { type: 'trainee', item }
+
+  const runDeleteStaff = async (s) => {
+    setConfirmTarget(null)
+    setDeleteError(null)
+    setDeletingId(s.id)
+    try {
+      await handleDeleteStaff?.(s.id)
+    } catch (err) {
+      setDeleteError(err?.message ?? 'Failed to delete staff.')
+    } finally {
+      setDeletingId(null)
+    }
+  }
+
+  const runDeleteTrainee = async (t) => {
+    setConfirmTarget(null)
+    setDeleteError(null)
+    setDeletingId(t.id)
+    try {
+      await handleDeleteTrainee?.(t.id)
+    } catch (err) {
+      setDeleteError(err?.message ?? 'Failed to delete trainee.')
+    } finally {
+      setDeletingId(null)
+    }
+  }
+
+  const onDeleteStaff = (s) => {
+    setConfirmTarget({ type: 'staff', item: s })
+  }
+
+  const onDeleteTrainee = (t) => {
+    setConfirmTarget({ type: 'trainee', item: t })
+  }
 
   if (overviewLoading) {
     return (
@@ -120,9 +172,27 @@ export function AdminOverviewPage() {
     )
   }
 
+  const confirmMessage = confirmTarget
+    ? confirmTarget.type === 'staff'
+      ? `Delete staff "${confirmTarget.item.fullName}" (${confirmTarget.item.email})? This cannot be undone.`
+      : `Delete trainee "${confirmTarget.item.fullName}" (${confirmTarget.item.email})? This cannot be undone.`
+    : ''
+
   return (
     <>
       <h2 style={styles.pageTitle}>Overview</h2>
+
+      {confirmTarget && (
+        <ConfirmModal
+          message={confirmMessage}
+          onContinue={() =>
+            confirmTarget.type === 'staff'
+              ? runDeleteStaff(confirmTarget.item)
+              : runDeleteTrainee(confirmTarget.item)
+          }
+          onCancel={() => setConfirmTarget(null)}
+        />
+      )}
 
       <section style={styles.section}>
         <div style={styles.statsRow}>
@@ -147,6 +217,9 @@ export function AdminOverviewPage() {
 
       <section style={styles.section}>
         <h2 style={styles.sectionTitle}>People</h2>
+        {deleteError && (
+          <p style={{ ...styles.error, marginBottom: '1rem' }}>{deleteError}</p>
+        )}
 
         <h3 style={{ ...styles.subsectionTitle, ...styles.subsectionTitleFirst }}>Staff</h3>
         <div style={styles.tableWrap}>
@@ -155,13 +228,14 @@ export function AdminOverviewPage() {
               <tr>
                 <th style={{ ...styles.th, ...styles.thFirst }}>Name</th>
                 <th style={styles.th}>Email</th>
-                <th style={{ ...styles.th, ...styles.thLast }}>Role</th>
+                <th style={isSuperAdmin ? styles.th : { ...styles.th, ...styles.thLast }}>Role</th>
+                {isSuperAdmin && <th style={{ ...styles.th, ...styles.thLast }}>Actions</th>}
               </tr>
             </thead>
             <tbody>
               {staff.length === 0 ? (
                 <tr>
-                  <td colSpan={3} style={styles.empty}>
+                  <td colSpan={isSuperAdmin ? 4 : 3} style={styles.empty}>
                     No staff yet. Use Quick Actions → Create Staff to add.
                   </td>
                 </tr>
@@ -177,6 +251,19 @@ export function AdminOverviewPage() {
                     <td style={styles.td}>{s.fullName}</td>
                     <td style={styles.td}>{s.email}</td>
                     <td style={styles.td}>{s.role === 'SUPER_ADMIN' ? 'Super Admin' : 'Admin'}</td>
+                    {isSuperAdmin && (
+                      <td style={styles.td}>
+                        <button
+                          type="button"
+                          style={styles.deleteBtn}
+                          onClick={() => onDeleteStaff(s)}
+                          disabled={deletingId === s.id}
+                          title="Delete staff"
+                        >
+                          <FontAwesomeIcon icon={icons.delete} /> Delete
+                        </button>
+                      </td>
+                    )}
                   </tr>
                 ))
               )}
@@ -191,13 +278,14 @@ export function AdminOverviewPage() {
               <tr>
                 <th style={{ ...styles.th, ...styles.thFirst }}>Name</th>
                 <th style={styles.th}>Email</th>
-                <th style={{ ...styles.th, ...styles.thLast }}>District</th>
+                <th style={isSuperAdmin ? styles.th : { ...styles.th, ...styles.thLast }}>District</th>
+                {isSuperAdmin && <th style={{ ...styles.th, ...styles.thLast }}>Actions</th>}
               </tr>
             </thead>
             <tbody>
               {trainees.length === 0 ? (
                 <tr>
-                  <td colSpan={3} style={styles.empty}>
+                  <td colSpan={isSuperAdmin ? 4 : 3} style={styles.empty}>
                     No trainees registered yet.
                   </td>
                 </tr>
@@ -213,6 +301,19 @@ export function AdminOverviewPage() {
                     <td style={styles.td}>{t.fullName}</td>
                     <td style={styles.td}>{t.email}</td>
                     <td style={styles.td}>{t.districtName ?? t.district ?? '—'}</td>
+                    {isSuperAdmin && (
+                      <td style={styles.td}>
+                        <button
+                          type="button"
+                          style={styles.deleteBtn}
+                          onClick={() => onDeleteTrainee(t)}
+                          disabled={deletingId === t.id}
+                          title="Delete trainee"
+                        >
+                          <FontAwesomeIcon icon={icons.delete} /> Delete
+                        </button>
+                      </td>
+                    )}
                   </tr>
                 ))
               )}
