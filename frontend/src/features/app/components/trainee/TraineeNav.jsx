@@ -113,7 +113,7 @@ export function TraineeNav() {
 
   const handleAction = (action) => {
     setOpen(false)
-    if (action === 'view-profile' || action === 'edit-profile' || action === 'grades') {
+    if (action === 'profile' || action === 'grades') {
       alert('Coming soon.')
     } else if (action === 'sign-out') {
       logout()
@@ -140,20 +140,11 @@ export function TraineeNav() {
             <button
               type="button"
               style={styles.dropdownItem}
-              onClick={() => handleAction('view-profile')}
-              role="menuitem"
-            >
-              <FontAwesomeIcon icon={icons.viewProfile} style={styles.dropdownItemIcon} />
-              View profile
-            </button>
-            <button
-              type="button"
-              style={styles.dropdownItem}
-              onClick={() => handleAction('edit-profile')}
+              onClick={() => handleAction('profile')}
               role="menuitem"
             >
               <FontAwesomeIcon icon={icons.editProfile} style={styles.dropdownItemIcon} />
-              Edit profile
+              Profile
             </button>
             <button
               type="button"
@@ -162,7 +153,7 @@ export function TraineeNav() {
               role="menuitem"
             >
               <FontAwesomeIcon icon={icons.grades} style={styles.dropdownItemIcon} />
-              Grades & progress
+              Grades
             </button>
             <button
               type="button"
