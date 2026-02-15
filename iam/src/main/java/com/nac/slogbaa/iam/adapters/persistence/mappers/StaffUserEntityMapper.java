@@ -21,4 +21,16 @@ public class StaffUserEntityMapper {
                 e.isActive()
         );
     }
+
+    public StaffUserEntity toEntity(StaffUser u) {
+        if (u == null) return null;
+        StaffUserEntity e = new StaffUserEntity();
+        e.setId(u.getId().getValue());
+        e.setEmail(u.getEmail().getValue());
+        e.setPasswordHash(u.getPasswordHash());
+        e.setFullName(u.getFullName());
+        e.setStaffRole(StaffUserEntity.StaffRoleEnum.valueOf(u.getStaffRole().name()));
+        e.setActive(u.isActive());
+        return e;
+    }
 }

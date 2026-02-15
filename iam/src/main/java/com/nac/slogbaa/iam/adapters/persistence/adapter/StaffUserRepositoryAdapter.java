@@ -1,10 +1,12 @@
 package com.nac.slogbaa.iam.adapters.persistence.adapter;
 
+import com.nac.slogbaa.iam.adapters.persistence.entity.StaffUserEntity;
 import com.nac.slogbaa.iam.adapters.persistence.mappers.StaffUserEntityMapper;
 import com.nac.slogbaa.iam.adapters.persistence.repository.JpaStaffUserRepository;
 import com.nac.slogbaa.iam.application.port.out.StaffUserRepositoryPort;
 import com.nac.slogbaa.iam.core.aggregate.StaffUser;
 import com.nac.slogbaa.iam.core.valueobject.Email;
+import com.nac.slogbaa.iam.core.valueobject.StaffRole;
 import com.nac.slogbaa.iam.core.valueobject.StaffUserId;
 import org.springframework.stereotype.Component;
 
@@ -51,5 +53,16 @@ public class StaffUserRepositoryAdapter implements StaffUserRepositoryPort {
     @Override
     public long count() {
         return jpaRepository.count();
+    }
+
+    @Override
+    public long countByRole(StaffRole role) {
+        return jpaRepository.countByStaffRole(StaffUserEntity.StaffRoleEnum.valueOf(role.name()));
+    }
+
+    @Override
+    public void save(StaffUser staffUser) {
+        StaffUserEntity entity = mapper.toEntity(staffUser);
+        jpaRepository.save(entity);
     }
 }
