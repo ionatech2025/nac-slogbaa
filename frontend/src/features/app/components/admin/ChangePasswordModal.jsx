@@ -65,6 +65,10 @@ const styles = {
     fontSize: '0.875rem',
     color: 'var(--slogbaa-error)',
   },
+  success: {
+    fontSize: '0.875rem',
+    color: 'var(--slogbaa-success, #0a7c42)',
+  },
 }
 
 export function ChangePasswordModal({ onClose, onSubmit }) {
@@ -72,6 +76,7 @@ export function ChangePasswordModal({ onClose, onSubmit }) {
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState(null)
+  const [success, setSuccess] = useState(false)
   const [loading, setLoading] = useState(false)
 
   const handleSubmit = async (e) => {
@@ -92,7 +97,8 @@ export function ChangePasswordModal({ onClose, onSubmit }) {
     setLoading(true)
     try {
       await onSubmit?.({ currentPassword, newPassword })
-      onClose?.()
+      setSuccess(true)
+      setTimeout(() => onClose?.(), 1200)
     } catch (err) {
       setError(err?.message ?? 'Something went wrong.')
     } finally {
@@ -137,17 +143,18 @@ export function ChangePasswordModal({ onClose, onSubmit }) {
           />
         </div>
         {error && <p style={styles.error}>{error}</p>}
+        {success && <p style={styles.success}>Password updated successfully.</p>}
         <div style={styles.actions}>
           <button type="button" style={styles.btnSecondary} onClick={onClose}>
             Cancel
           </button>
           <button
             type="submit"
-            style={{ ...styles.btnPrimary, ...(loading ? styles.btnPrimaryDisabled : {}) }}
-            disabled={loading}
+            style={{ ...styles.btnPrimary, ...(loading || success ? styles.btnPrimaryDisabled : {}) }}
+            disabled={loading || success}
           >
             <FontAwesomeIcon icon={icons.changePassword} />
-            {loading ? 'Updating…' : 'Update Password'}
+            {loading ? 'Updating…' : success ? 'Updated' : 'Update Password'}
           </button>
         </div>
       </form>

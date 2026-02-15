@@ -3,6 +3,7 @@ import { Navigate, NavLink, Outlet } from 'react-router-dom'
 import { FontAwesomeIcon, icons } from '../../../shared/icons.js'
 import { useAuth } from '../../iam/hooks/useAuth.js'
 import { getDashboardOverview } from '../../../api/admin/dashboard.js'
+import { changePassword as changePasswordApi } from '../../../api/admin/me.js'
 import { AdminNav } from '../components/admin/AdminNav.jsx'
 import { CreateStaffModal } from '../components/admin/CreateStaffModal.jsx'
 import { UpdateCoursesModal } from '../components/admin/UpdateCoursesModal.jsx'
@@ -181,8 +182,8 @@ export function AdminLayout() {
     ])
   }
 
-  const handleChangePassword = async () => {
-    // TODO: call API when backend is ready
+  const handleChangePassword = async (data) => {
+    await changePasswordApi(token, data)
   }
 
   const outletContext = {
