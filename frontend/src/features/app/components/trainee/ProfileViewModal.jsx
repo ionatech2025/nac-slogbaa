@@ -117,14 +117,14 @@ function formatCategory(cat) {
   return cat.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
 }
 
-export function ProfileViewModal({ profile, onClose, onEdit }) {
+export function ProfileViewModal({ profile, onClose, onEdit, showEditButton = true, title = 'My Profile' }) {
   if (!profile) return null
 
   const fullName = [profile.firstName, profile.lastName].filter(Boolean).join(' ') || '—'
   const hasImage = profile.profileImageUrl && profile.profileImageUrl.trim()
 
   return (
-    <Modal title="My Profile" onClose={onClose}>
+    <Modal title={title} onClose={onClose}>
       <div style={styles.profileHeader}>
         {hasImage ? (
           <img
@@ -176,10 +176,12 @@ export function ProfileViewModal({ profile, onClose, onEdit }) {
         <button type="button" style={styles.btnSecondary} onClick={onClose}>
           Close
         </button>
-        <button type="button" style={styles.btnPrimary} onClick={onEdit}>
-          <FontAwesomeIcon icon={icons.editProfile} />
-          Edit Profile
-        </button>
+        {showEditButton && onEdit && (
+          <button type="button" style={styles.btnPrimary} onClick={onEdit}>
+            <FontAwesomeIcon icon={icons.editProfile} />
+            Edit Profile
+          </button>
+        )}
       </div>
     </Modal>
   )

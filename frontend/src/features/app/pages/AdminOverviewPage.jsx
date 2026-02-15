@@ -1,7 +1,9 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { FontAwesomeIcon, icons } from '../../../shared/icons.js'
 import { ConfirmModal } from '../../../shared/components/ConfirmModal.jsx'
+import { ProfileViewModal } from '../components/trainee/ProfileViewModal.jsx'
+import { getTraineeProfile as getTraineeProfileApi } from '../../../api/admin/trainees.js'
 
 const styles = {
   pageTitle: {
@@ -102,6 +104,16 @@ const styles = {
   deleteBtnHover: {
     background: 'rgba(200, 60, 60, 0.22)',
   },
+  viewProfileBtn: {
+    padding: '0.35rem 0.6rem',
+    border: 'none',
+    borderRadius: 6,
+    background: 'rgba(39, 129, 191, 0.12)',
+    color: 'var(--slogbaa-blue, #2781bf)',
+    cursor: 'pointer',
+    fontSize: '0.875rem',
+    marginRight: '0.5rem',
+  },
   loading: {
     padding: '1rem',
     color: 'var(--slogbaa-text-muted)',
@@ -115,10 +127,13 @@ const styles = {
 }
 
 export function AdminOverviewPage() {
-  const { staff, trainees, overviewLoading, overviewError, handleDeleteStaff, handleDeleteTrainee, isSuperAdmin } = useOutletContext()
+  const { staff, trainees, overviewLoading, overviewError, handleDeleteStaff, handleDeleteTrainee, isSuperAdmin, token } = useOutletContext()
   const [deleteError, setDeleteError] = useState(null)
   const [deletingId, setDeletingId] = useState(null)
   const [confirmTarget, setConfirmTarget] = useState(null) // { type: 'staff', item } | { type: 'trainee', item }
+  const [profileViewTrainee, setProfileViewTrainee] = useState(null)
+  const [profileViewLoading, setProfileViewLoading] = useState(false)
+  const [profileViewError, setProfileViewError] = useState(null)
 
   const runDeleteStaff = async (s) => {
     setConfirmTarget(null)
@@ -153,6 +168,22 @@ export function AdminOverviewPage() {
   const onDeleteTrainee = (t) => {
     setConfirmTarget({ type: 'trainee', item: t })
   }
+
+  const onViewTraineeProfile = useCallback((t) => {
+    setProfileViewTrainee(null)
+    setProfileViewError(null)
+    if (!token) return
+    setProfileViewLoading(true)
+    getTraineeProfileApi(token, t.id)
+      .then((data) => setProfileViewTrainee(data))
+      .catch((err) => setProfileViewError(err?.message ?? 'Failed to load trainee profile.'))
+      .finally(() => setProfileViewLoading(false))
+  }, [token])
+
+  const closeProfileView = useCallback(() => {
+    setProfileViewTrainee(null)
+    setProfileViewError(null)
+  }, [])
 
   if (overviewLoading) {
     return (
@@ -192,6 +223,58 @@ export function AdminOverviewPage() {
           }
           onCancel={() => setConfirmTarget(null)}
         />
+      )}
+
+      {profileViewTrainee && (
+        <ProfileViewModal
+          profile={profileViewTrainee}
+          onClose={closeProfileView}
+          showEditButton={false}
+          title="Trainee profile"
+        />
+      )}
+      {profileViewLoading && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(0,0,0,0.3)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1001,
+          fontSize: '0.9375rem',
+          color: 'var(--slogbaa-text)',
+        }}>
+          Loading profile…
+        </div>
+      )}
+      {profileViewError && !profileViewTrainee && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(0,0,0,0.45)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1001,
+          padding: '1.5rem',
+        }}>
+          <div style={{
+            background: 'var(--slogbaa-surface)',
+            padding: '1.5rem',
+            borderRadius: 12,
+            maxWidth: 400,
+            border: '1px solid var(--slogbaa-border)',
+          }}>
+            <p style={{ margin: '0 0 0.5rem', fontSize: '0.875rem', fontWeight: 600, color: 'var(--slogbaa-text)' }}>
+              Couldn't load trainee profile
+            </p>
+            <p style={{ margin: 0, fontSize: '0.9375rem', color: 'var(--slogbaa-error)' }}>{profileViewError}</p>
+            <button type="button" onClick={closeProfileView} style={{ marginTop: '1.25rem', padding: '0.5rem 1rem', border: '1px solid var(--slogbaa-border)', borderRadius: 8, background: 'var(--slogbaa-surface)', cursor: 'pointer' }}>
+              Close
+            </button>
+          </div>
+        </div>
       )}
 
       <section style={styles.section}>
@@ -278,14 +361,14 @@ export function AdminOverviewPage() {
               <tr>
                 <th style={{ ...styles.th, ...styles.thFirst }}>Name</th>
                 <th style={styles.th}>Email</th>
-                <th style={isSuperAdmin ? styles.th : { ...styles.th, ...styles.thLast }}>District</th>
-                {isSuperAdmin && <th style={{ ...styles.th, ...styles.thLast }}>Actions</th>}
+                <th style={styles.th}>District</th>
+                <th style={{ ...styles.th, ...styles.thLast }}>Actions</th>
               </tr>
             </thead>
             <tbody>
               {trainees.length === 0 ? (
                 <tr>
-                  <td colSpan={isSuperAdmin ? 4 : 3} style={styles.empty}>
+                  <td colSpan={4} style={styles.empty}>
                     No trainees registered yet.
                   </td>
                 </tr>
@@ -301,8 +384,17 @@ export function AdminOverviewPage() {
                     <td style={styles.td}>{t.fullName}</td>
                     <td style={styles.td}>{t.email}</td>
                     <td style={styles.td}>{t.districtName ?? t.district ?? '—'}</td>
-                    {isSuperAdmin && (
-                      <td style={styles.td}>
+                    <td style={styles.td}>
+                      <button
+                        type="button"
+                        style={styles.viewProfileBtn}
+                        onClick={() => onViewTraineeProfile(t)}
+                        disabled={profileViewLoading}
+                        title="View profile"
+                      >
+                        <FontAwesomeIcon icon={icons.viewProfile} /> View profile
+                      </button>
+                      {isSuperAdmin && (
                         <button
                           type="button"
                           style={styles.deleteBtn}
@@ -312,8 +404,8 @@ export function AdminOverviewPage() {
                         >
                           <FontAwesomeIcon icon={icons.delete} /> Delete
                         </button>
-                      </td>
-                    )}
+                      )}
+                    </td>
                   </tr>
                 ))
               )}
