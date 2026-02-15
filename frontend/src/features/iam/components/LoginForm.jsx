@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { FontAwesomeIcon, icons } from '../../../shared/icons.js'
 import { useAuth } from '../hooks/useAuth.js'
 import { login as loginApi } from '../../../api/iam/auth.js'
 
@@ -27,6 +28,10 @@ const styles = {
     background: 'var(--slogbaa-surface)',
   },
   submit: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '0.4rem',
     marginTop: '0.25rem',
     padding: '0.625rem 1rem',
     background: 'var(--slogbaa-orange)',
@@ -71,7 +76,10 @@ export function LoginForm() {
       }
       const { token, userId, email: userEmail, role, fullName } = result.data
       setAuth(token, { userId, email: userEmail, role, fullName })
-      navigate('/dashboard', { replace: true })
+      const isStaff = Boolean(role && (String(role).toUpperCase() === 'SUPER_ADMIN' || String(role).toUpperCase() === 'ADMIN'))
+      const target = isStaff ? '/admin' : '/dashboard'
+      // Defer navigation so auth context state is committed before the new page reads it
+      setTimeout(() => navigate(target, { replace: true }), 0)
     } catch (err) {
       setError(err?.message ?? 'Network error. Is the backend running?')
     } finally {
@@ -115,6 +123,7 @@ export function LoginForm() {
         style={{ ...styles.submit, ...(loading ? styles.submitDisabled : {}) }}
         disabled={loading}
       >
+        <FontAwesomeIcon icon={icons.signIn} />
         {loading ? 'Signing in…' : 'Sign in'}
       </button>
     </form>

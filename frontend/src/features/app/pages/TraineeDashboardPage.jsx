@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { FontAwesomeIcon, icons } from '../../../shared/icons.js'
 import { useAuth } from '../../iam/context/AuthContext.jsx'
 import { TraineeNav } from '../components/trainee/TraineeNav.jsx'
 import { CourseCard } from '../components/trainee/CourseCard.jsx'
@@ -62,7 +63,7 @@ const styles = {
     width: '100%',
   },
   greeting: {
-    margin: '0 0 0.75rem',
+    margin: '0 0 0.5rem',
     fontSize: '1.5rem',
     fontWeight: 700,
     color: 'var(--slogbaa-text)',
@@ -70,7 +71,7 @@ const styles = {
   greetingDivider: {
     height: 0,
     border: 'none',
-    borderBottom: '1px solid var(--slogbaa-border)',
+    borderBottom: '2px solid var(--slogbaa-orange)',
     margin: '0 0 1.5rem',
   },
   tabs: {
@@ -80,6 +81,9 @@ const styles = {
     marginBottom: '1.5rem',
   },
   tab: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '0.4rem',
     padding: '0.75rem 1.25rem',
     border: 'none',
     background: 'none',
@@ -117,6 +121,9 @@ const styles = {
     background: 'var(--slogbaa-surface)',
   },
   viewToggleBtn: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '0.35rem',
     padding: '0.5rem 0.75rem',
     border: 'none',
     background: 'none',
@@ -127,6 +134,10 @@ const styles = {
   viewToggleBtnActive: {
     background: 'var(--slogbaa-blue)',
     color: '#fff',
+  },
+  tabIcon: {
+    width: '1em',
+    opacity: 0.9,
   },
   cardGrid: {
     display: 'grid',
@@ -145,12 +156,11 @@ const styles = {
 export function TraineeDashboardPage() {
   const { user } = useAuth()
   const [activeTab, setActiveTab] = useState('courses')
-  const [courseView, setCourseView] = useState('vertical') // 'vertical' | 'horizontal'
+  const [courseView, setCourseView] = useState('vertical')
   const displayName = user?.fullName || user?.email || 'Trainee'
 
   const handleEnroll = (course) => {
     console.log('Enroll', course.id)
-    // TODO: call enrollment API when ready
   }
 
   const handlePreviewCertificate = (cert) => {
@@ -160,7 +170,6 @@ export function TraineeDashboardPage() {
 
   const handleDownloadCertificate = (cert) => {
     console.log('Download', cert.id)
-    // TODO: trigger download when API is ready
   }
 
   return (
@@ -175,6 +184,7 @@ export function TraineeDashboardPage() {
             style={{ ...styles.tab, ...(activeTab === 'courses' ? styles.tabActive : {}) }}
             onClick={() => setActiveTab('courses')}
           >
+            <FontAwesomeIcon icon={icons.course} style={styles.tabIcon} />
             Courses
           </button>
           <button
@@ -182,6 +192,7 @@ export function TraineeDashboardPage() {
             style={{ ...styles.tab, ...(activeTab === 'certificates' ? styles.tabActive : {}) }}
             onClick={() => setActiveTab('certificates')}
           >
+            <FontAwesomeIcon icon={icons.certificate} style={styles.tabIcon} />
             Certificates
           </button>
         </div>
@@ -201,6 +212,7 @@ export function TraineeDashboardPage() {
                   aria-pressed={courseView === 'vertical'}
                   title="Card view"
                 >
+                  <FontAwesomeIcon icon={icons.viewCards} style={styles.tabIcon} />
                   Cards
                 </button>
                 <button
@@ -213,6 +225,7 @@ export function TraineeDashboardPage() {
                   aria-pressed={courseView === 'horizontal'}
                   title="Row view"
                 >
+                  <FontAwesomeIcon icon={icons.viewList} style={styles.tabIcon} />
                   Rows
                 </button>
               </div>
