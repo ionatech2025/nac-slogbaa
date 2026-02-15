@@ -1,9 +1,10 @@
 import { useState, useCallback } from 'react'
 import { FontAwesomeIcon, icons } from '../../../shared/icons.js'
 import { useAuth } from '../../iam/context/AuthContext.jsx'
-import { getTraineeProfile } from '../../../api/trainee.js'
+import { getTraineeProfile, updateTraineeProfile } from '../../../api/trainee.js'
 import { TraineeNav } from '../components/trainee/TraineeNav.jsx'
 import { ProfileViewModal } from '../components/trainee/ProfileViewModal.jsx'
+import { EditProfileModal } from '../components/trainee/EditProfileModal.jsx'
 import { CourseCard } from '../components/trainee/CourseCard.jsx'
 import { CertificateCard } from '../components/trainee/CertificateCard.jsx'
 
@@ -163,6 +164,9 @@ export function TraineeDashboardPage() {
   const [profileData, setProfileData] = useState(null)
   const [profileLoading, setProfileLoading] = useState(false)
   const [profileError, setProfileError] = useState(null)
+  const [editProfileOpen, setEditProfileOpen] = useState(false)
+  const [profileSaving, setProfileSaving] = useState(false)
+  const [profileSaveError, setProfileSaveError] = useState(null)
   const displayName = user?.fullName || user?.email || 'Trainee'
 
   const handleOpenProfile = useCallback(() => {
@@ -184,9 +188,33 @@ export function TraineeDashboardPage() {
   }, [])
 
   const handleEditProfile = useCallback(() => {
-    // Edit profile modal or page can be wired here later
-    alert('Edit profile coming soon.')
+    setProfileSaveError(null)
+    setEditProfileOpen(true)
   }, [])
+
+  const handleCloseEditProfile = useCallback(() => {
+    setEditProfileOpen(false)
+    setProfileSaveError(null)
+  }, [])
+
+  const handleSaveProfile = useCallback(
+    async (payload) => {
+      if (!token) return
+      setProfileSaveError(null)
+      setProfileSaving(true)
+      try {
+        await updateTraineeProfile(token, payload)
+        setEditProfileOpen(false)
+        const updated = await getTraineeProfile(token)
+        setProfileData(updated)
+      } catch (err) {
+        setProfileSaveError(err?.message ?? 'Failed to update profile.')
+      } finally {
+        setProfileSaving(false)
+      }
+    },
+    [token]
+  )
 
   const handleEnroll = (course) => {
     console.log('Enroll', course.id)
@@ -209,6 +237,15 @@ export function TraineeDashboardPage() {
           profile={profileData}
           onClose={handleCloseProfile}
           onEdit={handleEditProfile}
+        />
+      )}
+      {editProfileOpen && profileData && (
+        <EditProfileModal
+          profile={profileData}
+          onClose={handleCloseEditProfile}
+          onSave={handleSaveProfile}
+          saving={profileSaving}
+          error={profileSaveError}
         />
       )}
       {profileModalOpen && profileLoading && (
