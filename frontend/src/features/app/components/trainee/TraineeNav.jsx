@@ -95,7 +95,7 @@ function getInitials(user) {
   return '?'
 }
 
-export function TraineeNav() {
+export function TraineeNav({ onOpenProfile }) {
   const { user, logout } = useAuth()
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
@@ -113,7 +113,9 @@ export function TraineeNav() {
 
   const handleAction = (action) => {
     setOpen(false)
-    if (action === 'profile' || action === 'grades') {
+    if (action === 'profile') {
+      onOpenProfile?.()
+    } else if (action === 'grades') {
       alert('Coming soon.')
     } else if (action === 'sign-out') {
       logout()
