@@ -79,13 +79,9 @@ If your Flyway seed (e.g. `V7__seed_sample_data.sql` / `V8__update_seed_password
 
 ---
 
-## 7. Optional: Render (alternative free tier)
+## 7. Alternative: Render
 
-If you prefer **Render**:
-
-- **Web Service**: connect the repo, use **Docker** as environment; set env vars as above. Render provides a Postgres add-on; use its connection string for `DATASOURCE_*`.
-- **PostgreSQL**: add from Render dashboard and attach to the web service.
-- Free tier: service may sleep after inactivity; first load can be slow.
+For a **Render** deployment using the same setup (Spring Boot serving the React app), see [deployment-render.md](deployment-render.md).
 
 ---
 
