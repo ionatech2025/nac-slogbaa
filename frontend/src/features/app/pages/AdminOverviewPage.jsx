@@ -127,7 +127,7 @@ const styles = {
 }
 
 export function AdminOverviewPage() {
-  const { staff, trainees, overviewLoading, overviewError, handleDeleteStaff, handleDeleteTrainee, isSuperAdmin, token } = useOutletContext()
+  const { staff, trainees, overviewLoading, overviewError, handleDeleteStaff, handleDeleteTrainee, isSuperAdmin, token, currentUserId, currentUserEmail } = useOutletContext()
   const [deleteError, setDeleteError] = useState(null)
   const [deletingId, setDeletingId] = useState(null)
   const [confirmTarget, setConfirmTarget] = useState(null) // { type: 'staff', item } | { type: 'trainee', item }
@@ -336,15 +336,17 @@ export function AdminOverviewPage() {
                     <td style={styles.td}>{s.role === 'SUPER_ADMIN' ? 'Super Admin' : 'Admin'}</td>
                     {isSuperAdmin && (
                       <td style={styles.td}>
-                        <button
-                          type="button"
-                          style={styles.deleteBtn}
-                          onClick={() => onDeleteStaff(s)}
-                          disabled={deletingId === s.id}
-                          title="Delete staff"
-                        >
-                          <FontAwesomeIcon icon={icons.delete} /> Delete
-                        </button>
+                        {(s.id !== currentUserId && s.email !== currentUserEmail) ? (
+                          <button
+                            type="button"
+                            style={styles.deleteBtn}
+                            onClick={() => onDeleteStaff(s)}
+                            disabled={deletingId === s.id}
+                            title="Delete staff"
+                          >
+                            <FontAwesomeIcon icon={icons.delete} /> Delete
+                          </button>
+                        ) : null}
                       </td>
                     )}
                   </tr>
