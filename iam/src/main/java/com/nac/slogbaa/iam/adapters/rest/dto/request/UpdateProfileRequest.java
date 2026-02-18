@@ -38,6 +38,12 @@ public class UpdateProfileRequest {
     @Size(max = 20)
     private String postalCode;
 
+    @Size(max = 10)
+    private String phoneCountryCode;
+
+    @Size(max = 20)
+    private String phoneNationalNumber;
+
     public String getFirstName() { return firstName; }
     public void setFirstName(String firstName) { this.firstName = firstName; }
     public String getLastName() { return lastName; }
@@ -56,4 +62,8 @@ public class UpdateProfileRequest {
     public void setCity(String city) { this.city = city; }
     public String getPostalCode() { return postalCode; }
     public void setPostalCode(String postalCode) { this.postalCode = postalCode; }
+    public String getPhoneCountryCode() { return phoneCountryCode; }
+    public void setPhoneCountryCode(String phoneCountryCode) { this.phoneCountryCode = phoneCountryCode; }
+    public String getPhoneNationalNumber() { return phoneNationalNumber; }
+    public void setPhoneNationalNumber(String phoneNationalNumber) { this.phoneNationalNumber = phoneNationalNumber; }
 }

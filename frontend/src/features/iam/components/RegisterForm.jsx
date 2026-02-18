@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { FontAwesomeIcon, icons } from '../../../shared/icons.js'
 import { useAuth } from '../hooks/useAuth.js'
 import { register as registerApi, login as loginApi } from '../../../api/iam/auth.js'
+import { PHONE_COUNTRY_CODES } from '../../../shared/countryCodes.js'
 
 const TRAINEE_CATEGORIES = [
   { value: '', label: 'Select category' },
@@ -109,6 +110,8 @@ export function RegisterForm() {
     districtName: '',
     region: '',
     traineeCategory: '',
+    phoneCountryCode: '',
+    phoneNationalNumber: '',
     street: '',
     city: '',
     postalCode: '',
@@ -217,6 +220,33 @@ export function RegisterForm() {
           >
             <FontAwesomeIcon icon={showPassword ? icons.eyeSlash : icons.eye} />
           </button>
+        </div>
+      </div>
+      <div style={styles.row}>
+        <div style={styles.field}>
+          <label style={styles.label} htmlFor="reg-phone-country">Phone (optional)</label>
+          <select
+            id="reg-phone-country"
+            value={form.phoneCountryCode}
+            onChange={(e) => update('phoneCountryCode', e.target.value)}
+            style={styles.select}
+          >
+            {PHONE_COUNTRY_CODES.map((o) => (
+              <option key={o.value || 'none'} value={o.value}>{o.label}</option>
+            ))}
+          </select>
+        </div>
+        <div style={styles.field}>
+          <label style={styles.label} htmlFor="reg-phone-number">Phone number</label>
+          <input
+            id="reg-phone-number"
+            type="tel"
+            autoComplete="tel-national"
+            value={form.phoneNationalNumber}
+            onChange={(e) => update('phoneNationalNumber', e.target.value.replace(/\D/g, '').slice(0, 15))}
+            style={styles.input}
+            placeholder="e.g. 712345678"
+          />
         </div>
       </div>
       <div style={styles.row}>

@@ -25,6 +25,12 @@ public final class GetTraineeByIdService implements GetTraineeByIdUseCase {
     }
 
     private TraineeDetails toDetails(Trainee t) {
+        String phoneCc = null;
+        String phoneNn = null;
+        if (t.getProfile().getPhoneNumber() != null && t.getProfile().getPhoneNumber().isPresent()) {
+            phoneCc = t.getProfile().getPhoneNumber().getCountryCode();
+            phoneNn = t.getProfile().getPhoneNumber().getNationalNumber();
+        }
         return new TraineeDetails(
                 t.getId().getValue(),
                 t.getEmail().getValue(),
@@ -37,6 +43,8 @@ public final class GetTraineeByIdService implements GetTraineeByIdUseCase {
                 t.getProfile().getAddress().getStreet(),
                 t.getProfile().getAddress().getCity(),
                 t.getProfile().getAddress().getPostalCode(),
+                phoneCc,
+                phoneNn,
                 null
         );
     }

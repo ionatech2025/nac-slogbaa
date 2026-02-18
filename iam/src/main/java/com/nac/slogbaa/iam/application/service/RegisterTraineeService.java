@@ -14,6 +14,7 @@ import com.nac.slogbaa.iam.core.valueobject.District;
 import com.nac.slogbaa.iam.core.valueobject.Email;
 import com.nac.slogbaa.iam.core.valueobject.FullName;
 import com.nac.slogbaa.iam.core.valueobject.Gender;
+import com.nac.slogbaa.iam.core.valueobject.PhoneNumber;
 import com.nac.slogbaa.iam.core.valueobject.PhysicalAddress;
 import com.nac.slogbaa.iam.core.valueobject.TraineeCategory;
 import com.nac.slogbaa.iam.core.valueobject.TraineeId;
@@ -57,7 +58,13 @@ public final class RegisterTraineeService implements RegisterTraineeUseCase {
                 command.getPostalCode()
         );
         TraineeCategory category = TraineeCategory.valueOf(command.getTraineeCategory().toUpperCase().replace("-", "_"));
-        Profile profile = new Profile(fullName, gender, district, command.getRegion(), category, address);
+        PhoneNumber phone = null;
+        String cc = command.getPhoneCountryCode() != null ? command.getPhoneCountryCode().trim() : null;
+        String nn = command.getPhoneNationalNumber() != null ? command.getPhoneNationalNumber().trim().replaceAll("\\s", "") : null;
+        if (cc != null && !cc.isEmpty() || nn != null && !nn.isEmpty()) {
+            phone = new PhoneNumber(cc, nn);
+        }
+        Profile profile = new Profile(fullName, gender, district, command.getRegion(), category, address, phone);
 
         TraineeId id = new TraineeId(UUID.randomUUID());
         Trainee trainee = new Trainee(

@@ -15,5 +15,7 @@ public record TraineeProfileResponse(
         String street,
         String city,
         String postalCode,
+        String phoneCountryCode,
+        String phoneNationalNumber,
         String profileImageUrl
 ) {}

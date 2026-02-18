@@ -17,10 +17,13 @@ public final class RegisterTraineeCommand {
     private final String street;
     private final String city;
     private final String postalCode;
+    private final String phoneCountryCode;
+    private final String phoneNationalNumber;
 
     public RegisterTraineeCommand(String email, String password, String firstName, String lastName,
                                   String gender, String traineeCategory, String districtName, String region,
-                                  String street, String city, String postalCode) {
+                                  String street, String city, String postalCode,
+                                  String phoneCountryCode, String phoneNationalNumber) {
         this.email = Objects.requireNonNull(email);
         this.password = Objects.requireNonNull(password);
         this.firstName = Objects.requireNonNull(firstName);
@@ -32,6 +35,8 @@ public final class RegisterTraineeCommand {
         this.street = street;
         this.city = city;
         this.postalCode = postalCode;
+        this.phoneCountryCode = phoneCountryCode;
+        this.phoneNationalNumber = phoneNationalNumber;
     }
 
     public String getEmail() { return email; }
@@ -45,4 +50,6 @@ public final class RegisterTraineeCommand {
     public String getStreet() { return street; }
     public String getCity() { return city; }
     public String getPostalCode() { return postalCode; }
+    public String getPhoneCountryCode() { return phoneCountryCode; }
+    public String getPhoneNationalNumber() { return phoneNationalNumber; }
 }

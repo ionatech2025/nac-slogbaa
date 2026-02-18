@@ -59,6 +59,8 @@ public class AdminTraineesController {
                 d.getStreet(),
                 d.getCity(),
                 d.getPostalCode(),
+                d.getPhoneCountryCode(),
+                d.getPhoneNationalNumber(),
                 d.getProfileImageUrl()
         );
     }
