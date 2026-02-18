@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Modal } from '../../../../shared/components/Modal.jsx'
+import { PHONE_COUNTRY_CODES } from '../../../../shared/countryCodes.js'
 
 const CATEGORY_OPTIONS = [
   { value: 'LEADER', label: 'Leader' },
@@ -96,6 +97,8 @@ function toForm(profile) {
     districtName: profile.districtName ?? '',
     region: profile.region ?? '',
     category: profile.category ?? '',
+    phoneCountryCode: profile.phoneCountryCode ?? '',
+    phoneNationalNumber: profile.phoneNationalNumber ?? '',
     street: profile.street ?? '',
     city: profile.city ?? '',
     postalCode: profile.postalCode ?? '',
@@ -135,6 +138,8 @@ export function EditProfileModal({ profile, onClose, onSave, saving = false, err
       districtName: form.districtName.trim(),
       region: form.region?.trim() ?? '',
       category: form.category,
+      phoneCountryCode: form.phoneCountryCode?.trim() || undefined,
+      phoneNationalNumber: form.phoneNationalNumber?.trim() || undefined,
       street: form.street?.trim() ?? '',
       city: form.city?.trim() ?? '',
       postalCode: form.postalCode?.trim() ?? '',
@@ -226,6 +231,34 @@ export function EditProfileModal({ profile, onClose, onSave, saving = false, err
               style={styles.input}
               value={form.region}
               onChange={(e) => update('region', e.target.value)}
+            />
+          </div>
+        </div>
+
+        <div style={styles.row}>
+          <div style={styles.field}>
+            <label style={styles.label} htmlFor="edit-phone-country">Phone (optional)</label>
+            <select
+              id="edit-phone-country"
+              style={styles.select}
+              value={form.phoneCountryCode}
+              onChange={(e) => update('phoneCountryCode', e.target.value)}
+            >
+              {PHONE_COUNTRY_CODES.map((o) => (
+                <option key={o.value || 'none'} value={o.value}>{o.label}</option>
+              ))}
+            </select>
+          </div>
+          <div style={styles.field}>
+            <label style={styles.label} htmlFor="edit-phone-number">Phone number</label>
+            <input
+              id="edit-phone-number"
+              type="tel"
+              autoComplete="tel-national"
+              style={styles.input}
+              value={form.phoneNationalNumber}
+              onChange={(e) => update('phoneNationalNumber', e.target.value.replace(/\D/g, '').slice(0, 15))}
+              placeholder="e.g. 712345678"
             />
           </div>
         </div>

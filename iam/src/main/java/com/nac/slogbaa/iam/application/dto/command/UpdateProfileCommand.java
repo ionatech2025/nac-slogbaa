@@ -15,10 +15,13 @@ public final class UpdateProfileCommand {
     private final String street;
     private final String city;
     private final String postalCode;
+    private final String phoneCountryCode;
+    private final String phoneNationalNumber;
 
     public UpdateProfileCommand(String firstName, String lastName, String gender,
                                  String districtName, String region, String category,
-                                 String street, String city, String postalCode) {
+                                 String street, String city, String postalCode,
+                                 String phoneCountryCode, String phoneNationalNumber) {
         this.firstName = Objects.requireNonNull(firstName, "firstName must not be null");
         this.lastName = Objects.requireNonNull(lastName, "lastName must not be null");
         this.gender = Objects.requireNonNull(gender, "gender must not be null");
@@ -28,6 +31,8 @@ public final class UpdateProfileCommand {
         this.street = street != null ? street.trim() : null;
         this.city = city != null ? city.trim() : null;
         this.postalCode = postalCode != null ? postalCode.trim() : null;
+        this.phoneCountryCode = phoneCountryCode != null ? phoneCountryCode.trim() : null;
+        this.phoneNationalNumber = phoneNationalNumber != null ? phoneNationalNumber.trim().replaceAll("\\s", "") : null;
     }
 
     public String getFirstName() { return firstName; }
@@ -39,4 +44,6 @@ public final class UpdateProfileCommand {
     public String getStreet() { return street; }
     public String getCity() { return city; }
     public String getPostalCode() { return postalCode; }
+    public String getPhoneCountryCode() { return phoneCountryCode; }
+    public String getPhoneNationalNumber() { return phoneNationalNumber; }
 }

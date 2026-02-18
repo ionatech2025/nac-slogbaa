@@ -58,7 +58,9 @@ public class AuthController {
                 request.getRegion(),
                 request.getStreet(),
                 request.getCity(),
-                request.getPostalCode()
+                request.getPostalCode(),
+                request.getPhoneCountryCode(),
+                request.getPhoneNationalNumber()
         );
         RegisterTraineeResult result = registerTraineeUseCase.register(command);
         RegisterResponse response = new RegisterResponse(result.getTraineeId(), result.getEmail());

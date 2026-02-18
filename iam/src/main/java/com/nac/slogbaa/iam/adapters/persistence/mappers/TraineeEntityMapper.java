@@ -19,7 +19,11 @@ public class TraineeEntityMapper {
         District district = new District(e.getDistrictName());
         PhysicalAddress address = new PhysicalAddress(e.getStreet(), e.getCity(), e.getPostalCode());
         TraineeCategory category = TraineeCategory.valueOf(e.getTraineeCategory().name());
-        Profile profile = new Profile(fullName, gender, district, e.getRegion(), category, address);
+        PhoneNumber phone = null;
+        if (e.getPhoneCountryCode() != null && e.getPhoneNationalNumber() != null) {
+            phone = new PhoneNumber(e.getPhoneCountryCode(), e.getPhoneNationalNumber());
+        }
+        Profile profile = new Profile(fullName, gender, district, e.getRegion(), category, address, phone);
         return new Trainee(
                 new TraineeId(e.getId()),
                 email,
@@ -46,6 +50,13 @@ public class TraineeEntityMapper {
         e.setStreet(domain.getProfile().getAddress().getStreet());
         e.setCity(domain.getProfile().getAddress().getCity());
         e.setPostalCode(domain.getProfile().getAddress().getPostalCode());
+        if (domain.getProfile().getPhoneNumber() != null && domain.getProfile().getPhoneNumber().isPresent()) {
+            e.setPhoneCountryCode(domain.getProfile().getPhoneNumber().getCountryCode());
+            e.setPhoneNationalNumber(domain.getProfile().getPhoneNumber().getNationalNumber());
+        } else {
+            e.setPhoneCountryCode(null);
+            e.setPhoneNationalNumber(null);
+        }
         e.setActive(domain.isActive());
         e.setRegistrationDate(domain.getRegistrationDate());
         e.setEmailVerified(domain.isEmailVerified());

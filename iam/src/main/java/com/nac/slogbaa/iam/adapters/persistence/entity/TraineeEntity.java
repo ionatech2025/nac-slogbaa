@@ -65,6 +65,12 @@ public class TraineeEntity {
     @Column(name = "email_verified", nullable = false)
     private boolean emailVerified = false;
 
+    @Column(name = "phone_country_code", length = 10)
+    private String phoneCountryCode;
+
+    @Column(name = "phone_national_number", length = 20)
+    private String phoneNationalNumber;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -131,4 +137,8 @@ public class TraineeEntity {
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(Instant updatedAt) { this.updatedAt = updatedAt; }
+    public String getPhoneCountryCode() { return phoneCountryCode; }
+    public void setPhoneCountryCode(String phoneCountryCode) { this.phoneCountryCode = phoneCountryCode; }
+    public String getPhoneNationalNumber() { return phoneNationalNumber; }
+    public void setPhoneNationalNumber(String phoneNationalNumber) { this.phoneNationalNumber = phoneNationalNumber; }
 }

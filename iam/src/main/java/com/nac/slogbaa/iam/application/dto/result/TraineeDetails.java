@@ -18,11 +18,15 @@ public final class TraineeDetails {
     private final String street;
     private final String city;
     private final String postalCode;
+    private final String phoneCountryCode;
+    private final String phoneNationalNumber;
     private final String profileImageUrl;
 
     public TraineeDetails(UUID id, String email, String firstName, String lastName,
                           String gender, String districtName, String region, String category,
-                          String street, String city, String postalCode, String profileImageUrl) {
+                          String street, String city, String postalCode,
+                          String phoneCountryCode, String phoneNationalNumber,
+                          String profileImageUrl) {
         this.id = Objects.requireNonNull(id);
         this.email = Objects.requireNonNull(email);
         this.firstName = Objects.requireNonNull(firstName);
@@ -34,6 +38,8 @@ public final class TraineeDetails {
         this.street = street;
         this.city = city;
         this.postalCode = postalCode;
+        this.phoneCountryCode = phoneCountryCode;
+        this.phoneNationalNumber = phoneNationalNumber;
         this.profileImageUrl = profileImageUrl;
     }
 
@@ -48,5 +54,7 @@ public final class TraineeDetails {
     public String getStreet() { return street; }
     public String getCity() { return city; }
     public String getPostalCode() { return postalCode; }
+    public String getPhoneCountryCode() { return phoneCountryCode; }
+    public String getPhoneNationalNumber() { return phoneNationalNumber; }
     public String getProfileImageUrl() { return profileImageUrl; }
 }

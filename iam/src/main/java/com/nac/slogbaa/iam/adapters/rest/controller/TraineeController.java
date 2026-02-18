@@ -57,7 +57,9 @@ public class TraineeController {
                 request.getCategory(),
                 request.getStreet(),
                 request.getCity(),
-                request.getPostalCode()
+                request.getPostalCode(),
+                request.getPhoneCountryCode(),
+                request.getPhoneNationalNumber()
         );
         updateTraineeProfileUseCase.update(identity.getUserId(), command);
         return ResponseEntity.noContent().build();
@@ -76,6 +78,8 @@ public class TraineeController {
                 d.getStreet(),
                 d.getCity(),
                 d.getPostalCode(),
+                d.getPhoneCountryCode(),
+                d.getPhoneNationalNumber(),
                 d.getProfileImageUrl()
         );
     }

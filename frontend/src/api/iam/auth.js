@@ -38,6 +38,8 @@ export async function register(payload) {
     traineeCategory: payload.traineeCategory,
     districtName: payload.districtName?.trim(),
     region: payload.region?.trim() || undefined,
+    phoneCountryCode: payload.phoneCountryCode?.trim() || undefined,
+    phoneNationalNumber: payload.phoneNationalNumber?.trim() || undefined,
     street: payload.street?.trim() || undefined,
     city: payload.city?.trim() || undefined,
     postalCode: payload.postalCode?.trim() || undefined,

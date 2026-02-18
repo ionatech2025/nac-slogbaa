@@ -3,13 +3,14 @@ package com.nac.slogbaa.iam.core.entity;
 import com.nac.slogbaa.iam.core.valueobject.District;
 import com.nac.slogbaa.iam.core.valueobject.FullName;
 import com.nac.slogbaa.iam.core.valueobject.Gender;
+import com.nac.slogbaa.iam.core.valueobject.PhoneNumber;
 import com.nac.slogbaa.iam.core.valueobject.PhysicalAddress;
 import com.nac.slogbaa.iam.core.valueobject.TraineeCategory;
 
 import java.util.Objects;
 
 /**
- * Trainee profile (name, address, category, etc.). Part of Trainee aggregate.
+ * Trainee profile (name, address, category, phone, etc.). Part of Trainee aggregate.
  * No framework dependency.
  */
 public final class Profile {
@@ -19,15 +20,17 @@ public final class Profile {
     private final String region;
     private final TraineeCategory category;
     private final PhysicalAddress address;
+    private final PhoneNumber phoneNumber;
 
     public Profile(FullName fullName, Gender gender, District district, String region,
-                   TraineeCategory category, PhysicalAddress address) {
+                   TraineeCategory category, PhysicalAddress address, PhoneNumber phoneNumber) {
         this.fullName = Objects.requireNonNull(fullName);
         this.gender = Objects.requireNonNull(gender);
         this.district = Objects.requireNonNull(district);
         this.region = region != null ? region.trim() : null;
         this.category = Objects.requireNonNull(category);
         this.address = address != null ? address : new PhysicalAddress(null, null, null);
+        this.phoneNumber = phoneNumber;
     }
 
     public FullName getFullName() {
@@ -52,5 +55,9 @@ public final class Profile {
 
     public PhysicalAddress getAddress() {
         return address;
+    }
+
+    public PhoneNumber getPhoneNumber() {
+        return phoneNumber;
     }
 }

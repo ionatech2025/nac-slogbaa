@@ -150,6 +150,11 @@ export function ProfileViewModal({ profile, onClose, onEdit, showEditButton = tr
           <div style={styles.field}>
             <p style={styles.value}><strong>Category</strong> {formatCategory(profile.category)}</p>
           </div>
+          {(profile.phoneCountryCode && profile.phoneNationalNumber) ? (
+            <div style={styles.field}>
+              <p style={styles.value}><strong>Phone</strong> {profile.phoneCountryCode} {profile.phoneNationalNumber}</p>
+            </div>
+          ) : null}
         </div>
       </div>
 

@@ -1,6 +1,7 @@
 package com.nac.slogbaa.iam.adapters.rest.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
 public class RegisterTraineeRequest {
 
@@ -30,6 +31,12 @@ public class RegisterTraineeRequest {
     private String city;
     private String postalCode;
 
+    @Size(max = 10)
+    private String phoneCountryCode;
+
+    @Size(max = 20)
+    private String phoneNationalNumber;
+
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
     public String getPassword() { return password; }
@@ -52,4 +59,8 @@ public class RegisterTraineeRequest {
     public void setCity(String city) { this.city = city; }
     public String getPostalCode() { return postalCode; }
     public void setPostalCode(String postalCode) { this.postalCode = postalCode; }
+    public String getPhoneCountryCode() { return phoneCountryCode; }
+    public void setPhoneCountryCode(String phoneCountryCode) { this.phoneCountryCode = phoneCountryCode; }
+    public String getPhoneNationalNumber() { return phoneNationalNumber; }
+    public void setPhoneNationalNumber(String phoneNationalNumber) { this.phoneNationalNumber = phoneNationalNumber; }
 }

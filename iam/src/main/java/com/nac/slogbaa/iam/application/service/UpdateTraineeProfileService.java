@@ -37,7 +37,13 @@ public final class UpdateTraineeProfileService implements UpdateTraineeProfileUs
         TraineeCategory category = TraineeCategory.valueOf(
                 command.getCategory().toUpperCase().replace("-", "_")
         );
-        Profile profile = new Profile(fullName, gender, district, command.getRegion(), category, address);
+        PhoneNumber phone = null;
+        String cc = command.getPhoneCountryCode() != null ? command.getPhoneCountryCode().trim() : null;
+        String nn = command.getPhoneNationalNumber() != null ? command.getPhoneNationalNumber().trim().replaceAll("\\s", "") : null;
+        if (cc != null && !cc.isEmpty() || nn != null && !nn.isEmpty()) {
+            phone = new PhoneNumber(cc, nn);
+        }
+        Profile profile = new Profile(fullName, gender, district, command.getRegion(), category, address, phone);
 
         Trainee updated = new Trainee(
                 existing.getId(),
