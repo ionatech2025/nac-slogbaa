@@ -21,6 +21,7 @@ const MODULES_SUPER_ADMIN = [
 
 const MODULES_ADMIN = [
   { path: 'overview', label: 'Overview', icon: icons.overview },
+  { path: 'learning', label: 'Learning', icon: icons.learning },
   { path: 'reports', label: 'Reports & Analytics', icon: icons.reports },
 ]
 
