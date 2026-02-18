@@ -48,6 +48,28 @@ const styles = {
     fontSize: '1rem',
     background: 'var(--slogbaa-surface)',
   },
+  passwordWrap: {
+    position: 'relative',
+    display: 'flex',
+    alignItems: 'stretch',
+  },
+  passwordInput: {
+    flex: 1,
+    paddingRight: '2.5rem',
+  },
+  toggleVisibility: {
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    bottom: 0,
+    display: 'flex',
+    alignItems: 'center',
+    padding: '0 0.75rem',
+    border: 'none',
+    background: 'none',
+    color: 'var(--slogbaa-text-muted)',
+    cursor: 'pointer',
+  },
   select: {
     padding: '0.5rem 0.75rem',
     border: '1px solid var(--slogbaa-border)',
@@ -91,6 +113,7 @@ export function RegisterForm() {
     city: '',
     postalCode: '',
   })
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
   const { login: setAuth } = useAuth()
@@ -175,15 +198,26 @@ export function RegisterForm() {
       </div>
       <div style={styles.field}>
         <label style={styles.label} htmlFor="reg-password">Password *</label>
-        <input
-          id="reg-password"
-          type="password"
-          autoComplete="new-password"
-          value={form.password}
-          onChange={(e) => update('password', e.target.value)}
-          style={styles.input}
-          placeholder="At least 6 characters"
-        />
+        <div style={styles.passwordWrap}>
+          <input
+            id="reg-password"
+            type={showPassword ? 'text' : 'password'}
+            autoComplete="new-password"
+            value={form.password}
+            onChange={(e) => update('password', e.target.value)}
+            style={{ ...styles.input, ...styles.passwordInput }}
+            placeholder="At least 6 characters"
+          />
+          <button
+            type="button"
+            style={styles.toggleVisibility}
+            onClick={() => setShowPassword((v) => !v)}
+            title={showPassword ? 'Hide password' : 'Show password'}
+            aria-label={showPassword ? 'Hide password' : 'Show password'}
+          >
+            <FontAwesomeIcon icon={showPassword ? icons.eyeSlash : icons.eye} />
+          </button>
+        </div>
       </div>
       <div style={styles.row}>
         <div style={styles.field}>

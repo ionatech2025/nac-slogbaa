@@ -28,6 +28,8 @@ import {
   faCertificate,
   faBookOpen,
   faTrashCan,
+  faEye,
+  faEyeSlash,
 } from '@fortawesome/free-solid-svg-icons'
 
 export { FontAwesomeIcon }
@@ -57,4 +59,6 @@ export const icons = {
   certificate: faCertificate,
   course: faBookOpen,
   delete: faTrashCan,
+  eye: faEye,
+  eyeSlash: faEyeSlash,
 }
