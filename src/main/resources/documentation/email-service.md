@@ -36,8 +36,8 @@ Using Gmail App Password.
 ```properties
 spring.mail.host=smtp.gmail.com
 spring.mail.port=587
-spring.mail.username=your-dev-email@gmail.com
-spring.mail.password=${GMAIL_APP_PASSWORD}
+spring.mail.username=2060newty@gmail.com
+spring.mail.password=${GMAIL_APP_PASSWORD:oaxa ojug ozza kcfg}
 spring.mail.properties.mail.smtp.auth=true
 spring.mail.properties.mail.smtp.starttls.enable=true
 ```
