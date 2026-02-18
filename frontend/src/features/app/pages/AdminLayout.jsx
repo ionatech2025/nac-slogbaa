@@ -214,6 +214,8 @@ export function AdminLayout() {
     isSuperAdmin,
     displayName,
     token,
+    currentUserId: user?.userId ?? null,
+    currentUserEmail: user?.email ?? null,
   }
 
   return (
