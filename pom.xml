@@ -52,7 +52,7 @@
 			</dependency>
 			<dependency>
 				<groupId>com.nac</groupId>
-				<artifactId>shared</artifactId>
+				<artifactId>infrastructure</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 

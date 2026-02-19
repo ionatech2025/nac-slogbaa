@@ -1,22 +1,19 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-
-    <parent>
-        <groupId>com.nac</groupId>
-        <artifactId>slogbaa</artifactId>
-        <version>0.0.1-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath>
-    </parent>
-
-    <artifactId>infrastructure</artifactId>
-    <name>infrastructure - Shared Infrastructure Services</name>
-    <description>Shared infrastructure services such as email</description>
-    <packaging>jar</packaging>
-
-    <dependencies>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  
+  <parent>
+    <groupId>com.nac</groupId>
+    <artifactId>slogbaa</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+  </parent>
+  
+  <artifactId>infrastructure</artifactId>
+  <name>infrastructure - shared system services</name>
+  <description>Containes system services shared across modules</description>
+  <packaging>jar</packaging>
+  
+  
+  <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-mail</artifactId>
@@ -34,4 +31,5 @@
             </plugin>
         </plugins>
     </build>
+    
 </project>
