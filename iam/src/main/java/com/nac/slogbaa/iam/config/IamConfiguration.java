@@ -14,6 +14,7 @@ import com.nac.slogbaa.iam.application.port.out.EmailNotificationPort;
 import com.nac.slogbaa.iam.application.port.out.PasswordHasherPort;
 import com.nac.slogbaa.iam.application.port.out.StaffUserRepositoryPort;
 import com.nac.slogbaa.iam.application.port.out.TraineeRepositoryPort;
+import com.nac.slogbaa.infrastructure.email.EmailService;
 import com.nac.slogbaa.iam.application.service.AuthenticateUserService;
 import com.nac.slogbaa.iam.application.service.ChangeStaffPasswordService;
 import com.nac.slogbaa.iam.application.service.CreateStaffService;
@@ -56,11 +57,13 @@ public class IamConfiguration {
     public RegisterTraineeUseCase registerTraineeUseCase(
             TraineeRepositoryPort traineeRepository,
             StaffUserRepositoryPort staffUserRepository,
-            PasswordHasherPort passwordHasher) {
+            PasswordHasherPort passwordHasher,
+            EmailService emailService) {
         return new RegisterTraineeService(
                 traineeRepository,
                 staffUserRepository,
-                passwordHasher
+                passwordHasher,
+                emailService
         );
     }
 

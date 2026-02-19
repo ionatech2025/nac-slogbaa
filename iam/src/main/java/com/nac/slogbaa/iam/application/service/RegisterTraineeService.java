@@ -6,6 +6,7 @@ import com.nac.slogbaa.iam.application.port.in.RegisterTraineeUseCase;
 import com.nac.slogbaa.iam.application.port.out.PasswordHasherPort;
 import com.nac.slogbaa.iam.application.port.out.StaffUserRepositoryPort;
 import com.nac.slogbaa.iam.application.port.out.TraineeRepositoryPort;
+import com.nac.slogbaa.infrastructure.email.EmailService;
 import com.nac.slogbaa.iam.core.aggregate.Trainee;
 import com.nac.slogbaa.iam.core.entity.Profile;
 import com.nac.slogbaa.iam.core.exception.DuplicateEmailException;
@@ -30,13 +31,16 @@ public final class RegisterTraineeService implements RegisterTraineeUseCase {
     private final TraineeRepositoryPort traineeRepository;
     private final StaffUserRepositoryPort staffUserRepository;
     private final PasswordHasherPort passwordHasher;
+    private final EmailService emailService;
 
     public RegisterTraineeService(TraineeRepositoryPort traineeRepository,
                                   StaffUserRepositoryPort staffUserRepository,
-                                  PasswordHasherPort passwordHasher) {
+                                  PasswordHasherPort passwordHasher,
+                                  EmailService emailService) {
         this.traineeRepository = traineeRepository;
         this.staffUserRepository = staffUserRepository;
         this.passwordHasher = passwordHasher;
+        this.emailService = emailService;
     }
 
     @Override
@@ -77,6 +81,14 @@ public final class RegisterTraineeService implements RegisterTraineeUseCase {
                 false
         );
         traineeRepository.save(trainee);
+
+        String welcomeHtml = "<h2>Welcome to SLOGBAA</h2>"
+                + "<p>Hello " + fullName.getFullName() + ",</p>"
+                + "<p>Thank you for registering on the <strong>SLOGBAA</strong> platform. "
+                + "We are excited to have you on board.</p>"
+                + "<p>— The SLOGBAA Team</p>";
+        emailService.sendHtmlEmail(email.getValue(), "Welcome to SLOGBAA", welcomeHtml);
+
         return new RegisterTraineeResult(id.getValue(), email.getValue());
     }
 }
