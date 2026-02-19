@@ -1,5 +1,9 @@
 package com.nac.slogbaa.iam.config;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
 import com.nac.slogbaa.iam.application.port.in.AuthenticateUserUseCase;
 import com.nac.slogbaa.iam.application.port.in.ChangeStaffPasswordUseCase;
 import com.nac.slogbaa.iam.application.port.in.CreateStaffUseCase;
@@ -14,7 +18,6 @@ import com.nac.slogbaa.iam.application.port.out.EmailNotificationPort;
 import com.nac.slogbaa.iam.application.port.out.PasswordHasherPort;
 import com.nac.slogbaa.iam.application.port.out.StaffUserRepositoryPort;
 import com.nac.slogbaa.iam.application.port.out.TraineeRepositoryPort;
-import com.nac.slogbaa.infrastructure.email.EmailService;
 import com.nac.slogbaa.iam.application.service.AuthenticateUserService;
 import com.nac.slogbaa.iam.application.service.ChangeStaffPasswordService;
 import com.nac.slogbaa.iam.application.service.CreateStaffService;
@@ -24,9 +27,7 @@ import com.nac.slogbaa.iam.application.service.GetAdminDashboardOverviewService;
 import com.nac.slogbaa.iam.application.service.GetTraineeByIdService;
 import com.nac.slogbaa.iam.application.service.RegisterTraineeService;
 import com.nac.slogbaa.iam.application.service.UpdateTraineeProfileService;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import com.nac.slogbaa.infrastructure.email.EmailService;
 
 /**
  * Wires application use cases to their implementations (services) and injects port implementations (adapters).
