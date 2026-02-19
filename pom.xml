@@ -26,6 +26,7 @@
 		<module>iam</module>
 		<module>infrastructure</module>
 		<module>app</module>
+		<module>learning</module>
 	</modules>
 
 	<dependencies>
@@ -46,7 +47,12 @@
 			</dependency>
 			<dependency>
 				<groupId>com.nac</groupId>
-				<artifactId>infrastructure</artifactId>
+				<artifactId>learning</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.nac</groupId>
+				<artifactId>shared</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 
