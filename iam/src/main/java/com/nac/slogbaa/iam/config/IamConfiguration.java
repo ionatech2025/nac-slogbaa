@@ -14,7 +14,6 @@ import com.nac.slogbaa.iam.application.port.in.GetTraineeByIdUseCase;
 import com.nac.slogbaa.iam.application.port.in.RegisterTraineeUseCase;
 import com.nac.slogbaa.iam.application.port.in.UpdateTraineeProfileUseCase;
 import com.nac.slogbaa.iam.application.port.out.AuthTokenPort;
-import com.nac.slogbaa.iam.application.port.out.EmailNotificationPort;
 import com.nac.slogbaa.iam.application.port.out.PasswordHasherPort;
 import com.nac.slogbaa.iam.application.port.out.StaffUserRepositoryPort;
 import com.nac.slogbaa.iam.application.port.out.TraineeRepositoryPort;
@@ -27,7 +26,8 @@ import com.nac.slogbaa.iam.application.service.GetAdminDashboardOverviewService;
 import com.nac.slogbaa.iam.application.service.GetTraineeByIdService;
 import com.nac.slogbaa.iam.application.service.RegisterTraineeService;
 import com.nac.slogbaa.iam.application.service.UpdateTraineeProfileService;
-import com.nac.slogbaa.infrastructure.email.EmailService;
+import com.nac.slogbaa.shared.ports.StaffNotificationPort;
+import com.nac.slogbaa.shared.ports.TraineeNotificationPort;
 
 /**
  * Wires application use cases to their implementations (services) and injects port implementations (adapters).
@@ -59,12 +59,12 @@ public class IamConfiguration {
             TraineeRepositoryPort traineeRepository,
             StaffUserRepositoryPort staffUserRepository,
             PasswordHasherPort passwordHasher,
-            EmailService emailService) {
+            TraineeNotificationPort traineeNotificationPort) {
         return new RegisterTraineeService(
                 traineeRepository,
                 staffUserRepository,
                 passwordHasher,
-                emailService
+                traineeNotificationPort
         );
     }
 
@@ -87,12 +87,12 @@ public class IamConfiguration {
             StaffUserRepositoryPort staffUserRepository,
             TraineeRepositoryPort traineeRepository,
             PasswordHasherPort passwordHasher,
-            EmailNotificationPort emailNotificationPort) {
+            StaffNotificationPort staffNotificationPort) {
         return new CreateStaffService(
                 staffUserRepository,
                 traineeRepository,
                 passwordHasher,
-                emailNotificationPort
+                staffNotificationPort
         );
     }
 
