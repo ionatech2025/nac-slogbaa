@@ -24,4 +24,6 @@ public interface TraineeRepositoryPort {
     long count();
 
     void deleteById(UUID id);
+
+    void updatePasswordHash(UUID traineeId, String newPasswordHash);
 }
