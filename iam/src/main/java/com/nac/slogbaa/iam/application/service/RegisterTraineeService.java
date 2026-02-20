@@ -6,6 +6,7 @@ import com.nac.slogbaa.iam.application.port.in.RegisterTraineeUseCase;
 import com.nac.slogbaa.iam.application.port.out.PasswordHasherPort;
 import com.nac.slogbaa.iam.application.port.out.StaffUserRepositoryPort;
 import com.nac.slogbaa.iam.application.port.out.TraineeRepositoryPort;
+import com.nac.slogbaa.shared.ports.TraineeNotificationPort;
 import com.nac.slogbaa.iam.core.aggregate.Trainee;
 import com.nac.slogbaa.iam.core.entity.Profile;
 import com.nac.slogbaa.iam.core.exception.DuplicateEmailException;
@@ -30,13 +31,16 @@ public final class RegisterTraineeService implements RegisterTraineeUseCase {
     private final TraineeRepositoryPort traineeRepository;
     private final StaffUserRepositoryPort staffUserRepository;
     private final PasswordHasherPort passwordHasher;
+    private final TraineeNotificationPort traineeNotificationPort;
 
     public RegisterTraineeService(TraineeRepositoryPort traineeRepository,
                                   StaffUserRepositoryPort staffUserRepository,
-                                  PasswordHasherPort passwordHasher) {
+                                  PasswordHasherPort passwordHasher,
+                                  TraineeNotificationPort traineeNotificationPort) {
         this.traineeRepository = traineeRepository;
         this.staffUserRepository = staffUserRepository;
         this.passwordHasher = passwordHasher;
+        this.traineeNotificationPort = traineeNotificationPort;
     }
 
     @Override
@@ -77,6 +81,9 @@ public final class RegisterTraineeService implements RegisterTraineeUseCase {
                 false
         );
         traineeRepository.save(trainee);
+
+        traineeNotificationPort.sendTraineeWelcomeEmail(email.getValue(), fullName.getFullName());
+
         return new RegisterTraineeResult(id.getValue(), email.getValue());
     }
 }

@@ -1,9 +1,10 @@
 package com.nac.slogbaa.iam.application.service;
 
+import java.util.UUID;
+
 import com.nac.slogbaa.iam.application.dto.command.CreateStaffCommand;
 import com.nac.slogbaa.iam.application.dto.result.CreateStaffResult;
 import com.nac.slogbaa.iam.application.port.in.CreateStaffUseCase;
-import com.nac.slogbaa.iam.application.port.out.EmailNotificationPort;
 import com.nac.slogbaa.iam.application.port.out.PasswordHasherPort;
 import com.nac.slogbaa.iam.application.port.out.StaffUserRepositoryPort;
 import com.nac.slogbaa.iam.application.port.out.TraineeRepositoryPort;
@@ -14,7 +15,7 @@ import com.nac.slogbaa.iam.core.valueobject.Email;
 import com.nac.slogbaa.iam.core.valueobject.StaffRole;
 import com.nac.slogbaa.iam.core.valueobject.StaffUserId;
 
-import java.util.UUID;
+import com.nac.slogbaa.shared.ports.StaffNotificationPort;
 
 /**
  * Application service: create a new staff user. Enforces role limits and sends credentials by email.
@@ -27,16 +28,16 @@ public final class CreateStaffService implements CreateStaffUseCase {
     private final StaffUserRepositoryPort staffUserRepository;
     private final TraineeRepositoryPort traineeRepository;
     private final PasswordHasherPort passwordHasher;
-    private final EmailNotificationPort emailNotificationPort;
+    private final StaffNotificationPort staffNotificationPort;
 
     public CreateStaffService(StaffUserRepositoryPort staffUserRepository,
                               TraineeRepositoryPort traineeRepository,
                               PasswordHasherPort passwordHasher,
-                              EmailNotificationPort emailNotificationPort) {
+                              StaffNotificationPort staffNotificationPort) {
         this.staffUserRepository = staffUserRepository;
         this.traineeRepository = traineeRepository;
         this.passwordHasher = passwordHasher;
-        this.emailNotificationPort = emailNotificationPort;
+        this.staffNotificationPort = staffNotificationPort;
     }
 
     @Override
@@ -72,7 +73,7 @@ public final class CreateStaffService implements CreateStaffUseCase {
         );
         staffUserRepository.save(staffUser);
 
-        emailNotificationPort.sendStaffCredentials(
+        staffNotificationPort.sendStaffWelcomeEmail(
                 email.getValue(),
                 command.getFullName().trim(),
                 command.getInitialPassword()

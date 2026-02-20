@@ -23,8 +23,11 @@
 	</properties>
 
 	<modules>
+		<module>shared-ports</module>
 		<module>iam</module>
+		<module>infrastructure</module>
 		<module>app</module>
+		<module>learning</module>
 	</modules>
 
 	<dependencies>
@@ -40,7 +43,22 @@
 			<!-- Internal Modules -->
 			<dependency>
 				<groupId>com.nac</groupId>
+				<artifactId>shared-ports</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.nac</groupId>
 				<artifactId>iam</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.nac</groupId>
+				<artifactId>learning</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.nac</groupId>
+				<artifactId>infrastructure</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 

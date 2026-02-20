@@ -1,5 +1,9 @@
 package com.nac.slogbaa.iam.config;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
 import com.nac.slogbaa.iam.application.port.in.AuthenticateUserUseCase;
 import com.nac.slogbaa.iam.application.port.in.ChangeStaffPasswordUseCase;
 import com.nac.slogbaa.iam.application.port.in.CreateStaffUseCase;
@@ -10,7 +14,6 @@ import com.nac.slogbaa.iam.application.port.in.GetTraineeByIdUseCase;
 import com.nac.slogbaa.iam.application.port.in.RegisterTraineeUseCase;
 import com.nac.slogbaa.iam.application.port.in.UpdateTraineeProfileUseCase;
 import com.nac.slogbaa.iam.application.port.out.AuthTokenPort;
-import com.nac.slogbaa.iam.application.port.out.EmailNotificationPort;
 import com.nac.slogbaa.iam.application.port.out.PasswordHasherPort;
 import com.nac.slogbaa.iam.application.port.out.StaffUserRepositoryPort;
 import com.nac.slogbaa.iam.application.port.out.TraineeRepositoryPort;
@@ -23,9 +26,8 @@ import com.nac.slogbaa.iam.application.service.GetAdminDashboardOverviewService;
 import com.nac.slogbaa.iam.application.service.GetTraineeByIdService;
 import com.nac.slogbaa.iam.application.service.RegisterTraineeService;
 import com.nac.slogbaa.iam.application.service.UpdateTraineeProfileService;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import com.nac.slogbaa.shared.ports.StaffNotificationPort;
+import com.nac.slogbaa.shared.ports.TraineeNotificationPort;
 
 /**
  * Wires application use cases to their implementations (services) and injects port implementations (adapters).
@@ -56,11 +58,13 @@ public class IamConfiguration {
     public RegisterTraineeUseCase registerTraineeUseCase(
             TraineeRepositoryPort traineeRepository,
             StaffUserRepositoryPort staffUserRepository,
-            PasswordHasherPort passwordHasher) {
+            PasswordHasherPort passwordHasher,
+            TraineeNotificationPort traineeNotificationPort) {
         return new RegisterTraineeService(
                 traineeRepository,
                 staffUserRepository,
-                passwordHasher
+                passwordHasher,
+                traineeNotificationPort
         );
     }
 
@@ -83,12 +87,12 @@ public class IamConfiguration {
             StaffUserRepositoryPort staffUserRepository,
             TraineeRepositoryPort traineeRepository,
             PasswordHasherPort passwordHasher,
-            EmailNotificationPort emailNotificationPort) {
+            StaffNotificationPort staffNotificationPort) {
         return new CreateStaffService(
                 staffUserRepository,
                 traineeRepository,
                 passwordHasher,
-                emailNotificationPort
+                staffNotificationPort
         );
     }
 
