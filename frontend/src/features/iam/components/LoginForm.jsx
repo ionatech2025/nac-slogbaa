@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { FontAwesomeIcon, icons } from '../../../shared/icons.js'
 import { useAuth } from '../hooks/useAuth.js'
 import { login as loginApi } from '../../../api/iam/auth.js'
@@ -156,9 +156,9 @@ export function LoginForm() {
             <FontAwesomeIcon icon={showPassword ? icons.eyeSlash : icons.eye} />
           </button>
         </div>
-        <a href="#" style={styles.forgotLink} onClick={(e) => e.preventDefault()}>
+        <Link to="/auth/forgot-password" style={styles.forgotLink}>
           Forgot password?
-        </a>
+        </Link>
       </div>
       {error && <p style={styles.error}>{error}</p>}
       <button
