@@ -29,10 +29,11 @@ public class EmailService {
      * Send an HTML email.
      */
     public void sendHtmlEmail(String to, String subject, String htmlContent) {
+        String sender = resolveSender();
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-            helper.setFrom(from);
+            helper.setFrom(sender);
             helper.setTo(to);
             helper.setSubject(subject);
             helper.setText(htmlContent, true);
@@ -48,10 +49,11 @@ public class EmailService {
      * Send a simple plain-text email. Used when a trainee registers or a new staff is created by a super admin.
      */
     public void sendSimpleEmail(String to, String subject, String body) {
+        String sender = resolveSender();
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, false, "UTF-8");
-            helper.setFrom(from);
+            helper.setFrom(sender);
             helper.setTo(to);
             helper.setSubject(subject);
             helper.setText(body, false);
@@ -67,10 +69,11 @@ public class EmailService {
      * Send an email with an attachment.
      */
     public void sendEmailWithAttachment(String to, String subject, String body, byte[] attachment, String fileName) {
+        String sender = resolveSender();
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-            helper.setFrom(from);
+            helper.setFrom(sender);
             helper.setTo(to);
             helper.setSubject(subject);
             helper.setText(body, false);
@@ -81,5 +84,22 @@ public class EmailService {
             log.error("Failed to send email with attachment to {} with subject '{}': {}", to, subject, e.getMessage());
             throw new EmailSendException("Failed to send email with attachment", e);
         }
+    }
+
+    private String resolveSender() {
+        if (from != null && !from.isBlank()) {
+            return from;
+        }
+        if (mailSender instanceof org.springframework.mail.javamail.JavaMailSenderImpl impl) {
+            String username = impl.getUsername();
+            if (username != null && !username.isBlank()) {
+                return username;
+            }
+        }
+        throw new EmailSendException(
+            "Mail sender address is not configured. Ensure GMAIL_USER (or spring.mail.username) is set and passed to the JVM. " +
+            "When running from IDE/Maven, add the env vars to the run configuration.",
+            null
+        );
     }
 }
