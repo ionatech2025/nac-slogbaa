@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { IamRoutes } from '../iam/routes.jsx'
+import { ResetPasswordPage } from '../iam/pages/ResetPasswordPage.jsx'
 import { HomePage } from './pages/HomePage.jsx'
 import { DashboardPage } from './pages/DashboardPage.jsx'
 import { AdminLayout } from './pages/AdminLayout.jsx'
@@ -10,6 +11,7 @@ export function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<HomePage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route path="/auth/*" element={<IamRoutes />} />
       <Route path="/dashboard" element={<DashboardPage />} />
       <Route path="/admin" element={<AdminLayout />}>
