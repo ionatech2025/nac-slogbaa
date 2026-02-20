@@ -69,12 +69,37 @@ const styles = {
     fontSize: '0.875rem',
     color: 'var(--slogbaa-success, #0a7c42)',
   },
+  passwordWrap: {
+    position: 'relative',
+    display: 'flex',
+    alignItems: 'stretch',
+  },
+  passwordInput: {
+    flex: 1,
+    paddingRight: '2.5rem',
+  },
+  toggleVisibility: {
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    bottom: 0,
+    display: 'flex',
+    alignItems: 'center',
+    padding: '0 0.75rem',
+    border: 'none',
+    background: 'none',
+    color: 'var(--slogbaa-text-muted)',
+    cursor: 'pointer',
+  },
 }
 
 export function ChangePasswordModal({ onClose, onSubmit }) {
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [showCurrent, setShowCurrent] = useState(false)
+  const [showNew, setShowNew] = useState(false)
+  const [showConfirm, setShowConfirm] = useState(false)
   const [error, setError] = useState(null)
   const [success, setSuccess] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -111,36 +136,69 @@ export function ChangePasswordModal({ onClose, onSubmit }) {
       <form style={styles.form} onSubmit={handleSubmit}>
         <div style={styles.field}>
           <label style={styles.label} htmlFor="current-password">Current password</label>
-          <input
-            id="current-password"
-            type="password"
-            value={currentPassword}
-            onChange={(e) => setCurrentPassword(e.target.value)}
-            style={styles.input}
-            autoComplete="current-password"
-          />
+          <div style={styles.passwordWrap}>
+            <input
+              id="current-password"
+              type={showCurrent ? 'text' : 'password'}
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+              style={{ ...styles.input, ...styles.passwordInput }}
+              autoComplete="current-password"
+            />
+            <button
+              type="button"
+              style={styles.toggleVisibility}
+              onClick={() => setShowCurrent((v) => !v)}
+              title={showCurrent ? 'Hide password' : 'Show password'}
+              aria-label={showCurrent ? 'Hide password' : 'Show password'}
+            >
+              <FontAwesomeIcon icon={showCurrent ? icons.eyeSlash : icons.eye} />
+            </button>
+          </div>
         </div>
         <div style={styles.field}>
           <label style={styles.label} htmlFor="new-password">New password</label>
-          <input
-            id="new-password"
-            type="password"
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-            style={styles.input}
-            autoComplete="new-password"
-          />
+          <div style={styles.passwordWrap}>
+            <input
+              id="new-password"
+              type={showNew ? 'text' : 'password'}
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              style={{ ...styles.input, ...styles.passwordInput }}
+              autoComplete="new-password"
+            />
+            <button
+              type="button"
+              style={styles.toggleVisibility}
+              onClick={() => setShowNew((v) => !v)}
+              title={showNew ? 'Hide password' : 'Show password'}
+              aria-label={showNew ? 'Hide password' : 'Show password'}
+            >
+              <FontAwesomeIcon icon={showNew ? icons.eyeSlash : icons.eye} />
+            </button>
+          </div>
         </div>
         <div style={styles.field}>
           <label style={styles.label} htmlFor="confirm-password">Confirm new password</label>
-          <input
-            id="confirm-password"
-            type="password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            style={styles.input}
-            autoComplete="new-password"
-          />
+          <div style={styles.passwordWrap}>
+            <input
+              id="confirm-password"
+              type={showConfirm ? 'text' : 'password'}
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              style={{ ...styles.input, ...styles.passwordInput }}
+              autoComplete="new-password"
+            />
+            <button
+              type="button"
+              style={styles.toggleVisibility}
+              onClick={() => setShowConfirm((v) => !v)}
+              title={showConfirm ? 'Hide password' : 'Show password'}
+              aria-label={showConfirm ? 'Hide password' : 'Show password'}
+            >
+              <FontAwesomeIcon icon={showConfirm ? icons.eyeSlash : icons.eye} />
+            </button>
+          </div>
         </div>
         {error && <p style={styles.error}>{error}</p>}
         {success && <p style={styles.success}>Password updated successfully.</p>}
