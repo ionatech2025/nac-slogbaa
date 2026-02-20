@@ -53,30 +53,6 @@ spring.mail.password=${SENDGRID_API_KEY}
 spring.mail.properties.mail.smtp.ssl.enable=true
 ```
 
-### C. The Email Service (IAM Module)
-The service is designed to be generic so it can handle different types of notifications across the platform.
-
-```java
-@Service
-public class EmailService {
-
-    @Autowired
-    private JavaMailSender mailSender;
-
-    @Value("${spring.mail.username}")
-    private String senderEmail;
-
-    public void sendSimpleEmail(String to, String subject, String body) {
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom(senderEmail);
-        message.setTo(to);
-        message.setSubject(subject);
-        message.setText(body);
-        mailSender.send(message);
-    }
-}
-```
-
 ## 4. Operational Workflow
 
 1. **Trigger**: A Trainee registers via the React frontend.
