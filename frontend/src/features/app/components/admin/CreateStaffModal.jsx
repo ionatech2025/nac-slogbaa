@@ -78,6 +78,28 @@ const styles = {
     fontSize: '0.875rem',
     color: 'var(--slogbaa-success, #0a7c42)',
   },
+  passwordWrap: {
+    position: 'relative',
+    display: 'flex',
+    alignItems: 'stretch',
+  },
+  passwordInput: {
+    flex: 1,
+    paddingRight: '2.5rem',
+  },
+  toggleVisibility: {
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    bottom: 0,
+    display: 'flex',
+    alignItems: 'center',
+    padding: '0 0.75rem',
+    border: 'none',
+    background: 'none',
+    color: 'var(--slogbaa-text-muted)',
+    cursor: 'pointer',
+  },
 }
 
 const ROLES = [
@@ -90,6 +112,7 @@ export function CreateStaffModal({ onClose, onSubmit }) {
   const [email, setEmail] = useState('')
   const [role, setRole] = useState('ADMIN')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState(null)
   const [success, setSuccess] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -164,15 +187,26 @@ export function CreateStaffModal({ onClose, onSubmit }) {
         </div>
         <div style={styles.field}>
           <label style={styles.label} htmlFor="staff-password">Initial password</label>
-          <input
-            id="staff-password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            style={styles.input}
-            placeholder="Min. 6 characters"
-            autoComplete="new-password"
-          />
+          <div style={styles.passwordWrap}>
+            <input
+              id="staff-password"
+              type={showPassword ? 'text' : 'password'}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              style={{ ...styles.input, ...styles.passwordInput }}
+              placeholder="Min. 6 characters"
+              autoComplete="new-password"
+            />
+            <button
+              type="button"
+              style={styles.toggleVisibility}
+              onClick={() => setShowPassword((v) => !v)}
+              title={showPassword ? 'Hide password' : 'Show password'}
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+            >
+              <FontAwesomeIcon icon={showPassword ? icons.eyeSlash : icons.eye} />
+            </button>
+          </div>
         </div>
         {error && <p style={styles.error}>{error}</p>}
         {success && (
