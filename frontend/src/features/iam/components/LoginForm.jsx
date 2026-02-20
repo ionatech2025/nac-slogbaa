@@ -72,6 +72,12 @@ const styles = {
     fontSize: '0.875rem',
     color: 'var(--slogbaa-error)',
   },
+  forgotLink: {
+    fontSize: '0.875rem',
+    color: 'var(--slogbaa-orange)',
+    textDecoration: 'none',
+    alignSelf: 'flex-end',
+  },
 }
 
 export function LoginForm() {
@@ -150,6 +156,9 @@ export function LoginForm() {
             <FontAwesomeIcon icon={showPassword ? icons.eyeSlash : icons.eye} />
           </button>
         </div>
+        <a href="#" style={styles.forgotLink} onClick={(e) => e.preventDefault()}>
+          Forgot password?
+        </a>
       </div>
       {error && <p style={styles.error}>{error}</p>}
       <button
