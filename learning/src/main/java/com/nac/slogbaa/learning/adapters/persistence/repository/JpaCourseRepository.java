@@ -8,5 +8,5 @@ import java.util.UUID;
 
 public interface JpaCourseRepository extends JpaRepository<CourseEntity, UUID> {
 
-    List<CourseEntity> findByIsPublishedTrue();
+    List<CourseEntity> findByPublishedTrue();
 }

@@ -1,16 +1,17 @@
 package com.nac.slogbaa.learning.adapters.persistence.adapter;
 
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+import org.springframework.stereotype.Component;
+
 import com.nac.slogbaa.learning.adapters.persistence.entity.CourseEntity;
 import com.nac.slogbaa.learning.adapters.persistence.mapper.CourseEntityMapper;
 import com.nac.slogbaa.learning.adapters.persistence.repository.JpaCourseRepository;
 import com.nac.slogbaa.learning.adapters.persistence.repository.JpaModuleRepository;
 import com.nac.slogbaa.learning.application.port.out.CourseRepositoryPort;
 import com.nac.slogbaa.learning.core.aggregate.Course;
-import org.springframework.stereotype.Component;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 
 @Component
 public class CourseRepositoryAdapter implements CourseRepositoryPort {
@@ -30,7 +31,7 @@ public class CourseRepositoryAdapter implements CourseRepositoryPort {
 
     @Override
     public List<Course> findPublishedCourses() {
-        return jpaCourseRepository.findByIsPublishedTrue().stream()
+        return jpaCourseRepository.findByPublishedTrue().stream()
                 .map(this::toDomainWithModuleCount)
                 .toList();
     }

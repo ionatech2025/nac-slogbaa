@@ -8,5 +8,5 @@ import java.util.UUID;
 
 public interface JpaLibraryResourceRepository extends JpaRepository<LibraryResourceEntity, UUID> {
 
-    List<LibraryResourceEntity> findByIsPublishedTrue();
+    List<LibraryResourceEntity> findByPublishedTrue();
 }
