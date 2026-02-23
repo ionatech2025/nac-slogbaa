@@ -12,10 +12,12 @@ import com.nac.slogbaa.iam.application.port.in.DeleteTraineeUseCase;
 import com.nac.slogbaa.iam.application.port.in.GetAdminDashboardOverviewUseCase;
 import com.nac.slogbaa.iam.application.port.in.GetTraineeByIdUseCase;
 import com.nac.slogbaa.iam.application.port.in.RegisterTraineeUseCase;
+import com.nac.slogbaa.iam.application.port.in.PasswordResetUseCase;
 import com.nac.slogbaa.iam.application.port.in.UpdateTraineeProfileUseCase;
 import com.nac.slogbaa.iam.application.port.out.AuthTokenPort;
 import com.nac.slogbaa.iam.application.port.out.PasswordHasherPort;
 import com.nac.slogbaa.iam.application.port.out.StaffUserRepositoryPort;
+import com.nac.slogbaa.iam.application.port.out.PasswordResetTokenRepositoryPort;
 import com.nac.slogbaa.iam.application.port.out.TraineeRepositoryPort;
 import com.nac.slogbaa.iam.application.service.AuthenticateUserService;
 import com.nac.slogbaa.iam.application.service.ChangeStaffPasswordService;
@@ -24,8 +26,10 @@ import com.nac.slogbaa.iam.application.service.DeleteStaffService;
 import com.nac.slogbaa.iam.application.service.DeleteTraineeService;
 import com.nac.slogbaa.iam.application.service.GetAdminDashboardOverviewService;
 import com.nac.slogbaa.iam.application.service.GetTraineeByIdService;
+import com.nac.slogbaa.iam.application.service.PasswordResetService;
 import com.nac.slogbaa.iam.application.service.RegisterTraineeService;
 import com.nac.slogbaa.iam.application.service.UpdateTraineeProfileService;
+import com.nac.slogbaa.shared.ports.PasswordResetNotificationPort;
 import com.nac.slogbaa.shared.ports.StaffNotificationPort;
 import com.nac.slogbaa.shared.ports.TraineeNotificationPort;
 
@@ -38,6 +42,9 @@ public class IamConfiguration {
 
     @Value("${app.jwt.expiry-seconds:86400}")
     private long tokenExpirySeconds;
+
+    @Value("${app.password-reset.base-url:http://localhost:5173}")
+    private String passwordResetBaseUrl;
 
     @Bean
     public AuthenticateUserUseCase authenticateUserUseCase(
@@ -114,5 +121,22 @@ public class IamConfiguration {
     @Bean
     public DeleteStaffUseCase deleteStaffUseCase(StaffUserRepositoryPort staffUserRepository) {
         return new DeleteStaffService(staffUserRepository);
+    }
+
+    @Bean
+    public PasswordResetUseCase passwordResetUseCase(
+            TraineeRepositoryPort traineeRepository,
+            StaffUserRepositoryPort staffUserRepository,
+            PasswordResetTokenRepositoryPort tokenRepository,
+            PasswordHasherPort passwordHasher,
+            PasswordResetNotificationPort notificationPort) {
+        return new PasswordResetService(
+                traineeRepository,
+                staffUserRepository,
+                tokenRepository,
+                passwordHasher,
+                notificationPort,
+                passwordResetBaseUrl
+        );
     }
 }

@@ -51,3 +51,45 @@ export async function register(payload) {
   }
   return { data: { traineeId: body.traineeId, email: body.email } }
 }
+
+/**
+ * Request a password reset email. Returns { data: { message } } on success or { error } on failure.
+ * Backend: POST /auth/password-reset/request -> 200 { message } (generic message for security).
+ */
+export async function requestPasswordReset(email) {
+  const res = await client.post('/auth/password-reset/request', { email: email?.trim().toLowerCase() })
+  const body = await res.json().catch(() => ({}))
+  if (!res.ok) {
+    const message = body.detail ?? body.title ?? `Request failed (${res.status}).`
+    return { error: message }
+  }
+  return { data: { message: body.message ?? 'If an account exists for this email, you will receive a reset link shortly.' } }
+}
+
+/**
+ * Verify a password reset token. Returns { valid: true } or { valid: false, error }.
+ * Backend: GET /auth/password-reset/verify?token=... -> 200 or 400.
+ */
+export async function verifyResetToken(token) {
+  if (!token) return { valid: false, error: 'Token is required.' }
+  const res = await client.get(`/auth/password-reset/verify?token=${encodeURIComponent(token)}`)
+  const body = await res.json().catch(() => ({}))
+  if (!res.ok) {
+    return { valid: false, error: body.message ?? body.detail ?? body.title ?? 'Invalid or expired reset link.' }
+  }
+  return { valid: true }
+}
+
+/**
+ * Complete password reset with token and new password. Returns { data: { message } } or { error }.
+ * Backend: POST /auth/password-reset/confirm -> 200 { message }.
+ */
+export async function confirmPasswordReset(token, newPassword) {
+  const res = await client.post('/auth/password-reset/confirm', { token, newPassword })
+  const body = await res.json().catch(() => ({}))
+  if (!res.ok) {
+    const message = body.detail ?? body.title ?? `Request failed (${res.status}).`
+    return { error: message }
+  }
+  return { data: { message: body.message ?? 'Password has been reset successfully.' } }
+}

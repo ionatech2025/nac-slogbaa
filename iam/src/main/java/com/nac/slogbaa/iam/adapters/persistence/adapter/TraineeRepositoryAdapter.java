@@ -56,4 +56,12 @@ public class TraineeRepositoryAdapter implements TraineeRepositoryPort {
     public void deleteById(UUID id) {
         jpaRepository.deleteById(id);
     }
+
+    @Override
+    public void updatePasswordHash(UUID traineeId, String newPasswordHash) {
+        jpaRepository.findById(traineeId).ifPresent(entity -> {
+            entity.setPasswordHash(newPasswordHash);
+            jpaRepository.save(entity);
+        });
+    }
 }

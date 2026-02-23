@@ -4,6 +4,7 @@ import com.nac.slogbaa.iam.core.exception.CannotDeleteLastSuperAdminException;
 import com.nac.slogbaa.iam.core.exception.CannotDeleteSelfException;
 import com.nac.slogbaa.iam.core.exception.DuplicateEmailException;
 import com.nac.slogbaa.iam.core.exception.InvalidCredentialsException;
+import com.nac.slogbaa.iam.core.exception.InvalidResetTokenException;
 import com.nac.slogbaa.iam.core.exception.InvalidCurrentPasswordException;
 import com.nac.slogbaa.iam.core.exception.StaffCannotSelfRegisterException;
 import com.nac.slogbaa.iam.core.exception.StaffNotFoundException;
@@ -24,6 +25,13 @@ public class AuthExceptionHandler {
     public ProblemDetail handleInvalidCredentials(InvalidCredentialsException e) {
         ProblemDetail detail = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, e.getMessage());
         detail.setTitle("Invalid credentials");
+        return detail;
+    }
+
+    @ExceptionHandler(InvalidResetTokenException.class)
+    public ProblemDetail handleInvalidResetToken(InvalidResetTokenException e) {
+        ProblemDetail detail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, e.getMessage());
+        detail.setTitle("Invalid or expired reset token");
         return detail;
     }
 
