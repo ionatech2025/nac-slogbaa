@@ -11,8 +11,14 @@ import org.springframework.context.annotation.Bean;
 
 @SpringBootApplication
 @ComponentScan(basePackages = { "com.nac.slogbaa", "com.nac.slogbaa.iam", "com.nac.slogbaa.learning" })
-@EntityScan(basePackages = { "com.nac.slogbaa.iam.adapters.persistence.entity" })
-@EnableJpaRepositories(basePackages = { "com.nac.slogbaa.iam.adapters.persistence.repository" })
+@EntityScan(basePackages = {
+        "com.nac.slogbaa.iam.adapters.persistence.entity",
+        "com.nac.slogbaa.learning.adapters.persistence.entity"
+})
+@EnableJpaRepositories(basePackages = {
+        "com.nac.slogbaa.iam.adapters.persistence.repository",
+        "com.nac.slogbaa.learning.adapters.persistence.repository"
+})
 public class SlogbaaApplication {
 
 	public static void main(String[] args) {
