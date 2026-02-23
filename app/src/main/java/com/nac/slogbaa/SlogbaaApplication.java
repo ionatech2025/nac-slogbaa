@@ -7,12 +7,10 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.boot.ApplicationRunner;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
-import java.util.Arrays;
 
 @SpringBootApplication
-@ComponentScan(basePackages = { "com.nac.slogbaa", "com.nac.slogbaa.iam" })
+@ComponentScan(basePackages = { "com.nac.slogbaa", "com.nac.slogbaa.iam", "com.nac.slogbaa.learning" })
 @EntityScan(basePackages = { "com.nac.slogbaa.iam.adapters.persistence.entity" })
 @EnableJpaRepositories(basePackages = { "com.nac.slogbaa.iam.adapters.persistence.repository" })
 public class SlogbaaApplication {
