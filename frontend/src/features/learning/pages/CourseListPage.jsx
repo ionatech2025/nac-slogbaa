@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
 import { FontAwesomeIcon, icons } from '../../../shared/icons.js'
 import { useAuth } from '../../iam/hooks/useAuth.js'
-import { getPublishedCourses } from '../../../api/learning/courses.js'
+import { getPublishedCourses, getEnrolledCourses, enrollInCourse } from '../../../api/learning/courses.js'
+import { CourseCard } from '../../app/components/trainee/CourseCard.jsx'
+import { CoursePreviewModal } from '../components/CoursePreviewModal.jsx'
 
 const styles = {
   layout: {
@@ -21,6 +22,14 @@ const styles = {
   header: {
     marginBottom: '1.5rem',
   },
+  sectionHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    flexWrap: 'wrap',
+    gap: '0.75rem',
+    marginBottom: '1rem',
+  },
   title: {
     margin: '0 0 0.25rem',
     fontSize: '1.5rem',
@@ -37,45 +46,33 @@ const styles = {
     gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
     gap: '1.25rem',
   },
-  card: {
-    display: 'block',
-    background: 'var(--slogbaa-surface)',
-    borderRadius: 10,
-    overflow: 'hidden',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-    border: '1px solid var(--slogbaa-border)',
-    textDecoration: 'none',
-    color: 'inherit',
-    transition: 'box-shadow 0.2s',
-  },
-  cardHover: {
-    boxShadow: '0 4px 14px rgba(0,0,0,0.12)',
-  },
-  cardBody: {
-    padding: '1.25rem',
-  },
-  cardTitle: {
-    margin: '0 0 0.5rem',
-    fontSize: '1.125rem',
-    fontWeight: 600,
-    color: 'var(--slogbaa-text)',
-  },
-  cardDescription: {
-    margin: '0 0 0.75rem',
-    fontSize: '0.875rem',
-    color: 'var(--slogbaa-text-muted)',
-    lineHeight: 1.45,
-    display: '-webkit-box',
-    WebkitLineClamp: 2,
-    WebkitBoxOrient: 'vertical',
-    overflow: 'hidden',
-  },
-  cardMeta: {
-    fontSize: '0.8125rem',
-    color: 'var(--slogbaa-blue)',
+  cardList: {
     display: 'flex',
+    flexDirection: 'column',
+    gap: '1.25rem',
+  },
+  viewToggle: {
+    display: 'flex',
+    gap: 0,
+    border: '1px solid var(--slogbaa-border)',
+    borderRadius: 8,
+    overflow: 'hidden',
+    background: 'var(--slogbaa-surface)',
+  },
+  viewToggleBtn: {
+    display: 'inline-flex',
     alignItems: 'center',
     gap: '0.35rem',
+    padding: '0.5rem 0.75rem',
+    border: 'none',
+    background: 'none',
+    cursor: 'pointer',
+    fontSize: '0.875rem',
+    color: 'var(--slogbaa-text-muted)',
+  },
+  viewToggleBtnActive: {
+    background: 'var(--slogbaa-blue)',
+    color: '#fff',
   },
   loading: {
     textAlign: 'center',
@@ -94,18 +91,41 @@ const styles = {
 export function CourseListPage() {
   const { token } = useAuth()
   const [courses, setCourses] = useState([])
+  const [enrolledIds, setEnrolledIds] = useState(new Set())
+  const [courseView, setCourseView] = useState('vertical')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [enrollingId, setEnrollingId] = useState(null)
+  const [previewCourse, setPreviewCourse] = useState(null)
 
   useEffect(() => {
     if (!token) return
     setLoading(true)
     setError(null)
-    getPublishedCourses(token)
-      .then(setCourses)
+    Promise.all([getPublishedCourses(token), getEnrolledCourses(token)])
+      .then(([published, enrolled]) => {
+        setCourses(published)
+        setEnrolledIds(new Set(enrolled.map((c) => c.id)))
+      })
       .catch((err) => setError(err?.message ?? 'Failed to load courses.'))
       .finally(() => setLoading(false))
   }, [token])
+
+  const handleEnroll = async (course) => {
+    if (!token || enrollingId) return
+    setEnrollingId(course.id)
+    setPreviewCourse(null)
+    try {
+      await enrollInCourse(token, course.id)
+      setEnrolledIds((prev) => new Set([...prev, course.id]))
+    } catch (err) {
+      setError(err?.message ?? 'Enrollment failed.')
+    } finally {
+      setEnrollingId(null)
+    }
+  }
+
+  const handlePreview = (course) => setPreviewCourse(course)
 
   if (loading) {
     return (
@@ -134,39 +154,79 @@ export function CourseListPage() {
     )
   }
 
+  const unenrolledCourses = courses.filter((c) => !enrolledIds.has(c.id))
+  const isHorizontal = courseView === 'horizontal'
+
   return (
     <div style={styles.layout}>
       <main style={styles.main}>
         <div style={styles.header}>
           <h1 style={styles.title}>Courses</h1>
           <p style={styles.subtitle}>
-            {courses.length === 0 ? 'No courses available yet.' : `${courses.length} course${courses.length === 1 ? '' : 's'} available`}
+            {unenrolledCourses.length === 0
+              ? enrolledIds.size > 0
+                ? "You're enrolled in all available courses."
+                : 'No courses available yet.'
+              : `${unenrolledCourses.length} course${unenrolledCourses.length === 1 ? '' : 's'} available to enroll`}
           </p>
         </div>
-        <div style={styles.cardGrid}>
-          {courses.map((course) => (
-            <Link
+        {unenrolledCourses.length > 0 && (
+          <div style={styles.sectionHeader}>
+            <div />
+            <div style={styles.viewToggle} role="group" aria-label="Course view">
+              <button
+                type="button"
+                style={{
+                  ...styles.viewToggleBtn,
+                  ...(courseView === 'vertical' ? styles.viewToggleBtnActive : {}),
+                }}
+                onClick={() => setCourseView('vertical')}
+                aria-pressed={courseView === 'vertical'}
+                title="Card view"
+              >
+                <FontAwesomeIcon icon={icons.viewCards} style={{ width: '1em', opacity: 0.9 }} />
+                Cards
+              </button>
+              <button
+                type="button"
+                style={{
+                  ...styles.viewToggleBtn,
+                  ...(courseView === 'horizontal' ? styles.viewToggleBtnActive : {}),
+                }}
+                onClick={() => setCourseView('horizontal')}
+                aria-pressed={courseView === 'horizontal'}
+                title="Row view"
+              >
+                <FontAwesomeIcon icon={icons.viewList} style={{ width: '1em', opacity: 0.9 }} />
+                Rows
+              </button>
+            </div>
+          </div>
+        )}
+        <div style={isHorizontal ? styles.cardList : styles.cardGrid}>
+          {unenrolledCourses.map((course) => (
+            <CourseCard
               key={course.id}
-              to={`/dashboard/courses/${course.id}`}
-              style={styles.card}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.boxShadow = styles.cardHover.boxShadow
+              course={{
+                id: course.id,
+                title: course.title,
+                description: course.description || 'No description.',
+                meta: `${course.moduleCount} module${course.moduleCount !== 1 ? 's' : ''}`,
               }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.boxShadow = styles.card.boxShadow
-              }}
-            >
-              <div style={styles.cardBody}>
-                <h2 style={styles.cardTitle}>{course.title}</h2>
-                <p style={styles.cardDescription}>{course.description || 'No description.'}</p>
-                <span style={styles.cardMeta}>
-                  <FontAwesomeIcon icon={icons.course} />
-                  {course.moduleCount} module{course.moduleCount !== 1 ? 's' : ''} · View course →
-                </span>
-              </div>
-            </Link>
+              onEnroll={handleEnroll}
+              onPreview={handlePreview}
+              variant={courseView}
+              enrolling={enrollingId === course.id}
+            />
           ))}
         </div>
+        {previewCourse && (
+          <CoursePreviewModal
+            course={previewCourse}
+            onClose={() => setPreviewCourse(null)}
+            onEnroll={(c) => handleEnroll(c)}
+          />
+        )}
       </main>
     </div>
   )

@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { FontAwesomeIcon, icons } from '../../../../shared/icons.js'
 
 const DEFAULT_IMG = 'https://placehold.co/400x200/e0e0e0/6b6b6b?text=Course'
@@ -136,6 +137,17 @@ const styles = {
     cursor: 'pointer',
     width: '100%',
   },
+  buttonSecondary: {
+    background: 'transparent',
+    color: 'var(--slogbaa-blue)',
+    border: '1px solid var(--slogbaa-blue)',
+  },
+  buttonRow: {
+    display: 'flex',
+    gap: '0.5rem',
+    flexWrap: 'wrap',
+    width: '100%',
+  },
   buttonHorizontal: {
     width: 'auto',
     alignSelf: 'flex-start',
@@ -147,7 +159,7 @@ const styles = {
   },
 }
 
-export function CourseCard({ course, enrolled, onEnroll, variant = 'vertical' }) {
+export function CourseCard({ course, enrolled, onEnroll, onPreview, variant = 'vertical', viewHref, enrolling }) {
   const imgSrc = course.imageUrl || '/assets/images/courses/placeholder.jpg'
   const isHorizontal = variant === 'horizontal'
 
@@ -164,7 +176,11 @@ export function CourseCard({ course, enrolled, onEnroll, variant = 'vertical' })
   }
   const imageStyle = { ...styles.image, ...(isHorizontal ? styles.imageHorizontal : {}) }
   const bodyStyle = { ...styles.body, ...(isHorizontal ? styles.bodyHorizontal : {}) }
-  const titleStyle = { ...styles.title, ...(isHorizontal ? styles.titleHorizontal : {}) }
+  const titleStyle = {
+    ...styles.title,
+    ...(isHorizontal ? styles.titleHorizontal : {}),
+    ...(viewHref ? { color: 'var(--slogbaa-blue)' } : {}),
+  }
   const descriptionStyle = {
     ...styles.description,
     ...(isHorizontal ? styles.descriptionHorizontal : {}),
@@ -204,7 +220,15 @@ export function CourseCard({ course, enrolled, onEnroll, variant = 'vertical' })
         )}
       </div>
       <div style={bodyStyle}>
-        <h3 style={titleStyle}>{course.title}</h3>
+        <h3 style={titleStyle}>
+          {viewHref ? (
+            <Link to={viewHref} style={{ color: 'inherit', textDecoration: 'inherit' }}>
+              {course.title}
+            </Link>
+          ) : (
+            course.title
+          )}
+        </h3>
         <p style={descriptionStyle}>{course.description}</p>
         {showMetaRow && metaItems?.length > 0 ? (
           <div style={styles.metaRow}>{metaItems.join(' · ')}</div>
@@ -217,15 +241,38 @@ export function CourseCard({ course, enrolled, onEnroll, variant = 'vertical' })
             ENROLLED
           </span>
         )}
-        {!enrolled && onEnroll && (
-          <button
-            type="button"
-            style={{ ...styles.button, ...(isHorizontal ? styles.buttonHorizontal : {}) }}
-            onClick={() => onEnroll(course)}
-          >
-            <FontAwesomeIcon icon={icons.enroll} />
-            ENROLL NOW →
-          </button>
+        {!enrolled && (onEnroll || onPreview) && (
+          <div style={{ ...styles.buttonRow, ...(isHorizontal ? { marginTop: 'auto' } : {}) }}>
+            {onPreview && (
+              <button
+                type="button"
+                style={{
+                  ...styles.button,
+                  ...styles.buttonSecondary,
+                  ...(isHorizontal ? styles.buttonHorizontal : { flex: 1 }),
+                }}
+                onClick={() => onPreview(course)}
+              >
+                <FontAwesomeIcon icon={icons.eye} />
+                Preview
+              </button>
+            )}
+            {onEnroll && (
+              <button
+                type="button"
+                disabled={enrolling}
+                style={{
+                  ...styles.button,
+                  ...(isHorizontal ? styles.buttonHorizontal : { flex: 1 }),
+                  ...(enrolling ? { opacity: 0.7, cursor: 'not-allowed' } : {}),
+                }}
+                onClick={() => onEnroll(course)}
+              >
+                <FontAwesomeIcon icon={icons.enroll} />
+                {enrolling ? 'Enrolling…' : 'ENROLL NOW →'}
+              </button>
+            )}
+          </div>
         )}
       </div>
     </article>
