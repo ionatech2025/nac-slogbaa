@@ -1,0 +1,11 @@
+package com.nac.slogbaa.learning.adapters.rest.dto.response;
+
+/**
+ * REST response for course summary (GET /api/courses).
+ */
+public record CourseSummaryResponse(
+        String id,
+        String title,
+        String description,
+        int moduleCount
+) {}
