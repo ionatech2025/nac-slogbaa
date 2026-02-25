@@ -19,8 +19,8 @@ export async function getPublishedCourses(token) {
 }
 
 /**
- * Fetch enrolled courses (GET /api/courses/enrolled or equivalent). Requires auth token.
- * Returns array of course summaries. Returns [] if endpoint not yet implemented (404).
+ * Fetch enrolled courses (GET /api/courses/enrolled). Requires auth token.
+ * Returns array of { id, title, description, moduleCount, completionPercentage }. Returns [] if 404 or error.
  */
 export async function getEnrolledCourses(token) {
   if (!token) return []

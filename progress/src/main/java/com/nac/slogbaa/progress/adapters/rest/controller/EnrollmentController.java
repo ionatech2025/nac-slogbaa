@@ -1,7 +1,7 @@
 package com.nac.slogbaa.progress.adapters.rest.controller;
 
 import com.nac.slogbaa.iam.core.valueobject.AuthenticatedIdentity;
-import com.nac.slogbaa.learning.application.dto.result.CourseSummary;
+import com.nac.slogbaa.progress.application.dto.EnrolledCourseResult;
 import com.nac.slogbaa.progress.application.port.in.EnrollTraineeUseCase;
 import com.nac.slogbaa.progress.application.port.in.GetEnrolledCoursesUseCase;
 import com.nac.slogbaa.progress.application.port.out.TraineeProgressRepositoryPort;
@@ -42,13 +42,14 @@ public class EnrollmentController {
     @PreAuthorize("hasRole('TRAINEE')")
     public ResponseEntity<List<EnrolledCourseResponse>> getEnrolled(
             @AuthenticationPrincipal AuthenticatedIdentity identity) {
-        List<CourseSummary> summaries = getEnrolledCoursesUseCase.getEnrolledCourses(identity.getUserId());
-        List<EnrolledCourseResponse> body = summaries.stream()
-                .map(s -> new EnrolledCourseResponse(
-                        s.getId().toString(),
-                        s.getTitle(),
-                        s.getDescription(),
-                        s.getModuleCount()))
+        List<EnrolledCourseResult> results = getEnrolledCoursesUseCase.getEnrolledCourses(identity.getUserId());
+        List<EnrolledCourseResponse> body = results.stream()
+                .map(r -> new EnrolledCourseResponse(
+                        r.id().toString(),
+                        r.title(),
+                        r.description(),
+                        r.moduleCount(),
+                        r.completionPercentage()))
                 .toList();
         return ResponseEntity.ok(body);
     }
@@ -71,5 +72,5 @@ public class EnrollmentController {
         return ResponseEntity.noContent().build();
     }
 
-    public record EnrolledCourseResponse(String id, String title, String description, int moduleCount) {}
+    public record EnrolledCourseResponse(String id, String title, String description, int moduleCount, int completionPercentage) {}
 }

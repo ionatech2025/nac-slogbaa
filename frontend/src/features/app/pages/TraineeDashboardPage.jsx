@@ -282,6 +282,7 @@ export function TraineeDashboardPage() {
                       meta: course.moduleCount != null ? `${course.moduleCount} module${course.moduleCount !== 1 ? 's' : ''}` : undefined,
                     }}
                     enrolled
+                    completionPercentage={course.completionPercentage}
                     viewHref={`/dashboard/courses/${course.id}`}
                     variant={courseView}
                   />

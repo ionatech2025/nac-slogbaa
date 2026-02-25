@@ -157,9 +157,32 @@ const styles = {
   badgeIcon: {
     marginRight: '0.35rem',
   },
+  progressWrap: {
+    marginBottom: '0.75rem',
+  },
+  progressLabel: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '0.35rem',
+    fontSize: '0.8125rem',
+    color: 'var(--slogbaa-text-muted)',
+  },
+  progressBar: {
+    height: 6,
+    borderRadius: 3,
+    background: 'var(--slogbaa-border)',
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: 3,
+    background: 'var(--slogbaa-blue)',
+    transition: 'width 0.2s ease',
+  },
 }
 
-export function CourseCard({ course, enrolled, onEnroll, onPreview, variant = 'vertical', viewHref, enrolling }) {
+export function CourseCard({ course, enrolled, completionPercentage, onEnroll, onPreview, variant = 'vertical', viewHref, enrolling }) {
   const imgSrc = course.imageUrl || '/assets/images/courses/placeholder.jpg'
   const isHorizontal = variant === 'horizontal'
 
@@ -234,6 +257,17 @@ export function CourseCard({ course, enrolled, onEnroll, onPreview, variant = 'v
           <div style={styles.metaRow}>{metaItems.join(' · ')}</div>
         ) : (
           course.meta && <p style={styles.meta}>{course.meta}</p>
+        )}
+        {enrolled && (
+          <div style={{ ...styles.progressWrap, ...(isHorizontal ? styles.badgeHorizontal : {}) }}>
+            <div style={styles.progressLabel}>
+              <span>Progress</span>
+              <span>{Math.min(100, Math.max(0, completionPercentage ?? 0))}%</span>
+            </div>
+            <div style={styles.progressBar}>
+              <div style={{ ...styles.progressFill, width: `${Math.min(100, Math.max(0, completionPercentage ?? 0))}%` }} />
+            </div>
+          </div>
         )}
         {enrolled && (
           <span style={{ ...styles.badge, ...(isHorizontal ? styles.badgeHorizontal : {}), display: 'inline-flex', alignItems: 'center' }}>
