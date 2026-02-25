@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import { FontAwesomeIcon, icons } from '../../../shared/icons.js'
 import { useAuth } from '../../iam/hooks/useAuth.js'
 import { getPublishedCourses, getEnrolledCourses, enrollInCourse } from '../../../api/learning/courses.js'
@@ -18,6 +19,15 @@ const styles = {
     maxWidth: 1000,
     margin: '0 auto',
     width: '100%',
+  },
+  backLink: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '0.35rem',
+    marginBottom: '1rem',
+    fontSize: '0.9375rem',
+    color: 'var(--slogbaa-blue)',
+    textDecoration: 'none',
   },
   header: {
     marginBottom: '1.5rem',
@@ -131,6 +141,9 @@ export function CourseListPage() {
     return (
       <div style={styles.layout}>
         <main style={styles.main}>
+          <Link to="/dashboard" style={styles.backLink}>
+            ← Back to dashboard
+          </Link>
           <div style={styles.header}>
             <h1 style={styles.title}>Courses</h1>
             <p style={styles.subtitle}>Browse available courses</p>
@@ -145,6 +158,9 @@ export function CourseListPage() {
     return (
       <div style={styles.layout}>
         <main style={styles.main}>
+          <Link to="/dashboard" style={styles.backLink}>
+            ← Back to dashboard
+          </Link>
           <div style={styles.header}>
             <h1 style={styles.title}>Courses</h1>
           </div>
@@ -160,6 +176,9 @@ export function CourseListPage() {
   return (
     <div style={styles.layout}>
       <main style={styles.main}>
+        <Link to="/dashboard" style={styles.backLink}>
+          ← Back to dashboard
+        </Link>
         <div style={styles.header}>
           <h1 style={styles.title}>Courses</h1>
           <p style={styles.subtitle}>
