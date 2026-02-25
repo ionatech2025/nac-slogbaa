@@ -10,11 +10,12 @@ import com.nac.slogbaa.learning.adapters.persistence.entity.CourseEntity;
 import com.nac.slogbaa.learning.adapters.persistence.mapper.CourseEntityMapper;
 import com.nac.slogbaa.learning.adapters.persistence.repository.JpaCourseRepository;
 import com.nac.slogbaa.learning.adapters.persistence.repository.JpaModuleRepository;
+import com.nac.slogbaa.learning.application.port.out.CoursePublicationPort;
 import com.nac.slogbaa.learning.application.port.out.CourseRepositoryPort;
 import com.nac.slogbaa.learning.core.aggregate.Course;
 
 @Component
-public class CourseRepositoryAdapter implements CourseRepositoryPort {
+public class CourseRepositoryAdapter implements CourseRepositoryPort, CoursePublicationPort {
 
     private final JpaCourseRepository jpaCourseRepository;
     private final JpaModuleRepository jpaModuleRepository;
@@ -40,6 +41,11 @@ public class CourseRepositoryAdapter implements CourseRepositoryPort {
     public Optional<Course> findById(UUID id) {
         return jpaCourseRepository.findById(id)
                 .map(this::toDomainWithModuleCount);
+    }
+
+    @Override
+    public boolean isPublished(UUID courseId) {
+        return findById(courseId).map(Course::isPublished).orElse(false);
     }
 
     private Course toDomainWithModuleCount(CourseEntity entity) {

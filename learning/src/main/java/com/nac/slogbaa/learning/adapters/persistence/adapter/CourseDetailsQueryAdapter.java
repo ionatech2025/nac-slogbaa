@@ -6,8 +6,10 @@ import com.nac.slogbaa.learning.adapters.persistence.entity.ModuleEntity;
 import com.nac.slogbaa.learning.adapters.persistence.mapper.EntityToDomainMapper;
 import com.nac.slogbaa.learning.application.dto.result.ContentBlockSummary;
 import com.nac.slogbaa.learning.application.dto.result.CourseDetails;
+import com.nac.slogbaa.learning.application.dto.result.CourseSummary;
 import com.nac.slogbaa.learning.application.dto.result.ModuleSummary;
 import com.nac.slogbaa.learning.application.port.out.CourseDetailsQueryPort;
+import com.nac.slogbaa.learning.application.port.out.CourseSummaryQueryPort;
 import com.nac.slogbaa.learning.core.aggregate.CourseWithModules;
 import com.nac.slogbaa.learning.core.entity.ContentBlock;
 import com.nac.slogbaa.learning.core.entity.Module;
@@ -21,7 +23,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Component
-public class CourseDetailsQueryAdapter implements CourseDetailsQueryPort {
+public class CourseDetailsQueryAdapter implements CourseDetailsQueryPort, CourseSummaryQueryPort {
 
     private final JpaCourseRepository jpaCourseRepository;
     private final JpaModuleRepository jpaModuleRepository;
@@ -45,6 +47,12 @@ public class CourseDetailsQueryAdapter implements CourseDetailsQueryPort {
                 .filter(CourseEntity::isPublished)
                 .map(this::toCourseWithModules)
                 .map(this::toCourseDetails);
+    }
+
+    @Override
+    public Optional<CourseSummary> getSummaryByCourseId(UUID courseId) {
+        return findCourseDetailsById(courseId)
+                .map(d -> new CourseSummary(d.getId(), d.getTitle(), d.getDescription(), d.getModules().size()));
     }
 
     private CourseWithModules toCourseWithModules(CourseEntity course) {
