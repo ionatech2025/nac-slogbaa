@@ -12,16 +12,16 @@ const styles = {
     zIndex: 1000,
     padding: '1.5rem',
   },
-  dialog: {
+  dialog: (maxWidth = 480) => ({
     background: 'var(--slogbaa-surface)',
     borderRadius: 12,
     boxShadow: '0 12px 40px rgba(0,0,0,0.2)',
     border: '1px solid var(--slogbaa-border)',
-    maxWidth: 480,
+    maxWidth,
     width: '100%',
     maxHeight: '90vh',
     overflow: 'auto',
-  },
+  }),
   header: {
     display: 'flex',
     alignItems: 'center',
@@ -52,7 +52,7 @@ const styles = {
   },
 }
 
-export function Modal({ title, onClose, children, showClose = true }) {
+export function Modal({ title, onClose, children, showClose = true, maxWidth = 480 }) {
   useEffect(() => {
     const handleEscape = (e) => {
       if (e.key === 'Escape') onClose?.()
@@ -73,7 +73,7 @@ export function Modal({ title, onClose, children, showClose = true }) {
       aria-modal="true"
       aria-labelledby={title ? 'modal-title' : undefined}
     >
-      <div style={styles.dialog} onClick={(e) => e.stopPropagation()}>
+      <div style={typeof styles.dialog === 'function' ? styles.dialog(maxWidth) : styles.dialog} onClick={(e) => e.stopPropagation()}>
         <div style={styles.header}>
           {title ? <h2 id="modal-title" style={styles.title}>{title}</h2> : <span style={{ flex: 1 }} />}
           {showClose && (

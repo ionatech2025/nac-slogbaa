@@ -1,39 +1,11 @@
-import { useState, useCallback } from 'react'
+import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import { FontAwesomeIcon, icons } from '../../../shared/icons.js'
-import { useAuth } from '../../iam/context/AuthContext.jsx'
-import { getTraineeProfile, updateTraineeProfile } from '../../../api/trainee.js'
-import { TraineeNav } from '../components/trainee/TraineeNav.jsx'
-import { ProfileViewModal } from '../components/trainee/ProfileViewModal.jsx'
-import { EditProfileModal } from '../components/trainee/EditProfileModal.jsx'
+import { useAuth } from '../../iam/hooks/useAuth.js'
+import { getEnrolledCourses, getPublishedCourses, enrollInCourse } from '../../../api/learning/courses.js'
 import { CourseCard } from '../components/trainee/CourseCard.jsx'
+import { CoursePreviewModal } from '../../learning/components/CoursePreviewModal.jsx'
 import { CertificateCard } from '../components/trainee/CertificateCard.jsx'
-
-// Placeholder data until backend is connected
-const MOCK_MY_COURSES = [
-  {
-    id: '1',
-    title: 'Introduction to Civic Engagement',
-    description: 'Foundational course on civic participation and community leadership for youth across Uganda.',
-    meta: '5 modules · Certificate on completion',
-    imageUrl: '/assets/images/courses/course1.jpg',
-  },
-]
-const MOCK_AVAILABLE_COURSES = [
-  {
-    id: '2',
-    title: 'Digital Literacy for Leaders',
-    description: 'Building digital skills for effective communication and advocacy.',
-    meta: '4 modules',
-    imageUrl: '/assets/images/courses/course2.jpg',
-  },
-  {
-    id: '3',
-    title: 'Budget Advocacy Basics',
-    description: 'Understand local budgets and how to advocate for community priorities.',
-    meta: '6 modules',
-    imageUrl: '/assets/images/courses/course3.jpg',
-  },
-]
 const MOCK_CERTIFICATES = [
   {
     id: 'c1',
@@ -160,65 +132,56 @@ export function TraineeDashboardPage() {
   const { user, token } = useAuth()
   const [activeTab, setActiveTab] = useState('courses')
   const [courseView, setCourseView] = useState('vertical')
-  const [profileModalOpen, setProfileModalOpen] = useState(false)
-  const [profileData, setProfileData] = useState(null)
-  const [profileLoading, setProfileLoading] = useState(false)
-  const [profileError, setProfileError] = useState(null)
-  const [editProfileOpen, setEditProfileOpen] = useState(false)
-  const [profileSaving, setProfileSaving] = useState(false)
-  const [profileSaveError, setProfileSaveError] = useState(null)
+  const [recommendedCourseView, setRecommendedCourseView] = useState('vertical')
+  const [enrolledCourses, setEnrolledCourses] = useState([])
+  const [publishedCourses, setPublishedCourses] = useState([])
+  const [enrolledLoading, setEnrolledLoading] = useState(true)
+  const [publishedLoading, setPublishedLoading] = useState(true)
+  const [enrollingId, setEnrollingId] = useState(null)
+  const [previewCourse, setPreviewCourse] = useState(null)
+  const [coursesError, setCoursesError] = useState(null)
   const displayName = user?.fullName || user?.email || 'Trainee'
 
-  const handleOpenProfile = useCallback(() => {
-    setProfileModalOpen(true)
-    setProfileError(null)
-    setProfileData(null)
+  useEffect(() => {
     if (!token) return
-    setProfileLoading(true)
-    getTraineeProfile(token)
-      .then((data) => setProfileData(data))
-      .catch((err) => setProfileError(err?.message ?? 'Failed to load profile.'))
-      .finally(() => setProfileLoading(false))
+    setEnrolledLoading(true)
+    getEnrolledCourses(token)
+      .then(setEnrolledCourses)
+      .catch(() => setEnrolledCourses([]))
+      .finally(() => setEnrolledLoading(false))
   }, [token])
 
-  const handleCloseProfile = useCallback(() => {
-    setProfileModalOpen(false)
-    setProfileData(null)
-    setProfileError(null)
-  }, [])
+  useEffect(() => {
+    if (!token) return
+    setPublishedLoading(true)
+    setCoursesError(null)
+    getPublishedCourses(token)
+      .then(setPublishedCourses)
+      .catch((err) => {
+        setCoursesError(err?.message ?? 'Failed to load courses.')
+        setPublishedCourses([])
+      })
+      .finally(() => setPublishedLoading(false))
+  }, [token])
 
-  const handleEditProfile = useCallback(() => {
-    setProfileSaveError(null)
-    setEditProfileOpen(true)
-  }, [])
+  const enrolledIds = new Set(enrolledCourses.map((c) => c.id))
+  const recommendedCourses = publishedCourses.filter((c) => !enrolledIds.has(c.id))
 
-  const handleCloseEditProfile = useCallback(() => {
-    setEditProfileOpen(false)
-    setProfileSaveError(null)
-  }, [])
-
-  const handleSaveProfile = useCallback(
-    async (payload) => {
-      if (!token) return
-      setProfileSaveError(null)
-      setProfileSaving(true)
-      try {
-        await updateTraineeProfile(token, payload)
-        setEditProfileOpen(false)
-        const updated = await getTraineeProfile(token)
-        setProfileData(updated)
-      } catch (err) {
-        setProfileSaveError(err?.message ?? 'Failed to update profile.')
-      } finally {
-        setProfileSaving(false)
-      }
-    },
-    [token]
-  )
-
-  const handleEnroll = (course) => {
-    console.log('Enroll', course.id)
+  const handleEnroll = async (course) => {
+    if (!token || enrollingId) return
+    setEnrollingId(course.id)
+    setPreviewCourse(null)
+    try {
+      await enrollInCourse(token, course.id)
+      setEnrolledCourses((prev) => [...prev, { ...course, moduleCount: course.moduleCount }])
+    } catch (err) {
+      setCoursesError(err?.message ?? 'Enrollment failed.')
+    } finally {
+      setEnrollingId(null)
+    }
   }
+
+  const handlePreview = (course) => setPreviewCourse(course)
 
   const handlePreviewCertificate = (cert) => {
     if (cert.pdfUrl && cert.pdfUrl !== '#') window.open(cert.pdfUrl, '_blank')
@@ -231,77 +194,6 @@ export function TraineeDashboardPage() {
 
   return (
     <div style={styles.layout}>
-      <TraineeNav onOpenProfile={handleOpenProfile} />
-      {profileModalOpen && profileData && (
-        <ProfileViewModal
-          profile={profileData}
-          onClose={handleCloseProfile}
-          onEdit={handleEditProfile}
-        />
-      )}
-      {editProfileOpen && profileData && (
-        <EditProfileModal
-          profile={profileData}
-          onClose={handleCloseEditProfile}
-          onSave={handleSaveProfile}
-          saving={profileSaving}
-          error={profileSaveError}
-        />
-      )}
-      {profileModalOpen && profileLoading && (
-        <div style={{
-          position: 'fixed',
-          inset: 0,
-          background: 'rgba(0,0,0,0.3)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1001,
-          fontSize: '0.9375rem',
-          color: 'var(--slogbaa-text)',
-        }}>
-          Loading profile…
-        </div>
-      )}
-      {profileModalOpen && profileError && !profileData && (
-        <div style={{
-          position: 'fixed',
-          inset: 0,
-          background: 'rgba(0,0,0,0.45)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1001,
-          padding: '1.5rem',
-        }}>
-          <div style={{
-            background: 'var(--slogbaa-surface)',
-            padding: '1.5rem',
-            borderRadius: 12,
-            maxWidth: 400,
-            border: '1px solid var(--slogbaa-border)',
-          }}>
-            <p style={{ margin: '0 0 0.5rem', fontSize: '0.875rem', fontWeight: 600, color: 'var(--slogbaa-text)' }}>
-              Couldn't load profile
-            </p>
-            <p style={{ margin: 0, fontSize: '0.9375rem', color: 'var(--slogbaa-error)' }}>{profileError}</p>
-            <button
-              type="button"
-              onClick={handleCloseProfile}
-              style={{
-                marginTop: '1.25rem',
-                padding: '0.5rem 1rem',
-                border: '1px solid var(--slogbaa-border)',
-                borderRadius: 8,
-                background: 'var(--slogbaa-surface)',
-                cursor: 'pointer',
-              }}
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
       <main style={styles.main}>
         <h1 style={styles.greeting}>Welcome Back, {displayName}! 👋</h1>
         <hr style={styles.greetingDivider} aria-hidden />
@@ -328,56 +220,158 @@ export function TraineeDashboardPage() {
           <>
             <div style={styles.sectionHeader}>
               <h2 style={styles.sectionTitle}>My Courses</h2>
-              <div style={styles.viewToggle} role="group" aria-label="Course view">
-                <button
-                  type="button"
-                  style={{
-                    ...styles.viewToggleBtn,
-                    ...(courseView === 'vertical' ? styles.viewToggleBtnActive : {}),
-                  }}
-                  onClick={() => setCourseView('vertical')}
-                  aria-pressed={courseView === 'vertical'}
-                  title="Card view"
-                >
-                  <FontAwesomeIcon icon={icons.viewCards} style={styles.tabIcon} />
-                  Cards
-                </button>
-                <button
-                  type="button"
-                  style={{
-                    ...styles.viewToggleBtn,
-                    ...(courseView === 'horizontal' ? styles.viewToggleBtnActive : {}),
-                  }}
-                  onClick={() => setCourseView('horizontal')}
-                  aria-pressed={courseView === 'horizontal'}
-                  title="Row view"
-                >
-                  <FontAwesomeIcon icon={icons.viewList} style={styles.tabIcon} />
-                  Rows
-                </button>
+              <Link
+                to="/dashboard/courses"
+                style={{
+                  fontSize: '0.9375rem',
+                  color: 'var(--slogbaa-blue)',
+                  textDecoration: 'none',
+                  fontWeight: 500,
+                }}
+              >
+                Browse courses to enroll →
+              </Link>
+              {enrolledCourses.length > 0 && (
+                <div style={styles.viewToggle} role="group" aria-label="Course view">
+                  <button
+                    type="button"
+                    style={{
+                      ...styles.viewToggleBtn,
+                      ...(courseView === 'vertical' ? styles.viewToggleBtnActive : {}),
+                    }}
+                    onClick={() => setCourseView('vertical')}
+                    aria-pressed={courseView === 'vertical'}
+                    title="Card view"
+                  >
+                    <FontAwesomeIcon icon={icons.viewCards} style={styles.tabIcon} />
+                    Cards
+                  </button>
+                  <button
+                    type="button"
+                    style={{
+                      ...styles.viewToggleBtn,
+                      ...(courseView === 'horizontal' ? styles.viewToggleBtnActive : {}),
+                    }}
+                    onClick={() => setCourseView('horizontal')}
+                    aria-pressed={courseView === 'horizontal'}
+                    title="Row view"
+                  >
+                    <FontAwesomeIcon icon={icons.viewList} style={styles.tabIcon} />
+                    Rows
+                  </button>
+                </div>
+              )}
+            </div>
+            {enrolledLoading ? (
+              <p style={{ margin: '0 0 1rem', color: 'var(--slogbaa-text-muted)', fontSize: '0.9375rem' }}>
+                Loading…
+              </p>
+            ) : enrolledCourses.length === 0 ? (
+              <p style={{ margin: '0 0 1rem', fontSize: '0.9375rem', color: 'var(--slogbaa-text-muted)' }}>
+                You&apos;re not enrolled in any courses yet. <Link to="/dashboard/courses" style={{ color: 'var(--slogbaa-blue)' }}>Browse courses</Link> to enroll and get started.
+              </p>
+            ) : (
+              <div style={courseView === 'horizontal' ? styles.cardList : styles.cardGrid}>
+                {enrolledCourses.map((course) => (
+                  <CourseCard
+                    key={course.id}
+                    course={{
+                      id: course.id,
+                      title: course.title,
+                      description: course.description || 'No description.',
+                      meta: course.moduleCount != null ? `${course.moduleCount} module${course.moduleCount !== 1 ? 's' : ''}` : undefined,
+                    }}
+                    enrolled
+                    viewHref={`/dashboard/courses/${course.id}`}
+                    variant={courseView}
+                  />
+                ))}
               </div>
+            )}
+
+            <div style={{ marginTop: '2.5rem' }}>
+              <div style={styles.sectionHeader}>
+                <h2 style={styles.sectionTitle}>Recommended Courses</h2>
+                <Link
+                  to="/dashboard/courses"
+                  style={{
+                    fontSize: '0.9375rem',
+                    color: 'var(--slogbaa-blue)',
+                    textDecoration: 'none',
+                    fontWeight: 500,
+                  }}
+                >
+                  View all courses →
+                </Link>
+                {recommendedCourses.length > 0 && (
+                  <div style={styles.viewToggle} role="group" aria-label="Recommended course view">
+                    <button
+                      type="button"
+                      style={{
+                        ...styles.viewToggleBtn,
+                        ...(recommendedCourseView === 'vertical' ? styles.viewToggleBtnActive : {}),
+                      }}
+                      onClick={() => setRecommendedCourseView('vertical')}
+                      aria-pressed={recommendedCourseView === 'vertical'}
+                      title="Card view"
+                    >
+                      <FontAwesomeIcon icon={icons.viewCards} style={styles.tabIcon} />
+                      Cards
+                    </button>
+                    <button
+                      type="button"
+                      style={{
+                        ...styles.viewToggleBtn,
+                        ...(recommendedCourseView === 'horizontal' ? styles.viewToggleBtnActive : {}),
+                      }}
+                      onClick={() => setRecommendedCourseView('horizontal')}
+                      aria-pressed={recommendedCourseView === 'horizontal'}
+                      title="Row view"
+                    >
+                      <FontAwesomeIcon icon={icons.viewList} style={styles.tabIcon} />
+                      Rows
+                    </button>
+                  </div>
+                )}
+              </div>
+              {coursesError && (
+                <p style={{ margin: '0 0 1rem', color: 'var(--slogbaa-error)', fontSize: '0.9375rem' }}>{coursesError}</p>
+              )}
+              {publishedLoading ? (
+                <p style={{ margin: '0 0 1rem', color: 'var(--slogbaa-text-muted)', fontSize: '0.9375rem' }}>
+                  Loading recommended courses…
+                </p>
+              ) : recommendedCourses.length === 0 ? (
+                <p style={{ margin: 0, fontSize: '0.9375rem', color: 'var(--slogbaa-text-muted)' }}>
+                  No recommended courses right now. <Link to="/dashboard/courses" style={{ color: 'var(--slogbaa-blue)' }}>Browse all courses</Link>.
+                </p>
+              ) : (
+                <div style={recommendedCourseView === 'horizontal' ? styles.cardList : styles.cardGrid}>
+                  {recommendedCourses.map((course) => (
+                    <CourseCard
+                      key={course.id}
+                      course={{
+                        id: course.id,
+                        title: course.title,
+                        description: course.description || 'No description.',
+                        meta: `${course.moduleCount} module${course.moduleCount !== 1 ? 's' : ''}`,
+                      }}
+                      onEnroll={handleEnroll}
+                      onPreview={handlePreview}
+                      variant={recommendedCourseView}
+                      enrolling={enrollingId === course.id}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
-            <div style={courseView === 'horizontal' ? styles.cardList : styles.cardGrid}>
-              {MOCK_MY_COURSES.map((course) => (
-                <CourseCard
-                  key={course.id}
-                  course={course}
-                  enrolled
-                  variant={courseView}
-                />
-              ))}
-            </div>
-            <h2 style={styles.sectionTitle}>Available Courses</h2>
-            <div style={courseView === 'horizontal' ? styles.cardList : styles.cardGrid}>
-              {MOCK_AVAILABLE_COURSES.map((course) => (
-                <CourseCard
-                  key={course.id}
-                  course={course}
-                  onEnroll={handleEnroll}
-                  variant={courseView}
-                />
-              ))}
-            </div>
+            {previewCourse && (
+              <CoursePreviewModal
+                course={previewCourse}
+                onClose={() => setPreviewCourse(null)}
+                onEnroll={(c) => handleEnroll(c)}
+              />
+            )}
           </>
         )}
 

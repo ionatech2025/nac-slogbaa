@@ -1,1 +1,1 @@
-export { getPublishedCourses, getCourseDetails } from './courses.js'
+export { getPublishedCourses, getCourseDetails, getEnrolledCourses, checkEnrollment, enrollInCourse } from './courses.js'
