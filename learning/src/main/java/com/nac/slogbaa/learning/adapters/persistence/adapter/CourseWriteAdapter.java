@@ -108,10 +108,9 @@ public class CourseWriteAdapter implements CourseWritePort {
         UUID id = UUID.randomUUID();
         entity.setId(id);
         entity.setModule(module);
-        EditorJsData editorJs = parseEditorJs(command.getRichText());
-        entity.setBlockType(deriveBlockType(editorJs, command.getBlockType()));
+        entity.setBlockType(deriveBlockType(parseEditorJs(command.getRichText()), command.getBlockType()));
         entity.setBlockOrder(command.getBlockOrder());
-        entity.setRichText(editorJs);
+        entity.setRichText(command.getRichText());
         entity.setImageUrl(command.getImageUrl());
         entity.setImageAltText(command.getImageAltText());
         entity.setImageCaption(command.getImageCaption());
@@ -129,10 +128,9 @@ public class CourseWriteAdapter implements CourseWritePort {
     public void updateContentBlock(UpdateContentBlockCommand command) {
         ContentBlockEntity entity = jpaContentBlockRepository.findById(command.getBlockId())
                 .orElseThrow(() -> new ContentBlockNotFoundException(command.getBlockId()));
-        EditorJsData editorJs = parseEditorJs(command.getRichText());
-        entity.setBlockType(deriveBlockType(editorJs, command.getBlockType()));
+        entity.setBlockType(deriveBlockType(parseEditorJs(command.getRichText()), command.getBlockType()));
         entity.setBlockOrder(command.getBlockOrder());
-        entity.setRichText(editorJs);
+        entity.setRichText(command.getRichText());
         entity.setImageUrl(command.getImageUrl());
         entity.setImageAltText(command.getImageAltText());
         entity.setImageCaption(command.getImageCaption());

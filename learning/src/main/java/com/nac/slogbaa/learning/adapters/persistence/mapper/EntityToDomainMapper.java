@@ -1,9 +1,6 @@
 package com.nac.slogbaa.learning.adapters.persistence.mapper;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nac.slogbaa.learning.adapters.persistence.entity.ContentBlockEntity;
-import com.nac.slogbaa.learning.adapters.persistence.entity.EditorJsData;
 import com.nac.slogbaa.learning.adapters.persistence.entity.ModuleEntity;
 import com.nac.slogbaa.learning.core.aggregate.CourseWithModules;
 import com.nac.slogbaa.learning.core.entity.ContentBlock;
@@ -18,8 +15,6 @@ import java.util.List;
  */
 @Component
 public class EntityToDomainMapper {
-
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     public CourseWithModules toCourseWithModules(
             com.nac.slogbaa.learning.adapters.persistence.entity.CourseEntity course,
@@ -56,7 +51,7 @@ public class EntityToDomainMapper {
                 new BlockId(entity.getId()),
                 BlockType.valueOf(entity.getBlockType().name()),
                 entity.getBlockOrder(),
-                serializeRichText(entity.getRichText()),
+                entity.getRichText(),
                 entity.getImageUrl(),
                 entity.getImageAltText(),
                 entity.getImageCaption(),
@@ -65,16 +60,5 @@ public class EntityToDomainMapper {
                 entity.getActivityInstructions(),
                 entity.getActivityResources()
         );
-    }
-
-    private String serializeRichText(EditorJsData editorJs) {
-        if (editorJs == null) {
-            return null;
-        }
-        try {
-            return OBJECT_MAPPER.writeValueAsString(editorJs);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("Failed to serialize EditorJsData", e);
-        }
     }
 }

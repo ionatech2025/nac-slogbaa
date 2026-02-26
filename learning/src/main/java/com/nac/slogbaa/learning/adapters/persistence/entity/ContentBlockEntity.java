@@ -26,8 +26,7 @@ public class ContentBlockEntity {
     private int blockOrder;
 
     @Column(name = "rich_text", columnDefinition = "TEXT")
-    @Convert(converter = EditorJsConverter.class)
-    private EditorJsData richText;
+    private String richText;
 
     @Column(name = "image_url", length = 2048)
     private String imageUrl;
@@ -85,8 +84,8 @@ public class ContentBlockEntity {
     public void setBlockType(BlockTypeEnum blockType) { this.blockType = blockType; }
     public int getBlockOrder() { return blockOrder; }
     public void setBlockOrder(int blockOrder) { this.blockOrder = blockOrder; }
-    public EditorJsData getRichText() { return richText; }
-    public void setRichText(EditorJsData richText) { this.richText = richText; }
+    public String getRichText() { return richText; }
+    public void setRichText(String richText) { this.richText = richText; }
     public String getImageUrl() { return imageUrl; }
     public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
     public String getImageAltText() { return imageAltText; }

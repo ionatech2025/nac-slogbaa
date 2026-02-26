@@ -216,6 +216,7 @@ export function AdminModuleEditorPage() {
 
   const handleEditorSave = useCallback(async (editorJsJson) => {
     if (!token || !courseId || !moduleId) return
+    setSaveError(null)
     setSaving(true)
     try {
       if (editorBlock?.id) {
@@ -233,7 +234,8 @@ export function AdminModuleEditorPage() {
       }
       await refresh()
     } catch (err) {
-      console.warn('Failed to save module content', err)
+      setSaveError(err?.message ?? 'Failed to save content. Try again.')
+      throw err
     } finally {
       setSaving(false)
     }
@@ -242,14 +244,15 @@ export function AdminModuleEditorPage() {
   const handleSaveContent = useCallback(async () => {
     const saveFn = editorJsRef.current?.save
     if (typeof saveFn !== 'function') {
-      console.warn('Editor not ready')
+      setSaveError('Editor is not ready yet. Wait a moment and try again.')
       return
     }
+    setSaveError(null)
     setSaving(true)
     try {
       await saveFn()
     } catch (err) {
-      console.warn('Save failed', err)
+      setSaveError(err?.message ?? 'Save failed. Check the console or try again.')
     } finally {
       setSaving(false)
     }
@@ -264,6 +267,7 @@ export function AdminModuleEditorPage() {
   const descriptionRowRef = useRef(null)
   const editorJsRef = useRef(null)
   const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState(null)
 
   const handleEditorAreaClick = useCallback((e) => {
     if (e.target.closest('a[href]') || e.target.closest('button') || e.target.closest('[role="menu"]')) return
@@ -402,27 +406,34 @@ export function AdminModuleEditorPage() {
             holderId={`module-editor-${moduleId}`}
           />
           {isSuperAdmin && (
-            <div style={{ marginTop: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-              <button
-                type="button"
-                onClick={handleSaveContent}
-                disabled={saving}
-                style={{
-                  padding: '0.5rem 1rem',
-                  background: saving ? 'var(--slogbaa-text-muted)' : 'var(--slogbaa-orange)',
-                  color: '#fff',
-                  border: 'none',
-                  borderRadius: 8,
-                  fontSize: '0.9375rem',
-                  fontWeight: 500,
-                  cursor: saving ? 'not-allowed' : 'pointer',
-                }}
-              >
-                {saving ? 'Saving…' : 'Save content'}
-              </button>
-              <span style={{ fontSize: '0.8125rem', color: 'var(--slogbaa-text-muted)' }}>
-                Click to push editor content to the module. Trainees will see it after save.
-              </span>
+            <div style={{ marginTop: '1.5rem' }}>
+              {saveError && (
+                <p style={{ margin: '0 0 0.75rem', color: 'var(--slogbaa-error, #c0392b)', fontSize: '0.875rem' }}>
+                  {saveError}
+                </p>
+              )}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  onClick={handleSaveContent}
+                  disabled={saving}
+                  style={{
+                    padding: '0.5rem 1rem',
+                    background: saving ? 'var(--slogbaa-text-muted)' : 'var(--slogbaa-orange)',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: 8,
+                    fontSize: '0.9375rem',
+                    fontWeight: 500,
+                    cursor: saving ? 'not-allowed' : 'pointer',
+                  }}
+                >
+                  {saving ? 'Saving…' : 'Save content'}
+                </button>
+                <span style={{ fontSize: '0.8125rem', color: 'var(--slogbaa-text-muted)' }}>
+                  Click to push editor content to the module. Trainees will see it after save.
+                </span>
+              </div>
             </div>
           )}
         </div>
