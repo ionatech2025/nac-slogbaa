@@ -38,6 +38,7 @@ import {
   faImage,
   faVideo,
   faClipboardList,
+  faMagnifyingGlass,
 } from '@fortawesome/free-solid-svg-icons'
 
 export { FontAwesomeIcon }
@@ -77,4 +78,5 @@ export const icons = {
   blockImage: faImage,
   blockVideo: faVideo,
   blockActivity: faClipboardList,
+  search: faMagnifyingGlass,
 }

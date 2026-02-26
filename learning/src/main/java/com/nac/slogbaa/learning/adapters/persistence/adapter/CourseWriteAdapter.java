@@ -1,6 +1,7 @@
 package com.nac.slogbaa.learning.adapters.persistence.adapter;
 
 import com.nac.slogbaa.learning.application.dto.command.AddContentBlockCommand;
+import com.nac.slogbaa.learning.application.dto.command.UpdateContentBlockCommand;
 import com.nac.slogbaa.learning.application.dto.command.AddModuleCommand;
 import com.nac.slogbaa.learning.application.dto.command.CreateCourseCommand;
 import com.nac.slogbaa.learning.application.port.out.CourseWritePort;
@@ -11,6 +12,7 @@ import com.nac.slogbaa.learning.adapters.persistence.entity.ContentBlockEntity.B
 import com.nac.slogbaa.learning.adapters.persistence.repository.JpaContentBlockRepository;
 import com.nac.slogbaa.learning.adapters.persistence.repository.JpaCourseRepository;
 import com.nac.slogbaa.learning.adapters.persistence.repository.JpaModuleRepository;
+import com.nac.slogbaa.learning.core.exception.ContentBlockNotFoundException;
 import com.nac.slogbaa.learning.core.exception.CourseNotFoundException;
 import com.nac.slogbaa.learning.core.exception.ModuleNotFoundException;
 import com.nac.slogbaa.learning.core.valueobject.BlockId;
@@ -103,6 +105,32 @@ public class CourseWriteAdapter implements CourseWritePort {
         entity.setUpdatedAt(Instant.now());
         jpaContentBlockRepository.save(entity);
         return new BlockId(id);
+    }
+
+    @Override
+    public void updateContentBlock(UpdateContentBlockCommand command) {
+        ContentBlockEntity entity = jpaContentBlockRepository.findById(command.getBlockId())
+                .orElseThrow(() -> new ContentBlockNotFoundException(command.getBlockId()));
+        entity.setBlockType(BlockTypeEnum.valueOf(command.getBlockType().toUpperCase()));
+        entity.setBlockOrder(command.getBlockOrder());
+        entity.setRichText(command.getRichText());
+        entity.setImageUrl(command.getImageUrl());
+        entity.setImageAltText(command.getImageAltText());
+        entity.setImageCaption(command.getImageCaption());
+        entity.setVideoUrl(command.getVideoUrl());
+        entity.setVideoId(command.getVideoId());
+        entity.setActivityInstructions(command.getActivityInstructions());
+        entity.setActivityResources(command.getActivityResources());
+        entity.setUpdatedAt(Instant.now());
+        jpaContentBlockRepository.save(entity);
+    }
+
+    @Override
+    public void deleteContentBlock(UUID blockId) {
+        if (!jpaContentBlockRepository.existsById(blockId)) {
+            throw new ContentBlockNotFoundException(blockId);
+        }
+        jpaContentBlockRepository.deleteById(blockId);
     }
 
     @Override

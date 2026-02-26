@@ -11,6 +11,7 @@ import { AdminLayout } from './pages/AdminLayout.jsx'
 import { AdminOverviewPage } from './pages/AdminOverviewPage.jsx'
 import { AdminPlaceholderPage } from './pages/AdminPlaceholderPage.jsx'
 import { AdminLearningPage } from './pages/AdminLearningPage.jsx'
+import { AdminCourseEditorPage } from './pages/AdminCourseEditorPage.jsx'
 
 export function AppRoutes() {
   return (
@@ -31,6 +32,7 @@ export function AppRoutes() {
         <Route path="overview" element={<AdminOverviewPage />} />
         <Route path="homepage" element={<AdminPlaceholderPage title="Homepage" />} />
         <Route path="learning" element={<AdminLearningPage />} />
+        <Route path="learning/:courseId" element={<AdminCourseEditorPage />} />
         <Route path="assessment" element={<AdminPlaceholderPage title="Assessment" />} />
         <Route path="reports" element={<AdminPlaceholderPage title="Reports & Analytics" />} />
       </Route>

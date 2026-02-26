@@ -1,39 +1,8 @@
 import { useState, useEffect } from 'react'
-import { FontAwesomeIcon, icons } from '../../../../shared/icons.js'
+import { Save } from 'lucide-react'
 import { Modal } from '../../../../shared/components/Modal.jsx'
 
-const BLOCK_TYPES = [
-  { value: 'TEXT', label: 'Text', icon: icons.blockText },
-  { value: 'IMAGE', label: 'Image', icon: icons.blockImage },
-  { value: 'VIDEO', label: 'Video', icon: icons.blockVideo },
-  { value: 'ACTIVITY', label: 'Activity', icon: icons.blockActivity },
-]
-
 const styles = {
-  typeGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(2, 1fr)',
-    gap: '0.75rem',
-    marginBottom: '1.25rem',
-  },
-  typeBtn: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.5rem',
-    padding: '0.75rem 1rem',
-    border: '2px solid var(--slogbaa-border)',
-    borderRadius: 8,
-    background: 'var(--slogbaa-surface)',
-    cursor: 'pointer',
-    fontSize: '0.9375rem',
-    fontWeight: 500,
-    color: 'var(--slogbaa-text)',
-  },
-  typeBtnSelected: {
-    borderColor: 'var(--slogbaa-orange)',
-    background: 'rgba(241, 134, 37, 0.08)',
-    color: 'var(--slogbaa-orange)',
-  },
   form: { display: 'flex', flexDirection: 'column', gap: '1.25rem' },
   field: { display: 'flex', flexDirection: 'column', gap: '0.35rem' },
   label: { fontSize: '0.875rem', fontWeight: 500, color: 'var(--slogbaa-text)' },
@@ -89,12 +58,8 @@ const styles = {
   error: { fontSize: '0.875rem', color: 'var(--slogbaa-error)' },
 }
 
-export function AddBlockModal({ course, module, preselectedType, onClose, onSubmit }) {
-  const nextOrder = (module?.contentBlocks?.length ?? 0)
-  const [blockType, setBlockType] = useState(preselectedType || 'TEXT')
-  useEffect(() => {
-    if (preselectedType) setBlockType(preselectedType)
-  }, [preselectedType])
+export function EditBlockModal({ block, courseId, module, onClose, onSubmit }) {
+  const { blockType } = block || {}
   const [richText, setRichText] = useState('')
   const [imageUrl, setImageUrl] = useState('')
   const [imageAltText, setImageAltText] = useState('')
@@ -105,19 +70,42 @@ export function AddBlockModal({ course, module, preselectedType, onClose, onSubm
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
 
+  useEffect(() => {
+    if (!block) return
+    setRichText(block.richText ?? '')
+    setImageUrl(block.imageUrl ?? '')
+    setImageAltText(block.imageAltText ?? '')
+    setImageCaption(block.imageCaption ?? '')
+    setVideoUrl(block.videoUrl ?? '')
+    setActivityInstructions(block.activityInstructions ?? '')
+    setActivityResources(block.activityResources ?? '')
+  }, [block])
+
   const buildPayload = () => {
-    const base = { blockType, blockOrder: nextOrder }
+    const base = {
+      blockType: blockType || block?.blockType || 'TEXT',
+      blockOrder: block?.blockOrder ?? 0,
+    }
     switch (blockType) {
       case 'TEXT':
         return { ...base, richText: richText || undefined }
       case 'IMAGE':
-        return { ...base, imageUrl: imageUrl || undefined, imageAltText: imageAltText || undefined, imageCaption: imageCaption || undefined }
+        return {
+          ...base,
+          imageUrl: imageUrl || undefined,
+          imageAltText: imageAltText || undefined,
+          imageCaption: imageCaption || undefined,
+        }
       case 'VIDEO': {
         const vid = videoUrl?.match(/(?:v=|\/)([\w-]{11})(?:&|$)/)?.[1]
         return { ...base, videoUrl: videoUrl || undefined, videoId: vid || undefined }
       }
       case 'ACTIVITY':
-        return { ...base, activityInstructions: activityInstructions || undefined, activityResources: activityResources || undefined }
+        return {
+          ...base,
+          activityInstructions: activityInstructions || undefined,
+          activityResources: activityResources || undefined,
+        }
       default:
         return base
     }
@@ -144,39 +132,16 @@ export function AddBlockModal({ course, module, preselectedType, onClose, onSubm
       await onSubmit?.(payload)
       onClose?.()
     } catch (err) {
-      setError(err?.message ?? 'Failed to add block.')
+      setError(err?.message ?? 'Failed to update block.')
     } finally {
       setLoading(false)
     }
   }
 
-  const showTypePicker = !preselectedType
+  if (!block) return null
 
   return (
-    <Modal title="Add content block" onClose={onClose} maxWidth={520}>
-      {showTypePicker && (
-        <>
-          <p style={{ margin: '0 0 1rem', fontSize: '0.9375rem', color: 'var(--slogbaa-text-muted)' }}>
-            Choose block type, then fill in the content.
-          </p>
-          <div style={styles.typeGrid}>
-            {BLOCK_TYPES.map((t) => (
-          <button
-            key={t.value}
-            type="button"
-            style={{
-              ...styles.typeBtn,
-              ...(blockType === t.value ? styles.typeBtnSelected : {}),
-            }}
-            onClick={() => setBlockType(t.value)}
-          >
-            <FontAwesomeIcon icon={t.icon} />
-            {t.label}
-          </button>
-            ))}
-          </div>
-        </>
-      )}
+    <Modal title={`Edit ${blockType?.toLowerCase() || 'block'}`} onClose={onClose} maxWidth={520}>
       <form style={styles.form} onSubmit={handleSubmit}>
         {blockType === 'TEXT' && (
           <div style={styles.field}>
@@ -259,9 +224,11 @@ export function AddBlockModal({ course, module, preselectedType, onClose, onSubm
         )}
         {error && <p style={styles.error}>{error}</p>}
         <div style={styles.actions}>
-          <button type="button" style={styles.btnSecondary} onClick={onClose}>Cancel</button>
+          <button type="button" style={styles.btnSecondary} onClick={onClose}>
+            Cancel
+          </button>
           <button type="submit" style={styles.btnPrimary} disabled={loading}>
-            <FontAwesomeIcon icon={icons.addBlock} /> {loading ? 'Adding…' : 'Add block'}
+            <Save size={16} /> {loading ? 'Saving…' : 'Save'}
           </button>
         </div>
       </form>

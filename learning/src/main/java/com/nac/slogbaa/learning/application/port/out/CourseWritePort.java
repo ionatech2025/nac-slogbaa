@@ -1,6 +1,7 @@
 package com.nac.slogbaa.learning.application.port.out;
 
 import com.nac.slogbaa.learning.application.dto.command.AddContentBlockCommand;
+import com.nac.slogbaa.learning.application.dto.command.UpdateContentBlockCommand;
 import com.nac.slogbaa.learning.application.dto.command.AddModuleCommand;
 import com.nac.slogbaa.learning.application.dto.command.CreateCourseCommand;
 import com.nac.slogbaa.learning.core.valueobject.BlockId;
@@ -19,6 +20,10 @@ public interface CourseWritePort {
     ModuleId addModule(AddModuleCommand command);
 
     BlockId addContentBlock(AddContentBlockCommand command);
+
+    void updateContentBlock(UpdateContentBlockCommand command);
+
+    void deleteContentBlock(java.util.UUID blockId);
 
     void publish(CourseId courseId);
 }

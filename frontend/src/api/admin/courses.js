@@ -97,6 +97,35 @@ export async function addContentBlock(token, courseId, moduleId, block) {
 }
 
 /**
+ * PUT /api/admin/courses/:courseId/modules/:moduleId/blocks/:blockId — update content block.
+ */
+export async function updateContentBlock(token, courseId, moduleId, blockId, block) {
+  assertToken(token)
+  const res = await apiClient(token).put(
+    `/api/admin/courses/${courseId}/modules/${moduleId}/blocks/${blockId}`,
+    block
+  )
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}))
+    throw new Error(body.detail ?? body.message ?? `Request failed (${res.status})`)
+  }
+}
+
+/**
+ * DELETE /api/admin/courses/:courseId/modules/:moduleId/blocks/:blockId — delete content block.
+ */
+export async function deleteContentBlock(token, courseId, moduleId, blockId) {
+  assertToken(token)
+  const res = await apiClient(token).delete(
+    `/api/admin/courses/${courseId}/modules/${moduleId}/blocks/${blockId}`
+  )
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}))
+    throw new Error(body.detail ?? body.message ?? `Request failed (${res.status})`)
+  }
+}
+
+/**
  * POST /api/admin/courses/:id/publish — publish course.
  */
 export async function publishCourse(token, courseId) {

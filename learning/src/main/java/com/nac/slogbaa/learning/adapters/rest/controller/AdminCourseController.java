@@ -4,11 +4,13 @@ import com.nac.slogbaa.iam.core.valueobject.AuthenticatedIdentity;
 import com.nac.slogbaa.learning.adapters.rest.dto.request.AddContentBlockRequest;
 import com.nac.slogbaa.learning.adapters.rest.dto.request.AddModuleRequest;
 import com.nac.slogbaa.learning.adapters.rest.dto.request.CreateCourseRequest;
+import com.nac.slogbaa.learning.adapters.rest.dto.request.UpdateContentBlockRequest;
 import com.nac.slogbaa.learning.adapters.rest.dto.request.UpdateCourseRequest;
 import com.nac.slogbaa.learning.application.dto.command.AddContentBlockCommand;
 import com.nac.slogbaa.learning.application.dto.command.AddModuleCommand;
 import com.nac.slogbaa.learning.application.dto.command.CreateCourseCommand;
 import com.nac.slogbaa.learning.application.dto.command.PublishCourseCommand;
+import com.nac.slogbaa.learning.application.dto.command.UpdateContentBlockCommand;
 import com.nac.slogbaa.learning.application.dto.command.UpdateCourseCommand;
 import com.nac.slogbaa.learning.application.port.in.AddContentBlockToModuleUseCase;
 import com.nac.slogbaa.learning.application.port.in.AddModuleToCourseUseCase;
@@ -16,6 +18,8 @@ import com.nac.slogbaa.learning.application.port.in.CreateCourseUseCase;
 import com.nac.slogbaa.learning.application.port.in.GetAdminCourseDetailsUseCase;
 import com.nac.slogbaa.learning.application.port.in.GetAdminCoursesUseCase;
 import com.nac.slogbaa.learning.application.port.in.PublishCourseUseCase;
+import com.nac.slogbaa.learning.application.port.in.DeleteContentBlockUseCase;
+import com.nac.slogbaa.learning.application.port.in.UpdateContentBlockUseCase;
 import com.nac.slogbaa.learning.application.port.in.UpdateCourseUseCase;
 import com.nac.slogbaa.learning.core.valueobject.BlockId;
 import com.nac.slogbaa.learning.core.valueobject.CourseId;
@@ -28,6 +32,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -60,6 +65,8 @@ public class AdminCourseController {
     private final UpdateCourseUseCase updateCourseUseCase;
     private final AddModuleToCourseUseCase addModuleToCourseUseCase;
     private final AddContentBlockToModuleUseCase addContentBlockToModuleUseCase;
+    private final UpdateContentBlockUseCase updateContentBlockUseCase;
+    private final DeleteContentBlockUseCase deleteContentBlockUseCase;
     private final PublishCourseUseCase publishCourseUseCase;
 
     public AdminCourseController(GetAdminCoursesUseCase getAdminCoursesUseCase,
@@ -68,6 +75,8 @@ public class AdminCourseController {
                                 UpdateCourseUseCase updateCourseUseCase,
                                 AddModuleToCourseUseCase addModuleToCourseUseCase,
                                 AddContentBlockToModuleUseCase addContentBlockToModuleUseCase,
+                                UpdateContentBlockUseCase updateContentBlockUseCase,
+                                DeleteContentBlockUseCase deleteContentBlockUseCase,
                                 PublishCourseUseCase publishCourseUseCase) {
         this.getAdminCoursesUseCase = getAdminCoursesUseCase;
         this.getAdminCourseDetailsUseCase = getAdminCourseDetailsUseCase;
@@ -75,6 +84,8 @@ public class AdminCourseController {
         this.updateCourseUseCase = updateCourseUseCase;
         this.addModuleToCourseUseCase = addModuleToCourseUseCase;
         this.addContentBlockToModuleUseCase = addContentBlockToModuleUseCase;
+        this.updateContentBlockUseCase = updateContentBlockUseCase;
+        this.deleteContentBlockUseCase = deleteContentBlockUseCase;
         this.publishCourseUseCase = publishCourseUseCase;
     }
 
@@ -172,6 +183,41 @@ public class AdminCourseController {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(Map.of("id", blockId.getValue().toString()));
+    }
+
+    @PutMapping("/{courseId}/modules/{moduleId}/blocks/{blockId}")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    public ResponseEntity<Void> updateContentBlock(
+            @PathVariable UUID courseId,
+            @PathVariable UUID moduleId,
+            @PathVariable UUID blockId,
+            @Valid @RequestBody UpdateContentBlockRequest request) {
+        UpdateContentBlockCommand command = new UpdateContentBlockCommand(
+                blockId,
+                moduleId,
+                request.blockType().toUpperCase(),
+                request.blockOrder(),
+                request.richText(),
+                request.imageUrl(),
+                request.imageAltText(),
+                request.imageCaption(),
+                request.videoUrl(),
+                request.videoId(),
+                request.activityInstructions(),
+                request.activityResources()
+        );
+        updateContentBlockUseCase.execute(command);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/{courseId}/modules/{moduleId}/blocks/{blockId}")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    public ResponseEntity<Void> deleteContentBlock(
+            @PathVariable UUID courseId,
+            @PathVariable UUID moduleId,
+            @PathVariable UUID blockId) {
+        deleteContentBlockUseCase.execute(blockId);
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/{id}/publish")

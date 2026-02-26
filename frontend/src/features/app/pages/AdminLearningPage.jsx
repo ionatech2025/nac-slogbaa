@@ -1,12 +1,9 @@
-import { useState, useEffect, useCallback, Fragment } from 'react'
-import { useOutletContext } from 'react-router-dom'
+import { useState, useEffect, useCallback } from 'react'
+import { useNavigate, useOutletContext } from 'react-router-dom'
 import { FontAwesomeIcon, icons } from '../../../shared/icons.js'
-import { getAdminCourses, getAdminCourseDetails, createCourse, updateCourse, addModule, addContentBlock, publishCourse } from '../../../api/admin/courses.js'
-import { Modal } from '../../../shared/components/Modal.jsx'
+import { getAdminCourses, createCourse, updateCourse, publishCourse } from '../../../api/admin/courses.js'
 import { CreateCourseModal } from '../components/admin/CreateCourseModal.jsx'
 import { EditCourseModal } from '../components/admin/EditCourseModal.jsx'
-import { AddModuleModal } from '../components/admin/AddModuleModal.jsx'
-import { AddBlockModal } from '../components/admin/AddBlockModal.jsx'
 
 const styles = {
   pageTitle: {
@@ -50,8 +47,16 @@ const styles = {
     borderBottom: '1px solid var(--slogbaa-border)',
     color: 'var(--slogbaa-text)',
   },
-  trExpandable: {
+  trClickable: {
     cursor: 'pointer',
+    transition: 'background 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease',
+  },
+  trHover: {
+    background: 'rgba(241, 134, 37, 0.08)',
+    boxShadow: '0 2px 8px rgba(241, 134, 37, 0.15)',
+    position: 'relative',
+    zIndex: 1,
+    transform: 'scale(1.002)',
   },
   empty: {
     padding: '2rem',
@@ -97,34 +102,16 @@ const styles = {
     background: 'rgba(128,128,128,0.15)',
     color: 'var(--slogbaa-text-muted)',
   },
-  expanded: {
-    background: 'rgba(241, 134, 37, 0.06)',
-  },
-  moduleList: {
-    listStyle: 'none',
-    margin: 0,
-    padding: '0.75rem 1.25rem',
-    borderTop: '1px solid var(--slogbaa-border)',
-  },
-  moduleItem: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: '0.5rem 0',
-    borderBottom: '1px solid var(--slogbaa-border)',
-  },
-  moduleItemLast: { borderBottom: 'none' },
   loading: { padding: '1rem', color: 'var(--slogbaa-text-muted)' },
   error: { padding: '1rem', color: 'var(--slogbaa-error)' },
 }
 
 export function AdminLearningPage() {
   const { token, isSuperAdmin } = useOutletContext()
+  const navigate = useNavigate()
   const [courses, setCourses] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [expandedId, setExpandedId] = useState(null)
-  const [expandedCourse, setExpandedCourse] = useState(null)
   const [modal, setModal] = useState(null)
   const [modalContext, setModalContext] = useState(null)
 
@@ -135,48 +122,26 @@ export function AdminLearningPage() {
     try {
       const list = await getAdminCourses(token)
       setCourses(list)
-      if (expandedId) {
-        const details = await getAdminCourseDetails(token, expandedId)
-        setExpandedCourse(details)
-      } else {
-        setExpandedCourse(null)
-      }
     } catch (err) {
       setError(err?.message ?? 'Failed to load courses.')
     } finally {
       setLoading(false)
     }
-  }, [token, expandedId])
+  }, [token])
 
   useEffect(() => {
     refreshCourses()
   }, [refreshCourses])
 
-  const handleExpand = async (course) => {
-    if (expandedId === course.id) {
-      setExpandedId(null)
-      setExpandedCourse(null)
-      return
-    }
-    setExpandedId(course.id)
-    setLoading(true)
-    try {
-      const details = await getAdminCourseDetails(token, course.id)
-      setExpandedCourse(details)
-    } catch (err) {
-      setError(err?.message ?? 'Failed to load course details.')
-    } finally {
-      setLoading(false)
-    }
+  const handleRowClick = (course) => {
+    navigate(`/admin/learning/${course.id}`)
   }
 
   const handleCreateCourse = async (data) => {
     const { id } = await createCourse(token, data)
     setModal(null)
     await refreshCourses()
-    setExpandedId(id)
-    const details = await getAdminCourseDetails(token, id)
-    setExpandedCourse(details)
+    navigate(`/admin/learning/${id}`)
   }
 
   const handleEditCourse = async (courseId, data) => {
@@ -184,41 +149,12 @@ export function AdminLearningPage() {
     setModal(null)
     setModalContext(null)
     await refreshCourses()
-    if (expandedId === courseId) {
-      const details = await getAdminCourseDetails(token, courseId)
-      setExpandedCourse(details)
-    }
   }
 
-  const handleAddModule = async (courseId, data) => {
-    await addModule(token, courseId, data)
-    setModal(null)
-    setModalContext(null)
-    await refreshCourses()
-    if (expandedId === courseId) {
-      const details = await getAdminCourseDetails(token, courseId)
-      setExpandedCourse(details)
-    }
-  }
-
-  const handleAddBlock = async (courseId, moduleId, data) => {
-    await addContentBlock(token, courseId, moduleId, data)
-    setModal(null)
-    setModalContext(null)
-    await refreshCourses()
-    if (expandedId === courseId) {
-      const details = await getAdminCourseDetails(token, courseId)
-      setExpandedCourse(details)
-    }
-  }
-
-  const handlePublish = async (courseId) => {
+  const handlePublish = async (e, courseId) => {
+    e.stopPropagation()
     await publishCourse(token, courseId)
     await refreshCourses()
-    if (expandedId === courseId) {
-      const details = await getAdminCourseDetails(token, courseId)
-      setExpandedCourse(details)
-    }
   }
 
   if (loading && courses.length === 0) {
@@ -270,121 +206,73 @@ export function AdminLearningPage() {
               </tr>
             ) : (
               courses.map((course) => (
-                <Fragment key={course.id}>
-                  <tr
-                    key={course.id}
-                    style={{
-                      ...styles.trExpandable,
-                      ...(expandedId === course.id ? styles.expanded : {}),
-                    }}
-                    onClick={() => handleExpand(course)}
-                  >
-                    <td style={styles.td}>
-                      <strong>{course.title}</strong>
-                      {course.description && (
-                        <div style={{ fontSize: '0.8125rem', color: 'var(--slogbaa-text-muted)', marginTop: 2 }}>
-                          {course.description.slice(0, 80)}
-                          {course.description.length > 80 ? '…' : ''}
-                        </div>
-                      )}
-                    </td>
-                    <td style={styles.td}>
-                      <span
-                        style={{
-                          ...styles.badge,
-                          ...(course.published ? {} : styles.badgeDraft),
+                <tr
+                  key={course.id}
+                  style={styles.trClickable}
+                  onClick={() => handleRowClick(course)}
+                  onMouseEnter={(e) => {
+                    if (isSuperAdmin) {
+                      e.currentTarget.style.background = styles.trHover.background
+                      e.currentTarget.style.boxShadow = styles.trHover.boxShadow
+                      e.currentTarget.style.position = styles.trHover.position
+                      e.currentTarget.style.zIndex = styles.trHover.zIndex
+                      e.currentTarget.style.transform = styles.trHover.transform
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = ''
+                    e.currentTarget.style.boxShadow = ''
+                    e.currentTarget.style.position = ''
+                    e.currentTarget.style.zIndex = ''
+                    e.currentTarget.style.transform = ''
+                  }}
+                >
+                  <td style={styles.td}>
+                    <strong>{course.title}</strong>
+                    {course.description && (
+                      <div style={{ fontSize: '0.8125rem', color: 'var(--slogbaa-text-muted)', marginTop: 2 }}>
+                        {course.description.slice(0, 80)}
+                        {course.description.length > 80 ? '…' : ''}
+                      </div>
+                    )}
+                  </td>
+                  <td style={styles.td}>
+                    <span
+                      style={{
+                        ...styles.badge,
+                        ...(course.published ? {} : styles.badgeDraft),
+                      }}
+                    >
+                      {course.published ? 'Published' : 'Draft'}
+                    </span>
+                  </td>
+                  <td style={styles.td}>{course.moduleCount}</td>
+                  {isSuperAdmin && (
+                    <td style={styles.td} onClick={(e) => e.stopPropagation()}>
+                      <button
+                        type="button"
+                        style={styles.btnSecondary}
+                        onClick={() => {
+                          setModalContext({ course })
+                          setModal('editCourse')
                         }}
+                        title="Edit course"
                       >
-                        {course.published ? 'Published' : 'Draft'}
-                      </span>
-                    </td>
-                    <td style={styles.td}>{course.moduleCount}</td>
-                    {isSuperAdmin && (
-                      <td style={styles.td} onClick={(e) => e.stopPropagation()}>
+                        <FontAwesomeIcon icon={icons.edit} /> Edit
+                      </button>
+                      {!course.published && (
                         <button
                           type="button"
                           style={styles.btnSecondary}
-                          onClick={() => {
-                            setModalContext({ course })
-                            setModal('editCourse')
-                          }}
-                          title="Edit course"
+                          onClick={(e) => handlePublish(e, course.id)}
+                          title="Publish"
                         >
-                          <FontAwesomeIcon icon={icons.edit} /> Edit
+                          <FontAwesomeIcon icon={icons.publish} /> Publish
                         </button>
-                        {!course.published && (
-                          <button
-                            type="button"
-                            style={styles.btnSecondary}
-                            onClick={() => handlePublish(course.id)}
-                            title="Publish"
-                          >
-                            <FontAwesomeIcon icon={icons.publish} /> Publish
-                          </button>
-                        )}
-                      </td>
-                    )}
-                  </tr>
-                  {expandedId === course.id && expandedCourse && (
-                    <tr key={`${course.id}-exp`}>
-                      <td colSpan={isSuperAdmin ? 4 : 3} style={{ padding: 0, verticalAlign: 'top' }}>
-                        <div style={styles.moduleList}>
-                          <div style={{ marginBottom: '0.75rem', fontWeight: 600, color: 'var(--slogbaa-text)' }}>
-                            Modules
-                          </div>
-                          {expandedCourse.modules?.length === 0 ? (
-                            <p style={{ margin: 0, color: 'var(--slogbaa-text-muted)', fontSize: '0.9375rem' }}>
-                              No modules yet.
-                            </p>
-                          ) : (
-                            expandedCourse.modules?.map((m, i) => (
-                              <div
-                                key={m.id}
-                                style={{
-                                  ...styles.moduleItem,
-                                  ...(i === expandedCourse.modules.length - 1 ? styles.moduleItemLast : {}),
-                                }}
-                              >
-                                <div>
-                                  <strong>{m.title}</strong>
-                                  <span style={{ marginLeft: 8, fontSize: '0.8125rem', color: 'var(--slogbaa-text-muted)' }}>
-                                    {m.contentBlocks?.length ?? 0} block{(m.contentBlocks?.length ?? 0) !== 1 ? 's' : ''}
-                                  </span>
-                                </div>
-                                {isSuperAdmin && (
-                                  <button
-                                    type="button"
-                                    style={styles.btnSecondary}
-                                    onClick={() => {
-                                      setModalContext({ course: expandedCourse, module: m })
-                                      setModal('addBlock')
-                                    }}
-                                    title="Add content block"
-                                  >
-                                    <FontAwesomeIcon icon={icons.addBlock} /> Add block
-                                  </button>
-                                )}
-                              </div>
-                            ))
-                          )}
-                          {isSuperAdmin && (
-                            <button
-                              type="button"
-                              style={{ ...styles.btnSecondary, marginTop: '0.75rem' }}
-                              onClick={() => {
-                                setModalContext({ course: expandedCourse })
-                                setModal('addModule')
-                              }}
-                              title="Add module"
-                            >
-                              <FontAwesomeIcon icon={icons.modules} /> Add module
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
+                      )}
+                    </td>
                   )}
-                </Fragment>
+                </tr>
               ))
             )}
           </tbody>
@@ -402,21 +290,6 @@ export function AdminLearningPage() {
           course={modalContext.course}
           onClose={() => { setModal(null); setModalContext(null) }}
           onSubmit={(data) => handleEditCourse(modalContext.course.id, data)}
-        />
-      )}
-      {modal === 'addModule' && modalContext?.course && (
-        <AddModuleModal
-          course={modalContext.course}
-          onClose={() => { setModal(null); setModalContext(null) }}
-          onSubmit={(data) => handleAddModule(modalContext.course.id, data)}
-        />
-      )}
-      {modal === 'addBlock' && modalContext?.course && modalContext?.module && (
-        <AddBlockModal
-          course={modalContext.course}
-          module={modalContext.module}
-          onClose={() => { setModal(null); setModalContext(null) }}
-          onSubmit={(data) => handleAddBlock(modalContext.course.id, modalContext.module.id, data)}
         />
       )}
     </>

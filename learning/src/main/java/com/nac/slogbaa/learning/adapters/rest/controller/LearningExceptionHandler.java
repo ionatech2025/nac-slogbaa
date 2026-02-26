@@ -1,5 +1,6 @@
 package com.nac.slogbaa.learning.adapters.rest.controller;
 
+import com.nac.slogbaa.learning.core.exception.ContentBlockNotFoundException;
 import com.nac.slogbaa.learning.core.exception.CourseNotFoundException;
 import com.nac.slogbaa.learning.core.exception.ModuleNotFoundException;
 import org.springframework.http.HttpStatus;
@@ -24,6 +25,13 @@ public class LearningExceptionHandler {
     public ProblemDetail handleModuleNotFound(ModuleNotFoundException e) {
         ProblemDetail detail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, e.getMessage());
         detail.setTitle("Module not found");
+        return detail;
+    }
+
+    @ExceptionHandler(ContentBlockNotFoundException.class)
+    public ProblemDetail handleContentBlockNotFound(ContentBlockNotFoundException e) {
+        ProblemDetail detail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, e.getMessage());
+        detail.setTitle("Content block not found");
         return detail;
     }
 }
