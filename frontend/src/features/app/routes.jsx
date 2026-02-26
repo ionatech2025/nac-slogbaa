@@ -10,6 +10,9 @@ import { CourseDetailPage } from '../learning/pages/CourseDetailPage.jsx'
 import { AdminLayout } from './pages/AdminLayout.jsx'
 import { AdminOverviewPage } from './pages/AdminOverviewPage.jsx'
 import { AdminPlaceholderPage } from './pages/AdminPlaceholderPage.jsx'
+import { AdminLearningPage } from './pages/AdminLearningPage.jsx'
+import { AdminCoursePage } from './pages/AdminCoursePage.jsx'
+import { AdminModuleEditorPage } from './pages/AdminModuleEditorPage.jsx'
 
 export function AppRoutes() {
   return (
@@ -29,7 +32,9 @@ export function AppRoutes() {
         <Route index element={<Navigate to="overview" replace />} />
         <Route path="overview" element={<AdminOverviewPage />} />
         <Route path="homepage" element={<AdminPlaceholderPage title="Homepage" />} />
-        <Route path="learning" element={<AdminPlaceholderPage title="Learning" />} />
+        <Route path="learning" element={<AdminLearningPage />} />
+        <Route path="learning/:courseId" element={<AdminCoursePage />} />
+        <Route path="learning/:courseId/modules/:moduleId" element={<AdminModuleEditorPage />} />
         <Route path="assessment" element={<AdminPlaceholderPage title="Assessment" />} />
         <Route path="reports" element={<AdminPlaceholderPage title="Reports & Analytics" />} />
       </Route>

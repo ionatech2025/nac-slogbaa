@@ -30,6 +30,15 @@ import {
   faTrashCan,
   faEye,
   faEyeSlash,
+  faPen,
+  faCloudArrowUp,
+  faLayerGroup,
+  faSquarePlus,
+  faAlignLeft,
+  faImage,
+  faVideo,
+  faClipboardList,
+  faMagnifyingGlass,
 } from '@fortawesome/free-solid-svg-icons'
 
 export { FontAwesomeIcon }
@@ -61,4 +70,13 @@ export const icons = {
   delete: faTrashCan,
   eye: faEye,
   eyeSlash: faEyeSlash,
+  edit: faPen,
+  publish: faCloudArrowUp,
+  modules: faLayerGroup,
+  addBlock: faSquarePlus,
+  blockText: faAlignLeft,
+  blockImage: faImage,
+  blockVideo: faVideo,
+  blockActivity: faClipboardList,
+  search: faMagnifyingGlass,
 }

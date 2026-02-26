@@ -12,6 +12,10 @@
   <dependencies>
     <dependency>
             <groupId>com.nac</groupId>
+            <artifactId>iam</artifactId>
+        </dependency>
+    <dependency>
+            <groupId>com.nac</groupId>
             <artifactId>shared-ports</artifactId>
         </dependency>
         <dependency>

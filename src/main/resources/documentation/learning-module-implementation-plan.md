@@ -182,11 +182,31 @@ Recommendation: Implement in Progress module (it owns `TraineeProgress`); Learni
 - `POST /api/admin/courses/{id}/modules/{moduleId}/blocks` — add content block.
 - `POST /api/admin/courses/{id}/publish` — publish course.
 
+### Phase 6 Checklist (6.1, 6.2)
+
+- [x] `CreateCourseUseCase`, `AddModuleToCourseUseCase`, `AddContentBlockToModuleUseCase`, `PublishCourseUseCase`, `UpdateCourseUseCase`.
+- [x] `CourseWritePort` with `createCourse`, `updateCourse`, `addModule`, `addContentBlock`, `publish`.
+- [x] Services and `CourseWriteAdapter`.
+- [x] `POST /api/admin/courses` — create course (SuperAdmin only).
+- [x] `PUT /api/admin/courses/{id}` — update course.
+- [x] `POST /api/admin/courses/{id}/modules` — add module.
+- [x] `POST /api/admin/courses/{id}/modules/{moduleId}/blocks` — add content block.
+- [x] `POST /api/admin/courses/{id}/publish` — publish course.
+
 ### 6.3 Frontend admin
 
 - Replace admin Learning placeholder with course management UI.
 - List courses (all, not just published), create/edit forms, module/block editors.
+- the content blocks should be added like blocks are added in Notion
 - Role check: show only for SuperAdmin.
+
+### Phase 6 Checklist (6.3)
+
+- [x] AdminLearningPage replaces placeholder at `/admin/learning`.
+- [x] Course list (all courses, published + draft) with expandable rows.
+- [x] Create course, Edit course, Add module, Add block modals (SuperAdmin only).
+- [x] Notion-style block type selector (TEXT, IMAGE, VIDEO, ACTIVITY) before content form.
+- [x] Role check: create/edit/publish buttons visible only for SuperAdmin; Admin has view-only.
 
 ---
 

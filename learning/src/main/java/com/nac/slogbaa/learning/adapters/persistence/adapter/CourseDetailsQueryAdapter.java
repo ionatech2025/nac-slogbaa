@@ -4,10 +4,12 @@ import com.nac.slogbaa.learning.adapters.persistence.entity.ContentBlockEntity;
 import com.nac.slogbaa.learning.adapters.persistence.entity.CourseEntity;
 import com.nac.slogbaa.learning.adapters.persistence.entity.ModuleEntity;
 import com.nac.slogbaa.learning.adapters.persistence.mapper.EntityToDomainMapper;
+import com.nac.slogbaa.learning.application.dto.result.AdminCourseSummary;
 import com.nac.slogbaa.learning.application.dto.result.ContentBlockSummary;
 import com.nac.slogbaa.learning.application.dto.result.CourseDetails;
 import com.nac.slogbaa.learning.application.dto.result.CourseSummary;
 import com.nac.slogbaa.learning.application.dto.result.ModuleSummary;
+import com.nac.slogbaa.learning.application.port.out.AdminCourseQueryPort;
 import com.nac.slogbaa.learning.application.port.out.CourseDetailsQueryPort;
 import com.nac.slogbaa.learning.application.port.out.CourseSummaryQueryPort;
 import com.nac.slogbaa.learning.core.aggregate.CourseWithModules;
@@ -23,7 +25,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Component
-public class CourseDetailsQueryAdapter implements CourseDetailsQueryPort, CourseSummaryQueryPort {
+public class CourseDetailsQueryAdapter implements CourseDetailsQueryPort, CourseSummaryQueryPort, AdminCourseQueryPort {
 
     private final JpaCourseRepository jpaCourseRepository;
     private final JpaModuleRepository jpaModuleRepository;
@@ -45,6 +47,29 @@ public class CourseDetailsQueryAdapter implements CourseDetailsQueryPort, Course
     public Optional<CourseDetails> findCourseDetailsById(UUID courseId) {
         return jpaCourseRepository.findById(courseId)
                 .filter(CourseEntity::isPublished)
+                .map(this::toCourseWithModules)
+                .map(this::toCourseDetails);
+    }
+
+    @Override
+    public List<AdminCourseSummary> findAllCourses() {
+        return jpaCourseRepository.findAll().stream()
+                .map(c -> {
+                    int moduleCount = jpaModuleRepository.findByCourseIdOrderByModuleOrder(c.getId()).size();
+                    return new AdminCourseSummary(
+                            c.getId(),
+                            c.getTitle(),
+                            c.getDescription(),
+                            c.isPublished(),
+                            moduleCount
+                    );
+                })
+                .toList();
+    }
+
+    @Override
+    public Optional<CourseDetails> findCourseDetailsByIdForAdmin(UUID courseId) {
+        return jpaCourseRepository.findById(courseId)
                 .map(this::toCourseWithModules)
                 .map(this::toCourseDetails);
     }
