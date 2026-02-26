@@ -13,6 +13,8 @@ import com.nac.slogbaa.learning.application.dto.command.UpdateCourseCommand;
 import com.nac.slogbaa.learning.application.port.in.AddContentBlockToModuleUseCase;
 import com.nac.slogbaa.learning.application.port.in.AddModuleToCourseUseCase;
 import com.nac.slogbaa.learning.application.port.in.CreateCourseUseCase;
+import com.nac.slogbaa.learning.application.port.in.GetAdminCourseDetailsUseCase;
+import com.nac.slogbaa.learning.application.port.in.GetAdminCoursesUseCase;
 import com.nac.slogbaa.learning.application.port.in.PublishCourseUseCase;
 import com.nac.slogbaa.learning.application.port.in.UpdateCourseUseCase;
 import com.nac.slogbaa.learning.core.valueobject.BlockId;
@@ -23,6 +25,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -30,6 +33,16 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.nac.slogbaa.learning.adapters.rest.dto.response.AdminCourseSummaryResponse;
+import com.nac.slogbaa.learning.adapters.rest.dto.response.CourseDetailsResponse;
+import com.nac.slogbaa.learning.adapters.rest.dto.response.ContentBlockSummaryResponse;
+import com.nac.slogbaa.learning.adapters.rest.dto.response.ModuleSummaryResponse;
+import com.nac.slogbaa.learning.application.dto.result.ContentBlockSummary;
+import com.nac.slogbaa.learning.application.dto.result.CourseDetails;
+import com.nac.slogbaa.learning.application.dto.result.ModuleSummary;
+import com.nac.slogbaa.learning.core.exception.CourseNotFoundException;
+
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -41,22 +54,51 @@ import java.util.UUID;
 @RequestMapping("/api/admin/courses")
 public class AdminCourseController {
 
+    private final GetAdminCoursesUseCase getAdminCoursesUseCase;
+    private final GetAdminCourseDetailsUseCase getAdminCourseDetailsUseCase;
     private final CreateCourseUseCase createCourseUseCase;
     private final UpdateCourseUseCase updateCourseUseCase;
     private final AddModuleToCourseUseCase addModuleToCourseUseCase;
     private final AddContentBlockToModuleUseCase addContentBlockToModuleUseCase;
     private final PublishCourseUseCase publishCourseUseCase;
 
-    public AdminCourseController(CreateCourseUseCase createCourseUseCase,
+    public AdminCourseController(GetAdminCoursesUseCase getAdminCoursesUseCase,
+                                GetAdminCourseDetailsUseCase getAdminCourseDetailsUseCase,
+                                CreateCourseUseCase createCourseUseCase,
                                 UpdateCourseUseCase updateCourseUseCase,
                                 AddModuleToCourseUseCase addModuleToCourseUseCase,
                                 AddContentBlockToModuleUseCase addContentBlockToModuleUseCase,
                                 PublishCourseUseCase publishCourseUseCase) {
+        this.getAdminCoursesUseCase = getAdminCoursesUseCase;
+        this.getAdminCourseDetailsUseCase = getAdminCourseDetailsUseCase;
         this.createCourseUseCase = createCourseUseCase;
         this.updateCourseUseCase = updateCourseUseCase;
         this.addModuleToCourseUseCase = addModuleToCourseUseCase;
         this.addContentBlockToModuleUseCase = addContentBlockToModuleUseCase;
         this.publishCourseUseCase = publishCourseUseCase;
+    }
+
+    @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN')")
+    public ResponseEntity<List<AdminCourseSummaryResponse>> getAllCourses() {
+        List<AdminCourseSummaryResponse> list = getAdminCoursesUseCase.getAllCourses().stream()
+                .map(s -> new AdminCourseSummaryResponse(
+                        s.getId().toString(),
+                        s.getTitle(),
+                        s.getDescription(),
+                        s.isPublished(),
+                        s.getModuleCount()
+                ))
+                .toList();
+        return ResponseEntity.ok(list);
+    }
+
+    @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN')")
+    public ResponseEntity<CourseDetailsResponse> getCourseDetails(@PathVariable UUID id) {
+        CourseDetails d = getAdminCourseDetailsUseCase.getById(id)
+                .orElseThrow(() -> new CourseNotFoundException(id));
+        return ResponseEntity.ok(toDetailsResponse(d));
     }
 
     @PostMapping
@@ -138,5 +180,48 @@ public class AdminCourseController {
         PublishCourseCommand command = new PublishCourseCommand(id);
         publishCourseUseCase.execute(command);
         return ResponseEntity.noContent().build();
+    }
+
+    private CourseDetailsResponse toDetailsResponse(CourseDetails d) {
+        List<ModuleSummaryResponse> modules = d.getModules().stream()
+                .map(this::toModuleResponse)
+                .toList();
+        return new CourseDetailsResponse(
+                d.getId().toString(),
+                d.getTitle(),
+                d.getDescription(),
+                d.isPublished(),
+                modules
+        );
+    }
+
+    private ModuleSummaryResponse toModuleResponse(ModuleSummary m) {
+        List<ContentBlockSummaryResponse> blocks = m.getContentBlocks().stream()
+                .map(this::toContentBlockResponse)
+                .toList();
+        return new ModuleSummaryResponse(
+                m.getId().toString(),
+                m.getTitle(),
+                m.getDescription(),
+                m.getModuleOrder(),
+                m.isHasQuiz(),
+                blocks
+        );
+    }
+
+    private ContentBlockSummaryResponse toContentBlockResponse(ContentBlockSummary b) {
+        return new ContentBlockSummaryResponse(
+                b.getId().toString(),
+                b.getBlockType(),
+                b.getBlockOrder(),
+                b.getRichText(),
+                b.getImageUrl(),
+                b.getImageAltText(),
+                b.getImageCaption(),
+                b.getVideoUrl(),
+                b.getVideoId(),
+                b.getActivityInstructions(),
+                b.getActivityResources()
+        );
     }
 }

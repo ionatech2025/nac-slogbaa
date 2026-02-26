@@ -36,6 +36,18 @@ export function apiClient(token = null) {
         body: body != null ? JSON.stringify(body) : undefined,
       }),
 
+    put: (path, body, options = {}) =>
+      fetch(buildUrl(path), {
+        ...options,
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          ...authHeaders,
+          ...options.headers,
+        },
+        body: body != null ? JSON.stringify(body) : undefined,
+      }),
+
     patch: (path, body, options = {}) =>
       fetch(buildUrl(path), {
         ...options,

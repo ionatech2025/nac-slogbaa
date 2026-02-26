@@ -200,6 +200,14 @@ Recommendation: Implement in Progress module (it owns `TraineeProgress`); Learni
 - the content blocks should be added like blocks are added in Notion
 - Role check: show only for SuperAdmin.
 
+### Phase 6 Checklist (6.3)
+
+- [x] AdminLearningPage replaces placeholder at `/admin/learning`.
+- [x] Course list (all courses, published + draft) with expandable rows.
+- [x] Create course, Edit course, Add module, Add block modals (SuperAdmin only).
+- [x] Notion-style block type selector (TEXT, IMAGE, VIDEO, ACTIVITY) before content form.
+- [x] Role check: create/edit/publish buttons visible only for SuperAdmin; Admin has view-only.
+
 ---
 
 ## Phase 7: Library Resources (Optional / Later)
