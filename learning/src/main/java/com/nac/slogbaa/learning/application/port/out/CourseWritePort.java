@@ -1,0 +1,24 @@
+package com.nac.slogbaa.learning.application.port.out;
+
+import com.nac.slogbaa.learning.application.dto.command.AddContentBlockCommand;
+import com.nac.slogbaa.learning.application.dto.command.AddModuleCommand;
+import com.nac.slogbaa.learning.application.dto.command.CreateCourseCommand;
+import com.nac.slogbaa.learning.core.valueobject.BlockId;
+import com.nac.slogbaa.learning.core.valueobject.CourseId;
+import com.nac.slogbaa.learning.core.valueobject.ModuleId;
+
+/**
+ * Port for course write operations (create, update, add module, add block, publish).
+ */
+public interface CourseWritePort {
+
+    CourseId createCourse(CreateCourseCommand command);
+
+    void updateCourse(java.util.UUID courseId, String title, String description);
+
+    ModuleId addModule(AddModuleCommand command);
+
+    BlockId addContentBlock(AddContentBlockCommand command);
+
+    void publish(CourseId courseId);
+}
