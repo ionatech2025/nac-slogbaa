@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useAuth } from '../../iam/hooks/useAuth.js'
 import { getCourseDetails, checkEnrollment } from '../../../api/learning/courses.js'
+import { EditorJsReadOnly } from '../../app/components/admin/EditorJsReadOnly.jsx'
 
 const styles = {
   layout: {
@@ -164,9 +165,19 @@ function ContentBlockRenderer({ block }) {
   const { blockType, richText, imageUrl, imageAltText, imageCaption, videoUrl, videoId, activityInstructions, activityResources } = block
 
   if (blockType === 'TEXT' && richText) {
+    const isEditorJs = typeof richText === 'string' && richText.trim().startsWith('{') && (() => {
+      try {
+        const o = JSON.parse(richText)
+        return o != null && typeof o === 'object' && 'blocks' in o
+      } catch { return false }
+    })()
     return (
       <div style={styles.block}>
-        <div style={styles.blockContentHtml} dangerouslySetInnerHTML={{ __html: richText }} />
+        {isEditorJs ? (
+          <EditorJsReadOnly data={richText} style={styles.blockContentHtml} />
+        ) : (
+          <div style={styles.blockContentHtml} dangerouslySetInnerHTML={{ __html: richText }} />
+        )}
       </div>
     )
   }

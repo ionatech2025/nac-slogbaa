@@ -1,9 +1,7 @@
 package com.nac.slogbaa.learning.adapters.persistence.entity;
 
-import com.nac.slogbaa.learning.core.entity.TextLine;
 import jakarta.persistence.*;
 import java.time.Instant;
-import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -28,8 +26,8 @@ public class ContentBlockEntity {
     private int blockOrder;
 
     @Column(name = "rich_text", columnDefinition = "TEXT")
-    @Convert(converter = TextLineConverter.class)
-    private List<TextLine> richText;
+    @Convert(converter = EditorJsConverter.class)
+    private EditorJsData richText;
 
     @Column(name = "image_url", length = 2048)
     private String imageUrl;
@@ -87,8 +85,8 @@ public class ContentBlockEntity {
     public void setBlockType(BlockTypeEnum blockType) { this.blockType = blockType; }
     public int getBlockOrder() { return blockOrder; }
     public void setBlockOrder(int blockOrder) { this.blockOrder = blockOrder; }
-    public List<TextLine> getRichText() { return richText; }
-    public void setRichText(List<TextLine> richText) { this.richText = richText; }
+    public EditorJsData getRichText() { return richText; }
+    public void setRichText(EditorJsData richText) { this.richText = richText; }
     public String getImageUrl() { return imageUrl; }
     public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
     public String getImageAltText() { return imageAltText; }

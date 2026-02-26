@@ -8,6 +8,8 @@ import com.nac.slogbaa.learning.application.dto.command.CreateCourseCommand;
 import com.nac.slogbaa.learning.application.port.out.CourseWritePort;
 import com.nac.slogbaa.learning.adapters.persistence.entity.ContentBlockEntity;
 import com.nac.slogbaa.learning.adapters.persistence.entity.CourseEntity;
+import com.nac.slogbaa.learning.adapters.persistence.entity.EditorJsData;
+import com.nac.slogbaa.learning.adapters.persistence.entity.EditorJsBlock;
 import com.nac.slogbaa.learning.adapters.persistence.entity.ModuleEntity;
 import com.nac.slogbaa.learning.adapters.persistence.entity.ContentBlockEntity.BlockTypeEnum;
 import com.nac.slogbaa.learning.adapters.persistence.repository.JpaContentBlockRepository;
@@ -16,9 +18,7 @@ import com.nac.slogbaa.learning.adapters.persistence.repository.JpaModuleReposit
 import com.nac.slogbaa.learning.core.exception.ContentBlockNotFoundException;
 import com.nac.slogbaa.learning.core.exception.CourseNotFoundException;
 import com.nac.slogbaa.learning.core.exception.ModuleNotFoundException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nac.slogbaa.learning.core.entity.TextLine;
 import com.nac.slogbaa.learning.core.valueobject.BlockId;
 import com.nac.slogbaa.learning.core.valueobject.CourseId;
 import com.nac.slogbaa.learning.core.valueobject.ModuleId;
@@ -108,9 +108,10 @@ public class CourseWriteAdapter implements CourseWritePort {
         UUID id = UUID.randomUUID();
         entity.setId(id);
         entity.setModule(module);
-        entity.setBlockType(BlockTypeEnum.valueOf(command.getBlockType().toUpperCase()));
+        EditorJsData editorJs = parseEditorJs(command.getRichText());
+        entity.setBlockType(deriveBlockType(editorJs, command.getBlockType()));
         entity.setBlockOrder(command.getBlockOrder());
-        entity.setRichText(parseRichText(command.getRichText()));
+        entity.setRichText(editorJs);
         entity.setImageUrl(command.getImageUrl());
         entity.setImageAltText(command.getImageAltText());
         entity.setImageCaption(command.getImageCaption());
@@ -128,9 +129,10 @@ public class CourseWriteAdapter implements CourseWritePort {
     public void updateContentBlock(UpdateContentBlockCommand command) {
         ContentBlockEntity entity = jpaContentBlockRepository.findById(command.getBlockId())
                 .orElseThrow(() -> new ContentBlockNotFoundException(command.getBlockId()));
-        entity.setBlockType(BlockTypeEnum.valueOf(command.getBlockType().toUpperCase()));
+        EditorJsData editorJs = parseEditorJs(command.getRichText());
+        entity.setBlockType(deriveBlockType(editorJs, command.getBlockType()));
         entity.setBlockOrder(command.getBlockOrder());
-        entity.setRichText(parseRichText(command.getRichText()));
+        entity.setRichText(editorJs);
         entity.setImageUrl(command.getImageUrl());
         entity.setImageAltText(command.getImageAltText());
         entity.setImageCaption(command.getImageCaption());
@@ -150,15 +152,41 @@ public class CourseWriteAdapter implements CourseWritePort {
         jpaContentBlockRepository.deleteById(blockId);
     }
 
-    private List<TextLine> parseRichText(String json) {
+    private EditorJsData parseEditorJs(String json) {
         if (json == null || json.isBlank()) {
-            return List.of();
+            return new EditorJsData(0L, List.of());
         }
         try {
-            return OBJECT_MAPPER.readValue(json, new TypeReference<List<TextLine>>() {});
+            EditorJsData data = OBJECT_MAPPER.readValue(json, EditorJsData.class);
+            return data != null ? data : new EditorJsData(0L, List.of());
         } catch (Exception e) {
-            throw new RuntimeException("Failed to parse richText", e);
+            return new EditorJsData(0L, List.of());
         }
+    }
+
+    /**
+     * Derive block_type from first Editor.js block when present; otherwise use request blockType.
+     */
+    private BlockTypeEnum deriveBlockType(EditorJsData editorJs, String requestBlockType) {
+        if (editorJs != null && editorJs.getBlocks() != null && !editorJs.getBlocks().isEmpty()) {
+            EditorJsBlock first = editorJs.getBlocks().get(0);
+            String type = first.getType() != null ? first.getType().toLowerCase() : "";
+            switch (type) {
+                case "image":
+                    return BlockTypeEnum.IMAGE;
+                case "embed":
+                    return BlockTypeEnum.VIDEO;
+                case "paragraph":
+                case "header":
+                case "list":
+                default:
+                    return BlockTypeEnum.TEXT;
+            }
+        }
+        if (requestBlockType != null && !requestBlockType.isBlank()) {
+            return BlockTypeEnum.valueOf(requestBlockType.toUpperCase());
+        }
+        return BlockTypeEnum.TEXT;
     }
 
     @Override

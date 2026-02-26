@@ -1,12 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useParams, Link, useOutletContext } from 'react-router-dom'
-import { Plus } from 'lucide-react'
-import { getAdminCourseDetails, addContentBlock, updateContentBlock, deleteContentBlock, updateModule } from '../../../api/admin/courses.js'
-import { BlockTypePickerModal } from '../components/admin/BlockTypePickerModal.jsx'
-import { AddBlockModal } from '../components/admin/AddBlockModal.jsx'
-import { EditBlockModal } from '../components/admin/EditBlockModal.jsx'
-import { BlockOptionsMenu, applyTextLineStyle, isBlockEmpty } from '../components/admin/BlockOptionsMenu.jsx'
-import { TextBlockInlineEditor, parseTextLines } from '../components/admin/TextBlockInlineEditor.jsx'
+import { getAdminCourseDetails, addContentBlock, updateContentBlock, updateModule } from '../../../api/admin/courses.js'
+import { ModuleEditorJs } from '../components/admin/ModuleEditorJs.jsx'
 import { GripVertical, Pencil } from 'lucide-react'
 
 function focusBlockAndCursorStart(el) {
@@ -168,184 +163,17 @@ const styles = {
   error: { padding: '1.5rem', color: 'var(--slogbaa-error)' },
 }
 
-function TextBlockReadOnly({ richText }) {
-  const lines = parseTextLines(richText)
-  if (!lines?.length) return <div style={styles.blockContentHtml} />
-  let numberedIndex = 0
-  return (
-    <div style={styles.blockContentHtml}>
-      {lines.map((line) => {
-        const indent = (line.indent ?? 0) * 24
-        let prefix = ''
-        if (line.type === 'bullet') prefix = '• '
-        else if (line.type === 'numbered') prefix = `${++numberedIndex}. `
-        return (
-          <div key={line.id} style={{ marginLeft: indent, marginBottom: '0.25rem' }}>
-            {prefix}{line.content}
-          </div>
-        )
-      })}
-    </div>
-  )
-}
-
-function ContentBlockPreview({ block, contentEditable, innerRef, onBlur, onFocus, onSpaceBar, isSuperAdmin }) {
-  const { blockType, richText, imageUrl, imageAltText, imageCaption, videoUrl, videoId, activityInstructions, activityResources } = block
-
-  if (blockType === 'TEXT') {
-    if (contentEditable) {
-      return (
-        <TextBlockInlineEditor
-          block={block}
-          isSuperAdmin={isSuperAdmin}
-          innerRef={innerRef}
-          onBlur={onBlur}
-          onFocus={onFocus}
-          onSpaceBar={onSpaceBar}
-        />
-      )
-    }
-    return <TextBlockReadOnly richText={richText} />
+/** True if string looks like Editor.js output (has "time" and "blocks"). */
+function isEditorJsJson(str) {
+  if (!str || typeof str !== 'string') return false
+  const t = str.trim()
+  if (!t.startsWith('{')) return false
+  try {
+    const o = JSON.parse(t)
+    return o != null && typeof o === 'object' && 'blocks' in o
+  } catch {
+    return false
   }
-  if (blockType === 'IMAGE' && imageUrl) {
-    return (
-      <figure style={{ margin: 0 }}>
-        <img src={imageUrl} alt={imageAltText || ''} style={styles.blockImage} loading="lazy" />
-        {imageCaption && <figcaption style={styles.blockImageCaption}>{imageCaption}</figcaption>}
-      </figure>
-    )
-  }
-  if (blockType === 'VIDEO' && (videoId || videoUrl)) {
-    const embedId = videoId || videoUrl?.match(/(?:v=|\/)([\w-]{11})(?:&|$)/)?.[1]
-    return embedId ? (
-      <iframe
-        title="Video"
-        src={`https://www.youtube.com/embed/${embedId}`}
-        style={styles.blockVideo}
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        allowFullScreen
-      />
-    ) : (
-      <a href={videoUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--slogbaa-blue)' }}>Watch video</a>
-    )
-  }
-  if (blockType === 'ACTIVITY' && (activityInstructions || activityResources)) {
-    return (
-      <div style={styles.activityBlock}>
-        {activityInstructions && <div style={styles.blockContentHtml} dangerouslySetInnerHTML={{ __html: activityInstructions }} />}
-        {activityResources && (
-          <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--slogbaa-border)' }} dangerouslySetInnerHTML={{ __html: activityResources }} />
-        )}
-      </div>
-    )
-  }
-  return <span style={styles.emptyBlock}>Empty {blockType?.toLowerCase() || 'block'}</span>
-}
-
-function AddBlockRow({ onAdd, isSuperAdmin, rowRef, focused, onFocus }) {
-  return (
-    <div
-      ref={rowRef}
-      tabIndex={0}
-      className="block-group"
-      style={{
-        ...styles.addBlockRow,
-        ...(focused ? styles.blockRowFocused : {}),
-      }}
-      onClick={(e) => { if (e.target === e.currentTarget || !e.target.closest('button')) onFocus?.() }}
-      onFocus={onFocus}
-    >
-      {isSuperAdmin && (
-        <div className="block-icons" style={styles.blockIcons}>
-          <button
-            type="button"
-            style={styles.iconBtn}
-            onClick={onAdd}
-            title="Add block"
-            aria-label="Add block"
-          >
-            <Plus size={16} strokeWidth={2.5} />
-          </button>
-        </div>
-      )}
-    </div>
-  )
-}
-
-function BlockRow({
-  block,
-  module,
-  courseId,
-  isSuperAdmin,
-  onAddBefore,
-  onEdit,
-  onDelete,
-  onStyleChange,
-  rowRef,
-  contentRef,
-  focused,
-  onFocus,
-  onTextBlur,
-}) {
-  const isEmpty = isBlockEmpty(block)
-  const isText = block?.blockType === 'TEXT'
-
-  return (
-    <div
-      ref={rowRef}
-      className="block-group"
-      tabIndex={0}
-      style={{
-        ...styles.blockRow,
-        ...(focused ? styles.blockRowFocused : {}),
-      }}
-      onClick={(e) => {
-        if (isText && contentRef.current && !e.target.closest('button')) {
-          onFocus?.()
-          if (!e.target.closest('input')) {
-            contentRef.current?.focus?.()
-          }
-        } else if (!isText && !e.target.closest('button')) {
-          onFocus?.()
-          onEdit?.()
-        }
-      }}
-    >
-      {isSuperAdmin && (
-        <div className="block-icons" style={styles.blockIcons}>
-          <BlockOptionsMenu
-            block={block}
-            module={module}
-            courseId={courseId}
-            isSuperAdmin={isSuperAdmin}
-            visible={true}
-            inline
-            empty={isEmpty}
-            onAddBefore={onAddBefore}
-            onEdit={onEdit}
-            onEditText={isText ? () => contentRef.current?.focus?.() : undefined}
-            onDelete={onDelete}
-            onStyleChange={onStyleChange}
-          />
-        </div>
-      )}
-      {isText ? (
-        <ContentBlockPreview
-          block={block}
-          contentEditable={isSuperAdmin}
-          innerRef={contentRef}
-          onBlur={onTextBlur}
-          onFocus={onFocus}
-          onSpaceBar={onAddBefore}
-          isSuperAdmin={isSuperAdmin}
-        />
-      ) : (
-        <div style={styles.blockContent} onClick={onEdit}>
-          <ContentBlockPreview block={block} />
-        </div>
-      )}
-    </div>
-  )
 }
 
 export function AdminModuleEditorPage() {
@@ -355,9 +183,6 @@ export function AdminModuleEditorPage() {
   const [module, setModule] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [modal, setModal] = useState(null)
-  const [modalContext, setModalContext] = useState(null)
-
   const refresh = useCallback(async () => {
     if (!token || !courseId) return
     setLoading(true)
@@ -385,128 +210,68 @@ export function AdminModuleEditorPage() {
     refresh()
   }, [refresh])
 
-  const openBlockPicker = (insertAfterIndex) => {
-    setModalContext({ insertAfterIndex })
-    setModal('blockPicker')
-  }
+  /** First content block used to store Editor.js JSON; backend derives block_type from first block. */
+  const editorBlock = module?.contentBlocks?.length ? module.contentBlocks[0] : null
+  const editorInitialData = editorBlock && isEditorJsJson(editorBlock.richText) ? editorBlock.richText : null
 
-  const handleBlockTypeSelected = (blockType) => {
-    setModal('addBlock')
-    setModalContext((prev) => ({ ...prev, preselectedType: blockType }))
-  }
+  const handleEditorSave = useCallback(async (editorJsJson) => {
+    if (!token || !courseId || !moduleId) return
+    setSaving(true)
+    try {
+      if (editorBlock?.id) {
+        await updateContentBlock(token, courseId, moduleId, editorBlock.id, {
+          blockType: 'TEXT',
+          blockOrder: 0,
+          richText: editorJsJson,
+        })
+      } else {
+        await addContentBlock(token, courseId, moduleId, {
+          blockType: 'TEXT',
+          blockOrder: 0,
+          richText: editorJsJson,
+        })
+      }
+      await refresh()
+    } catch (err) {
+      console.warn('Failed to save module content', err)
+    } finally {
+      setSaving(false)
+    }
+  }, [token, courseId, moduleId, editorBlock?.id, refresh])
 
-  const handleAddBlock = async (data) => {
-    await addContentBlock(token, courseId, moduleId, data)
-    setModal(null)
-    setModalContext(null)
-    await refresh()
-  }
-
-  const handleEditBlock = (block) => {
-    setModalContext({ block })
-    setModal('editBlock')
-  }
-
-  const handleUpdateBlock = async (blockId, payload) => {
-    await updateContentBlock(token, courseId, moduleId, blockId, payload)
-    setModal(null)
-    setModalContext(null)
-    await refresh()
-  }
-
-  const handleDeleteBlock = async (blockId) => {
-    await deleteContentBlock(token, courseId, moduleId, blockId)
-    await refresh()
-  }
-
-  const handleBlockStyleChange = async (blockId, block, style) => {
-    const richText = block.blockType === 'TEXT' ? applyTextLineStyle(block.richText, style) : block.richText
-    await updateContentBlock(token, courseId, moduleId, blockId, {
-      blockType: block.blockType || 'TEXT',
-      blockOrder: block.blockOrder ?? 0,
-      richText,
-      imageUrl: block.imageUrl ?? undefined,
-      imageAltText: block.imageAltText ?? undefined,
-      imageCaption: block.imageCaption ?? undefined,
-      videoUrl: block.videoUrl ?? undefined,
-      videoId: block.videoId ?? undefined,
-      activityInstructions: block.activityInstructions ?? undefined,
-      activityResources: block.activityResources ?? undefined,
-    })
-    await refresh()
-  }
+  const handleSaveContent = useCallback(async () => {
+    const saveFn = editorJsRef.current?.save
+    if (typeof saveFn !== 'function') {
+      console.warn('Editor not ready')
+      return
+    }
+    setSaving(true)
+    try {
+      await saveFn()
+    } catch (err) {
+      console.warn('Save failed', err)
+    } finally {
+      setSaving(false)
+    }
+  }, [])
 
   const [focusedRowIndex, setFocusedRowIndex] = useState(null)
   const [titleMenuOpen, setTitleMenuOpen] = useState(false)
   const [descriptionMenuOpen, setDescriptionMenuOpen] = useState(false)
-  const rowRefs = useRef([])
-  const blockContentRefs = useRef([])
   const titleRef = useRef(null)
   const descriptionRef = useRef(null)
   const titleRowRef = useRef(null)
   const descriptionRowRef = useRef(null)
-
-  const getRowRef = (i) => {
-    if (!rowRefs.current[i]) rowRefs.current[i] = { current: null }
-    return rowRefs.current[i]
-  }
-
-  const blockCountRef = useRef(0)
-  blockCountRef.current = module?.contentBlocks?.length ?? 0
-  const totalRows = 2 + blockCountRef.current + (isSuperAdmin ? 1 : 0)
-
-  const focusRowByIndex = useCallback((index) => {
-    if (index < 0 || index >= totalRows) return
-    setFocusedRowIndex(index)
-    let focusEl = null
-    if (index === 0) focusEl = titleRef.current
-    else if (index === 1) focusEl = descriptionRef.current
-    else if (index >= 2 && module?.contentBlocks?.[index - 2]?.blockType === 'TEXT')
-      focusEl = blockContentRefs.current[index - 2]?.current
-    else focusEl = getRowRef(index).current
-    if (focusEl && typeof focusEl.focus === 'function') {
-      focusEl.focus()
-      focusBlockAndCursorStart(focusEl)
-    }
-  }, [module, isSuperAdmin, totalRows])
+  const editorJsRef = useRef(null)
+  const [saving, setSaving] = useState(false)
 
   const handleEditorAreaClick = useCallback((e) => {
-    if (!module) return
     if (e.target.closest('a[href]') || e.target.closest('button') || e.target.closest('[role="menu"]')) return
     setTitleMenuOpen(false)
     setDescriptionMenuOpen(false)
-    const clickY = e.clientY
-    const blockCount = module.contentBlocks?.length ?? 0
-    const rowRefsList = [titleRowRef, descriptionRowRef]
-    for (let i = 0; i < blockCount; i++) rowRefsList.push(getRowRef(2 + i))
-    if (isSuperAdmin) rowRefsList.push(getRowRef(2 + blockCount))
-    let closestIndex = 0
-    let closestDist = Infinity
-    rowRefsList.forEach((ref, i) => {
-      const el = ref?.current
-      if (!el) return
-      const rect = el.getBoundingClientRect()
-      const mid = rect.top + rect.height / 2
-      const dist = Math.abs(clickY - mid)
-      if (dist < closestDist) {
-        closestDist = dist
-        closestIndex = i
-      }
-    })
-    focusRowByIndex(closestIndex)
-  }, [module, isSuperAdmin, focusRowByIndex])
+  }, [])
 
-  const handleEditorKeyDown = useCallback((e) => {
-    if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return
-    const current = focusedRowIndex ?? 0
-    if (e.key === 'ArrowDown') {
-      e.preventDefault()
-      focusRowByIndex(Math.min(current + 1, totalRows - 1))
-    } else {
-      e.preventDefault()
-      focusRowByIndex(Math.max(current - 1, 0))
-    }
-  }, [focusedRowIndex, totalRows, focusRowByIndex])
+  const handleEditorKeyDown = useCallback(() => {}, [])
 
   const handleTitleBlur = useCallback(async (text) => {
     const trimmed = (text ?? '').trim() || module?.title || ''
@@ -525,20 +290,21 @@ export function AdminModuleEditorPage() {
     } catch (_) {}
   }, [module, token, courseId, moduleId])
 
+  // Re-sync title/description into contentEditable refs after load or refresh (e.g. after Editor.js save).
+  // When loading goes true→false we remount the divs; deps [module?.title, module?.id] are unchanged so
+  // we must depend on loading too so the effect runs and repopulates the new divs.
   useEffect(() => {
+    if (loading || !module) return
     if (titleRef.current && document.activeElement !== titleRef.current)
-      titleRef.current.textContent = module?.title ?? ''
-  }, [module?.title, module?.id])
-  useEffect(() => {
+      titleRef.current.textContent = module.title ?? ''
     if (descriptionRef.current && document.activeElement !== descriptionRef.current)
-      descriptionRef.current.textContent = module?.description ?? ''
-  }, [module?.description, module?.id])
+      descriptionRef.current.textContent = module.description ?? ''
+  }, [loading, module?.id, module?.title, module?.description])
 
-  if (loading) return <p style={styles.loading}>Loading module…</p>
+  // Only show full-page loading when we don't have a module yet (initial load). When refreshing after save, keep the UI so title/description don't disappear.
+  if (loading && !module) return <p style={styles.loading}>Loading module…</p>
   if (error || !course) return <p style={styles.error}>{error || 'Course not found.'}</p>
   if (!module) return <p style={styles.error}>Module not found.</p>
-
-  const blockCount = module.contentBlocks?.length ?? 0
 
   return (
     <div style={styles.page} onClick={handleEditorAreaClick}>
@@ -565,9 +331,6 @@ export function AdminModuleEditorPage() {
         >
           {isSuperAdmin && (
             <div className="block-icons" style={styles.blockIcons}>
-              <button type="button" style={styles.iconBtn} title="Add block" aria-label="Add block" onClick={(e) => { e.stopPropagation(); openBlockPicker(-1) }}>
-                <Plus size={16} strokeWidth={2.5} />
-              </button>
               <div style={{ position: 'relative' }}>
                 <button type="button" style={styles.iconBtn} title="Options" aria-label="Options" aria-expanded={titleMenuOpen} onClick={(e) => { e.stopPropagation(); setTitleMenuOpen((o) => !o); setDescriptionMenuOpen(false) }}>
                   <GripVertical size={14} strokeWidth={2} />
@@ -604,9 +367,6 @@ export function AdminModuleEditorPage() {
         >
           {isSuperAdmin && (
             <div className="block-icons" style={styles.blockIcons}>
-              <button type="button" style={styles.iconBtn} title="Add block" aria-label="Add block" onClick={(e) => { e.stopPropagation(); openBlockPicker(0) }}>
-                <Plus size={16} strokeWidth={2.5} />
-              </button>
               <div style={{ position: 'relative' }}>
                 <button type="button" style={styles.iconBtn} title="Options" aria-label="Options" aria-expanded={descriptionMenuOpen} onClick={(e) => { e.stopPropagation(); setDescriptionMenuOpen((o) => !o); setTitleMenuOpen(false) }}>
                   <GripVertical size={14} strokeWidth={2} />
@@ -631,72 +391,42 @@ export function AdminModuleEditorPage() {
           />
         </div>
 
-        {/* Content blocks */}
-        {module.contentBlocks?.map((block, i) => (
-          <BlockRow
-            key={block.id}
-            block={block}
-            module={module}
-            courseId={courseId}
-            isSuperAdmin={isSuperAdmin}
-            onAddBefore={() => openBlockPicker(i)}
-            onEdit={() => handleEditBlock(block)}
-            onDelete={() => handleDeleteBlock(block.id)}
-            onStyleChange={(style) => handleBlockStyleChange(block.id, block, style)}
-            rowRef={getRowRef(2 + i)}
-            contentRef={blockContentRefs.current[i] || (blockContentRefs.current[i] = { current: null })}
-            focused={focusedRowIndex === 2 + i}
-            onFocus={() => setFocusedRowIndex(2 + i)}
-            onTextBlur={(html) => block.blockType === 'TEXT' && handleUpdateBlock(block.id, {
-              blockType: 'TEXT',
-              blockOrder: block.blockOrder ?? i,
-              richText: html || undefined,
-              imageUrl: block.imageUrl ?? undefined,
-              imageAltText: block.imageAltText ?? undefined,
-              imageCaption: block.imageCaption ?? undefined,
-              videoUrl: block.videoUrl ?? undefined,
-              videoId: block.videoId ?? undefined,
-              activityInstructions: block.activityInstructions ?? undefined,
-              activityResources: block.activityResources ?? undefined,
-            })}
+        {/* Block-based content: single Editor.js instance */}
+        <div style={{ marginTop: '1.5rem' }}>
+          <ModuleEditorJs
+            ref={editorJsRef}
+            key={moduleId}
+            initialData={editorInitialData}
+            onSave={handleEditorSave}
+            readOnly={!isSuperAdmin}
+            holderId={`module-editor-${moduleId}`}
           />
-        ))}
-
-        {isSuperAdmin && (
-          <AddBlockRow
-            isSuperAdmin={isSuperAdmin}
-            onAdd={() => openBlockPicker(blockCount)}
-            rowRef={getRowRef(2 + blockCount)}
-            focused={focusedRowIndex === 2 + blockCount}
-            onFocus={() => setFocusedRowIndex(2 + blockCount)}
-          />
-        )}
+          {isSuperAdmin && (
+            <div style={{ marginTop: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                onClick={handleSaveContent}
+                disabled={saving}
+                style={{
+                  padding: '0.5rem 1rem',
+                  background: saving ? 'var(--slogbaa-text-muted)' : 'var(--slogbaa-orange)',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: 8,
+                  fontSize: '0.9375rem',
+                  fontWeight: 500,
+                  cursor: saving ? 'not-allowed' : 'pointer',
+                }}
+              >
+                {saving ? 'Saving…' : 'Save content'}
+              </button>
+              <span style={{ fontSize: '0.8125rem', color: 'var(--slogbaa-text-muted)' }}>
+                Click to push editor content to the module. Trainees will see it after save.
+              </span>
+            </div>
+          )}
+        </div>
       </div>
-
-      {modal === 'blockPicker' && (
-        <BlockTypePickerModal
-          onClose={() => { setModal(null); setModalContext(null) }}
-          onSelect={handleBlockTypeSelected}
-        />
-      )}
-      {modal === 'addBlock' && (
-        <AddBlockModal
-          course={course}
-          module={module}
-          preselectedType={modalContext?.preselectedType}
-          onClose={() => { setModal(null); setModalContext(null) }}
-          onSubmit={(data) => handleAddBlock(data)}
-        />
-      )}
-      {modal === 'editBlock' && modalContext?.block && (
-        <EditBlockModal
-          block={modalContext.block}
-          courseId={courseId}
-          module={module}
-          onClose={() => { setModal(null); setModalContext(null) }}
-          onSubmit={(payload) => handleUpdateBlock(modalContext.block.id, payload)}
-        />
-      )}
     </div>
   )
 }

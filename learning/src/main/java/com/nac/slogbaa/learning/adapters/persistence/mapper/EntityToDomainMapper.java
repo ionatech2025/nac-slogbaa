@@ -3,11 +3,11 @@ package com.nac.slogbaa.learning.adapters.persistence.mapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nac.slogbaa.learning.adapters.persistence.entity.ContentBlockEntity;
+import com.nac.slogbaa.learning.adapters.persistence.entity.EditorJsData;
 import com.nac.slogbaa.learning.adapters.persistence.entity.ModuleEntity;
 import com.nac.slogbaa.learning.core.aggregate.CourseWithModules;
 import com.nac.slogbaa.learning.core.entity.ContentBlock;
 import com.nac.slogbaa.learning.core.entity.Module;
-import com.nac.slogbaa.learning.core.entity.TextLine;
 import com.nac.slogbaa.learning.core.valueobject.*;
 import org.springframework.stereotype.Component;
 
@@ -67,14 +67,14 @@ public class EntityToDomainMapper {
         );
     }
 
-    private String serializeRichText(List<TextLine> textLines) {
-        if (textLines == null || textLines.isEmpty()) {
+    private String serializeRichText(EditorJsData editorJs) {
+        if (editorJs == null) {
             return null;
         }
         try {
-            return OBJECT_MAPPER.writeValueAsString(textLines);
+            return OBJECT_MAPPER.writeValueAsString(editorJs);
         } catch (JsonProcessingException e) {
-            throw new RuntimeException("Failed to serialize TextLine list", e);
+            throw new RuntimeException("Failed to serialize EditorJsData", e);
         }
     }
 }
