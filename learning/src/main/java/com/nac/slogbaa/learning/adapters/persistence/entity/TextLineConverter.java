@@ -33,10 +33,14 @@ public class TextLineConverter implements AttributeConverter<List<TextLine>, Str
         if (dbData == null || dbData.isBlank()) {
             return List.of();
         }
+        // Skip non-JSON data (e.g. legacy HTML like <p>...</p>) and return empty list
+        if (dbData.trim().startsWith("<")) {
+            return List.of();
+        }
         try {
             return OBJECT_MAPPER.readValue(dbData, new TypeReference<List<TextLine>>() {});
         } catch (Exception e) {
-            throw new RuntimeException("Failed to deserialize TextLine list", e);
+            return List.of();
         }
     }
 }
