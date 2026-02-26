@@ -1,10 +1,13 @@
 package com.nac.slogbaa.learning.adapters.persistence.mapper;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nac.slogbaa.learning.adapters.persistence.entity.ContentBlockEntity;
 import com.nac.slogbaa.learning.adapters.persistence.entity.ModuleEntity;
 import com.nac.slogbaa.learning.core.aggregate.CourseWithModules;
 import com.nac.slogbaa.learning.core.entity.ContentBlock;
 import com.nac.slogbaa.learning.core.entity.Module;
+import com.nac.slogbaa.learning.core.entity.TextLine;
 import com.nac.slogbaa.learning.core.valueobject.*;
 import org.springframework.stereotype.Component;
 
@@ -15,6 +18,8 @@ import java.util.List;
  */
 @Component
 public class EntityToDomainMapper {
+
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     public CourseWithModules toCourseWithModules(
             com.nac.slogbaa.learning.adapters.persistence.entity.CourseEntity course,
@@ -51,7 +56,7 @@ public class EntityToDomainMapper {
                 new BlockId(entity.getId()),
                 BlockType.valueOf(entity.getBlockType().name()),
                 entity.getBlockOrder(),
-                entity.getRichText(),
+                serializeRichText(entity.getRichText()),
                 entity.getImageUrl(),
                 entity.getImageAltText(),
                 entity.getImageCaption(),
@@ -60,5 +65,16 @@ public class EntityToDomainMapper {
                 entity.getActivityInstructions(),
                 entity.getActivityResources()
         );
+    }
+
+    private String serializeRichText(List<TextLine> textLines) {
+        if (textLines == null || textLines.isEmpty()) {
+            return null;
+        }
+        try {
+            return OBJECT_MAPPER.writeValueAsString(textLines);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Failed to serialize TextLine list", e);
+        }
     }
 }

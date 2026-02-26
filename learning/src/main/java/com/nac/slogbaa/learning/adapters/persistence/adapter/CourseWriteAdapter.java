@@ -16,16 +16,22 @@ import com.nac.slogbaa.learning.adapters.persistence.repository.JpaModuleReposit
 import com.nac.slogbaa.learning.core.exception.ContentBlockNotFoundException;
 import com.nac.slogbaa.learning.core.exception.CourseNotFoundException;
 import com.nac.slogbaa.learning.core.exception.ModuleNotFoundException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nac.slogbaa.learning.core.entity.TextLine;
 import com.nac.slogbaa.learning.core.valueobject.BlockId;
 import com.nac.slogbaa.learning.core.valueobject.CourseId;
 import com.nac.slogbaa.learning.core.valueobject.ModuleId;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 @Component
 public class CourseWriteAdapter implements CourseWritePort {
+
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     private final JpaCourseRepository jpaCourseRepository;
     private final JpaModuleRepository jpaModuleRepository;
@@ -104,7 +110,7 @@ public class CourseWriteAdapter implements CourseWritePort {
         entity.setModule(module);
         entity.setBlockType(BlockTypeEnum.valueOf(command.getBlockType().toUpperCase()));
         entity.setBlockOrder(command.getBlockOrder());
-        entity.setRichText(command.getRichText());
+        entity.setRichText(parseRichText(command.getRichText()));
         entity.setImageUrl(command.getImageUrl());
         entity.setImageAltText(command.getImageAltText());
         entity.setImageCaption(command.getImageCaption());
@@ -124,7 +130,7 @@ public class CourseWriteAdapter implements CourseWritePort {
                 .orElseThrow(() -> new ContentBlockNotFoundException(command.getBlockId()));
         entity.setBlockType(BlockTypeEnum.valueOf(command.getBlockType().toUpperCase()));
         entity.setBlockOrder(command.getBlockOrder());
-        entity.setRichText(command.getRichText());
+        entity.setRichText(parseRichText(command.getRichText()));
         entity.setImageUrl(command.getImageUrl());
         entity.setImageAltText(command.getImageAltText());
         entity.setImageCaption(command.getImageCaption());
@@ -142,6 +148,17 @@ public class CourseWriteAdapter implements CourseWritePort {
             throw new ContentBlockNotFoundException(blockId);
         }
         jpaContentBlockRepository.deleteById(blockId);
+    }
+
+    private List<TextLine> parseRichText(String json) {
+        if (json == null || json.isBlank()) {
+            return List.of();
+        }
+        try {
+            return OBJECT_MAPPER.readValue(json, new TypeReference<List<TextLine>>() {});
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to parse richText", e);
+        }
     }
 
     @Override

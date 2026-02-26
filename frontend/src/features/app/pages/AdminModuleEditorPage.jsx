@@ -5,7 +5,8 @@ import { getAdminCourseDetails, addContentBlock, updateContentBlock, deleteConte
 import { BlockTypePickerModal } from '../components/admin/BlockTypePickerModal.jsx'
 import { AddBlockModal } from '../components/admin/AddBlockModal.jsx'
 import { EditBlockModal } from '../components/admin/EditBlockModal.jsx'
-import { BlockOptionsMenu, applyTextStyle, isBlockEmpty } from '../components/admin/BlockOptionsMenu.jsx'
+import { BlockOptionsMenu, applyTextLineStyle, isBlockEmpty } from '../components/admin/BlockOptionsMenu.jsx'
+import { TextBlockInlineEditor, parseTextLines } from '../components/admin/TextBlockInlineEditor.jsx'
 import { GripVertical, Pencil } from 'lucide-react'
 
 function focusBlockAndCursorStart(el) {
@@ -167,41 +168,44 @@ const styles = {
   error: { padding: '1.5rem', color: 'var(--slogbaa-error)' },
 }
 
-function TextBlockEditable({ block, innerRef, onBlur, onFocus }) {
-  const { richText } = block
-  const ref = useRef(null)
-  const combinedRef = (el) => {
-    ref.current = el
-    if (typeof innerRef === 'function') innerRef(el)
-    else if (innerRef) innerRef.current = el
-  }
-  useEffect(() => {
-    if (!ref.current) return
-    if (document.activeElement === ref.current) return
-    ref.current.innerHTML = richText || ''
-  }, [block.id, richText])
-
+function TextBlockReadOnly({ richText }) {
+  const lines = parseTextLines(richText)
+  if (!lines?.length) return <div style={styles.blockContentHtml} />
+  let numberedIndex = 0
   return (
-    <div
-      ref={combinedRef}
-      contentEditable
-      suppressContentEditableWarning
-      style={{ ...styles.blockContent, ...styles.blockContentHtml }}
-      onBlur={(e) => { const html = e.currentTarget.innerHTML; onBlur?.(html) }}
-      onFocus={onFocus}
-      data-placeholder="Type something…"
-    />
+    <div style={styles.blockContentHtml}>
+      {lines.map((line) => {
+        const indent = (line.indent ?? 0) * 24
+        let prefix = ''
+        if (line.type === 'bullet') prefix = '• '
+        else if (line.type === 'numbered') prefix = `${++numberedIndex}. `
+        return (
+          <div key={line.id} style={{ marginLeft: indent, marginBottom: '0.25rem' }}>
+            {prefix}{line.content}
+          </div>
+        )
+      })}
+    </div>
   )
 }
 
-function ContentBlockPreview({ block, contentEditable, innerRef, onBlur, onFocus }) {
+function ContentBlockPreview({ block, contentEditable, innerRef, onBlur, onFocus, onSpaceBar, isSuperAdmin }) {
   const { blockType, richText, imageUrl, imageAltText, imageCaption, videoUrl, videoId, activityInstructions, activityResources } = block
 
   if (blockType === 'TEXT') {
     if (contentEditable) {
-      return <TextBlockEditable block={block} innerRef={innerRef} onBlur={onBlur} onFocus={onFocus} />
+      return (
+        <TextBlockInlineEditor
+          block={block}
+          isSuperAdmin={isSuperAdmin}
+          innerRef={innerRef}
+          onBlur={onBlur}
+          onFocus={onFocus}
+          onSpaceBar={onSpaceBar}
+        />
+      )
     }
-    return <div style={styles.blockContentHtml} dangerouslySetInnerHTML={{ __html: richText || '' }} />
+    return <TextBlockReadOnly richText={richText} />
   }
   if (blockType === 'IMAGE' && imageUrl) {
     return (
@@ -298,9 +302,8 @@ function BlockRow({
       onClick={(e) => {
         if (isText && contentRef.current && !e.target.closest('button')) {
           onFocus?.()
-          if (document.activeElement !== contentRef.current) {
-            contentRef.current.focus()
-            focusBlockAndCursorStart(contentRef.current)
+          if (!e.target.closest('input')) {
+            contentRef.current?.focus?.()
           }
         } else if (!isText && !e.target.closest('button')) {
           onFocus?.()
@@ -320,6 +323,7 @@ function BlockRow({
             empty={isEmpty}
             onAddBefore={onAddBefore}
             onEdit={onEdit}
+            onEditText={isText ? () => contentRef.current?.focus?.() : undefined}
             onDelete={onDelete}
             onStyleChange={onStyleChange}
           />
@@ -332,6 +336,8 @@ function BlockRow({
           innerRef={contentRef}
           onBlur={onTextBlur}
           onFocus={onFocus}
+          onSpaceBar={onAddBefore}
+          isSuperAdmin={isSuperAdmin}
         />
       ) : (
         <div style={styles.blockContent} onClick={onEdit}>
@@ -414,7 +420,7 @@ export function AdminModuleEditorPage() {
   }
 
   const handleBlockStyleChange = async (blockId, block, style) => {
-    const richText = applyTextStyle(block.richText, style)
+    const richText = block.blockType === 'TEXT' ? applyTextLineStyle(block.richText, style) : block.richText
     await updateContentBlock(token, courseId, moduleId, blockId, {
       blockType: block.blockType || 'TEXT',
       blockOrder: block.blockOrder ?? 0,

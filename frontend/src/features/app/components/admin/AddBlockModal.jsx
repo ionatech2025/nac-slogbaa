@@ -1,6 +1,15 @@
 import { useState, useEffect } from 'react'
 import { FontAwesomeIcon, icons } from '../../../../shared/icons.js'
 import { Modal } from '../../../../shared/components/Modal.jsx'
+import { serializeTextLines } from './TextBlockInlineEditor.jsx'
+
+function uuid() {
+  return crypto.randomUUID?.() ?? 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0
+    const v = c === 'x' ? r : (r & 0x3) | 0x8
+    return v.toString(16)
+  })
+}
 
 const BLOCK_TYPES = [
   { value: 'TEXT', label: 'Text', icon: icons.blockText },
@@ -108,8 +117,10 @@ export function AddBlockModal({ course, module, preselectedType, onClose, onSubm
   const buildPayload = () => {
     const base = { blockType, blockOrder: nextOrder }
     switch (blockType) {
-      case 'TEXT':
-        return { ...base, richText: richText || undefined }
+      case 'TEXT': {
+        const lines = [{ id: uuid(), type: 'paragraph', content: richText.trim(), indent: 0 }]
+        return { ...base, richText: serializeTextLines(lines) || undefined }
+      }
       case 'IMAGE':
         return { ...base, imageUrl: imageUrl || undefined, imageAltText: imageAltText || undefined, imageCaption: imageCaption || undefined }
       case 'VIDEO': {
@@ -180,12 +191,12 @@ export function AddBlockModal({ course, module, preselectedType, onClose, onSubm
       <form style={styles.form} onSubmit={handleSubmit}>
         {blockType === 'TEXT' && (
           <div style={styles.field}>
-            <label style={styles.label}>Rich text (HTML)</label>
+            <label style={styles.label}>Text content</label>
             <textarea
               value={richText}
               onChange={(e) => setRichText(e.target.value)}
               style={styles.textarea}
-              placeholder="<p>Your content here…</p>"
+              placeholder="Your content here… (use the inline editor for bullet/numbered lists)"
             />
           </div>
         )}
