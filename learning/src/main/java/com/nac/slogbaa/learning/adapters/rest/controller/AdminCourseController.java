@@ -6,8 +6,10 @@ import com.nac.slogbaa.learning.adapters.rest.dto.request.AddModuleRequest;
 import com.nac.slogbaa.learning.adapters.rest.dto.request.CreateCourseRequest;
 import com.nac.slogbaa.learning.adapters.rest.dto.request.UpdateContentBlockRequest;
 import com.nac.slogbaa.learning.adapters.rest.dto.request.UpdateCourseRequest;
+import com.nac.slogbaa.learning.adapters.rest.dto.request.UpdateModuleRequest;
 import com.nac.slogbaa.learning.application.dto.command.AddContentBlockCommand;
 import com.nac.slogbaa.learning.application.dto.command.AddModuleCommand;
+import com.nac.slogbaa.learning.application.dto.command.UpdateModuleCommand;
 import com.nac.slogbaa.learning.application.dto.command.CreateCourseCommand;
 import com.nac.slogbaa.learning.application.dto.command.PublishCourseCommand;
 import com.nac.slogbaa.learning.application.dto.command.UpdateContentBlockCommand;
@@ -21,6 +23,7 @@ import com.nac.slogbaa.learning.application.port.in.PublishCourseUseCase;
 import com.nac.slogbaa.learning.application.port.in.DeleteContentBlockUseCase;
 import com.nac.slogbaa.learning.application.port.in.UpdateContentBlockUseCase;
 import com.nac.slogbaa.learning.application.port.in.UpdateCourseUseCase;
+import com.nac.slogbaa.learning.application.port.in.UpdateModuleUseCase;
 import com.nac.slogbaa.learning.core.valueobject.BlockId;
 import com.nac.slogbaa.learning.core.valueobject.CourseId;
 import com.nac.slogbaa.learning.core.valueobject.ModuleId;
@@ -64,6 +67,7 @@ public class AdminCourseController {
     private final CreateCourseUseCase createCourseUseCase;
     private final UpdateCourseUseCase updateCourseUseCase;
     private final AddModuleToCourseUseCase addModuleToCourseUseCase;
+    private final UpdateModuleUseCase updateModuleUseCase;
     private final AddContentBlockToModuleUseCase addContentBlockToModuleUseCase;
     private final UpdateContentBlockUseCase updateContentBlockUseCase;
     private final DeleteContentBlockUseCase deleteContentBlockUseCase;
@@ -74,6 +78,7 @@ public class AdminCourseController {
                                 CreateCourseUseCase createCourseUseCase,
                                 UpdateCourseUseCase updateCourseUseCase,
                                 AddModuleToCourseUseCase addModuleToCourseUseCase,
+                                UpdateModuleUseCase updateModuleUseCase,
                                 AddContentBlockToModuleUseCase addContentBlockToModuleUseCase,
                                 UpdateContentBlockUseCase updateContentBlockUseCase,
                                 DeleteContentBlockUseCase deleteContentBlockUseCase,
@@ -83,6 +88,7 @@ public class AdminCourseController {
         this.createCourseUseCase = createCourseUseCase;
         this.updateCourseUseCase = updateCourseUseCase;
         this.addModuleToCourseUseCase = addModuleToCourseUseCase;
+        this.updateModuleUseCase = updateModuleUseCase;
         this.addContentBlockToModuleUseCase = addContentBlockToModuleUseCase;
         this.updateContentBlockUseCase = updateContentBlockUseCase;
         this.deleteContentBlockUseCase = deleteContentBlockUseCase;
@@ -158,6 +164,21 @@ public class AdminCourseController {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(Map.of("id", moduleId.getValue().toString()));
+    }
+
+    @PutMapping("/{courseId}/modules/{moduleId}")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    public ResponseEntity<Void> updateModule(
+            @PathVariable UUID courseId,
+            @PathVariable UUID moduleId,
+            @Valid @RequestBody UpdateModuleRequest request) {
+        UpdateModuleCommand command = new UpdateModuleCommand(
+                moduleId,
+                request.title(),
+                request.description()
+        );
+        updateModuleUseCase.execute(command);
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/{courseId}/modules/{moduleId}/blocks")

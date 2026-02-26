@@ -62,3 +62,9 @@ input, button {
 .block-group:hover .block-icons {
   opacity: 1;
 }
+
+/* Placeholder for empty contenteditable */
+[contenteditable][data-placeholder]:empty::before {
+  content: attr(data-placeholder);
+  color: var(--slogbaa-text-muted);
+}

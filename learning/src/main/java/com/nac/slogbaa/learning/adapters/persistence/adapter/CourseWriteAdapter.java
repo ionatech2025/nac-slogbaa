@@ -3,6 +3,7 @@ package com.nac.slogbaa.learning.adapters.persistence.adapter;
 import com.nac.slogbaa.learning.application.dto.command.AddContentBlockCommand;
 import com.nac.slogbaa.learning.application.dto.command.UpdateContentBlockCommand;
 import com.nac.slogbaa.learning.application.dto.command.AddModuleCommand;
+import com.nac.slogbaa.learning.application.dto.command.UpdateModuleCommand;
 import com.nac.slogbaa.learning.application.dto.command.CreateCourseCommand;
 import com.nac.slogbaa.learning.application.port.out.CourseWritePort;
 import com.nac.slogbaa.learning.adapters.persistence.entity.ContentBlockEntity;
@@ -80,6 +81,16 @@ public class CourseWriteAdapter implements CourseWritePort {
         entity.setUpdatedAt(Instant.now());
         jpaModuleRepository.save(entity);
         return new ModuleId(id);
+    }
+
+    @Override
+    public void updateModule(UpdateModuleCommand command) {
+        ModuleEntity entity = jpaModuleRepository.findById(command.getModuleId())
+                .orElseThrow(() -> new ModuleNotFoundException(command.getModuleId()));
+        entity.setTitle(command.getTitle() != null && !command.getTitle().isEmpty() ? command.getTitle() : entity.getTitle());
+        entity.setDescription(command.getDescription());
+        entity.setUpdatedAt(Instant.now());
+        jpaModuleRepository.save(entity);
     }
 
     @Override

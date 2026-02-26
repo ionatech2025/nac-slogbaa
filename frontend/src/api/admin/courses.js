@@ -80,6 +80,21 @@ export async function addModule(token, courseId, { title, description, moduleOrd
 }
 
 /**
+ * PUT /api/admin/courses/:courseId/modules/:moduleId — update module (title, description).
+ */
+export async function updateModule(token, courseId, moduleId, { title, description }) {
+  assertToken(token)
+  const res = await apiClient(token).put(
+    `/api/admin/courses/${courseId}/modules/${moduleId}`,
+    { title: title ?? '', description: description ?? '' }
+  )
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}))
+    throw new Error(body.detail ?? body.message ?? `Request failed (${res.status})`)
+  }
+}
+
+/**
  * POST /api/admin/courses/:courseId/modules/:moduleId/blocks — add content block.
  */
 export async function addContentBlock(token, courseId, moduleId, block) {

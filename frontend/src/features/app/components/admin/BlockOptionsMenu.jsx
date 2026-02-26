@@ -105,6 +105,17 @@ export function detectTextStyle(richText) {
   return 'paragraph'
 }
 
+/** True if block has no user-visible content */
+export function isBlockEmpty(block) {
+  if (!block) return true
+  const { blockType, richText, imageUrl, videoUrl, videoId, activityInstructions, activityResources } = block
+  if (blockType === 'TEXT') return !richText?.trim()
+  if (blockType === 'IMAGE') return !imageUrl?.trim()
+  if (blockType === 'VIDEO') return !(videoUrl?.trim() || videoId?.trim())
+  if (blockType === 'ACTIVITY') return !(activityInstructions?.trim() || activityResources?.trim())
+  return true
+}
+
 export function BlockOptionsMenu({
   block,
   module,
@@ -116,11 +127,13 @@ export function BlockOptionsMenu({
   onStyleChange,
   visible,
   inline,
+  empty,
 }) {
   const [menuOpen, setMenuOpen] = useState(false)
   const [addHover, setAddHover] = useState(false)
   const [gripHover, setGripHover] = useState(false)
   const menuRef = useRef(null)
+  const showGrip = isSuperAdmin && !empty && block != null
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -161,8 +174,8 @@ export function BlockOptionsMenu({
         </button>
       )}
 
-      {/* Grip - options menu */}
-      {isSuperAdmin && (
+      {/* Grip - options menu (only when block has content) */}
+      {showGrip && (
         <div style={styles.menuWrap} ref={menuRef}>
           <button
             type="button"
