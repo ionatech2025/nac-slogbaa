@@ -115,6 +115,7 @@ export function BlockOptionsMenu({
   onDelete,
   onStyleChange,
   visible,
+  inline,
 }) {
   const [menuOpen, setMenuOpen] = useState(false)
   const [addHover, setAddHover] = useState(false)
@@ -138,6 +139,7 @@ export function BlockOptionsMenu({
     <div
       style={{
         ...styles.blockControls,
+        ...(inline ? { position: 'relative', left: 0 } : {}),
         ...(visible ? styles.blockControlsVisible : {}),
       }}
     >

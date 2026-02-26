@@ -50,3 +50,15 @@ a:hover {
 input, button {
   font: inherit;
 }
+
+/* Block row: icons show on hover */
+.block-group {
+  position: relative;
+}
+.block-group .block-icons {
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+.block-group:hover .block-icons {
+  opacity: 1;
+}
