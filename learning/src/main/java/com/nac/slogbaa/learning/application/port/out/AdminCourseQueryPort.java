@@ -1,0 +1,18 @@
+package com.nac.slogbaa.learning.application.port.out;
+
+import com.nac.slogbaa.learning.application.dto.result.AdminCourseSummary;
+import com.nac.slogbaa.learning.application.dto.result.CourseDetails;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+/**
+ * Port for admin course queries (all courses, including unpublished).
+ */
+public interface AdminCourseQueryPort {
+
+    List<AdminCourseSummary> findAllCourses();
+
+    Optional<CourseDetails> findCourseDetailsByIdForAdmin(UUID courseId);
+}
