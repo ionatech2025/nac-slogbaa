@@ -7,6 +7,7 @@ import { useEffect, useRef, useCallback, forwardRef, useImperativeHandle } from 
 export const ModuleEditorJs = forwardRef(function ModuleEditorJs({
   initialData,
   onSave,
+  onReady,
   readOnly = false,
   holderId = 'module-editor-js',
   minHeight = 280,
@@ -14,17 +15,23 @@ export const ModuleEditorJs = forwardRef(function ModuleEditorJs({
   const editorRef = useRef(null)
   const holderRef = useRef(null)
   const onSaveRef = useRef(onSave)
+  const onReadyRef = useRef(onReady)
   onSaveRef.current = onSave
+  onReadyRef.current = onReady
 
   useImperativeHandle(ref, () => ({
     async save() {
       if (!editorRef.current) {
-        console.warn('Editor.js not ready yet')
-        return null
+        const msg = 'Editor is not ready yet. Wait a moment and try again.'
+        console.warn(msg)
+        throw new Error(msg)
       }
       try {
         const output = await editorRef.current.save()
-        if (!output) return null
+        if (!output || typeof output !== 'object') {
+          const msg = 'Editor returned no data to save. Try adding content and save again.'
+          throw new Error(msg)
+        }
         const onSaveFn = onSaveRef.current
         if (typeof onSaveFn === 'function') {
           await Promise.resolve(onSaveFn(JSON.stringify(output)))
@@ -40,6 +47,7 @@ export const ModuleEditorJs = forwardRef(function ModuleEditorJs({
   useEffect(() => {
     if (!holderRef.current || typeof window === 'undefined') return
 
+    let isMounted = true
     let editor = null
     const init = async () => {
       const EditorJS = (await import('@editorjs/editorjs')).default
@@ -125,17 +133,26 @@ export const ModuleEditorJs = forwardRef(function ModuleEditorJs({
       })
 
       await editor.isReady
+      if (!isMounted) {
+        try { editor.destroy?.() } catch (_) {}
+        return
+      }
       editorRef.current = editor
+      const onReadyFn = onReadyRef.current
+      if (typeof onReadyFn === 'function') onReadyFn()
     }
 
-    init().catch((err) => console.warn('Editor.js init failed', err))
+    init().catch((err) => {
+      if (isMounted) console.warn('Editor.js init failed', err)
+    })
     return () => {
+      isMounted = false
       if (editorRef.current && editorRef.current.destroy) {
         editorRef.current.destroy()
         editorRef.current = null
       }
     }
-  }, [holderId, readOnly])
+  }, [holderId, readOnly, initialData])
 
   return (
     <div

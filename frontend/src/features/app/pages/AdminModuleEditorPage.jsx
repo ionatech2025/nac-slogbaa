@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { useParams, Link, useOutletContext } from 'react-router-dom'
 import { getAdminCourseDetails, addContentBlock, updateContentBlock, updateModule } from '../../../api/admin/courses.js'
 import { ModuleEditorJs } from '../components/admin/ModuleEditorJs.jsx'
+import { EditorJsReadOnly } from '../components/admin/EditorJsReadOnly.jsx'
 import { GripVertical, Pencil } from 'lucide-react'
 
 function focusBlockAndCursorStart(el) {
@@ -176,6 +177,67 @@ function isEditorJsJson(str) {
   }
 }
 
+/** Renders a single content block (read-only). Same logic as trainee CourseDetailPage. */
+function AdminContentBlockRenderer({ block }) {
+  const { blockType, richText, imageUrl, imageAltText, imageCaption, videoUrl, videoId, activityInstructions, activityResources } = block
+  if (blockType === 'TEXT' && richText) {
+    return (
+      <div style={{ marginBottom: '1.5rem' }}>
+        {isEditorJsJson(richText) ? (
+          <EditorJsReadOnly data={richText} style={styles.blockContentHtml} />
+        ) : (
+          <div style={styles.blockContentHtml} dangerouslySetInnerHTML={{ __html: richText }} />
+        )}
+      </div>
+    )
+  }
+  if (blockType === 'IMAGE' && imageUrl) {
+    return (
+      <div style={{ marginBottom: '1.5rem' }}>
+        <figure style={{ margin: 0 }}>
+          <img src={imageUrl} alt={imageAltText || ''} style={styles.blockImage} loading="lazy" />
+          {imageCaption && <figcaption style={styles.blockImageCaption}>{imageCaption}</figcaption>}
+        </figure>
+      </div>
+    )
+  }
+  if (blockType === 'VIDEO' && (videoId || videoUrl)) {
+    const embedId = videoId || (videoUrl && videoUrl.match(/(?:v=|\/)([\w-]{11})(?:&|$)/)?.[1])
+    return (
+      <div style={{ marginBottom: '1.5rem' }}>
+        {embedId ? (
+          <iframe
+            title="Video content"
+            src={`https://www.youtube.com/embed/${embedId}`}
+            style={styles.blockVideo}
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          />
+        ) : (
+          <a href={videoUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--slogbaa-blue)' }}>
+            Watch video
+          </a>
+        )}
+      </div>
+    )
+  }
+  if (blockType === 'ACTIVITY' && (activityInstructions || activityResources)) {
+    return (
+      <div style={{ marginBottom: '1.5rem' }}>
+        <div style={styles.activityBlock}>
+          {activityInstructions && (
+            <div style={styles.blockContentHtml} dangerouslySetInnerHTML={{ __html: activityInstructions }} />
+          )}
+          {activityResources && (
+            <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--slogbaa-border)' }} dangerouslySetInnerHTML={{ __html: activityResources }} />
+          )}
+        </div>
+      </div>
+    )
+  }
+  return null
+}
+
 export function AdminModuleEditorPage() {
   const { courseId, moduleId } = useParams()
   const { token, isSuperAdmin } = useOutletContext()
@@ -215,8 +277,11 @@ export function AdminModuleEditorPage() {
   const editorInitialData = editorBlock && isEditorJsJson(editorBlock.richText) ? editorBlock.richText : null
 
   const handleEditorSave = useCallback(async (editorJsJson) => {
-    if (!token || !courseId || !moduleId) return
+    if (!token || !courseId || !moduleId) {
+      throw new Error('Missing token, courseId, or moduleId. Please refresh the page.')
+    }
     setSaveError(null)
+    setSaveSuccess(false)
     setSaving(true)
     try {
       if (editorBlock?.id) {
@@ -233,6 +298,8 @@ export function AdminModuleEditorPage() {
         })
       }
       await refresh()
+      setSaveSuccess(true)
+      setTimeout(() => setSaveSuccess(false), 3000)
     } catch (err) {
       setSaveError(err?.message ?? 'Failed to save content. Try again.')
       throw err
@@ -244,15 +311,19 @@ export function AdminModuleEditorPage() {
   const handleSaveContent = useCallback(async () => {
     const saveFn = editorJsRef.current?.save
     if (typeof saveFn !== 'function') {
+      setEditorReady(false)
       setSaveError('Editor is not ready yet. Wait a moment and try again.')
       return
     }
     setSaveError(null)
+    setSaveSuccess(false)
     setSaving(true)
     try {
       await saveFn()
     } catch (err) {
-      setSaveError(err?.message ?? 'Save failed. Check the console or try again.')
+      const msg = err?.message ?? 'Save failed. Check the console or try again.'
+      if (msg.includes('not ready')) setEditorReady(false)
+      setSaveError(msg)
     } finally {
       setSaving(false)
     }
@@ -266,8 +337,15 @@ export function AdminModuleEditorPage() {
   const titleRowRef = useRef(null)
   const descriptionRowRef = useRef(null)
   const editorJsRef = useRef(null)
+  const [editorReady, setEditorReady] = useState(false)
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState(null)
+  const [saveSuccess, setSaveSuccess] = useState(false)
+
+  // Reset editor ready when switching module so Save shows "Waiting for editor…" until new instance is ready
+  useEffect(() => {
+    setEditorReady(false)
+  }, [moduleId])
 
   const handleEditorAreaClick = useCallback((e) => {
     if (e.target.closest('a[href]') || e.target.closest('button') || e.target.closest('[role="menu"]')) return
@@ -395,16 +473,31 @@ export function AdminModuleEditorPage() {
           />
         </div>
 
-        {/* Block-based content: single Editor.js instance */}
+        {/* Block-based content: Editor.js for SuperAdmin (editable), read-only blocks for Admin */}
         <div style={{ marginTop: '1.5rem' }}>
-          <ModuleEditorJs
-            ref={editorJsRef}
-            key={moduleId}
-            initialData={editorInitialData}
-            onSave={handleEditorSave}
-            readOnly={!isSuperAdmin}
-            holderId={`module-editor-${moduleId}`}
-          />
+          {isSuperAdmin ? (
+            <ModuleEditorJs
+              ref={editorJsRef}
+              key={moduleId}
+              initialData={editorInitialData}
+              onSave={handleEditorSave}
+              onReady={() => setEditorReady(true)}
+              readOnly={false}
+              holderId={`module-editor-${moduleId}`}
+            />
+          ) : (
+            <div style={{ minHeight: 120 }}>
+              {module.contentBlocks?.length ? (
+                module.contentBlocks.map((block) => (
+                  <AdminContentBlockRenderer key={block.id} block={block} />
+                ))
+              ) : (
+                <p style={{ color: 'var(--slogbaa-text-muted)', fontStyle: 'italic' }}>
+                  No content in this module yet.
+                </p>
+              )}
+            </div>
+          )}
           {isSuperAdmin && (
             <div style={{ marginTop: '1.5rem' }}>
               {saveError && (
@@ -412,11 +505,16 @@ export function AdminModuleEditorPage() {
                   {saveError}
                 </p>
               )}
+              {saveSuccess && (
+                <p style={{ margin: '0 0 0.75rem', color: 'var(--slogbaa-green, #0a7c42)', fontSize: '0.875rem', fontWeight: 500 }}>
+                  Saved successfully. Content is now in the database.
+                </p>
+              )}
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
                 <button
                   type="button"
                   onClick={handleSaveContent}
-                  disabled={saving}
+                  disabled={saving || !editorReady}
                   style={{
                     padding: '0.5rem 1rem',
                     background: saving ? 'var(--slogbaa-text-muted)' : 'var(--slogbaa-orange)',
@@ -428,10 +526,10 @@ export function AdminModuleEditorPage() {
                     cursor: saving ? 'not-allowed' : 'pointer',
                   }}
                 >
-                  {saving ? 'Saving…' : 'Save content'}
+                  {saving ? 'Saving…' : editorReady ? 'Save content' : 'Waiting for editor…'}
                 </button>
                 <span style={{ fontSize: '0.8125rem', color: 'var(--slogbaa-text-muted)' }}>
-                  Click to push editor content to the module. Trainees will see it after save.
+                  {editorReady ? 'Click to push editor content to the module. Trainees will see it after save.' : 'Editor is loading…'}
                 </span>
               </div>
             </div>
