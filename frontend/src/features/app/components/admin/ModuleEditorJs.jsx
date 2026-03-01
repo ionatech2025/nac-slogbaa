@@ -5,6 +5,11 @@ import List from '@editorjs/list'
 import Header from '@editorjs/header'
 import ImageTool from '@editorjs/image'
 import Embed from '@editorjs/embed'
+import Quote from '@editorjs/quote'
+import Delimiter from '@editorjs/delimiter'
+import Warning from '@editorjs/warning'
+import Table from '@editorjs/table'
+import CodeTool from '@editorjs/code'
 
 /**
  * Editor.js wrapper for module content. Saves only when the parent calls save() (e.g. via Save button).
@@ -146,6 +151,38 @@ export const ModuleEditorJs = forwardRef(function ModuleEditorJs({
                 instagram: true,
                 codepen: true,
               },
+            },
+          },
+          quote: {
+            class: Quote,
+            inlineToolbar: true,
+            config: {
+              quotePlaceholder: 'Enter a quote',
+              captionPlaceholder: "Quote's author",
+            },
+          },
+          delimiter: Delimiter,
+          warning: {
+            class: Warning,
+            inlineToolbar: true,
+            config: {
+              titlePlaceholder: 'Title',
+              messagePlaceholder: 'Message',
+            },
+          },
+          table: {
+            class: Table,
+            inlineToolbar: true,
+            config: {
+              rows: 2,
+              cols: 3,
+              withHeadings: true,
+            },
+          },
+          code: {
+            class: CodeTool,
+            config: {
+              placeholder: 'Enter code',
             },
           },
         },
