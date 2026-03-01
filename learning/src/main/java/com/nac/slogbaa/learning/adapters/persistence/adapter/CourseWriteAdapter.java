@@ -8,6 +8,8 @@ import com.nac.slogbaa.learning.application.dto.command.CreateCourseCommand;
 import com.nac.slogbaa.learning.application.port.out.CourseWritePort;
 import com.nac.slogbaa.learning.adapters.persistence.entity.ContentBlockEntity;
 import com.nac.slogbaa.learning.adapters.persistence.entity.CourseEntity;
+import com.nac.slogbaa.learning.adapters.persistence.entity.EditorJsData;
+import com.nac.slogbaa.learning.adapters.persistence.entity.EditorJsBlock;
 import com.nac.slogbaa.learning.adapters.persistence.entity.ModuleEntity;
 import com.nac.slogbaa.learning.adapters.persistence.entity.ContentBlockEntity.BlockTypeEnum;
 import com.nac.slogbaa.learning.adapters.persistence.repository.JpaContentBlockRepository;
@@ -16,16 +18,20 @@ import com.nac.slogbaa.learning.adapters.persistence.repository.JpaModuleReposit
 import com.nac.slogbaa.learning.core.exception.ContentBlockNotFoundException;
 import com.nac.slogbaa.learning.core.exception.CourseNotFoundException;
 import com.nac.slogbaa.learning.core.exception.ModuleNotFoundException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nac.slogbaa.learning.core.valueobject.BlockId;
 import com.nac.slogbaa.learning.core.valueobject.CourseId;
 import com.nac.slogbaa.learning.core.valueobject.ModuleId;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 @Component
 public class CourseWriteAdapter implements CourseWritePort {
+
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     private final JpaCourseRepository jpaCourseRepository;
     private final JpaModuleRepository jpaModuleRepository;
@@ -102,7 +108,7 @@ public class CourseWriteAdapter implements CourseWritePort {
         UUID id = UUID.randomUUID();
         entity.setId(id);
         entity.setModule(module);
-        entity.setBlockType(BlockTypeEnum.valueOf(command.getBlockType().toUpperCase()));
+        entity.setBlockType(deriveBlockType(parseEditorJs(command.getRichText()), command.getBlockType()));
         entity.setBlockOrder(command.getBlockOrder());
         entity.setRichText(command.getRichText());
         entity.setImageUrl(command.getImageUrl());
@@ -122,7 +128,7 @@ public class CourseWriteAdapter implements CourseWritePort {
     public void updateContentBlock(UpdateContentBlockCommand command) {
         ContentBlockEntity entity = jpaContentBlockRepository.findById(command.getBlockId())
                 .orElseThrow(() -> new ContentBlockNotFoundException(command.getBlockId()));
-        entity.setBlockType(BlockTypeEnum.valueOf(command.getBlockType().toUpperCase()));
+        entity.setBlockType(deriveBlockType(parseEditorJs(command.getRichText()), command.getBlockType()));
         entity.setBlockOrder(command.getBlockOrder());
         entity.setRichText(command.getRichText());
         entity.setImageUrl(command.getImageUrl());
@@ -142,6 +148,43 @@ public class CourseWriteAdapter implements CourseWritePort {
             throw new ContentBlockNotFoundException(blockId);
         }
         jpaContentBlockRepository.deleteById(blockId);
+    }
+
+    private EditorJsData parseEditorJs(String json) {
+        if (json == null || json.isBlank()) {
+            return new EditorJsData(0L, List.of());
+        }
+        try {
+            EditorJsData data = OBJECT_MAPPER.readValue(json, EditorJsData.class);
+            return data != null ? data : new EditorJsData(0L, List.of());
+        } catch (Exception e) {
+            return new EditorJsData(0L, List.of());
+        }
+    }
+
+    /**
+     * Derive block_type from first Editor.js block when present; otherwise use request blockType.
+     */
+    private BlockTypeEnum deriveBlockType(EditorJsData editorJs, String requestBlockType) {
+        if (editorJs != null && editorJs.getBlocks() != null && !editorJs.getBlocks().isEmpty()) {
+            EditorJsBlock first = editorJs.getBlocks().get(0);
+            String type = first.getType() != null ? first.getType().toLowerCase() : "";
+            switch (type) {
+                case "image":
+                    return BlockTypeEnum.IMAGE;
+                case "embed":
+                    return BlockTypeEnum.VIDEO;
+                case "paragraph":
+                case "header":
+                case "list":
+                default:
+                    return BlockTypeEnum.TEXT;
+            }
+        }
+        if (requestBlockType != null && !requestBlockType.isBlank()) {
+            return BlockTypeEnum.valueOf(requestBlockType.toUpperCase());
+        }
+        return BlockTypeEnum.TEXT;
     }
 
     @Override

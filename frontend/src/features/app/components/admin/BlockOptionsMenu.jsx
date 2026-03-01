@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from 'react'
 import { Plus, GripVertical, Trash2, Pencil, Type } from 'lucide-react'
+import { parseTextLines, serializeTextLines } from './TextBlockInlineEditor.jsx'
 
 const TEXT_STYLES = [
-  { value: 'paragraph', label: 'Text' },
-  { value: 'heading_1', label: 'Heading 1' },
-  { value: 'heading_2', label: 'Heading 2' },
-  { value: 'heading_3', label: 'Heading 3' },
+  { value: 'paragraph', label: 'Paragraph' },
+  { value: 'bullet', label: 'Bullet list' },
+  { value: 'numbered', label: 'Numbered list' },
 ]
 
 const styles = {
@@ -77,39 +77,29 @@ const styles = {
   },
 }
 
-/** Extract inner text from HTML (for wrapping in different tags) */
-function stripHtml(html) {
-  if (!html || typeof document === 'undefined') return ''
-  const div = document.createElement('div')
-  div.innerHTML = html
-  return div.textContent || div.innerText || ''
+/** Apply style (paragraph/bullet/numbered) to all TextLines */
+export function applyTextLineStyle(richText, style) {
+  const lines = parseTextLines(richText)
+  if (!lines?.length) return ''
+  const updated = lines.map((l) => ({ ...l, type: style || 'paragraph' }))
+  return serializeTextLines(updated)
 }
 
-/** Wrap text in tag for Heading 1/2/3 or paragraph */
-export function applyTextStyle(richText, style) {
-  const text = stripHtml(richText || '')
-  if (style === 'paragraph') return text ? `<p>${text}</p>` : ''
-  if (style === 'heading_1') return text ? `<h1>${text}</h1>` : '<h1></h1>'
-  if (style === 'heading_2') return text ? `<h2>${text}</h2>` : '<h2></h2>'
-  if (style === 'heading_3') return text ? `<h3>${text}</h3>` : '<h3></h3>'
-  return richText || ''
-}
-
-/** Detect current text style from HTML */
-export function detectTextStyle(richText) {
-  if (!richText) return 'paragraph'
-  const trimmed = (richText || '').trim()
-  if (trimmed.startsWith('<h1')) return 'heading_1'
-  if (trimmed.startsWith('<h2')) return 'heading_2'
-  if (trimmed.startsWith('<h3')) return 'heading_3'
-  return 'paragraph'
+/** Detect current text style from first TextLine */
+export function detectTextLineStyle(richText) {
+  const lines = parseTextLines(richText)
+  if (!lines?.length) return 'paragraph'
+  return lines[0]?.type || 'paragraph'
 }
 
 /** True if block has no user-visible content */
 export function isBlockEmpty(block) {
   if (!block) return true
   const { blockType, richText, imageUrl, videoUrl, videoId, activityInstructions, activityResources } = block
-  if (blockType === 'TEXT') return !richText?.trim()
+  if (blockType === 'TEXT') {
+    const lines = parseTextLines(richText)
+    return !lines?.some((l) => (l.content || '').trim())
+  }
   if (blockType === 'IMAGE') return !imageUrl?.trim()
   if (blockType === 'VIDEO') return !(videoUrl?.trim() || videoId?.trim())
   if (blockType === 'ACTIVITY') return !(activityInstructions?.trim() || activityResources?.trim())
@@ -123,6 +113,7 @@ export function BlockOptionsMenu({
   isSuperAdmin,
   onAddBefore,
   onEdit,
+  onEditText,
   onDelete,
   onStyleChange,
   visible,
@@ -146,7 +137,7 @@ export function BlockOptionsMenu({
   }, [menuOpen])
 
   const isText = block?.blockType === 'TEXT'
-  const currentStyle = isText ? detectTextStyle(block.richText) : null
+  const currentStyle = isText ? detectTextLineStyle(block.richText) : null
 
   return (
     <div
@@ -198,7 +189,7 @@ export function BlockOptionsMenu({
               <button
                 type="button"
                 style={styles.menuItem}
-                onClick={() => { onEdit?.(); setMenuOpen(false) }}
+                onClick={() => { (onEditText || onEdit)?.(); setMenuOpen(false) }}
                 role="menuitem"
               >
                 <Pencil size={14} />

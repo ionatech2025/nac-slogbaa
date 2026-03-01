@@ -26,11 +26,11 @@ INSERT INTO module (id, course_id, title, description, module_order, has_quiz, c
 ('44444444-4444-4444-4444-444444444402', '33333333-3333-3333-3333-333333333301', 'Community Leadership', 'Skills for leading at the local level.', 2, true, current_timestamp, current_timestamp),
 ('44444444-4444-4444-4444-444444444403', '33333333-3333-3333-3333-333333333301', 'Taking Action', 'From ideas to impact.', 3, false, current_timestamp, current_timestamp);
 
--- Content blocks (depend: module)
+-- Content blocks (depend: module) – rich_text in Editor.js JSON format
 INSERT INTO content_block (id, module_id, block_type, block_order, rich_text, created_at, updated_at) VALUES
-('55555555-5555-5555-5555-555555555501', '44444444-4444-4444-4444-444444444401', 'TEXT', 1, '<p>Civic engagement means working to make a difference in the life of our communities.</p>', current_timestamp, current_timestamp),
-('55555555-5555-5555-5555-555555555502', '44444444-4444-4444-4444-444444444401', 'TEXT', 2, '<p>This module introduces key concepts and why they matter for Ugandan youth.</p>', current_timestamp, current_timestamp),
-('55555555-5555-5555-5555-555555555503', '44444444-4444-4444-4444-444444444402', 'TEXT', 1, '<p>Community leaders listen, collaborate, and inspire action.</p>', current_timestamp, current_timestamp);
+('55555555-5555-5555-5555-555555555501', '44444444-4444-4444-4444-444444444401', 'TEXT', 1, '{"time":1730000000000,"blocks":[{"type":"paragraph","data":{"text":"Civic engagement means working to make a difference in the life of our communities."}}],"version":"2.8.1"}', current_timestamp, current_timestamp),
+('55555555-5555-5555-5555-555555555502', '44444444-4444-4444-4444-444444444401', 'TEXT', 2, '{"time":1730000000000,"blocks":[{"type":"paragraph","data":{"text":"This module introduces key concepts and why they matter for Ugandan youth."}}],"version":"2.8.1"}', current_timestamp, current_timestamp),
+('55555555-5555-5555-5555-555555555503', '44444444-4444-4444-4444-444444444402', 'TEXT', 1, '{"time":1730000000000,"blocks":[{"type":"paragraph","data":{"text":"Community leaders listen, collaborate, and inspire action."}}],"version":"2.8.1"}', current_timestamp, current_timestamp);
 
 -- Library resources (depend: staff_user)
 INSERT INTO library_resource (id, title, description, resource_type, file_url, file_size, file_type, uploaded_by, uploaded_at, is_published, created_at, updated_at) VALUES

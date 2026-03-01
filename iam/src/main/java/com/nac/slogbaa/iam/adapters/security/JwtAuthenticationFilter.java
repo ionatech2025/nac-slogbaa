@@ -3,6 +3,8 @@ package com.nac.slogbaa.iam.adapters.security;
 import com.nac.slogbaa.iam.application.port.out.AuthTokenPort;
 import com.nac.slogbaa.iam.core.valueobject.AuthenticatedIdentity;
 import jakarta.servlet.FilterChain;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -26,6 +28,7 @@ import java.util.stream.Stream;
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
+    private static final Logger log = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
     private static final String AUTHORIZATION_HEADER = "Authorization";
     private static final String BEARER_PREFIX = "Bearer ";
 
@@ -42,7 +45,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String header = request.getHeader(AUTHORIZATION_HEADER);
         if (header != null && header.startsWith(BEARER_PREFIX)) {
             String token = header.substring(BEARER_PREFIX.length()).trim();
+            // Normalize: strip accidental "Bearer " prefix (e.g. from API client paste)
+            if (token.toLowerCase().startsWith("bearer ")) {
+                token = token.substring(7).trim();
+            }
             Optional<AuthenticatedIdentity> identity = authTokenPort.parseToken(token);
+            if (identity.isEmpty()) {
+                log.warn("JWT token rejected for {} {} — check logs above for parse failure (expired/malformed/signature)", request.getMethod(), request.getRequestURI());
+            }
             identity.ifPresent(id -> {
                 UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
                         id,
