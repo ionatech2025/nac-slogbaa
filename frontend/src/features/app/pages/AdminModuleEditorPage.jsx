@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useParams, Link, useOutletContext } from 'react-router-dom'
 import { getAdminCourseDetails, addContentBlock, updateContentBlock, updateModule } from '../../../api/admin/courses.js'
+import { getCourseDetails } from '../../../api/learning/courses.js'
 import { ModuleEditorJs } from '../components/admin/ModuleEditorJs.jsx'
 import { EditorJsReadOnly } from '../components/admin/EditorJsReadOnly.jsx'
 import { GripVertical, Pencil } from 'lucide-react'
@@ -179,7 +180,16 @@ function isEditorJsJson(str) {
 
 /** Renders a single content block (read-only). Same logic as trainee CourseDetailPage. */
 function AdminContentBlockRenderer({ block }) {
-  const { blockType, richText, imageUrl, imageAltText, imageCaption, videoUrl, videoId, activityInstructions, activityResources } = block
+  const blockType = block?.blockType ?? block?.block_type ?? ''
+  const richText = block?.richText ?? block?.rich_text ?? null
+  const imageUrl = block?.imageUrl ?? block?.image_url
+  const imageAltText = block?.imageAltText ?? block?.image_alt_text
+  const imageCaption = block?.imageCaption ?? block?.image_caption
+  const videoUrl = block?.videoUrl ?? block?.video_url
+  const videoId = block?.videoId ?? block?.video_id
+  const activityInstructions = block?.activityInstructions ?? block?.activity_instructions
+  const activityResources = block?.activityResources ?? block?.activity_resources
+
   if (blockType === 'TEXT' && richText) {
     return (
       <div style={{ marginBottom: '1.5rem' }}>
@@ -250,13 +260,21 @@ export function AdminModuleEditorPage() {
     setLoading(true)
     setError(null)
     try {
-      const data = await getAdminCourseDetails(token, courseId)
+      let data
+      try {
+        data = await getCourseDetails(token, courseId)
+      } catch {
+        data = await getAdminCourseDetails(token, courseId)
+      }
+      const m = data.modules?.find((mod) => String(mod.id) === String(moduleId))
+      const blocks = m?.contentBlocks ?? m?.content_blocks ?? []
+
       setCourse(data)
-      const m = data.modules?.find((mod) => mod.id === moduleId)
       setModule((prev) => {
         if (!m) return null
         return {
           ...m,
+          contentBlocks: blocks,
           title: m.title ?? prev?.title ?? '',
           description: m.description ?? prev?.description ?? '',
         }
@@ -274,7 +292,8 @@ export function AdminModuleEditorPage() {
 
   /** First content block used to store Editor.js JSON; backend derives block_type from first block. */
   const editorBlock = module?.contentBlocks?.length ? module.contentBlocks[0] : null
-  const editorInitialData = editorBlock && isEditorJsJson(editorBlock.richText) ? editorBlock.richText : null
+  const richText = editorBlock?.richText ?? editorBlock?.rich_text ?? null
+  const editorInitialData = editorBlock && isEditorJsJson(richText) ? richText : null
 
   const handleEditorSave = useCallback(async (editorJsJson) => {
     if (!token || !courseId || !moduleId) {
@@ -476,15 +495,27 @@ export function AdminModuleEditorPage() {
         {/* Block-based content: Editor.js for SuperAdmin (editable), read-only blocks for Admin */}
         <div style={{ marginTop: '1.5rem' }}>
           {isSuperAdmin ? (
-            <ModuleEditorJs
-              ref={editorJsRef}
-              key={moduleId}
-              initialData={editorInitialData}
-              onSave={handleEditorSave}
-              onReady={() => setEditorReady(true)}
-              readOnly={false}
-              holderId={`module-editor-${moduleId}`}
-            />
+            <>
+              {editorInitialData && (
+                <div style={{ marginBottom: '1.5rem' }}>
+                  <p style={{ margin: '0 0 0.5rem', fontSize: '0.8125rem', fontWeight: 600, color: 'var(--slogbaa-text-muted)' }}>
+                    Saved content (edit below)
+                  </p>
+                  <div style={{ padding: '1rem', background: 'var(--slogbaa-surface)', border: '1px solid var(--slogbaa-border)', borderRadius: 8 }}>
+                    <EditorJsReadOnly data={editorInitialData} style={styles.blockContentHtml} />
+                  </div>
+                </div>
+              )}
+              <ModuleEditorJs
+                ref={editorJsRef}
+                key={`${moduleId}-${editorInitialData ? 'with-data' : 'empty'}`}
+                initialData={editorInitialData}
+                onSave={handleEditorSave}
+                onReady={() => setEditorReady(true)}
+                readOnly={false}
+                holderId={`module-editor-${moduleId}`}
+              />
+            </>
           ) : (
             <div style={{ minHeight: 120 }}>
               {module.contentBlocks?.length ? (

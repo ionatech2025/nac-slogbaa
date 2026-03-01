@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback, forwardRef, useImperativeHandle } from 'react'
+import { useEffect, useRef, forwardRef, useImperativeHandle } from 'react'
 
 /**
  * Editor.js wrapper for module content. Saves only when the parent calls save() (e.g. via Save button).
@@ -45,11 +45,28 @@ export const ModuleEditorJs = forwardRef(function ModuleEditorJs({
   }), [])
 
   useEffect(() => {
-    if (!holderRef.current || typeof window === 'undefined') return
+    if (typeof window === 'undefined') return
 
     let isMounted = true
     let editor = null
+
+    const parseData = () => {
+      if (!initialData) return null
+      if (typeof initialData === 'string') {
+        try {
+          const parsed = JSON.parse(initialData)
+          return parsed && typeof parsed === 'object' ? parsed : null
+        } catch (_) {
+          return null
+        }
+      }
+      return initialData && typeof initialData === 'object' ? initialData : null
+    }
+
     const init = async () => {
+      const holderEl = document.getElementById(holderId)
+      if (!holderEl || !isMounted) return
+
       const EditorJS = (await import('@editorjs/editorjs')).default
       const Paragraph = (await import('@editorjs/paragraph')).default
       const List = (await import('@editorjs/list')).default
@@ -57,24 +74,16 @@ export const ModuleEditorJs = forwardRef(function ModuleEditorJs({
       const ImageTool = (await import('@editorjs/image')).default
       const Embed = (await import('@editorjs/embed')).default
 
-      let data = null
-      if (initialData && typeof initialData === 'string') {
-        try {
-          data = JSON.parse(initialData)
-          if (!data || typeof data !== 'object') data = null
-        } catch (_) {
-          data = null
-        }
-      } else if (initialData && typeof initialData === 'object') {
-        data = initialData
-      }
+      const data = parseData()
+      const dataForInit = data && Array.isArray(data?.blocks) && data.blocks.length > 0 ? data : undefined
 
       editor = new EditorJS({
-        holder: holderRef.current,
+        holder: holderId,
         readOnly,
-        data: data || undefined,
+        data: dataForInit,
         placeholder: readOnly ? '' : 'Start writing or add a block...',
         onChange: undefined,
+        autofocus: false,
         tools: {
           paragraph: {
             class: Paragraph,
@@ -137,15 +146,24 @@ export const ModuleEditorJs = forwardRef(function ModuleEditorJs({
         try { editor.destroy?.() } catch (_) {}
         return
       }
+      if (data && typeof editor.render === 'function') {
+        try {
+          await editor.render(data)
+        } catch (_) {}
+      }
+      if (!isMounted) return
       editorRef.current = editor
       const onReadyFn = onReadyRef.current
       if (typeof onReadyFn === 'function') onReadyFn()
     }
 
-    init().catch((err) => {
-      if (isMounted) console.warn('Editor.js init failed', err)
-    })
+    const t = setTimeout(() => {
+      init().catch((err) => {
+        if (isMounted) console.warn('Editor.js init failed', err)
+      })
+    }, 50)
     return () => {
+      clearTimeout(t)
       isMounted = false
       if (editorRef.current && editorRef.current.destroy) {
         editorRef.current.destroy()
