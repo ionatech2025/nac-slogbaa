@@ -44,7 +44,8 @@ function EditorJsBlockView({ block }) {
     const renderItem = (item, i) => {
       const text = itemText(item)
       if (hasNested(item)) {
-        const ListTag = isOrdered ? 'ol' : 'ul'
+        const nestedOrdered = data.style === 'ordered'
+        const ListTag = nestedOrdered ? 'ol' : 'ul'
         return (
           <li key={i}>
             {text && <span dangerouslySetInnerHTML={{ __html: text }} />}
