@@ -1,8 +1,15 @@
 import { useEffect, useRef, forwardRef, useImperativeHandle } from 'react'
+import EditorJS from '@editorjs/editorjs'
+import Paragraph from '@editorjs/paragraph'
+import List from '@editorjs/list'
+import Header from '@editorjs/header'
+import ImageTool from '@editorjs/image'
+import Embed from '@editorjs/embed'
 
 /**
  * Editor.js wrapper for module content. Saves only when the parent calls save() (e.g. via Save button).
  * Exposes save() via ref so the parent can trigger save.
+ * Uses static imports so the editor initializes quickly without async import delays.
  */
 export const ModuleEditorJs = forwardRef(function ModuleEditorJs({
   initialData,
@@ -63,24 +70,27 @@ export const ModuleEditorJs = forwardRef(function ModuleEditorJs({
       return initialData && typeof initialData === 'object' ? initialData : null
     }
 
-    const init = async () => {
+    const init = () => {
       const holderEl = document.getElementById(holderId)
       if (!holderEl || !isMounted) return
 
-      const EditorJS = (await import('@editorjs/editorjs')).default
-      const Paragraph = (await import('@editorjs/paragraph')).default
-      const List = (await import('@editorjs/list')).default
-      const Header = (await import('@editorjs/header')).default
-      const ImageTool = (await import('@editorjs/image')).default
-      const Embed = (await import('@editorjs/embed')).default
-
-      const data = parseData()
-      const dataForInit = data && Array.isArray(data?.blocks) && data.blocks.length > 0 ? data : undefined
+      let data = parseData()
+      if (data?.blocks) {
+        data = {
+          ...data,
+          blocks: data.blocks.map((b, i) => ({
+            ...b,
+            id: b.id || `block-${Date.now()}-${i}`,
+          })),
+        }
+      }
+      const hasBlocks = data && Array.isArray(data?.blocks) && data.blocks.length > 0
 
       editor = new EditorJS({
         holder: holderId,
         readOnly,
-        data: dataForInit,
+        data: hasBlocks ? data : undefined,
+        logLevel: 'ERROR',
         placeholder: readOnly ? '' : 'Start writing or add a block...',
         onChange: undefined,
         autofocus: false,
@@ -141,29 +151,25 @@ export const ModuleEditorJs = forwardRef(function ModuleEditorJs({
         },
       })
 
-      await editor.isReady
-      if (!isMounted) {
-        try { editor.destroy?.() } catch (_) {}
-        return
+      const finish = async () => {
+        await editor.isReady
+        if (!isMounted) {
+          try { editor.destroy?.() } catch (_) {}
+          return
+        }
+        if (!isMounted) return
+        editorRef.current = editor
+        const onReadyFn = onReadyRef.current
+        if (typeof onReadyFn === 'function') onReadyFn()
       }
-      if (data && typeof editor.render === 'function') {
-        try {
-          await editor.render(data)
-        } catch (_) {}
-      }
-      if (!isMounted) return
-      editorRef.current = editor
-      const onReadyFn = onReadyRef.current
-      if (typeof onReadyFn === 'function') onReadyFn()
-    }
-
-    const t = setTimeout(() => {
-      init().catch((err) => {
+      finish().catch((err) => {
         if (isMounted) console.warn('Editor.js init failed', err)
       })
-    }, 50)
+    }
+
+    const id = setTimeout(init, 0)
     return () => {
-      clearTimeout(t)
+      clearTimeout(id)
       isMounted = false
       if (editorRef.current && editorRef.current.destroy) {
         editorRef.current.destroy()
@@ -178,9 +184,11 @@ export const ModuleEditorJs = forwardRef(function ModuleEditorJs({
       ref={holderRef}
       style={{
         minHeight: readOnly ? undefined : minHeight,
+        width: '100%',
         fontSize: '0.9375rem',
         lineHeight: 1.6,
       }}
+      data-editor-holder
     />
   )
 })

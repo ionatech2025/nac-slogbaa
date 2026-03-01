@@ -495,27 +495,37 @@ export function AdminModuleEditorPage() {
         {/* Block-based content: Editor.js for SuperAdmin (editable), read-only blocks for Admin */}
         <div style={{ marginTop: '1.5rem' }}>
           {isSuperAdmin ? (
-            <>
-              {editorInitialData && (
-                <div style={{ marginBottom: '1.5rem' }}>
-                  <p style={{ margin: '0 0 0.5rem', fontSize: '0.8125rem', fontWeight: 600, color: 'var(--slogbaa-text-muted)' }}>
-                    Saved content (edit below)
-                  </p>
-                  <div style={{ padding: '1rem', background: 'var(--slogbaa-surface)', border: '1px solid var(--slogbaa-border)', borderRadius: 8 }}>
-                    <EditorJsReadOnly data={editorInitialData} style={styles.blockContentHtml} />
-                  </div>
-                </div>
-              )}
+            <div
+              className="ce-editor-holder"
+              style={{
+                padding: '1.5rem',
+                minHeight: 320,
+                background: '#fff',
+                border: '2px solid var(--slogbaa-orange)',
+                borderRadius: 12,
+                borderLeft: '4px solid var(--slogbaa-orange)',
+              }}
+            >
+              <p style={{
+                margin: '0 0 1rem',
+                fontSize: '0.75rem',
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+                color: 'var(--slogbaa-orange)',
+              }}>
+                Add or edit content blocks below
+              </p>
               <ModuleEditorJs
                 ref={editorJsRef}
-                key={`${moduleId}-${editorInitialData ? 'with-data' : 'empty'}`}
+                key={moduleId}
                 initialData={editorInitialData}
                 onSave={handleEditorSave}
                 onReady={() => setEditorReady(true)}
                 readOnly={false}
                 holderId={`module-editor-${moduleId}`}
               />
-            </>
+            </div>
           ) : (
             <div style={{ minHeight: 120 }}>
               {module.contentBlocks?.length ? (
