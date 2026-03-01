@@ -38,13 +38,30 @@ function EditorJsBlockView({ block }) {
     return <Level style={{ margin: '1rem 0 0.5rem', fontWeight: 700 }} dangerouslySetInnerHTML={{ __html: data.text }} />
   }
   if (type === 'list' && Array.isArray(data?.items)) {
-    const style = data.style === 'ordered' ? 'decimal' : 'disc'
+    const isOrdered = data.style === 'ordered'
+    const itemText = (item) => (typeof item === 'string' ? item : item?.content ?? '')
+    const hasNested = (item) => Array.isArray(item?.items) && item.items.length > 0
+    const renderItem = (item, i) => {
+      const text = itemText(item)
+      if (hasNested(item)) {
+        const nestedOrdered = data.style === 'ordered'
+        const ListTag = nestedOrdered ? 'ol' : 'ul'
+        return (
+          <li key={i}>
+            {text && <span dangerouslySetInnerHTML={{ __html: text }} />}
+            <ListTag style={{ margin: '0.25rem 0 0', paddingLeft: '1.5rem' }}>
+              {item.items.map((nested, j) => renderItem(nested, j))}
+            </ListTag>
+          </li>
+        )
+      }
+      return <li key={i} dangerouslySetInnerHTML={{ __html: text }} />
+    }
+    const ListTag = isOrdered ? 'ol' : 'ul'
     return (
-      <ul style={{ margin: '0 0 0.75rem', paddingLeft: '1.5rem', listStyleType: style }}>
-        {data.items.map((item, i) => (
-          <li key={i} dangerouslySetInnerHTML={{ __html: item }} />
-        ))}
-      </ul>
+      <ListTag style={{ margin: '0 0 0.75rem', paddingLeft: '1.5rem' }}>
+        {data.items.map(renderItem)}
+      </ListTag>
     )
   }
   if (type === 'image') {
