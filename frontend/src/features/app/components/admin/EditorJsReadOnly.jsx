@@ -38,13 +38,29 @@ function EditorJsBlockView({ block }) {
     return <Level style={{ margin: '1rem 0 0.5rem', fontWeight: 700 }} dangerouslySetInnerHTML={{ __html: data.text }} />
   }
   if (type === 'list' && Array.isArray(data?.items)) {
-    const style = data.style === 'ordered' ? 'decimal' : 'disc'
+    const isOrdered = data.style === 'ordered'
+    const itemText = (item) => (typeof item === 'string' ? item : item?.content ?? '')
+    const hasNested = (item) => Array.isArray(item?.items) && item.items.length > 0
+    const renderItem = (item, i) => {
+      const text = itemText(item)
+      if (hasNested(item)) {
+        const ListTag = isOrdered ? 'ol' : 'ul'
+        return (
+          <li key={i}>
+            {text && <span dangerouslySetInnerHTML={{ __html: text }} />}
+            <ListTag style={{ margin: '0.25rem 0 0', paddingLeft: '1.5rem' }}>
+              {item.items.map((nested, j) => renderItem(nested, j))}
+            </ListTag>
+          </li>
+        )
+      }
+      return <li key={i} dangerouslySetInnerHTML={{ __html: text }} />
+    }
+    const ListTag = isOrdered ? 'ol' : 'ul'
     return (
-      <ul style={{ margin: '0 0 0.75rem', paddingLeft: '1.5rem', listStyleType: style }}>
-        {data.items.map((item, i) => (
-          <li key={i} dangerouslySetInnerHTML={{ __html: item }} />
-        ))}
-      </ul>
+      <ListTag style={{ margin: '0 0 0.75rem', paddingLeft: '1.5rem' }}>
+        {data.items.map(renderItem)}
+      </ListTag>
     )
   }
   if (type === 'image') {
@@ -89,6 +105,65 @@ function EditorJsBlockView({ block }) {
       return <p style={{ margin: '0.5rem 0', fontSize: '0.8125rem', color: 'var(--slogbaa-text-muted)' }}>{data.caption}</p>
     }
     return null
+  }
+  if (type === 'quote' && (data?.text || data?.caption)) {
+    return (
+      <blockquote style={{ margin: '1rem 0', paddingLeft: '1rem', borderLeft: '4px solid var(--slogbaa-blue)', color: 'var(--slogbaa-text-muted)', fontStyle: 'italic' }}>
+        {data.text && <p style={{ margin: 0 }} dangerouslySetInnerHTML={{ __html: data.text }} />}
+        {data.caption && <cite style={{ display: 'block', marginTop: '0.5rem', fontSize: '0.875rem' }} dangerouslySetInnerHTML={{ __html: data.caption }} />}
+      </blockquote>
+    )
+  }
+  if (type === 'delimiter') {
+    return (
+      <div style={{ margin: '1.5rem 0', textAlign: 'center', color: 'var(--slogbaa-text-muted)' }}>
+        * * *
+      </div>
+    )
+  }
+  if (type === 'warning' && (data?.title || data?.message)) {
+    return (
+      <div style={{ margin: '1rem 0', padding: '1rem', background: 'rgba(241, 134, 37, 0.08)', borderLeft: '4px solid var(--slogbaa-orange)', borderRadius: 6 }}>
+        {data.title && <strong style={{ display: 'block', marginBottom: '0.25rem' }} dangerouslySetInnerHTML={{ __html: data.title }} />}
+        {data.message && <div dangerouslySetInnerHTML={{ __html: data.message }} />}
+      </div>
+    )
+  }
+  if (type === 'table' && Array.isArray(data?.content)) {
+    const rows = data.content
+    const withHeadings = data.withHeadings === true
+    return (
+      <div style={{ margin: '1rem 0', overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9375rem' }}>
+          {withHeadings && rows.length > 0 && (
+            <thead>
+              <tr>
+                {rows[0].map((cell, j) => (
+                  <th key={j} style={{ border: '1px solid var(--slogbaa-border)', padding: '0.5rem 0.75rem', textAlign: 'left', fontWeight: 600 }} dangerouslySetInnerHTML={{ __html: cell }} />
+                ))}
+              </tr>
+            </thead>
+          )}
+          <tbody>
+            {(withHeadings ? rows.slice(1) : rows).map((row, i) => (
+              <tr key={i}>
+                {row.map((cell, j) => (
+                  <td key={j} style={{ border: '1px solid var(--slogbaa-border)', padding: '0.5rem 0.75rem' }} dangerouslySetInnerHTML={{ __html: cell }} />
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    )
+  }
+  if (type === 'code' && data?.code != null) {
+    const code = String(data.code)
+    return (
+      <pre style={{ margin: '1rem 0', padding: '1rem', background: 'var(--slogbaa-bg-secondary)', borderRadius: 8, overflow: 'auto', fontSize: '0.875rem', lineHeight: 1.5 }}>
+        <code style={{ fontFamily: 'ui-monospace, monospace' }}>{code}</code>
+      </pre>
+    )
   }
   return null
 }
