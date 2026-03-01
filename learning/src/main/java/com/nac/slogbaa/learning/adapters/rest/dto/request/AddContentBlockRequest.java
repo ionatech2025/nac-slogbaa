@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Pattern;
 /**
  * REST request for adding a content block to a module.
  * Polymorphic by blockType: TEXT, IMAGE, VIDEO, ACTIVITY.
+ * blockOrder defaults to 0 when omitted.
  */
 public record AddContentBlockRequest(
         @NotBlank(message = "Block type is required")
@@ -14,7 +15,7 @@ public record AddContentBlockRequest(
         String blockType,
 
         @Min(0)
-        int blockOrder,
+        Integer blockOrder,
 
         String richText,
         String imageUrl,
@@ -24,4 +25,8 @@ public record AddContentBlockRequest(
         String videoId,
         String activityInstructions,
         String activityResources
-) {}
+) {
+    public AddContentBlockRequest {
+        if (blockOrder == null) blockOrder = 0;
+    }
+}

@@ -158,6 +158,11 @@ The frontend already:
 
 ---
 
+## See also
+- [Content Block Lifecycle](CONTENT-BLOCK-LIFECYCLE.md) – Flow from admin adding content blocks to trainee viewing them, and why content may not appear in the DB.
+
+---
+
 ## Concepts Reference
 
 | Concept | Spring Boot / Backend | React / Vite |
