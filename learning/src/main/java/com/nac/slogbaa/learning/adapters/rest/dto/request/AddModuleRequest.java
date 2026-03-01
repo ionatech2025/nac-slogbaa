@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Size;
 
 /**
  * REST request for adding a module to a course.
+ * moduleOrder and hasQuiz are optional (default 0 and false when omitted from JSON).
  */
 public record AddModuleRequest(
         @NotBlank(message = "Title is required")
@@ -15,7 +16,12 @@ public record AddModuleRequest(
         String description,
 
         @Min(0)
-        int moduleOrder,
+        Integer moduleOrder,
 
-        boolean hasQuiz
-) {}
+        Boolean hasQuiz
+) {
+    public AddModuleRequest {
+        if (moduleOrder == null) moduleOrder = 0;
+        if (hasQuiz == null) hasQuiz = false;
+    }
+}
