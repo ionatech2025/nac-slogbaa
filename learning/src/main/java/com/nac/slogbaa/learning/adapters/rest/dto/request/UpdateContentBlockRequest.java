@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Pattern;
 
 /**
  * REST request for updating a content block.
+ * blockOrder defaults to 0 when omitted.
  */
 public record UpdateContentBlockRequest(
         @NotBlank(message = "Block type is required")
@@ -13,7 +14,7 @@ public record UpdateContentBlockRequest(
         String blockType,
 
         @Min(0)
-        int blockOrder,
+        Integer blockOrder,
 
         String richText,
         String imageUrl,
@@ -23,4 +24,8 @@ public record UpdateContentBlockRequest(
         String videoId,
         String activityInstructions,
         String activityResources
-) {}
+) {
+    public UpdateContentBlockRequest {
+        if (blockOrder == null) blockOrder = 0;
+    }
+}

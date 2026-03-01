@@ -68,3 +68,13 @@ input, button {
   content: attr(data-placeholder);
   color: var(--slogbaa-text-muted);
 }
+
+/* Editor.js holder: ensure it renders and is interactive */
+[data-editor-holder] {
+  position: relative;
+}
+[data-editor-holder] .codex-editor,
+[data-editor-holder] .ce-block__content,
+[data-editor-holder] .ce-toolbar {
+  max-width: none;
+}
