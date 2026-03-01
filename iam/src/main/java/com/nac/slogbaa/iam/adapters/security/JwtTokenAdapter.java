@@ -9,6 +9,8 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -22,6 +24,8 @@ import java.util.UUID;
  */
 @Component
 public class JwtTokenAdapter implements AuthTokenPort {
+
+    private static final Logger log = LoggerFactory.getLogger(JwtTokenAdapter.class);
 
     private final SecretKey signingKey;
     private static final String CLAIM_USER_ID = "userId";
@@ -65,7 +69,14 @@ public class JwtTokenAdapter implements AuthTokenPort {
             String email = claims.get(CLAIM_EMAIL, String.class);
             AuthenticatedRole role = AuthenticatedRole.valueOf(claims.get(CLAIM_ROLE, String.class));
             return Optional.of(new AuthenticatedIdentity(userId, email, role));
-        } catch (ExpiredJwtException | MalformedJwtException | SignatureException | IllegalArgumentException e) {
+        } catch (ExpiredJwtException e) {
+            log.debug("JWT expired: {}", e.getMessage());
+            return Optional.empty();
+        } catch (MalformedJwtException | SignatureException e) {
+            log.debug("JWT invalid (malformed or bad signature): {}", e.getMessage());
+            return Optional.empty();
+        } catch (IllegalArgumentException e) {
+            log.debug("JWT parse error: {}", e.getMessage());
             return Optional.empty();
         }
     }
