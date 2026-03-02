@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { FontAwesomeIcon, icons } from '../../../shared/icons.js'
-import { getAdminLibraryResources, createLibraryResource, publishLibraryResource } from '../../../api/admin/library.js'
+import { getAdminLibraryResources, createLibraryResource, publishLibraryResource, updateLibraryResource, unpublishLibraryResource } from '../../../api/admin/library.js'
 import { Modal } from '../../../shared/components/Modal.jsx'
 
 const RESOURCE_TYPES = [
@@ -94,6 +94,25 @@ const styles = {
   },
   formRow: { marginBottom: '1rem' },
   formActions: { display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', marginTop: '1rem' },
+  actionCell: { display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' },
+  iconBtn: {
+    padding: '0.4rem',
+    border: 'none',
+    borderRadius: 6,
+    background: 'transparent',
+    color: 'var(--slogbaa-text-muted)',
+    cursor: 'pointer',
+  },
+  iconBtnHover: { color: 'var(--slogbaa-text)' },
+  iconBtnPrimary: { color: 'var(--slogbaa-orange)' },
+  placeholderBox: {
+    padding: '0.75rem',
+    borderRadius: 8,
+    background: 'var(--slogbaa-bg)',
+    border: '1px dashed var(--slogbaa-border)',
+    color: 'var(--slogbaa-text-muted)',
+    fontSize: '0.875rem',
+  },
 }
 
 export function AdminLibraryPage() {
@@ -102,9 +121,12 @@ export function AdminLibraryPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [modalOpen, setModalOpen] = useState(false)
+  const [editResource, setEditResource] = useState(null)
   const [form, setForm] = useState({ title: '', description: '', resourceType: 'DOCUMENT', fileUrl: '', fileType: '' })
   const [submitting, setSubmitting] = useState(false)
   const [publishingId, setPublishingId] = useState(null)
+  const [unpublishingId, setUnpublishingId] = useState(null)
+  const [savingEditId, setSavingEditId] = useState(null)
 
   const load = () => {
     if (!token) return
@@ -152,6 +174,56 @@ export function AdminLibraryPage() {
       setError(e?.message ?? 'Failed to publish.')
     } finally {
       setPublishingId(null)
+    }
+  }
+
+  const handleUnpublish = async (id) => {
+    if (!token || unpublishingId) return
+    setUnpublishingId(id)
+    try {
+      await unpublishLibraryResource(token, id)
+      load()
+    } catch (e) {
+      setError(e?.message ?? 'Failed to unpublish.')
+    } finally {
+      setUnpublishingId(null)
+    }
+  }
+
+  const openEditModal = (r) => {
+    setEditResource(r)
+    setForm({
+      title: r.title ?? '',
+      description: r.description ?? '',
+      resourceType: r.resourceType ?? 'DOCUMENT',
+      fileUrl: r.fileUrl ?? '',
+      fileType: r.fileType ?? '',
+    })
+  }
+
+  const closeEditModal = () => {
+    setEditResource(null)
+    setForm({ title: '', description: '', resourceType: 'DOCUMENT', fileUrl: '', fileType: '' })
+  }
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault()
+    if (!token || !editResource || !form.title?.trim() || !form.fileUrl?.trim()) return
+    setSavingEditId(editResource.id)
+    try {
+      await updateLibraryResource(token, editResource.id, {
+        title: form.title.trim(),
+        description: form.description?.trim() || undefined,
+        resourceType: form.resourceType,
+        fileUrl: form.fileUrl.trim(),
+        fileType: form.fileType?.trim() || undefined,
+      })
+      closeEditModal()
+      load()
+    } catch (e) {
+      setError(e?.message ?? 'Failed to update.')
+    } finally {
+      setSavingEditId(null)
     }
   }
 
@@ -210,22 +282,119 @@ export function AdminLibraryPage() {
                 </td>
                 {isSuperAdmin && (
                   <td style={styles.td}>
-                    {!r.published && (
+                    <div style={styles.actionCell}>
                       <button
                         type="button"
-                        style={styles.btn}
-                        disabled={publishingId !== null}
-                        onClick={() => handlePublish(r.id)}
+                        style={styles.iconBtn}
+                        title="View / Edit"
+                        onClick={() => openEditModal(r)}
                       >
-                        {publishingId === r.id ? 'Publishing…' : 'Publish'}
+                        <FontAwesomeIcon icon={icons.eye} />
                       </button>
-                    )}
+                      {r.published ? (
+                        <button
+                          type="button"
+                          style={styles.iconBtn}
+                          title="Unpublish"
+                          disabled={unpublishingId !== null}
+                          onClick={() => handleUnpublish(r.id)}
+                        >
+                          <FontAwesomeIcon icon={icons.unpublish} />
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          style={{ ...styles.iconBtn, ...styles.iconBtnPrimary }}
+                          title="Publish"
+                          disabled={publishingId !== null}
+                          onClick={() => handlePublish(r.id)}
+                        >
+                          <FontAwesomeIcon icon={icons.publish} />
+                        </button>
+                      )}
+                    </div>
                   </td>
                 )}
               </tr>
             ))}
           </tbody>
         </table>
+      )}
+
+      {editResource && (
+        <Modal title="View / Edit library resource" onClose={closeEditModal} maxWidth={480}>
+          <form onSubmit={handleEditSubmit}>
+            <div style={styles.formRow}>
+              <label style={styles.label}>Title *</label>
+              <input
+                type="text"
+                value={form.title}
+                onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
+                style={styles.input}
+                placeholder="Resource title"
+                required
+              />
+            </div>
+            <div style={styles.formRow}>
+              <label style={styles.label}>Description</label>
+              <textarea
+                value={form.description}
+                onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+                style={{ ...styles.input, minHeight: 80 }}
+                placeholder="Optional description"
+              />
+            </div>
+            <div style={styles.formRow}>
+              <label style={styles.label}>Type</label>
+              <select
+                value={form.resourceType}
+                onChange={(e) => setForm((f) => ({ ...f, resourceType: e.target.value }))}
+                style={styles.input}
+              >
+                {RESOURCE_TYPES.map((t) => (
+                  <option key={t.value} value={t.value}>{t.label}</option>
+                ))}
+              </select>
+            </div>
+            <div style={styles.formRow}>
+              <label style={styles.label}>File URL *</label>
+              <input
+                type="url"
+                value={form.fileUrl}
+                onChange={(e) => setForm((f) => ({ ...f, fileUrl: e.target.value }))}
+                style={styles.input}
+                placeholder="https://…"
+                required
+              />
+            </div>
+            <div style={styles.formRow}>
+              <label style={styles.label}>File type (e.g. PDF)</label>
+              <input
+                type="text"
+                value={form.fileType}
+                onChange={(e) => setForm((f) => ({ ...f, fileType: e.target.value }))}
+                style={styles.input}
+                placeholder="PDF, DOCX, etc."
+              />
+            </div>
+            {['DOCUMENT', 'POLICY_DOCUMENT', 'READING_MATERIAL'].includes(form.resourceType) && (
+              <div style={styles.formRow}>
+                <label style={styles.label}>Replace document</label>
+                <div style={styles.placeholderBox}>
+                  Upload new document — coming soon
+                </div>
+              </div>
+            )}
+            <div style={styles.formActions}>
+              <button type="button" style={{ ...styles.btn, ...styles.btnSecondary }} onClick={closeEditModal}>
+                Cancel
+              </button>
+              <button type="submit" style={styles.btn} disabled={savingEditId !== null}>
+                {savingEditId === editResource?.id ? 'Saving…' : 'Save changes'}
+              </button>
+            </div>
+          </form>
+        </Modal>
       )}
 
       {modalOpen && (

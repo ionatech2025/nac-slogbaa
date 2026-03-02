@@ -37,11 +37,41 @@ export async function createLibraryResource(token, { title, description, resourc
 }
 
 /**
+ * PUT /api/admin/library/resources/:id — update resource metadata. SuperAdmin only.
+ */
+export async function updateLibraryResource(token, resourceId, { title, description, resourceType, fileUrl, fileType }) {
+  assertToken(token)
+  const res = await apiClient(token).put(`/api/admin/library/resources/${resourceId}`, {
+    title: title?.trim(),
+    description: description?.trim() || undefined,
+    resourceType: resourceType || 'DOCUMENT',
+    fileUrl: fileUrl?.trim(),
+    fileType: fileType?.trim() || undefined,
+  })
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}))
+    throw new Error(body.detail ?? body.message ?? `Request failed (${res.status})`)
+  }
+}
+
+/**
  * POST /api/admin/library/resources/:id/publish — publish resource. SuperAdmin only.
  */
 export async function publishLibraryResource(token, resourceId) {
   assertToken(token)
   const res = await apiClient(token).post(`/api/admin/library/resources/${resourceId}/publish`)
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}))
+    throw new Error(body.detail ?? body.message ?? `Request failed (${res.status})`)
+  }
+}
+
+/**
+ * POST /api/admin/library/resources/:id/unpublish — unpublish resource. SuperAdmin only.
+ */
+export async function unpublishLibraryResource(token, resourceId) {
+  assertToken(token)
+  const res = await apiClient(token).post(`/api/admin/library/resources/${resourceId}/unpublish`)
   if (!res.ok) {
     const body = await res.json().catch(() => ({}))
     throw new Error(body.detail ?? body.message ?? `Request failed (${res.status})`)

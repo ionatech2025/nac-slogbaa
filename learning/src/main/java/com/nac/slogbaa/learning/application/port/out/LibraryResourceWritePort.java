@@ -1,6 +1,7 @@
 package com.nac.slogbaa.learning.application.port.out;
 
 import com.nac.slogbaa.learning.application.dto.command.CreateLibraryResourceCommand;
+import com.nac.slogbaa.learning.application.dto.command.UpdateLibraryResourceCommand;
 
 import java.util.List;
 import java.util.Optional;
@@ -12,6 +13,8 @@ import java.util.UUID;
 public interface LibraryResourceWritePort {
 
     UUID create(CreateLibraryResourceCommand command);
+
+    void update(UUID resourceId, UpdateLibraryResourceCommand command);
 
     void setPublished(UUID resourceId, boolean published);
 

@@ -1,6 +1,7 @@
 package com.nac.slogbaa.learning.adapters.persistence.adapter;
 
 import com.nac.slogbaa.learning.application.dto.command.CreateLibraryResourceCommand;
+import com.nac.slogbaa.learning.application.dto.command.UpdateLibraryResourceCommand;
 import com.nac.slogbaa.learning.application.port.out.LibraryResourceWritePort;
 import com.nac.slogbaa.learning.adapters.persistence.entity.LibraryResourceEntity;
 import com.nac.slogbaa.learning.adapters.persistence.repository.JpaLibraryResourceRepository;
@@ -45,6 +46,22 @@ public class LibraryResourceWriteAdapter implements LibraryResourceWritePort {
         e.setUploadedAt(now);
         jpaRepository.save(e);
         return e.getId();
+    }
+
+    @Override
+    public void update(UUID resourceId, UpdateLibraryResourceCommand command) {
+        LibraryResourceEntity e = jpaRepository.findById(resourceId).orElseThrow();
+        e.setTitle(command.getTitle());
+        e.setDescription(command.getDescription());
+        try {
+            e.setResourceType(LibraryResourceEntity.ResourceTypeEnum.valueOf(
+                    command.getResourceType().toUpperCase().replace('-', '_')));
+        } catch (IllegalArgumentException ex) {
+            e.setResourceType(LibraryResourceEntity.ResourceTypeEnum.DOCUMENT);
+        }
+        e.setFileUrl(command.getFileUrl());
+        e.setFileType(command.getFileType());
+        jpaRepository.save(e);
     }
 
     @Override

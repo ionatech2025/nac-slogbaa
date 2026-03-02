@@ -6,6 +6,8 @@ import com.nac.slogbaa.learning.application.port.in.GetCourseDetailsUseCase;
 import com.nac.slogbaa.learning.application.port.in.GetPublishedLibraryResourcesUseCase;
 import com.nac.slogbaa.learning.application.port.in.GetPublishedCoursesUseCase;
 import com.nac.slogbaa.learning.application.port.in.PublishLibraryResourceUseCase;
+import com.nac.slogbaa.learning.application.port.in.UnpublishLibraryResourceUseCase;
+import com.nac.slogbaa.learning.application.port.in.UpdateLibraryResourceUseCase;
 import com.nac.slogbaa.learning.application.port.out.CourseDetailsQueryPort;
 import com.nac.slogbaa.learning.application.port.out.CourseRepositoryPort;
 import com.nac.slogbaa.learning.application.port.out.LibraryResourceQueryPort;
@@ -16,6 +18,8 @@ import com.nac.slogbaa.learning.application.service.GetCourseDetailsService;
 import com.nac.slogbaa.learning.application.service.GetPublishedLibraryResourcesService;
 import com.nac.slogbaa.learning.application.service.GetPublishedCoursesService;
 import com.nac.slogbaa.learning.application.service.PublishLibraryResourceService;
+import com.nac.slogbaa.learning.application.service.UnpublishLibraryResourceService;
+import com.nac.slogbaa.learning.application.service.UpdateLibraryResourceService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -50,5 +54,15 @@ public class LearningConfiguration {
     @Bean
     public PublishLibraryResourceUseCase publishLibraryResourceUseCase(LibraryResourceWritePort libraryResourceWritePort) {
         return new PublishLibraryResourceService(libraryResourceWritePort);
+    }
+
+    @Bean
+    public UnpublishLibraryResourceUseCase unpublishLibraryResourceUseCase(LibraryResourceWritePort libraryResourceWritePort) {
+        return new UnpublishLibraryResourceService(libraryResourceWritePort);
+    }
+
+    @Bean
+    public UpdateLibraryResourceUseCase updateLibraryResourceUseCase(LibraryResourceWritePort libraryResourceWritePort) {
+        return new UpdateLibraryResourceService(libraryResourceWritePort);
     }
 }
