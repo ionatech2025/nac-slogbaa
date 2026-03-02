@@ -24,7 +24,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Security configuration: permit /auth/** (login, register), protect other
+ * Security configuration: permit /api/auth/** (login, register), protect other
  * endpoints with JWT. CORS enabled for frontend origins.
  */
 @Configuration
@@ -63,7 +63,7 @@ public class IamSecurityConfiguration {
 	            session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
 	        )
 	        .authorizeHttpRequests(auth -> auth
-	            .requestMatchers("/auth/**").permitAll()
+	            .requestMatchers("/api/auth/**").permitAll()
 	            .requestMatchers("/actuator/health").permitAll()
 	            .anyRequest().authenticated()
 	        )

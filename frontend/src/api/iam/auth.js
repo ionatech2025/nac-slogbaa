@@ -4,10 +4,10 @@ const client = apiClient()
 
 /**
  * Login with email and password. Returns { data } on success or { error } on failure.
- * Backend: POST /auth/login -> 200 { token, userId, email, role, fullName } or 401/409 with problem detail.
+ * Backend: POST /api/auth/login -> 200 { token, userId, email, role, fullName } or 401/409 with problem detail.
  */
 export async function login(email, password) {
-  const res = await client.post('/auth/login', { email, password })
+  const res = await client.post('/api/auth/login', { email, password })
   const body = await res.json().catch(() => ({}))
   if (!res.ok) {
     const message = body.detail ?? body.title ?? (res.status === 401 ? 'Invalid email or password.' : `Request failed (${res.status}).`)
@@ -26,10 +26,10 @@ export async function login(email, password) {
 
 /**
  * Register a trainee. Returns { data: { traineeId, email } } on success or { error } on failure.
- * Backend: POST /auth/register -> 201 or 403 (staff email) / 409 (duplicate) with problem detail.
+ * Backend: POST /api/auth/register -> 201 or 403 (staff email) / 409 (duplicate) with problem detail.
  */
 export async function register(payload) {
-  const res = await client.post('/auth/register', {
+  const res = await client.post('/api/auth/register', {
     email: payload.email?.trim(),
     password: payload.password,
     firstName: payload.firstName?.trim(),
@@ -54,10 +54,10 @@ export async function register(payload) {
 
 /**
  * Request a password reset email. Returns { data: { message } } on success or { error } on failure.
- * Backend: POST /auth/password-reset/request -> 200 { message } (generic message for security).
+ * Backend: POST /api/auth/password-reset/request -> 200 { message } (generic message for security).
  */
 export async function requestPasswordReset(email) {
-  const res = await client.post('/auth/password-reset/request', { email: email?.trim().toLowerCase() })
+  const res = await client.post('/api/auth/password-reset/request', { email: email?.trim().toLowerCase() })
   const body = await res.json().catch(() => ({}))
   if (!res.ok) {
     const message = body.detail ?? body.title ?? `Request failed (${res.status}).`
@@ -68,11 +68,11 @@ export async function requestPasswordReset(email) {
 
 /**
  * Verify a password reset token. Returns { valid: true } or { valid: false, error }.
- * Backend: GET /auth/password-reset/verify?token=... -> 200 or 400.
+ * Backend: GET /api/auth/password-reset/verify?token=... -> 200 or 400.
  */
 export async function verifyResetToken(token) {
   if (!token) return { valid: false, error: 'Token is required.' }
-  const res = await client.get(`/auth/password-reset/verify?token=${encodeURIComponent(token)}`)
+  const res = await client.get(`/api/auth/password-reset/verify?token=${encodeURIComponent(token)}`)
   const body = await res.json().catch(() => ({}))
   if (!res.ok) {
     return { valid: false, error: body.message ?? body.detail ?? body.title ?? 'Invalid or expired reset link.' }
@@ -82,10 +82,10 @@ export async function verifyResetToken(token) {
 
 /**
  * Complete password reset with token and new password. Returns { data: { message } } or { error }.
- * Backend: POST /auth/password-reset/confirm -> 200 { message }.
+ * Backend: POST /api/auth/password-reset/confirm -> 200 { message }.
  */
 export async function confirmPasswordReset(token, newPassword) {
-  const res = await client.post('/auth/password-reset/confirm', { token, newPassword })
+  const res = await client.post('/api/auth/password-reset/confirm', { token, newPassword })
   const body = await res.json().catch(() => ({}))
   if (!res.ok) {
     const message = body.detail ?? body.title ?? `Request failed (${res.status}).`
