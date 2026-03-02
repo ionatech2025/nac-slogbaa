@@ -2,24 +2,31 @@ package com.nac.slogbaa.infrastructure.notification;
 
 import com.nac.slogbaa.infrastructure.email.EmailService;
 import com.nac.slogbaa.shared.ports.StaffNotificationPort;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.stereotype.Component;
 
 /**
  * Sends staff welcome emails via EmailService when mail is configured.
+ * Uses app.password-reset.base-url (frontend app URL) to build an absolute login link.
  */
 @Component
 @ConditionalOnBean(EmailService.class)
 public class EmailStaffNotificationAdapter implements StaffNotificationPort {
 
     private final EmailService emailService;
+    private final String frontendBaseUrl;
 
-    public EmailStaffNotificationAdapter(EmailService emailService) {
+    public EmailStaffNotificationAdapter(EmailService emailService,
+                                         @Value("${app.password-reset.base-url:http://localhost:5173}") String frontendBaseUrl) {
         this.emailService = emailService;
+        this.frontendBaseUrl = (frontendBaseUrl != null && !frontendBaseUrl.isBlank())
+                ? frontendBaseUrl.replaceAll("/$", "") : "http://localhost:5173";
     }
 
     @Override
     public void sendStaffWelcomeEmail(String toEmail, String fullName, String initialPassword) {
+        String loginUrl = frontendBaseUrl + "/auth/login";
         String htmlContent = """
             <h2>Welcome to SLOGBAA</h2>
             <p>Hello <strong>%s</strong>,</p>
@@ -29,7 +36,7 @@ public class EmailStaffNotificationAdapter implements StaffNotificationPort {
                 <li><strong>Initial password:</strong> %s</li>
             </ul>
             <p style="margin-top: 24px;">
-                <a href="/login" style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold;">
+                <a href="%s" style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold;">
                     Log in and change your password
                 </a>
             </p>
@@ -38,7 +45,8 @@ public class EmailStaffNotificationAdapter implements StaffNotificationPort {
             """.formatted(
                 escapeHtml(fullName),
                 escapeHtml(toEmail),
-                escapeHtml(initialPassword)
+                escapeHtml(initialPassword),
+                escapeHtml(loginUrl)
         );
         emailService.sendHtmlEmail(toEmail, "Your SLOGBAA staff account", htmlContent);
     }

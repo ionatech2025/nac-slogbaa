@@ -1,5 +1,5 @@
 /**
- * Base URL for API requests. In dev with Vite proxy use '' so /auth/* is proxied to backend.
+ * Base URL for API requests. In dev with Vite proxy use '' so /api/* is proxied to backend.
  * In production set VITE_API_BASE_URL to the backend origin (e.g. https://api.slogbaa.org).
  */
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? ''

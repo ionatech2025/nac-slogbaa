@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
  * REST controller for password reset flow.
  */
 @RestController
-@RequestMapping("/auth/password-reset")
+@RequestMapping("/api/auth/password-reset")
 public class PasswordResetController {
 
     private static final String SUCCESS_MESSAGE = "If an account exists for this email, you will receive a reset link shortly.";

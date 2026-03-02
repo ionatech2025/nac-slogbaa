@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
  * REST controller for auth. Uses only application port (use case) APIs; no direct adapter or core dependency.
  */
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/auth")
 public class AuthController {
 
     private final AuthenticateUserUseCase authenticateUserUseCase;
