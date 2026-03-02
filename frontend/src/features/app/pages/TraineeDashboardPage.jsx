@@ -220,17 +220,30 @@ export function TraineeDashboardPage() {
           <>
             <div style={styles.sectionHeader}>
               <h2 style={styles.sectionTitle}>My Courses</h2>
-              <Link
-                to="/dashboard/courses"
-                style={{
-                  fontSize: '0.9375rem',
-                  color: 'var(--slogbaa-blue)',
-                  textDecoration: 'none',
-                  fontWeight: 500,
-                }}
-              >
-                Browse courses to enroll →
-              </Link>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <Link
+                  to="/dashboard/library"
+                  style={{
+                    fontSize: '0.9375rem',
+                    color: 'var(--slogbaa-blue)',
+                    textDecoration: 'none',
+                    fontWeight: 500,
+                  }}
+                >
+                  Library →
+                </Link>
+                <Link
+                  to="/dashboard/courses"
+                  style={{
+                    fontSize: '0.9375rem',
+                    color: 'var(--slogbaa-blue)',
+                    textDecoration: 'none',
+                    fontWeight: 500,
+                  }}
+                >
+                  Browse courses to enroll →
+                </Link>
+              </span>
               {enrolledCourses.length > 0 && (
                 <div style={styles.viewToggle} role="group" aria-label="Course view">
                   <button

@@ -49,6 +49,7 @@ export const icons = {
   home: faHome,
   overview: faChartPie,
   learning: faBook,
+  library: faBook,
   assessment: faClipboardCheck,
   reports: faChartLine,
   updateCourses: faArrowsRotate,
