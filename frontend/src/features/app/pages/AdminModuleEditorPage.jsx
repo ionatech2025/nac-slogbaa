@@ -21,7 +21,7 @@ function focusBlockAndCursorStart(el) {
 
 const styles = {
   page: {
-    maxWidth: 720,
+    maxWidth: 960,
     margin: '0 auto',
     paddingTop: '4rem',
     paddingBottom: '4rem',
@@ -497,10 +497,11 @@ export function AdminModuleEditorPage() {
           {isSuperAdmin ? (
             <div
               className="ce-editor-holder"
+              data-editor-holder
               style={{
                 padding: '1.5rem',
                 minHeight: 320,
-                background: '#fff',
+                background: 'var(--slogbaa-surface)',
                 border: '2px solid var(--slogbaa-orange)',
                 borderRadius: 12,
                 borderLeft: '4px solid var(--slogbaa-orange)',

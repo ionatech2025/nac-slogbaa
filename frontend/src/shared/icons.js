@@ -39,6 +39,8 @@ import {
   faVideo,
   faClipboardList,
   faMagnifyingGlass,
+  faSun,
+  faMoon,
 } from '@fortawesome/free-solid-svg-icons'
 
 export { FontAwesomeIcon }
@@ -79,4 +81,6 @@ export const icons = {
   blockVideo: faVideo,
   blockActivity: faClipboardList,
   search: faMagnifyingGlass,
+  sun: faSun,
+  moon: faMoon,
 }

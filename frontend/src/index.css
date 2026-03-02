@@ -24,6 +24,24 @@
   --slogbaa-accent: var(--slogbaa-blue);
   --slogbaa-accent-light: var(--slogbaa-blue-hover);
   --slogbaa-bg: var(--slogbaa-surface);
+  --slogbaa-bg-secondary: #f5f5f5;
+}
+
+/* Dark theme overrides */
+[data-theme='dark'] {
+  --slogbaa-surface: #1a1a1f;
+  --slogbaa-bg: #121214;
+  --slogbaa-text: #e4e4e7;
+  --slogbaa-text-muted: #a1a1aa;
+  --slogbaa-border: #27272a;
+  --slogbaa-orange: #f59e0b;
+  --slogbaa-orange-hover: #d97706;
+  --slogbaa-blue: #38bdf8;
+  --slogbaa-blue-hover: #0ea5e9;
+  --slogbaa-green: #34d399;
+  --slogbaa-dark: #0f0f11;
+  --slogbaa-error: #f87171;
+  --slogbaa-bg-secondary: #27272a;
 }
 
 * {
@@ -49,6 +67,27 @@ a:hover {
 
 input, button {
   font: inherit;
+}
+
+/* Ensure all form fields use theme colors so typed text is visible in light and dark mode */
+input,
+textarea,
+select {
+  background-color: var(--slogbaa-surface);
+  color: var(--slogbaa-text);
+  border-color: var(--slogbaa-border);
+}
+/* Override browser autofill and ensure dark mode visibility */
+[data-theme='dark'] input,
+[data-theme='dark'] textarea,
+[data-theme='dark'] select {
+  background-color: var(--slogbaa-surface) !important;
+  color: var(--slogbaa-text) !important;
+}
+/* Placeholder text in dark mode */
+[data-theme='dark'] input::placeholder,
+[data-theme='dark'] textarea::placeholder {
+  color: var(--slogbaa-text-muted);
 }
 
 /* Block row: icons show on hover */
@@ -77,4 +116,70 @@ input, button {
 [data-editor-holder] .ce-block__content,
 [data-editor-holder] .ce-toolbar {
   max-width: none;
+}
+
+/* Editor.js dark mode: override default light styles when theme is dark */
+[data-theme='dark'] [data-editor-holder] .codex-editor,
+[data-theme='dark'] [data-editor-holder] .codex-editor__redactor,
+[data-theme='dark'] [data-editor-holder] .ce-block,
+[data-theme='dark'] [data-editor-holder] .ce-block__content {
+  background: var(--slogbaa-surface) !important;
+  color: var(--slogbaa-text) !important;
+}
+[data-theme='dark'] [data-editor-holder] .ce-paragraph,
+[data-theme='dark'] [data-editor-holder] .cdx-block,
+[data-theme='dark'] [data-editor-holder] .ce-header {
+  color: var(--slogbaa-text) !important;
+}
+[data-theme='dark'] [data-editor-holder] .ce-paragraph[contenteditable='true']::before,
+[data-theme='dark'] [data-editor-holder] .ce-header[contenteditable='true']::before {
+  color: var(--slogbaa-text-muted) !important;
+}
+[data-theme='dark'] [data-editor-holder] .cdx-input,
+[data-theme='dark'] [data-editor-holder] .cdx-list__item,
+[data-theme='dark'] [data-editor-holder] .ce-quote__text,
+[data-theme='dark'] [data-editor-holder] .ce-warning__title,
+[data-theme='dark'] [data-editor-holder] .ce-warning__message,
+[data-theme='dark'] [data-editor-holder] .tc-cell {
+  background: var(--slogbaa-surface) !important;
+  color: var(--slogbaa-text) !important;
+  border-color: var(--slogbaa-border) !important;
+}
+[data-theme='dark'] [data-editor-holder] .cdx-list__item,
+[data-theme='dark'] [data-editor-holder] .ce-quote__caption {
+  color: var(--slogbaa-text-muted) !important;
+}
+[data-theme='dark'] [data-editor-holder] .ce-toolbar__content,
+[data-theme='dark'] [data-editor-holder] .ce-inline-toolbar,
+[data-theme='dark'] [data-editor-holder] .ce-conversion-toolbar {
+  background: var(--slogbaa-surface) !important;
+  border-color: var(--slogbaa-border) !important;
+}
+[data-theme='dark'] [data-editor-holder] .ce-toolbar__plus,
+[data-theme='dark'] [data-editor-holder] .ce-toolbar__plus:hover,
+[data-theme='dark'] [data-editor-holder] .ce-inline-tool,
+[data-theme='dark'] [data-editor-holder] .ce-settings__button {
+  color: var(--slogbaa-text) !important;
+  background: transparent !important;
+}
+[data-theme='dark'] [data-editor-holder] .ce-popover,
+[data-theme='dark'] [data-editor-holder] .ce-popover__items {
+  background: var(--slogbaa-surface) !important;
+  border-color: var(--slogbaa-border) !important;
+}
+[data-theme='dark'] [data-editor-holder] .ce-popover-item,
+[data-theme='dark'] [data-editor-holder] .ce-popover-item__icon,
+[data-theme='dark'] [data-editor-holder] .ce-popover-item__title {
+  color: var(--slogbaa-text) !important;
+}
+[data-theme='dark'] [data-editor-holder] .tc-table,
+[data-theme='dark'] [data-editor-holder] .tc-row,
+[data-theme='dark'] [data-editor-holder] .tc-cell {
+  background: var(--slogbaa-surface) !important;
+  color: var(--slogbaa-text) !important;
+  border-color: var(--slogbaa-border) !important;
+}
+[data-theme='dark'] [data-editor-holder] .cdx-notifies {
+  --color-bg: var(--slogbaa-surface);
+  --color-border: var(--slogbaa-border);
 }
