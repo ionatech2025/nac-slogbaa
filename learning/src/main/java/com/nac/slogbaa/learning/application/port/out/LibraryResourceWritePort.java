@@ -1,0 +1,24 @@
+package com.nac.slogbaa.learning.application.port.out;
+
+import com.nac.slogbaa.learning.application.dto.command.CreateLibraryResourceCommand;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+/**
+ * Port for creating and updating library resources.
+ */
+public interface LibraryResourceWritePort {
+
+    UUID create(CreateLibraryResourceCommand command);
+
+    void setPublished(UUID resourceId, boolean published);
+
+    Optional<LibraryResourceRecord> findById(UUID id);
+
+    List<LibraryResourceRecord> findAll();
+
+    record LibraryResourceRecord(UUID id, String title, String description, String resourceType,
+                                 String fileUrl, String fileType, UUID uploadedBy, boolean published) {}
+}
