@@ -1,13 +1,26 @@
 import { useState, useCallback } from 'react'
-import { Outlet } from 'react-router-dom'
+import { Link, Outlet, useLocation } from 'react-router-dom'
 import { TraineeNav } from '../components/trainee/TraineeNav.jsx'
 import { ProfileViewModal } from '../components/trainee/ProfileViewModal.jsx'
 import { EditProfileModal } from '../components/trainee/EditProfileModal.jsx'
 import { useAuth } from '../../iam/hooks/useAuth.js'
 import { getTraineeProfile, updateTraineeProfile } from '../../../api/trainee.js'
 
+const backLinkStyle = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '0.35rem',
+  marginBottom: '1rem',
+  padding: '0.5rem 0',
+  fontSize: '0.9375rem',
+  color: 'var(--slogbaa-blue)',
+  textDecoration: 'none',
+}
+
 export function TraineeLayout() {
   const { token } = useAuth()
+  const location = useLocation()
+  const isDashboardIndex = location.pathname === '/dashboard' || location.pathname === '/dashboard/'
   const [profileModalOpen, setProfileModalOpen] = useState(false)
   const [profileData, setProfileData] = useState(null)
   const [profileLoading, setProfileLoading] = useState(false)
@@ -147,6 +160,13 @@ export function TraineeLayout() {
               Close
             </button>
           </div>
+        </div>
+      )}
+      {!isDashboardIndex && (
+        <div style={{ padding: '0 1.5rem 0 2rem', maxWidth: 1200, margin: '0 auto' }}>
+          <Link to="/dashboard" style={backLinkStyle}>
+            ← Back to dashboard
+          </Link>
         </div>
       )}
       <Outlet />
