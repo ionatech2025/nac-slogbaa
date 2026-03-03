@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useNavigate, useOutletContext } from 'react-router-dom'
 import { FontAwesomeIcon, icons } from '../../../shared/icons.js'
 import { getAdminCourses, createCourse, updateCourse, publishCourse } from '../../../api/admin/courses.js'
+import { getAssetUrl } from '../../../api/client.js'
 import { CreateCourseModal } from '../components/admin/CreateCourseModal.jsx'
 import { EditCourseModal } from '../components/admin/EditCourseModal.jsx'
 
@@ -243,7 +244,7 @@ export function AdminLearningPage() {
                   <td style={styles.td}>
                     <div style={styles.thumbWrap}>
                       {course.imageUrl ? (
-                        <img src={course.imageUrl} alt="" style={styles.thumb} onError={(e) => { e.target.style.display = 'none' }} />
+                        <img src={getAssetUrl(course.imageUrl)} alt="" style={styles.thumb} onError={(e) => { e.target.style.display = 'none' }} />
                       ) : (
                         <div style={{ ...styles.thumb, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.25rem', color: 'var(--slogbaa-text-muted)' }}>📚</div>
                       )}

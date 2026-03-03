@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
+import { getAssetUrl } from '../../../api/client.js'
 import { useAuth } from '../../iam/hooks/useAuth.js'
 import { getCourseDetails, checkEnrollment } from '../../../api/learning/courses.js'
 import { EditorJsReadOnly } from '../../app/components/admin/EditorJsReadOnly.jsx'
@@ -218,7 +219,7 @@ function ContentBlockRenderer({ block }) {
     return (
       <div style={styles.block}>
         <figure style={{ margin: 0 }}>
-          <img src={imageUrl} alt={imageAltText || ''} style={styles.blockImage} loading="lazy" />
+          <img src={getAssetUrl(imageUrl)} alt={imageAltText || ''} style={styles.blockImage} loading="lazy" />
           {imageCaption && <figcaption style={styles.blockImageCaption}>{imageCaption}</figcaption>}
         </figure>
       </div>
@@ -347,7 +348,7 @@ export function CourseDetailPage() {
         </Link>
         <header style={styles.header}>
           {course.imageUrl ? (
-            <img src={course.imageUrl} alt="" style={styles.courseImage} onError={(e) => { e.target.style.display = 'none' }} />
+            <img src={getAssetUrl(course.imageUrl)} alt="" style={styles.courseImage} onError={(e) => { e.target.style.display = 'none' }} />
           ) : (
             <div style={styles.courseImagePlaceholder}>📚</div>
           )}
@@ -369,7 +370,7 @@ export function CourseDetailPage() {
                     }}
                   >
                     {m.imageUrl ? (
-                      <img src={m.imageUrl} alt="" style={styles.moduleLinkThumb} loading="lazy" onError={(e) => { e.target.style.display = 'none' }} />
+                      <img src={getAssetUrl(m.imageUrl)} alt="" style={styles.moduleLinkThumb} loading="lazy" onError={(e) => { e.target.style.display = 'none' }} />
                     ) : (
                       <div style={{ ...styles.moduleLinkThumb, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem' }}>📦</div>
                     )}

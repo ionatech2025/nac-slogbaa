@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { useParams, Link, useOutletContext } from 'react-router-dom'
 import { getAdminCourseDetails, addContentBlock, updateContentBlock, updateModule } from '../../../api/admin/courses.js'
 import { uploadFile } from '../../../api/files.js'
+import { getAssetUrl } from '../../../api/client.js'
 import { getCourseDetails } from '../../../api/learning/courses.js'
 import { ModuleEditorJs } from '../components/admin/ModuleEditorJs.jsx'
 import { EditorJsReadOnly } from '../components/admin/EditorJsReadOnly.jsx'
@@ -206,7 +207,7 @@ function AdminContentBlockRenderer({ block }) {
     return (
       <div style={{ marginBottom: '1.5rem' }}>
         <figure style={{ margin: 0 }}>
-          <img src={imageUrl} alt={imageAltText || ''} style={styles.blockImage} loading="lazy" />
+          <img src={getAssetUrl(imageUrl)} alt={imageAltText || ''} style={styles.blockImage} loading="lazy" />
           {imageCaption && <figcaption style={styles.blockImageCaption}>{imageCaption}</figcaption>}
         </figure>
       </div>
@@ -547,7 +548,7 @@ export function AdminModuleEditorPage() {
             </button>
             {module?.imageUrl && (
               <div style={{ marginTop: '0.5rem' }}>
-                <img src={module.imageUrl} alt="Module" style={{ maxWidth: 120, maxHeight: 80, borderRadius: 8, border: '1px solid var(--slogbaa-border)', objectFit: 'cover' }} />
+                <img src={getAssetUrl(module.imageUrl)} alt="Module" style={{ maxWidth: 120, maxHeight: 80, borderRadius: 8, border: '1px solid var(--slogbaa-border)', objectFit: 'cover' }} onError={(e) => { e.target.style.display = 'none' }} />
               </div>
             )}
           </div>

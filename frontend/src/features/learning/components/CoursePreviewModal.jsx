@@ -3,6 +3,7 @@ import { Modal } from '../../../shared/components/Modal.jsx'
 import { FontAwesomeIcon, icons } from '../../../shared/icons.js'
 import { useAuth } from '../../iam/hooks/useAuth.js'
 import { getCourseDetails } from '../../../api/learning/courses.js'
+import { getAssetUrl } from '../../../api/client.js'
 
 function findFirstVideoBlock(course) {
   for (const module of course?.modules ?? []) {
@@ -126,7 +127,7 @@ export function CoursePreviewModal({ course, onClose, onEnroll }) {
       {!loading && !error && details && (
         <>
           {details.imageUrl ? (
-            <img src={details.imageUrl} alt="" style={styles.image} onError={(e) => { e.target.style.display = 'none' }} />
+            <img src={getAssetUrl(details.imageUrl)} alt="" style={styles.image} onError={(e) => { e.target.style.display = 'none' }} />
           ) : (
             <div style={styles.imagePlaceholder}>📚</div>
           )}

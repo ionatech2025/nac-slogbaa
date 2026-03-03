@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useParams, Link, useOutletContext } from 'react-router-dom'
 import { FontAwesomeIcon, icons } from '../../../shared/icons.js'
 import { getAdminCourseDetails, addModule, publishCourse } from '../../../api/admin/courses.js'
+import { getAssetUrl } from '../../../api/client.js'
 import { AddModuleModal } from '../components/admin/AddModuleModal.jsx'
 
 const styles = {
@@ -190,7 +191,7 @@ function ModuleCard({ module, courseId, onMouseEnter, onMouseLeave, hover }) {
     >
       <div style={styles.moduleCardImageWrap}>
         {module.imageUrl ? (
-          <img src={module.imageUrl} alt="" style={styles.moduleCardImage} loading="lazy" onError={(e) => { e.target.style.display = 'none' }} />
+          <img src={getAssetUrl(module.imageUrl)} alt="" style={styles.moduleCardImage} loading="lazy" onError={(e) => { e.target.style.display = 'none' }} />
         ) : (
           <span>📦</span>
         )}
@@ -256,7 +257,7 @@ export function AdminCoursePage() {
 
       <header style={styles.header}>
         {course.imageUrl ? (
-          <img src={course.imageUrl} alt="" style={styles.courseImage} onError={(e) => { e.target.style.display = 'none' }} />
+          <img src={getAssetUrl(course.imageUrl)} alt="" style={styles.courseImage} onError={(e) => { e.target.style.display = 'none' }} />
         ) : (
           <div style={styles.courseImagePlaceholder}>📚</div>
         )}

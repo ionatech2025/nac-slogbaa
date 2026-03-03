@@ -2,6 +2,7 @@ import { useState, useRef } from 'react'
 import { FontAwesomeIcon, icons } from '../../../../shared/icons.js'
 import { Modal } from '../../../../shared/components/Modal.jsx'
 import { uploadFile } from '../../../../api/files.js'
+import { getAssetUrl } from '../../../../api/client.js'
 
 const styles = {
   form: { display: 'flex', flexDirection: 'column', gap: '1.25rem' },
@@ -165,7 +166,7 @@ export function AddModuleModal({ token, course, onClose, onSubmit }) {
           </button>
           {imageUrl && (
             <div style={{ marginTop: '0.5rem' }}>
-              <img src={imageUrl} alt="Preview" style={styles.imagePreview} />
+              <img src={getAssetUrl(imageUrl)} alt="Preview" style={styles.imagePreview} onError={(e) => { e.target.style.display = 'none' }} />
             </div>
           )}
         </div>

@@ -3,6 +3,7 @@ import { useParams, Link, useOutletContext } from 'react-router-dom'
 import { Plus } from 'lucide-react'
 import { FontAwesomeIcon, icons } from '../../../shared/icons.js'
 import { getAdminCourseDetails, addModule, addContentBlock, updateContentBlock, deleteContentBlock, publishCourse } from '../../../api/admin/courses.js'
+import { getAssetUrl } from '../../../api/client.js'
 import { BlockTypePickerModal } from '../components/admin/BlockTypePickerModal.jsx'
 import { AddBlockModal } from '../components/admin/AddBlockModal.jsx'
 import { EditBlockModal } from '../components/admin/EditBlockModal.jsx'
@@ -193,7 +194,7 @@ function ContentBlockPreview({ block }) {
   if (blockType === 'IMAGE' && imageUrl) {
     return (
       <figure style={{ margin: 0 }}>
-        <img src={imageUrl} alt={imageAltText || ''} style={styles.blockImage} loading="lazy" />
+        <img src={getAssetUrl(imageUrl)} alt={imageAltText || ''} style={styles.blockImage} loading="lazy" />
         {imageCaption && <figcaption style={styles.blockImageCaption}>{imageCaption}</figcaption>}
       </figure>
     )

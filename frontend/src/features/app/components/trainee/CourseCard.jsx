@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { FontAwesomeIcon, icons } from '../../../../shared/icons.js'
+import { getAssetUrl } from '../../../../api/client.js'
 
 const DEFAULT_IMG = 'https://placehold.co/400x200/e0e0e0/6b6b6b?text=Course'
 
@@ -183,7 +184,7 @@ const styles = {
 }
 
 export function CourseCard({ course, enrolled, completionPercentage, onEnroll, onPreview, variant = 'vertical', viewHref, enrolling }) {
-  const imgSrc = course.imageUrl || DEFAULT_IMG
+  const imgSrc = getAssetUrl(course.imageUrl) || DEFAULT_IMG
   const isHorizontal = variant === 'horizontal'
 
   const imageBadges = []

@@ -4,6 +4,18 @@
  */
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? ''
 
+/**
+ * Resolve an asset URL (e.g. /uploads/courses/xxx.png) to the correct origin.
+ * When VITE_API_BASE_URL is set, assets are served by the backend; otherwise use path as-is (proxy).
+ */
+export function getAssetUrl(url) {
+  if (!url || typeof url !== 'string') return url
+  if (url.startsWith('http://') || url.startsWith('https://')) return url
+  const base = API_BASE.replace(/\/$/, '')
+  const p = url.startsWith('/') ? url : `/${url}`
+  return base ? `${base}${p}` : p
+}
+
 function buildUrl(path) {
   const base = API_BASE.replace(/\/$/, '')
   const p = path.startsWith('/') ? path : `/${path}`

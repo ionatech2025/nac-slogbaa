@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { FontAwesomeIcon, icons } from '../../../../shared/icons.js'
 import { Modal } from '../../../../shared/components/Modal.jsx'
 import { uploadFile } from '../../../../api/files.js'
+import { getAssetUrl } from '../../../../api/client.js'
 
 const styles = {
   form: { display: 'flex', flexDirection: 'column', gap: '1.25rem' },
@@ -99,10 +100,16 @@ export function EditCourseModal({ token, course, onClose, onSubmit }) {
     if (!file || !token) return
     setError(null)
     setUploading(true)
+    // Show instant preview from file while uploading
+    const objectUrl = URL.createObjectURL(file)
+    setImageUrl(objectUrl)
     try {
       const { url } = await uploadFile(token, file, 'courses')
+      URL.revokeObjectURL(objectUrl)
       setImageUrl(url)
     } catch (err) {
+      URL.revokeObjectURL(objectUrl)
+      setImageUrl(course?.imageUrl ?? null)
       setError(err?.message ?? 'Image upload failed.')
     } finally {
       setUploading(false)
@@ -162,7 +169,12 @@ export function EditCourseModal({ token, course, onClose, onSubmit }) {
           </button>
           {imageUrl && (
             <div style={{ marginTop: '0.5rem' }}>
-              <img src={imageUrl} alt="Preview" style={styles.imagePreview} />
+              <img
+                src={imageUrl.startsWith('blob:') ? imageUrl : getAssetUrl(imageUrl)}
+                alt="Preview"
+                style={styles.imagePreview}
+                onError={(e) => { e.target.style.display = 'none' }}
+              />
             </div>
           )}
         </div>

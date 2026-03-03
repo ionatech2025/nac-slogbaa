@@ -65,6 +65,7 @@ public class IamSecurityConfiguration {
 	        .authorizeHttpRequests(auth -> auth
 	            .requestMatchers("/api/auth/**").permitAll()
 	            .requestMatchers("/actuator/health").permitAll()
+	            .requestMatchers("/uploads/**").permitAll()
 	            .anyRequest().authenticated()
 	        )
 	        .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
