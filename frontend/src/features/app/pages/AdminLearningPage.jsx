@@ -281,12 +281,14 @@ export function AdminLearningPage() {
 
       {modal === 'createCourse' && (
         <CreateCourseModal
+          token={token}
           onClose={() => setModal(null)}
           onSubmit={handleCreateCourse}
         />
       )}
       {modal === 'editCourse' && modalContext?.course && (
         <EditCourseModal
+          token={token}
           course={modalContext.course}
           onClose={() => { setModal(null); setModalContext(null) }}
           onSubmit={(data) => handleEditCourse(modalContext.course.id, data)}

@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { FontAwesomeIcon, icons } from '../../../../shared/icons.js'
 import { Modal } from '../../../../shared/components/Modal.jsx'
+import { uploadFile } from '../../../../api/files.js'
 
 const styles = {
   form: { display: 'flex', flexDirection: 'column', gap: '1.25rem' },
@@ -56,13 +57,52 @@ const styles = {
     cursor: 'pointer',
   },
   error: { fontSize: '0.875rem', color: 'var(--slogbaa-error)' },
+  fileInput: { display: 'none' },
+  uploadBtn: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '0.4rem',
+    padding: '0.5rem 0.75rem',
+    background: 'var(--slogbaa-surface)',
+    border: '1px solid var(--slogbaa-border)',
+    borderRadius: 8,
+    fontSize: '0.875rem',
+    color: 'var(--slogbaa-text)',
+    cursor: 'pointer',
+  },
+  imagePreview: {
+    maxWidth: 120,
+    maxHeight: 80,
+    borderRadius: 8,
+    border: '1px solid var(--slogbaa-border)',
+    objectFit: 'cover',
+  },
 }
 
-export function CreateCourseModal({ onClose, onSubmit }) {
+export function CreateCourseModal({ token, onClose, onSubmit }) {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
+  const [imageUrl, setImageUrl] = useState(null)
+  const [uploading, setUploading] = useState(false)
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
+  const fileInputRef = useRef(null)
+
+  const handleFileChange = async (e) => {
+    const file = e.target?.files?.[0]
+    if (!file || !token) return
+    setError(null)
+    setUploading(true)
+    try {
+      const { url } = await uploadFile(token, file, 'courses')
+      setImageUrl(url)
+    } catch (err) {
+      setError(err?.message ?? 'Image upload failed.')
+    } finally {
+      setUploading(false)
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    }
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -73,7 +113,7 @@ export function CreateCourseModal({ onClose, onSubmit }) {
     }
     setLoading(true)
     try {
-      await onSubmit?.({ title: title.trim(), description: description.trim() || undefined })
+      await onSubmit?.({ title: title.trim(), description: description.trim() || undefined, imageUrl: imageUrl || undefined })
       onClose?.()
     } catch (err) {
       setError(err?.message ?? 'Failed to create course.')
@@ -96,6 +136,29 @@ export function CreateCourseModal({ onClose, onSubmit }) {
             placeholder="Course title"
             maxLength={500}
           />
+        </div>
+        <div style={styles.field}>
+          <label style={styles.label}>Image (optional)</label>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/gif,image/webp"
+            onChange={handleFileChange}
+            style={styles.fileInput}
+          />
+          <button
+            type="button"
+            style={styles.uploadBtn}
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploading}
+          >
+            <FontAwesomeIcon icon={icons.blockImage} /> {uploading ? 'Uploading…' : (imageUrl ? 'Change image' : 'Choose image')}
+          </button>
+          {imageUrl && (
+            <div style={{ marginTop: '0.5rem' }}>
+              <img src={imageUrl} alt="Preview" style={styles.imagePreview} />
+            </div>
+          )}
         </div>
         <div style={styles.field}>
           <label style={styles.label} htmlFor="course-desc">Description (optional)</label>

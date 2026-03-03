@@ -245,6 +245,7 @@ export function AdminCoursePage() {
 
       {modal === 'addModule' && (
         <AddModuleModal
+          token={token}
           course={course}
           onClose={() => setModal(null)}
           onSubmit={handleAddModule}

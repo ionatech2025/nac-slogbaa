@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useParams, Link, useOutletContext } from 'react-router-dom'
 import { getAdminCourseDetails, addContentBlock, updateContentBlock, updateModule } from '../../../api/admin/courses.js'
+import { uploadFile } from '../../../api/files.js'
 import { getCourseDetails } from '../../../api/learning/courses.js'
 import { ModuleEditorJs } from '../components/admin/ModuleEditorJs.jsx'
 import { EditorJsReadOnly } from '../components/admin/EditorJsReadOnly.jsx'
@@ -277,6 +278,7 @@ export function AdminModuleEditorPage() {
           contentBlocks: blocks,
           title: m.title ?? prev?.title ?? '',
           description: m.description ?? prev?.description ?? '',
+          imageUrl: m.imageUrl ?? prev?.imageUrl ?? null,
         }
       })
     } catch (err) {
@@ -379,7 +381,7 @@ export function AdminModuleEditorPage() {
     if (trimmed === module?.title) return
     setModule((m) => (m ? { ...m, title: trimmed } : m))
     try {
-      await updateModule(token, courseId, moduleId, { title: trimmed, description: module?.description ?? '' })
+      await updateModule(token, courseId, moduleId, { title: trimmed, description: module?.description ?? '', imageUrl: module?.imageUrl ?? undefined })
     } catch (_) {}
   }, [module, token, courseId, moduleId])
   const handleDescriptionBlur = useCallback(async (text) => {
@@ -387,9 +389,27 @@ export function AdminModuleEditorPage() {
     if (trimmed === (module?.description ?? '')) return
     setModule((m) => (m ? { ...m, description: trimmed } : m))
     try {
-      await updateModule(token, courseId, moduleId, { title: module?.title ?? '', description: trimmed })
+      await updateModule(token, courseId, moduleId, { title: module?.title ?? '', description: trimmed, imageUrl: module?.imageUrl ?? undefined })
     } catch (_) {}
   }, [module, token, courseId, moduleId])
+
+  const [imageUploading, setImageUploading] = useState(false)
+  const moduleImageInputRef = useRef(null)
+  const handleModuleImageUpload = useCallback(async (e) => {
+    const file = e.target?.files?.[0]
+    if (!file || !token) return
+    setImageUploading(true)
+    try {
+      const { url } = await uploadFile(token, file, 'courses')
+      setModule((m) => (m ? { ...m, imageUrl: url } : m))
+      await updateModule(token, courseId, moduleId, { title: module?.title ?? '', description: module?.description ?? '', imageUrl: url })
+      await refresh()
+    } catch (_) {}
+    finally {
+      setImageUploading(false)
+      if (moduleImageInputRef.current) moduleImageInputRef.current.value = ''
+    }
+  }, [token, courseId, moduleId, module?.title, module?.description, refresh])
 
   // Re-sync title/description into contentEditable refs after load or refresh (e.g. after Editor.js save).
   // When loading goes true→false we remount the divs; deps [module?.title, module?.id] are unchanged so
@@ -491,6 +511,47 @@ export function AdminModuleEditorPage() {
             onFocus={() => setFocusedRowIndex(1)}
           />
         </div>
+
+        {/* Module image (SuperAdmin only) */}
+        {isSuperAdmin && (
+          <div style={{ marginTop: '1rem', marginBottom: '1rem' }}>
+            <label style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--slogbaa-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: '0.5rem' }}>
+              Module image (optional)
+            </label>
+            <input
+              ref={moduleImageInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/gif,image/webp"
+              onChange={handleModuleImageUpload}
+              style={{ display: 'none' }}
+            />
+            <button
+              type="button"
+              onClick={() => moduleImageInputRef.current?.click()}
+              disabled={imageUploading}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                padding: '0.5rem 0.75rem',
+                background: 'var(--slogbaa-surface)',
+                border: '1px solid var(--slogbaa-border)',
+                borderRadius: 8,
+                fontSize: '0.875rem',
+                color: 'var(--slogbaa-text)',
+                cursor: imageUploading ? 'not-allowed' : 'pointer',
+              }}
+            >
+              <span style={{ width: 16, height: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>🖼</span>
+              {imageUploading ? 'Uploading…' : (module?.imageUrl ? 'Change image' : 'Upload image')}
+            </button>
+            {module?.imageUrl && (
+              <div style={{ marginTop: '0.5rem' }}>
+                <img src={module.imageUrl} alt="Module" style={{ maxWidth: 120, maxHeight: 80, borderRadius: 8, border: '1px solid var(--slogbaa-border)', objectFit: 'cover' }} />
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Block-based content: Editor.js for SuperAdmin (editable), read-only blocks for Admin */}
         <div style={{ marginTop: '1.5rem' }}>
