@@ -15,6 +15,7 @@ const MODULES_SUPER_ADMIN = [
   { path: 'homepage', label: 'Homepage', icon: icons.home },
   { path: 'overview', label: 'Overview', icon: icons.overview },
   { path: 'learning', label: 'Learning', icon: icons.learning },
+  { path: 'library', label: 'Library', icon: icons.library },
   { path: 'assessment', label: 'Assessment', icon: icons.assessment },
   { path: 'reports', label: 'Reports & Analytics', icon: icons.reports },
 ]
@@ -22,6 +23,7 @@ const MODULES_SUPER_ADMIN = [
 const MODULES_ADMIN = [
   { path: 'overview', label: 'Overview', icon: icons.overview },
   { path: 'learning', label: 'Learning', icon: icons.learning },
+  { path: 'library', label: 'Library', icon: icons.library },
   { path: 'reports', label: 'Reports & Analytics', icon: icons.reports },
 ]
 
