@@ -215,8 +215,8 @@ app.file.allowed-document-types=application/pdf
 
 ## Checklist for Course and Module Image (Phases 1–7)
 
-- [ ] Phase 1: FileStoragePort + LocalFileStorageAdapter + config + static mapping
-- [ ] Phase 2: POST /api/files/upload
+- [x] Phase 1: FileStoragePort + LocalFileStorageAdapter + config + static mapping
+- [x] Phase 2: POST /api/files/upload
 - [ ] Phase 3: Migration V12
 - [ ] Phase 4: Course image (domain, entity, commands, requests, responses, controller)
 - [ ] Phase 5: Module image (domain, entity, commands, requests, responses, controller)
