@@ -21,6 +21,9 @@ public class CourseEntity {
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
+    @Column(name = "image_url", length = 2048)
+    private String imageUrl;
+
     @Column(name = "is_published", nullable = false)
     private boolean published = false;
 
@@ -51,6 +54,8 @@ public class CourseEntity {
     public void setTitle(String title) { this.title = title; }
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
+    public String getImageUrl() { return imageUrl; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
     public boolean isPublished() { return published; }
     public void setPublished(boolean published) { this.published = published; }
     public UUID getCreatedBy() { return createdBy; }

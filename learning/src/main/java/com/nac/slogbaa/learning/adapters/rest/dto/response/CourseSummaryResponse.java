@@ -7,5 +7,6 @@ public record CourseSummaryResponse(
         String id,
         String title,
         String description,
+        String imageUrl,
         int moduleCount
 ) {}

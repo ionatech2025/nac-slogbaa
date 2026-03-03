@@ -9,6 +9,7 @@ public record CourseDetailsResponse(
         String id,
         String title,
         String description,
+        String imageUrl,
         boolean published,
         List<ModuleSummaryResponse> modules
 ) {}

@@ -10,14 +10,17 @@ public final class UpdateCourseCommand {
     private final UUID courseId;
     private final String title;
     private final String description;
+    private final String imageUrl;
 
-    public UpdateCourseCommand(UUID courseId, String title, String description) {
+    public UpdateCourseCommand(UUID courseId, String title, String description, String imageUrl) {
         this.courseId = Objects.requireNonNull(courseId);
         this.title = Objects.requireNonNull(title);
         this.description = description;
+        this.imageUrl = imageUrl;
     }
 
     public UUID getCourseId() { return courseId; }
     public String getTitle() { return title; }
     public String getDescription() { return description; }
+    public String getImageUrl() { return imageUrl; }
 }

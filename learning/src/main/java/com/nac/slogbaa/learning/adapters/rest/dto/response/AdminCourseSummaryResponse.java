@@ -7,6 +7,7 @@ public record AdminCourseSummaryResponse(
         String id,
         String title,
         String description,
+        String imageUrl,
         boolean published,
         int moduleCount
 ) {}

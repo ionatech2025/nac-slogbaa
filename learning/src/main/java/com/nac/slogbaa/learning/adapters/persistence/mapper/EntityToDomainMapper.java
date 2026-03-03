@@ -27,6 +27,7 @@ public class EntityToDomainMapper {
                 new CourseId(course.getId()),
                 course.getTitle(),
                 course.getDescription(),
+                course.getImageUrl(),
                 course.isPublished(),
                 modules
         );

@@ -14,6 +14,7 @@ public class CourseEntityMapper {
                 new CourseId(entity.getId()),
                 entity.getTitle(),
                 entity.getDescription(),
+                entity.getImageUrl(),
                 entity.isPublished(),
                 moduleCount
         );

@@ -103,6 +103,7 @@ public class AdminCourseController {
                         s.getId().toString(),
                         s.getTitle(),
                         s.getDescription(),
+                        s.getImageUrl(),
                         s.isPublished(),
                         s.getModuleCount()
                 ))
@@ -126,6 +127,7 @@ public class AdminCourseController {
         CreateCourseCommand command = new CreateCourseCommand(
                 request.title(),
                 request.description(),
+                request.imageUrl(),
                 identity.getUserId()
         );
         CourseId courseId = createCourseUseCase.execute(command);
@@ -142,7 +144,8 @@ public class AdminCourseController {
         UpdateCourseCommand command = new UpdateCourseCommand(
                 id,
                 request.title(),
-                request.description()
+                request.description(),
+                request.imageUrl()
         );
         updateCourseUseCase.execute(command);
         return ResponseEntity.noContent().build();
@@ -257,6 +260,7 @@ public class AdminCourseController {
                 d.getId().toString(),
                 d.getTitle(),
                 d.getDescription(),
+                d.getImageUrl(),
                 d.isPublished(),
                 modules
         );
