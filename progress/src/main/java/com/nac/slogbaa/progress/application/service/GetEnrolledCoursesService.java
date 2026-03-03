@@ -37,6 +37,7 @@ public final class GetEnrolledCoursesService implements GetEnrolledCoursesUseCas
                     s.getId(),
                     s.getTitle(),
                     s.getDescription(),
+                    s.getImageUrl(),
                     s.getModuleCount(),
                     progress.getCompletionPercentage()
             ));
