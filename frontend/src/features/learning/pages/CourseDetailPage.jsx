@@ -28,6 +28,29 @@ const styles = {
   },
   header: {
     marginBottom: '1.5rem',
+    display: 'flex',
+    gap: '1rem',
+    alignItems: 'flex-start',
+  },
+  courseImage: {
+    width: 120,
+    height: 80,
+    borderRadius: 8,
+    objectFit: 'cover',
+    flexShrink: 0,
+    background: 'var(--slogbaa-border)',
+  },
+  courseImagePlaceholder: {
+    width: 120,
+    height: 80,
+    borderRadius: 8,
+    background: 'var(--slogbaa-border)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: 'var(--slogbaa-text-muted)',
+    fontSize: '2rem',
+    flexShrink: 0,
   },
   title: {
     margin: '0 0 0.25rem',
@@ -58,7 +81,9 @@ const styles = {
     marginBottom: '0.25rem',
   },
   moduleLink: {
-    display: 'block',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem',
     padding: '0.625rem 0.75rem',
     borderRadius: 8,
     fontSize: '0.9375rem',
@@ -66,6 +91,14 @@ const styles = {
     textDecoration: 'none',
     background: 'var(--slogbaa-surface)',
     border: '1px solid var(--slogbaa-border)',
+  },
+  moduleLinkThumb: {
+    width: 36,
+    height: 36,
+    borderRadius: 6,
+    objectFit: 'cover',
+    flexShrink: 0,
+    background: 'var(--slogbaa-border)',
   },
   moduleLinkActive: {
     background: 'var(--slogbaa-blue)',
@@ -313,8 +346,15 @@ export function CourseDetailPage() {
           ← Back to courses
         </Link>
         <header style={styles.header}>
-          <h1 style={styles.title}>{course.title}</h1>
-          <p style={styles.description}>{course.description || ''}</p>
+          {course.imageUrl ? (
+            <img src={course.imageUrl} alt="" style={styles.courseImage} onError={(e) => { e.target.style.display = 'none' }} />
+          ) : (
+            <div style={styles.courseImagePlaceholder}>📚</div>
+          )}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <h1 style={styles.title}>{course.title}</h1>
+            <p style={styles.description}>{course.description || ''}</p>
+          </div>
         </header>
         <div style={styles.content}>
           <aside style={styles.sidebar}>
@@ -328,8 +368,15 @@ export function CourseDetailPage() {
                       ...(selectedModule?.id === m.id ? styles.moduleLinkActive : {}),
                     }}
                   >
-                    <span style={styles.moduleTitle}>{m.title}</span>
-                    {m.hasQuiz && <span style={styles.moduleMeta}> · Quiz</span>}
+                    {m.imageUrl ? (
+                      <img src={m.imageUrl} alt="" style={styles.moduleLinkThumb} loading="lazy" onError={(e) => { e.target.style.display = 'none' }} />
+                    ) : (
+                      <div style={{ ...styles.moduleLinkThumb, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem' }}>📦</div>
+                    )}
+                    <span>
+                      <span style={styles.moduleTitle}>{m.title}</span>
+                      {m.hasQuiz && <span style={styles.moduleMeta}> · Quiz</span>}
+                    </span>
                   </Link>
                 </li>
               ))}

@@ -104,6 +104,19 @@ const styles = {
   },
   loading: { padding: '1rem', color: 'var(--slogbaa-text-muted)' },
   error: { padding: '1rem', color: 'var(--slogbaa-error)' },
+  thumbWrap: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.75rem',
+  },
+  thumb: {
+    width: 48,
+    height: 48,
+    borderRadius: 8,
+    objectFit: 'cover',
+    flexShrink: 0,
+    background: 'var(--slogbaa-border)',
+  },
 }
 
 export function AdminLearningPage() {
@@ -228,13 +241,22 @@ export function AdminLearningPage() {
                   }}
                 >
                   <td style={styles.td}>
-                    <strong>{course.title}</strong>
-                    {course.description && (
-                      <div style={{ fontSize: '0.8125rem', color: 'var(--slogbaa-text-muted)', marginTop: 2 }}>
-                        {course.description.slice(0, 80)}
-                        {course.description.length > 80 ? '…' : ''}
+                    <div style={styles.thumbWrap}>
+                      {course.imageUrl ? (
+                        <img src={course.imageUrl} alt="" style={styles.thumb} onError={(e) => { e.target.style.display = 'none' }} />
+                      ) : (
+                        <div style={{ ...styles.thumb, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.25rem', color: 'var(--slogbaa-text-muted)' }}>📚</div>
+                      )}
+                      <div>
+                        <strong>{course.title}</strong>
+                        {course.description && (
+                          <div style={{ fontSize: '0.8125rem', color: 'var(--slogbaa-text-muted)', marginTop: 2 }}>
+                            {course.description.slice(0, 80)}
+                            {course.description.length > 80 ? '…' : ''}
+                          </div>
+                        )}
                       </div>
-                    )}
+                    </div>
                   </td>
                   <td style={styles.td}>
                     <span

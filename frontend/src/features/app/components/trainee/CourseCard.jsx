@@ -183,7 +183,7 @@ const styles = {
 }
 
 export function CourseCard({ course, enrolled, completionPercentage, onEnroll, onPreview, variant = 'vertical', viewHref, enrolling }) {
-  const imgSrc = course.imageUrl || '/assets/images/courses/placeholder.jpg'
+  const imgSrc = course.imageUrl || DEFAULT_IMG
   const isHorizontal = variant === 'horizontal'
 
   const imageBadges = []
