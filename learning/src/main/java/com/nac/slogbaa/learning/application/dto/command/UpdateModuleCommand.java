@@ -10,14 +10,17 @@ public final class UpdateModuleCommand {
     private final UUID moduleId;
     private final String title;
     private final String description;
+    private final String imageUrl;
 
-    public UpdateModuleCommand(UUID moduleId, String title, String description) {
+    public UpdateModuleCommand(UUID moduleId, String title, String description, String imageUrl) {
         this.moduleId = Objects.requireNonNull(moduleId);
         this.title = title != null ? title.trim() : "";
         this.description = description != null ? description : "";
+        this.imageUrl = imageUrl;
     }
 
     public UUID getModuleId() { return moduleId; }
     public String getTitle() { return title; }
     public String getDescription() { return description; }
+    public String getImageUrl() { return imageUrl; }
 }

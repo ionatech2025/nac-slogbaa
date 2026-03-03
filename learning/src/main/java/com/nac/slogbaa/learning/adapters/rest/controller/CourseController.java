@@ -85,6 +85,7 @@ public class CourseController {
                 m.getId().toString(),
                 m.getTitle(),
                 m.getDescription(),
+                m.getImageUrl(),
                 m.getModuleOrder(),
                 m.isHasQuiz(),
                 blocks

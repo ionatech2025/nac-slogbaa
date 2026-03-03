@@ -112,6 +112,7 @@ public class CourseDetailsQueryAdapter implements CourseDetailsQueryPort, Course
                 m.getId().getValue(),
                 m.getTitle(),
                 m.getDescription(),
+                m.getImageUrl(),
                 m.getModuleOrder().getPosition(),
                 m.isHasQuiz(),
                 blocks

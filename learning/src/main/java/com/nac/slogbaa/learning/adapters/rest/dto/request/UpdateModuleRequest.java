@@ -9,5 +9,8 @@ public record UpdateModuleRequest(
         @Size(max = 500)
         String title,
 
-        String description
+        String description,
+
+        @Size(max = 2048)
+        String imageUrl
 ) {}

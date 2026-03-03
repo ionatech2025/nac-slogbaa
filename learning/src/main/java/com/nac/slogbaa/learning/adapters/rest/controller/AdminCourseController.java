@@ -160,6 +160,7 @@ public class AdminCourseController {
                 id,
                 request.title(),
                 request.description(),
+                request.imageUrl(),
                 request.moduleOrder(),
                 request.hasQuiz()
         );
@@ -274,6 +275,7 @@ public class AdminCourseController {
                 m.getId().toString(),
                 m.getTitle(),
                 m.getDescription(),
+                m.getImageUrl(),
                 m.getModuleOrder(),
                 m.isHasQuiz(),
                 blocks

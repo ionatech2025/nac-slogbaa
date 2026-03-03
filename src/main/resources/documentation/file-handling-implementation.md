@@ -219,6 +219,6 @@ app.file.allowed-document-types=application/pdf
 - [x] Phase 2: POST /api/files/upload
 - [x] Phase 3: Migration V12
 - [x] Phase 4: Course image (domain, entity, commands, requests, responses, controller)
-- [ ] Phase 5: Module image (domain, entity, commands, requests, responses, controller)
+- [x] Phase 5: Module image (domain, entity, commands, requests, responses, controller)
 - [ ] Phase 6: Frontend upload + create/edit forms
 - [ ] Phase 7: Display images on cards

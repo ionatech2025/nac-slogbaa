@@ -83,6 +83,7 @@ public class CourseWriteAdapter implements CourseWritePort {
         entity.setCourse(course);
         entity.setTitle(command.getTitle());
         entity.setDescription(command.getDescription());
+        entity.setImageUrl(command.getImageUrl());
         entity.setModuleOrder(command.getModuleOrder());
         entity.setHasQuiz(command.isHasQuiz());
         entity.setCreatedAt(Instant.now());
@@ -97,6 +98,7 @@ public class CourseWriteAdapter implements CourseWritePort {
                 .orElseThrow(() -> new ModuleNotFoundException(command.getModuleId()));
         entity.setTitle(command.getTitle() != null && !command.getTitle().isEmpty() ? command.getTitle() : entity.getTitle());
         entity.setDescription(command.getDescription());
+        entity.setImageUrl(command.getImageUrl());
         entity.setUpdatedAt(Instant.now());
         jpaModuleRepository.save(entity);
     }

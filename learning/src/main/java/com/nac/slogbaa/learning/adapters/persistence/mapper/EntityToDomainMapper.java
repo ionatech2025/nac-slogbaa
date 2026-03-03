@@ -41,6 +41,7 @@ public class EntityToDomainMapper {
                 new ModuleId(entity.getId()),
                 entity.getTitle(),
                 entity.getDescription(),
+                entity.getImageUrl(),
                 new ModuleOrder(entity.getModuleOrder()),
                 entity.isHasQuiz(),
                 blocks
