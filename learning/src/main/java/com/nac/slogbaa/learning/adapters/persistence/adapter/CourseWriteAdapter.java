@@ -199,4 +199,13 @@ public class CourseWriteAdapter implements CourseWritePort {
         entity.setUpdatedAt(Instant.now());
         jpaCourseRepository.save(entity);
     }
+
+    @Override
+    public void unpublish(CourseId courseId) {
+        CourseEntity entity = jpaCourseRepository.findById(courseId.getValue())
+                .orElseThrow(() -> new CourseNotFoundException(courseId.getValue()));
+        entity.setPublished(false);
+        entity.setUpdatedAt(Instant.now());
+        jpaCourseRepository.save(entity);
+    }
 }

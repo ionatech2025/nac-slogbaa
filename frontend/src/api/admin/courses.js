@@ -152,3 +152,15 @@ export async function publishCourse(token, courseId) {
     throw new Error(body.detail ?? body.message ?? `Request failed (${res.status})`)
   }
 }
+
+/**
+ * POST /api/admin/courses/:id/unpublish — unpublish course.
+ */
+export async function unpublishCourse(token, courseId) {
+  assertToken(token)
+  const res = await apiClient(token).post(`/api/admin/courses/${courseId}/unpublish`)
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}))
+    throw new Error(body.detail ?? body.message ?? `Request failed (${res.status})`)
+  }
+}

@@ -29,4 +29,6 @@ public interface CourseWritePort {
     void deleteContentBlock(java.util.UUID blockId);
 
     void publish(CourseId courseId);
+
+    void unpublish(CourseId courseId);
 }

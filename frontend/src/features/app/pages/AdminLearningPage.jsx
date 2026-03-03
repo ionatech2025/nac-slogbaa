@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate, useOutletContext } from 'react-router-dom'
 import { FontAwesomeIcon, icons } from '../../../shared/icons.js'
-import { getAdminCourses, createCourse, updateCourse, publishCourse } from '../../../api/admin/courses.js'
+import { getAdminCourses, createCourse, updateCourse, publishCourse, unpublishCourse } from '../../../api/admin/courses.js'
 import { getAssetUrl } from '../../../api/client.js'
 import { CreateCourseModal } from '../components/admin/CreateCourseModal.jsx'
 import { EditCourseModal } from '../components/admin/EditCourseModal.jsx'
@@ -90,6 +90,20 @@ const styles = {
     cursor: 'pointer',
     marginRight: '0.5rem',
   },
+  actionIconBtn: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 32,
+    height: 32,
+    padding: 0,
+    background: 'rgba(39, 129, 191, 0.12)',
+    color: 'var(--slogbaa-blue)',
+    border: 'none',
+    borderRadius: 6,
+    cursor: 'pointer',
+    marginRight: '0.35rem',
+  },
   badge: {
     display: 'inline-block',
     padding: '0.2rem 0.5rem',
@@ -168,6 +182,12 @@ export function AdminLearningPage() {
   const handlePublish = async (e, courseId) => {
     e.stopPropagation()
     await publishCourse(token, courseId)
+    await refreshCourses()
+  }
+
+  const handleUnpublish = async (e, courseId) => {
+    e.stopPropagation()
+    await unpublishCourse(token, courseId)
     await refreshCourses()
   }
 
@@ -274,23 +294,32 @@ export function AdminLearningPage() {
                     <td style={styles.td} onClick={(e) => e.stopPropagation()}>
                       <button
                         type="button"
-                        style={styles.btnSecondary}
+                        style={styles.actionIconBtn}
                         onClick={() => {
                           setModalContext({ course })
                           setModal('editCourse')
                         }}
                         title="Edit course"
                       >
-                        <FontAwesomeIcon icon={icons.edit} /> Edit
+                        <FontAwesomeIcon icon={icons.edit} />
                       </button>
-                      {!course.published && (
+                      {!course.published ? (
                         <button
                           type="button"
-                          style={styles.btnSecondary}
+                          style={styles.actionIconBtn}
                           onClick={(e) => handlePublish(e, course.id)}
                           title="Publish"
                         >
-                          <FontAwesomeIcon icon={icons.publish} /> Publish
+                          <FontAwesomeIcon icon={icons.publish} />
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          style={styles.actionIconBtn}
+                          onClick={(e) => handleUnpublish(e, course.id)}
+                          title="Unpublish"
+                        >
+                          <FontAwesomeIcon icon={icons.unpublish} />
                         </button>
                       )}
                     </td>

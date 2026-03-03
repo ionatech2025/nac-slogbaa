@@ -12,6 +12,7 @@ import com.nac.slogbaa.learning.application.dto.command.AddModuleCommand;
 import com.nac.slogbaa.learning.application.dto.command.UpdateModuleCommand;
 import com.nac.slogbaa.learning.application.dto.command.CreateCourseCommand;
 import com.nac.slogbaa.learning.application.dto.command.PublishCourseCommand;
+import com.nac.slogbaa.learning.application.dto.command.UnpublishCourseCommand;
 import com.nac.slogbaa.learning.application.dto.command.UpdateContentBlockCommand;
 import com.nac.slogbaa.learning.application.dto.command.UpdateCourseCommand;
 import com.nac.slogbaa.learning.application.port.in.AddContentBlockToModuleUseCase;
@@ -20,6 +21,7 @@ import com.nac.slogbaa.learning.application.port.in.CreateCourseUseCase;
 import com.nac.slogbaa.learning.application.port.in.GetAdminCourseDetailsUseCase;
 import com.nac.slogbaa.learning.application.port.in.GetAdminCoursesUseCase;
 import com.nac.slogbaa.learning.application.port.in.PublishCourseUseCase;
+import com.nac.slogbaa.learning.application.port.in.UnpublishCourseUseCase;
 import com.nac.slogbaa.learning.application.port.in.DeleteContentBlockUseCase;
 import com.nac.slogbaa.learning.application.port.in.UpdateContentBlockUseCase;
 import com.nac.slogbaa.learning.application.port.in.UpdateCourseUseCase;
@@ -72,6 +74,7 @@ public class AdminCourseController {
     private final UpdateContentBlockUseCase updateContentBlockUseCase;
     private final DeleteContentBlockUseCase deleteContentBlockUseCase;
     private final PublishCourseUseCase publishCourseUseCase;
+    private final UnpublishCourseUseCase unpublishCourseUseCase;
 
     public AdminCourseController(GetAdminCoursesUseCase getAdminCoursesUseCase,
                                 GetAdminCourseDetailsUseCase getAdminCourseDetailsUseCase,
@@ -82,7 +85,8 @@ public class AdminCourseController {
                                 AddContentBlockToModuleUseCase addContentBlockToModuleUseCase,
                                 UpdateContentBlockUseCase updateContentBlockUseCase,
                                 DeleteContentBlockUseCase deleteContentBlockUseCase,
-                                PublishCourseUseCase publishCourseUseCase) {
+                                PublishCourseUseCase publishCourseUseCase,
+                                UnpublishCourseUseCase unpublishCourseUseCase) {
         this.getAdminCoursesUseCase = getAdminCoursesUseCase;
         this.getAdminCourseDetailsUseCase = getAdminCourseDetailsUseCase;
         this.createCourseUseCase = createCourseUseCase;
@@ -93,6 +97,7 @@ public class AdminCourseController {
         this.updateContentBlockUseCase = updateContentBlockUseCase;
         this.deleteContentBlockUseCase = deleteContentBlockUseCase;
         this.publishCourseUseCase = publishCourseUseCase;
+        this.unpublishCourseUseCase = unpublishCourseUseCase;
     }
 
     @GetMapping
@@ -179,7 +184,8 @@ public class AdminCourseController {
         UpdateModuleCommand command = new UpdateModuleCommand(
                 moduleId,
                 request.title(),
-                request.description()
+                request.description(),
+                request.imageUrl()
         );
         updateModuleUseCase.execute(command);
         return ResponseEntity.noContent().build();
@@ -250,6 +256,14 @@ public class AdminCourseController {
     public ResponseEntity<Void> publishCourse(@PathVariable UUID id) {
         PublishCourseCommand command = new PublishCourseCommand(id);
         publishCourseUseCase.execute(command);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/unpublish")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    public ResponseEntity<Void> unpublishCourse(@PathVariable UUID id) {
+        UnpublishCourseCommand command = new UnpublishCourseCommand(id);
+        unpublishCourseUseCase.execute(command);
         return ResponseEntity.noContent().build();
     }
 
