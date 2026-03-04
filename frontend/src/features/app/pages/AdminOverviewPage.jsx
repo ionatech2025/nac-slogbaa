@@ -92,27 +92,33 @@ const styles = {
     color: 'var(--slogbaa-text-muted)',
     fontSize: '0.9375rem',
   },
-  deleteBtn: {
-    padding: '0.35rem 0.6rem',
-    border: 'none',
-    borderRadius: 6,
-    background: 'rgba(200, 60, 60, 0.12)',
-    color: 'var(--slogbaa-error, #c0392b)',
-    cursor: 'pointer',
-    fontSize: '0.875rem',
-  },
-  deleteBtnHover: {
-    background: 'rgba(200, 60, 60, 0.22)',
-  },
   viewProfileBtn: {
-    padding: '0.35rem 0.6rem',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 32,
+    height: 32,
+    padding: 0,
     border: 'none',
     borderRadius: 6,
+    cursor: 'pointer',
+    marginRight: '0.35rem',
     background: 'rgba(39, 129, 191, 0.12)',
     color: 'var(--slogbaa-blue, #2781bf)',
+  },
+  deleteBtn: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 32,
+    height: 32,
+    padding: 0,
+    border: 'none',
+    borderRadius: 6,
     cursor: 'pointer',
-    fontSize: '0.875rem',
-    marginRight: '0.5rem',
+    marginRight: '0.35rem',
+    background: 'rgba(200, 60, 60, 0.12)',
+    color: 'var(--slogbaa-error, #c0392b)',
   },
   loading: {
     padding: '1rem',
@@ -344,7 +350,7 @@ export function AdminOverviewPage() {
                             disabled={deletingId === s.id}
                             title="Delete staff"
                           >
-                            <FontAwesomeIcon icon={icons.delete} /> Delete
+                            <FontAwesomeIcon icon={icons.delete} />
                           </button>
                         ) : null}
                       </td>
@@ -394,7 +400,7 @@ export function AdminOverviewPage() {
                         disabled={profileViewLoading}
                         title="View profile"
                       >
-                        <FontAwesomeIcon icon={icons.viewProfile} /> View profile
+                        <FontAwesomeIcon icon={icons.viewProfile} />
                       </button>
                       {isSuperAdmin && (
                         <button
@@ -404,7 +410,7 @@ export function AdminOverviewPage() {
                           disabled={deletingId === t.id}
                           title="Delete trainee"
                         >
-                          <FontAwesomeIcon icon={icons.delete} /> Delete
+                          <FontAwesomeIcon icon={icons.delete} />
                         </button>
                       )}
                     </td>

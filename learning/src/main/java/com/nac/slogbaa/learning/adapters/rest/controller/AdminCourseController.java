@@ -110,7 +110,8 @@ public class AdminCourseController {
                         s.getDescription(),
                         s.getImageUrl(),
                         s.isPublished(),
-                        s.getModuleCount()
+                        s.getModuleCount(),
+                        s.getCreatedAt() != null ? s.getCreatedAt().toString() : null
                 ))
                 .toList();
         return ResponseEntity.ok(list);

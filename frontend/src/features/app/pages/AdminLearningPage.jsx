@@ -1,10 +1,48 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useNavigate, useOutletContext } from 'react-router-dom'
 import { FontAwesomeIcon, icons } from '../../../shared/icons.js'
 import { getAdminCourses, createCourse, updateCourse, publishCourse, unpublishCourse } from '../../../api/admin/courses.js'
 import { getAssetUrl } from '../../../api/client.js'
 import { CreateCourseModal } from '../components/admin/CreateCourseModal.jsx'
 import { EditCourseModal } from '../components/admin/EditCourseModal.jsx'
+import { FilterSortBar } from '../../../shared/components/FilterSortBar.jsx'
+import { filterAndSortItems } from '../../../shared/utils/filterSort.js'
+
+const COURSE_FILTERS = [
+  {
+    key: 'status',
+    label: 'Status',
+    options: [
+      { value: 'all', label: 'All' },
+      { value: 'published', label: 'Published' },
+      { value: 'draft', label: 'Draft' },
+    ],
+  },
+]
+
+const COURSE_SORT_OPTIONS = [
+  { value: 'createdAt:desc', label: 'Date created (newest first)' },
+  { value: 'createdAt:asc', label: 'Date created (oldest first)' },
+  { value: 'title:asc', label: 'Title A–Z' },
+  { value: 'title:desc', label: 'Title Z–A' },
+  { value: 'moduleCount:desc', label: 'Modules (high first)' },
+  { value: 'moduleCount:asc', label: 'Modules (low first)' },
+  { value: 'published:desc', label: 'Published first' },
+  { value: 'published:asc', label: 'Draft first' },
+]
+
+const COURSE_FILTER_CONFIG = {
+  status: {
+    getValue: (item) => (item.published ? 'published' : 'draft'),
+  },
+}
+
+const COURSE_SORT_CONFIG = {
+  getValue: (item, field) => {
+    if (field === 'published') return item.published
+    return item[field]
+  },
+}
 
 const styles = {
   pageTitle: {
@@ -142,6 +180,26 @@ export function AdminLearningPage() {
   const [error, setError] = useState(null)
   const [modal, setModal] = useState(null)
   const [modalContext, setModalContext] = useState(null)
+  const [search, setSearch] = useState('')
+  const [filterValues, setFilterValues] = useState({ status: 'all' })
+  const [sortBy, setSortBy] = useState('createdAt:desc')
+
+  const filteredCourses = useMemo(
+    () =>
+      filterAndSortItems(courses, {
+        search,
+        searchFields: ['title', 'description'],
+        filters: filterValues,
+        filterConfig: COURSE_FILTER_CONFIG,
+        sortBy,
+        sortConfig: COURSE_SORT_CONFIG,
+      }),
+    [courses, search, filterValues, sortBy]
+  )
+
+  const handleFilterChange = useCallback((key, value) => {
+    setFilterValues((prev) => ({ ...prev, [key]: value }))
+  }, [])
 
   const refreshCourses = useCallback(async () => {
     if (!token) return
@@ -207,7 +265,7 @@ export function AdminLearningPage() {
 
       <div style={styles.toolbar}>
         <p style={{ margin: 0, color: 'var(--slogbaa-text-muted)' }}>
-          {courses.length} course{courses.length !== 1 ? 's' : ''}
+          {filteredCourses.length} of {courses.length} course{courses.length !== 1 ? 's' : ''}
         </p>
         {isSuperAdmin && (
           <button
@@ -220,6 +278,18 @@ export function AdminLearningPage() {
           </button>
         )}
       </div>
+
+      <FilterSortBar
+        searchPlaceholder="Search courses…"
+        searchValue={search}
+        onSearchChange={setSearch}
+        filters={COURSE_FILTERS}
+        filterValues={filterValues}
+        onFilterChange={handleFilterChange}
+        sortOptions={COURSE_SORT_OPTIONS}
+        sortValue={sortBy}
+        onSortChange={setSortBy}
+      />
 
       <div style={styles.tableWrap}>
         <table style={styles.table}>
@@ -238,8 +308,14 @@ export function AdminLearningPage() {
                   No courses yet. {isSuperAdmin && 'Click Create course to add one.'}
                 </td>
               </tr>
+            ) : filteredCourses.length === 0 ? (
+              <tr>
+                <td colSpan={isSuperAdmin ? 4 : 3} style={styles.empty}>
+                  No courses match your filters. Try different search or filter options.
+                </td>
+              </tr>
             ) : (
-              courses.map((course) => (
+              filteredCourses.map((course) => (
                 <tr
                   key={course.id}
                   style={styles.trClickable}
