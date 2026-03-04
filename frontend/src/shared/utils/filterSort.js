@@ -65,6 +65,11 @@ export function sortItems(items, sortBy, sortConfig = {}) {
     if (typeof va === 'number' && typeof vb === 'number') {
       return asc ? va - vb : vb - va
     }
+    // ISO date strings sort correctly with localeCompare
+    if (typeof va === 'string' && typeof vb === 'string' && /^\d{4}-\d{2}-\d{2}/.test(va) && /^\d{4}-\d{2}-\d{2}/.test(vb)) {
+      const cmp = va.localeCompare(vb)
+      return asc ? cmp : -cmp
+    }
     const sa = String(va ?? '').toLowerCase()
     const sb = String(vb ?? '').toLowerCase()
     const cmp = sa.localeCompare(sb)

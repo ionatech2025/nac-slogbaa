@@ -62,7 +62,8 @@ public class CourseDetailsQueryAdapter implements CourseDetailsQueryPort, Course
                             c.getDescription(),
                             c.getImageUrl(),
                             c.isPublished(),
-                            moduleCount
+                            moduleCount,
+                            c.getCreatedAt()
                     );
                 })
                 .toList();

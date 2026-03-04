@@ -21,6 +21,8 @@ const COURSE_FILTERS = [
 ]
 
 const COURSE_SORT_OPTIONS = [
+  { value: 'createdAt:desc', label: 'Date created (newest first)' },
+  { value: 'createdAt:asc', label: 'Date created (oldest first)' },
   { value: 'title:asc', label: 'Title A–Z' },
   { value: 'title:desc', label: 'Title Z–A' },
   { value: 'moduleCount:desc', label: 'Modules (high first)' },
@@ -180,7 +182,7 @@ export function AdminLearningPage() {
   const [modalContext, setModalContext] = useState(null)
   const [search, setSearch] = useState('')
   const [filterValues, setFilterValues] = useState({ status: 'all' })
-  const [sortBy, setSortBy] = useState('title:asc')
+  const [sortBy, setSortBy] = useState('createdAt:desc')
 
   const filteredCourses = useMemo(
     () =>
