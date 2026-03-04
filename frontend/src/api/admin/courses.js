@@ -37,9 +37,9 @@ export async function getAdminCourseDetails(token, courseId) {
 /**
  * POST /api/admin/courses — create course. SuperAdmin only.
  */
-export async function createCourse(token, { title, description }) {
+export async function createCourse(token, { title, description, imageUrl }) {
   assertToken(token)
-  const res = await apiClient(token).post('/api/admin/courses', { title, description })
+  const res = await apiClient(token).post('/api/admin/courses', { title, description, imageUrl })
   if (!res.ok) {
     const body = await res.json().catch(() => ({}))
     throw new Error(body.detail ?? body.message ?? `Request failed (${res.status})`)
@@ -51,9 +51,9 @@ export async function createCourse(token, { title, description }) {
 /**
  * PUT /api/admin/courses/:id — update course.
  */
-export async function updateCourse(token, courseId, { title, description }) {
+export async function updateCourse(token, courseId, { title, description, imageUrl }) {
   assertToken(token)
-  const res = await apiClient(token).put(`/api/admin/courses/${courseId}`, { title, description })
+  const res = await apiClient(token).put(`/api/admin/courses/${courseId}`, { title, description, imageUrl })
   if (!res.ok) {
     const body = await res.json().catch(() => ({}))
     throw new Error(body.detail ?? body.message ?? `Request failed (${res.status})`)
@@ -63,11 +63,12 @@ export async function updateCourse(token, courseId, { title, description }) {
 /**
  * POST /api/admin/courses/:id/modules — add module.
  */
-export async function addModule(token, courseId, { title, description, moduleOrder, hasQuiz }) {
+export async function addModule(token, courseId, { title, description, imageUrl, moduleOrder, hasQuiz }) {
   assertToken(token)
   const res = await apiClient(token).post(`/api/admin/courses/${courseId}/modules`, {
     title,
     description: description ?? '',
+    imageUrl: imageUrl ?? undefined,
     moduleOrder: moduleOrder ?? 0,
     hasQuiz: hasQuiz ?? false,
   })
@@ -82,11 +83,11 @@ export async function addModule(token, courseId, { title, description, moduleOrd
 /**
  * PUT /api/admin/courses/:courseId/modules/:moduleId — update module (title, description).
  */
-export async function updateModule(token, courseId, moduleId, { title, description }) {
+export async function updateModule(token, courseId, moduleId, { title, description, imageUrl }) {
   assertToken(token)
   const res = await apiClient(token).put(
     `/api/admin/courses/${courseId}/modules/${moduleId}`,
-    { title: title ?? '', description: description ?? '' }
+    { title: title ?? '', description: description ?? '', imageUrl: imageUrl ?? undefined }
   )
   if (!res.ok) {
     const body = await res.json().catch(() => ({}))
@@ -146,6 +147,18 @@ export async function deleteContentBlock(token, courseId, moduleId, blockId) {
 export async function publishCourse(token, courseId) {
   assertToken(token)
   const res = await apiClient(token).post(`/api/admin/courses/${courseId}/publish`)
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}))
+    throw new Error(body.detail ?? body.message ?? `Request failed (${res.status})`)
+  }
+}
+
+/**
+ * POST /api/admin/courses/:id/unpublish — unpublish course.
+ */
+export async function unpublishCourse(token, courseId) {
+  assertToken(token)
+  const res = await apiClient(token).post(`/api/admin/courses/${courseId}/unpublish`)
   if (!res.ok) {
     const body = await res.json().catch(() => ({}))
     throw new Error(body.detail ?? body.message ?? `Request failed (${res.status})`)

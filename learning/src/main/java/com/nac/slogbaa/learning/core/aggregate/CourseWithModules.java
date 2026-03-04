@@ -15,14 +15,16 @@ public final class CourseWithModules {
     private final CourseId id;
     private final String title;
     private final String description;
+    private final String imageUrl;
     private final boolean published;
     private final List<Module> modules;
 
-    public CourseWithModules(CourseId id, String title, String description, boolean published,
+    public CourseWithModules(CourseId id, String title, String description, String imageUrl, boolean published,
                              List<Module> modules) {
         this.id = Objects.requireNonNull(id);
         this.title = Objects.requireNonNull(title);
         this.description = description;
+        this.imageUrl = imageUrl;
         this.published = published;
         this.modules = modules != null ? List.copyOf(modules) : List.of();
     }
@@ -30,6 +32,7 @@ public final class CourseWithModules {
     public CourseId getId() { return id; }
     public String getTitle() { return title; }
     public String getDescription() { return description; }
+    public String getImageUrl() { return imageUrl; }
     public boolean isPublished() { return published; }
     public List<Module> getModules() { return Collections.unmodifiableList(modules); }
 }

@@ -21,7 +21,8 @@ public class UpdateCourseService implements UpdateCourseUseCase {
         courseWritePort.updateCourse(
                 command.getCourseId(),
                 command.getTitle(),
-                command.getDescription()
+                command.getDescription(),
+                command.getImageUrl()
         );
     }
 }

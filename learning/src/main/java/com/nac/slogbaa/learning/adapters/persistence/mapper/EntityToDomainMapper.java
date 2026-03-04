@@ -27,6 +27,7 @@ public class EntityToDomainMapper {
                 new CourseId(course.getId()),
                 course.getTitle(),
                 course.getDescription(),
+                course.getImageUrl(),
                 course.isPublished(),
                 modules
         );
@@ -40,6 +41,7 @@ public class EntityToDomainMapper {
                 new ModuleId(entity.getId()),
                 entity.getTitle(),
                 entity.getDescription(),
+                entity.getImageUrl(),
                 new ModuleOrder(entity.getModuleOrder()),
                 entity.isHasQuiz(),
                 blocks

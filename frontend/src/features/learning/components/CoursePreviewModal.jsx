@@ -3,6 +3,7 @@ import { Modal } from '../../../shared/components/Modal.jsx'
 import { FontAwesomeIcon, icons } from '../../../shared/icons.js'
 import { useAuth } from '../../iam/hooks/useAuth.js'
 import { getCourseDetails } from '../../../api/learning/courses.js'
+import { getAssetUrl } from '../../../api/client.js'
 
 function findFirstVideoBlock(course) {
   for (const module of course?.modules ?? []) {
@@ -14,6 +15,26 @@ function findFirstVideoBlock(course) {
 }
 
 const styles = {
+  image: {
+    width: '100%',
+    aspectRatio: '16/9',
+    objectFit: 'cover',
+    borderRadius: 8,
+    marginBottom: '1.25rem',
+    background: 'var(--slogbaa-border)',
+  },
+  imagePlaceholder: {
+    width: '100%',
+    aspectRatio: '16/9',
+    borderRadius: 8,
+    marginBottom: '1.25rem',
+    background: 'var(--slogbaa-border)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: 'var(--slogbaa-text-muted)',
+    fontSize: '3rem',
+  },
   description: {
     margin: '0 0 1.25rem',
     fontSize: '0.9375rem',
@@ -105,6 +126,11 @@ export function CoursePreviewModal({ course, onClose, onEnroll }) {
       {error && <div style={styles.error}>{error}</div>}
       {!loading && !error && details && (
         <>
+          {details.imageUrl ? (
+            <img src={getAssetUrl(details.imageUrl)} alt="" style={styles.image} onError={(e) => { e.target.style.display = 'none' }} />
+          ) : (
+            <div style={styles.imagePlaceholder}>📚</div>
+          )}
           {details.description && (
             <p style={styles.description}>{details.description}</p>
           )}

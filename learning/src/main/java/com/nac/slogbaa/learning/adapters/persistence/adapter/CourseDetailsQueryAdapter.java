@@ -60,6 +60,7 @@ public class CourseDetailsQueryAdapter implements CourseDetailsQueryPort, Course
                             c.getId(),
                             c.getTitle(),
                             c.getDescription(),
+                            c.getImageUrl(),
                             c.isPublished(),
                             moduleCount
                     );
@@ -77,7 +78,7 @@ public class CourseDetailsQueryAdapter implements CourseDetailsQueryPort, Course
     @Override
     public Optional<CourseSummary> getSummaryByCourseId(UUID courseId) {
         return findCourseDetailsById(courseId)
-                .map(d -> new CourseSummary(d.getId(), d.getTitle(), d.getDescription(), d.getModules().size()));
+                .map(d -> new CourseSummary(d.getId(), d.getTitle(), d.getDescription(), d.getImageUrl(), d.getModules().size()));
     }
 
     private CourseWithModules toCourseWithModules(CourseEntity course) {
@@ -97,6 +98,7 @@ public class CourseDetailsQueryAdapter implements CourseDetailsQueryPort, Course
                 domain.getId().getValue(),
                 domain.getTitle(),
                 domain.getDescription(),
+                domain.getImageUrl(),
                 domain.isPublished(),
                 modules
         );
@@ -110,6 +112,7 @@ public class CourseDetailsQueryAdapter implements CourseDetailsQueryPort, Course
                 m.getId().getValue(),
                 m.getTitle(),
                 m.getDescription(),
+                m.getImageUrl(),
                 m.getModuleOrder().getPosition(),
                 m.isHasQuiz(),
                 blocks

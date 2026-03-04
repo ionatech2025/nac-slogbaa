@@ -9,6 +9,7 @@ public record EnrolledCourseResult(
         UUID id,
         String title,
         String description,
+        String imageUrl,
         int moduleCount,
         int completionPercentage
 ) {}

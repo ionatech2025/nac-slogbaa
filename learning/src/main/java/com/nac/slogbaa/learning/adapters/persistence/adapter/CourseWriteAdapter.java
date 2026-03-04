@@ -52,6 +52,7 @@ public class CourseWriteAdapter implements CourseWritePort {
         entity.setId(id);
         entity.setTitle(command.getTitle());
         entity.setDescription(command.getDescription());
+        entity.setImageUrl(command.getImageUrl());
         entity.setPublished(false);
         entity.setCreatedBy(command.getCreatedBy());
         entity.setCreatedAt(Instant.now());
@@ -61,11 +62,12 @@ public class CourseWriteAdapter implements CourseWritePort {
     }
 
     @Override
-    public void updateCourse(UUID courseId, String title, String description) {
+    public void updateCourse(UUID courseId, String title, String description, String imageUrl) {
         CourseEntity entity = jpaCourseRepository.findById(courseId)
                 .orElseThrow(() -> new CourseNotFoundException(courseId));
         entity.setTitle(title);
         entity.setDescription(description);
+        entity.setImageUrl(imageUrl);
         entity.setUpdatedAt(Instant.now());
         jpaCourseRepository.save(entity);
     }
@@ -81,6 +83,7 @@ public class CourseWriteAdapter implements CourseWritePort {
         entity.setCourse(course);
         entity.setTitle(command.getTitle());
         entity.setDescription(command.getDescription());
+        entity.setImageUrl(command.getImageUrl());
         entity.setModuleOrder(command.getModuleOrder());
         entity.setHasQuiz(command.isHasQuiz());
         entity.setCreatedAt(Instant.now());
@@ -95,6 +98,7 @@ public class CourseWriteAdapter implements CourseWritePort {
                 .orElseThrow(() -> new ModuleNotFoundException(command.getModuleId()));
         entity.setTitle(command.getTitle() != null && !command.getTitle().isEmpty() ? command.getTitle() : entity.getTitle());
         entity.setDescription(command.getDescription());
+        entity.setImageUrl(command.getImageUrl());
         entity.setUpdatedAt(Instant.now());
         jpaModuleRepository.save(entity);
     }
@@ -192,6 +196,15 @@ public class CourseWriteAdapter implements CourseWritePort {
         CourseEntity entity = jpaCourseRepository.findById(courseId.getValue())
                 .orElseThrow(() -> new CourseNotFoundException(courseId.getValue()));
         entity.setPublished(true);
+        entity.setUpdatedAt(Instant.now());
+        jpaCourseRepository.save(entity);
+    }
+
+    @Override
+    public void unpublish(CourseId courseId) {
+        CourseEntity entity = jpaCourseRepository.findById(courseId.getValue())
+                .orElseThrow(() -> new CourseNotFoundException(courseId.getValue()));
+        entity.setPublished(false);
         entity.setUpdatedAt(Instant.now());
         jpaCourseRepository.save(entity);
     }

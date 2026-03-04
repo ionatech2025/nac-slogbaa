@@ -30,6 +30,7 @@ public final class GetPublishedCoursesService implements GetPublishedCoursesUseC
                 c.getId().getValue(),
                 c.getTitle(),
                 c.getDescription(),
+                c.getImageUrl(),
                 c.getModuleCount()
         );
     }

@@ -16,7 +16,7 @@ public interface CourseWritePort {
 
     CourseId createCourse(CreateCourseCommand command);
 
-    void updateCourse(java.util.UUID courseId, String title, String description);
+    void updateCourse(java.util.UUID courseId, String title, String description, String imageUrl);
 
     ModuleId addModule(AddModuleCommand command);
 
@@ -29,4 +29,6 @@ public interface CourseWritePort {
     void deleteContentBlock(java.util.UUID blockId);
 
     void publish(CourseId courseId);
+
+    void unpublish(CourseId courseId);
 }

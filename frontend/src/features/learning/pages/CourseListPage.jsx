@@ -230,6 +230,7 @@ export function CourseListPage() {
                 id: course.id,
                 title: course.title,
                 description: course.description || 'No description.',
+                imageUrl: course.imageUrl,
                 meta: `${course.moduleCount} module${course.moduleCount !== 1 ? 's' : ''}`,
               }}
               onEnroll={handleEnroll}

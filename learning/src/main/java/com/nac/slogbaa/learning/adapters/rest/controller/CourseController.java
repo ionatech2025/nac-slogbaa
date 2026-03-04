@@ -58,6 +58,7 @@ public class CourseController {
                 s.getId().toString(),
                 s.getTitle(),
                 s.getDescription(),
+                s.getImageUrl(),
                 s.getModuleCount()
         );
     }
@@ -70,6 +71,7 @@ public class CourseController {
                 d.getId().toString(),
                 d.getTitle(),
                 d.getDescription(),
+                d.getImageUrl(),
                 d.isPublished(),
                 modules
         );
@@ -83,6 +85,7 @@ public class CourseController {
                 m.getId().toString(),
                 m.getTitle(),
                 m.getDescription(),
+                m.getImageUrl(),
                 m.getModuleOrder(),
                 m.isHasQuiz(),
                 blocks

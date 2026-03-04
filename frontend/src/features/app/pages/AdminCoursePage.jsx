@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useParams, Link, useOutletContext } from 'react-router-dom'
 import { FontAwesomeIcon, icons } from '../../../shared/icons.js'
 import { getAdminCourseDetails, addModule, publishCourse } from '../../../api/admin/courses.js'
+import { getAssetUrl } from '../../../api/client.js'
 import { AddModuleModal } from '../components/admin/AddModuleModal.jsx'
 
 const styles = {
@@ -22,6 +23,29 @@ const styles = {
   },
   header: {
     marginBottom: '2rem',
+    display: 'flex',
+    gap: '1rem',
+    alignItems: 'flex-start',
+  },
+  courseImage: {
+    width: 120,
+    height: 80,
+    borderRadius: 8,
+    objectFit: 'cover',
+    flexShrink: 0,
+    background: 'var(--slogbaa-border)',
+  },
+  courseImagePlaceholder: {
+    width: 120,
+    height: 80,
+    borderRadius: 8,
+    background: 'var(--slogbaa-border)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: 'var(--slogbaa-text-muted)',
+    fontSize: '2rem',
+    flexShrink: 0,
   },
   title: {
     margin: '0 0 0.5rem',
@@ -133,6 +157,24 @@ const styles = {
   },
   loading: { padding: '2rem', color: 'var(--slogbaa-text-muted)' },
   error: { padding: '1.5rem', color: 'var(--slogbaa-error)' },
+  moduleCardImageWrap: {
+    width: 'calc(100% + 3rem)',
+    height: 100,
+    margin: '-1.25rem -1.5rem 1rem -1.5rem',
+    background: 'var(--slogbaa-border)',
+    borderRadius: '8px 8px 0 0',
+    overflow: 'hidden',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: 'var(--slogbaa-text-muted)',
+    fontSize: '2rem',
+  },
+  moduleCardImage: {
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover',
+  },
 }
 
 function ModuleCard({ module, courseId, onMouseEnter, onMouseLeave, hover }) {
@@ -147,6 +189,13 @@ function ModuleCard({ module, courseId, onMouseEnter, onMouseLeave, hover }) {
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
+      <div style={styles.moduleCardImageWrap}>
+        {module.imageUrl ? (
+          <img src={getAssetUrl(module.imageUrl)} alt="" style={styles.moduleCardImage} loading="lazy" onError={(e) => { e.target.style.display = 'none' }} />
+        ) : (
+          <span>📦</span>
+        )}
+      </div>
       <h3 style={styles.moduleCardTitle}>{module.title}</h3>
       <p style={styles.moduleCardMeta}>
         Order: {module.moduleOrder ?? 0} · {blockCount} block{blockCount !== 1 ? 's' : ''}
@@ -207,8 +256,14 @@ export function AdminCoursePage() {
       </Link>
 
       <header style={styles.header}>
-        <h1 style={styles.title}>{course.title}</h1>
-        {course.description && <p style={styles.description}>{course.description}</p>}
+        {course.imageUrl ? (
+          <img src={getAssetUrl(course.imageUrl)} alt="" style={styles.courseImage} onError={(e) => { e.target.style.display = 'none' }} />
+        ) : (
+          <div style={styles.courseImagePlaceholder}>📚</div>
+        )}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <h1 style={styles.title}>{course.title}</h1>
+          {course.description && <p style={styles.description}>{course.description}</p>}
         <span style={{ ...styles.badge, ...(course.published ? {} : styles.badgeDraft) }}>
           {course.published ? 'Published' : 'Draft'}
         </span>
@@ -217,6 +272,7 @@ export function AdminCoursePage() {
             <FontAwesomeIcon icon={icons.publish} /> Publish
           </button>
         )}
+        </div>
       </header>
 
       <div style={styles.moduleGrid}>
@@ -245,6 +301,7 @@ export function AdminCoursePage() {
 
       {modal === 'addModule' && (
         <AddModuleModal
+          token={token}
           course={course}
           onClose={() => setModal(null)}
           onSubmit={handleAddModule}

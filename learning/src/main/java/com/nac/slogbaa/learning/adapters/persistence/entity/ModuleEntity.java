@@ -26,6 +26,9 @@ public class ModuleEntity {
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
+    @Column(name = "image_url", length = 2048)
+    private String imageUrl;
+
     @Column(name = "module_order", nullable = false)
     private int moduleOrder;
 
@@ -58,6 +61,8 @@ public class ModuleEntity {
     public void setTitle(String title) { this.title = title; }
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
+    public String getImageUrl() { return imageUrl; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
     public int getModuleOrder() { return moduleOrder; }
     public void setModuleOrder(int moduleOrder) { this.moduleOrder = moduleOrder; }
     public boolean isHasQuiz() { return hasQuiz; }

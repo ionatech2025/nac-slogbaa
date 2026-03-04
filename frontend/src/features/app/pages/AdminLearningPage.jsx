@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate, useOutletContext } from 'react-router-dom'
 import { FontAwesomeIcon, icons } from '../../../shared/icons.js'
-import { getAdminCourses, createCourse, updateCourse, publishCourse } from '../../../api/admin/courses.js'
+import { getAdminCourses, createCourse, updateCourse, publishCourse, unpublishCourse } from '../../../api/admin/courses.js'
+import { getAssetUrl } from '../../../api/client.js'
 import { CreateCourseModal } from '../components/admin/CreateCourseModal.jsx'
 import { EditCourseModal } from '../components/admin/EditCourseModal.jsx'
 
@@ -89,6 +90,20 @@ const styles = {
     cursor: 'pointer',
     marginRight: '0.5rem',
   },
+  actionIconBtn: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 32,
+    height: 32,
+    padding: 0,
+    background: 'rgba(39, 129, 191, 0.12)',
+    color: 'var(--slogbaa-blue)',
+    border: 'none',
+    borderRadius: 6,
+    cursor: 'pointer',
+    marginRight: '0.35rem',
+  },
   badge: {
     display: 'inline-block',
     padding: '0.2rem 0.5rem',
@@ -104,6 +119,19 @@ const styles = {
   },
   loading: { padding: '1rem', color: 'var(--slogbaa-text-muted)' },
   error: { padding: '1rem', color: 'var(--slogbaa-error)' },
+  thumbWrap: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.75rem',
+  },
+  thumb: {
+    width: 48,
+    height: 48,
+    borderRadius: 8,
+    objectFit: 'cover',
+    flexShrink: 0,
+    background: 'var(--slogbaa-border)',
+  },
 }
 
 export function AdminLearningPage() {
@@ -154,6 +182,12 @@ export function AdminLearningPage() {
   const handlePublish = async (e, courseId) => {
     e.stopPropagation()
     await publishCourse(token, courseId)
+    await refreshCourses()
+  }
+
+  const handleUnpublish = async (e, courseId) => {
+    e.stopPropagation()
+    await unpublishCourse(token, courseId)
     await refreshCourses()
   }
 
@@ -228,13 +262,22 @@ export function AdminLearningPage() {
                   }}
                 >
                   <td style={styles.td}>
-                    <strong>{course.title}</strong>
-                    {course.description && (
-                      <div style={{ fontSize: '0.8125rem', color: 'var(--slogbaa-text-muted)', marginTop: 2 }}>
-                        {course.description.slice(0, 80)}
-                        {course.description.length > 80 ? '…' : ''}
+                    <div style={styles.thumbWrap}>
+                      {course.imageUrl ? (
+                        <img src={getAssetUrl(course.imageUrl)} alt="" style={styles.thumb} onError={(e) => { e.target.style.display = 'none' }} />
+                      ) : (
+                        <div style={{ ...styles.thumb, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.25rem', color: 'var(--slogbaa-text-muted)' }}>📚</div>
+                      )}
+                      <div>
+                        <strong>{course.title}</strong>
+                        {course.description && (
+                          <div style={{ fontSize: '0.8125rem', color: 'var(--slogbaa-text-muted)', marginTop: 2 }}>
+                            {course.description.slice(0, 80)}
+                            {course.description.length > 80 ? '…' : ''}
+                          </div>
+                        )}
                       </div>
-                    )}
+                    </div>
                   </td>
                   <td style={styles.td}>
                     <span
@@ -251,23 +294,32 @@ export function AdminLearningPage() {
                     <td style={styles.td} onClick={(e) => e.stopPropagation()}>
                       <button
                         type="button"
-                        style={styles.btnSecondary}
+                        style={styles.actionIconBtn}
                         onClick={() => {
                           setModalContext({ course })
                           setModal('editCourse')
                         }}
                         title="Edit course"
                       >
-                        <FontAwesomeIcon icon={icons.edit} /> Edit
+                        <FontAwesomeIcon icon={icons.edit} />
                       </button>
-                      {!course.published && (
+                      {!course.published ? (
                         <button
                           type="button"
-                          style={styles.btnSecondary}
+                          style={styles.actionIconBtn}
                           onClick={(e) => handlePublish(e, course.id)}
                           title="Publish"
                         >
-                          <FontAwesomeIcon icon={icons.publish} /> Publish
+                          <FontAwesomeIcon icon={icons.publish} />
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          style={styles.actionIconBtn}
+                          onClick={(e) => handleUnpublish(e, course.id)}
+                          title="Unpublish"
+                        >
+                          <FontAwesomeIcon icon={icons.unpublish} />
                         </button>
                       )}
                     </td>
@@ -281,12 +333,14 @@ export function AdminLearningPage() {
 
       {modal === 'createCourse' && (
         <CreateCourseModal
+          token={token}
           onClose={() => setModal(null)}
           onSubmit={handleCreateCourse}
         />
       )}
       {modal === 'editCourse' && modalContext?.course && (
         <EditCourseModal
+          token={token}
           course={modalContext.course}
           onClose={() => { setModal(null); setModalContext(null) }}
           onSubmit={(data) => handleEditCourse(modalContext.course.id, data)}

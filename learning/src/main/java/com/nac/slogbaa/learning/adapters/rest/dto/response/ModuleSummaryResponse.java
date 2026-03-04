@@ -9,6 +9,7 @@ public record ModuleSummaryResponse(
         String id,
         String title,
         String description,
+        String imageUrl,
         int moduleOrder,
         boolean hasQuiz,
         List<ContentBlockSummaryResponse> contentBlocks

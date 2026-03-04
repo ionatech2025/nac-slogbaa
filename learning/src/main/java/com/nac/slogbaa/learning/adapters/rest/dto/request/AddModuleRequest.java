@@ -15,6 +15,9 @@ public record AddModuleRequest(
 
         String description,
 
+        @Size(max = 2048)
+        String imageUrl,
+
         @Min(0)
         Integer moduleOrder,
 

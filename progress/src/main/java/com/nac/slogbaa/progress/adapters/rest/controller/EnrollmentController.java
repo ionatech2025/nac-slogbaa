@@ -48,6 +48,7 @@ public class EnrollmentController {
                         r.id().toString(),
                         r.title(),
                         r.description(),
+                        r.imageUrl(),
                         r.moduleCount(),
                         r.completionPercentage()))
                 .toList();
@@ -72,5 +73,5 @@ public class EnrollmentController {
         return ResponseEntity.noContent().build();
     }
 
-    public record EnrolledCourseResponse(String id, String title, String description, int moduleCount, int completionPercentage) {}
+    public record EnrolledCourseResponse(String id, String title, String description, String imageUrl, int moduleCount, int completionPercentage) {}
 }
