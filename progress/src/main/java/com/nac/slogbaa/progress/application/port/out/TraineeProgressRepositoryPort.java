@@ -1,8 +1,10 @@
 package com.nac.slogbaa.progress.application.port.out;
 
+import com.nac.slogbaa.progress.application.dto.ResumePoint;
 import com.nac.slogbaa.progress.core.aggregate.TraineeProgress;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -15,4 +17,8 @@ public interface TraineeProgressRepositoryPort {
     boolean existsByTraineeIdAndCourseId(UUID traineeId, UUID courseId);
 
     List<TraineeProgress> findByTraineeId(UUID traineeId);
+
+    Optional<ResumePoint> findResumePoint(UUID traineeId, UUID courseId);
+
+    void updateResumePoint(UUID traineeId, UUID courseId, UUID lastModuleId, UUID lastContentBlockId, int completionPercentage);
 }

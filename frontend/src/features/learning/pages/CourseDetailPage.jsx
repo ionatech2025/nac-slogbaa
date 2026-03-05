@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { useParams, Link, useNavigate } from 'react-router-dom'
 import { getAssetUrl } from '../../../api/client.js'
 import { useAuth } from '../../iam/hooks/useAuth.js'
-import { getCourseDetails, checkEnrollment } from '../../../api/learning/courses.js'
+import { getCourseDetails, checkEnrollment, getResumePoint, recordProgress } from '../../../api/learning/courses.js'
 import { EditorJsReadOnly } from '../../app/components/admin/EditorJsReadOnly.jsx'
 
 const styles = {
@@ -195,6 +195,34 @@ const styles = {
   },
 }
 
+function BlockWithProgressObserver({ block, moduleId, onViewed }) {
+  const ref = useRef(null)
+  const reportedRef = useRef(false)
+
+  useEffect(() => {
+    if (!onViewed || !moduleId || !block?.id) return
+    const el = ref.current
+    if (!el) return
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting || reportedRef.current) return
+        reportedRef.current = true
+        onViewed(moduleId, block.id)
+      },
+      { threshold: 0.3, rootMargin: '0px 0px -50px 0px' }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [block?.id, moduleId, onViewed])
+
+  return (
+    <div ref={ref}>
+      <ContentBlockRenderer block={block} />
+    </div>
+  )
+}
+
 function ContentBlockRenderer({ block }) {
   const { blockType, richText, imageUrl, imageAltText, imageCaption, videoUrl, videoId, activityInstructions, activityResources } = block
 
@@ -264,11 +292,13 @@ function ContentBlockRenderer({ block }) {
 
 export function CourseDetailPage() {
   const { courseId, moduleId } = useParams()
+  const navigate = useNavigate()
   const { token } = useAuth()
   const [course, setCourse] = useState(null)
   const [enrolled, setEnrolled] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const resumeCheckedRef = useRef(false)
 
   useEffect(() => {
     if (!token || !courseId) return
@@ -283,7 +313,39 @@ export function CourseDetailPage() {
       .finally(() => setLoading(false))
   }, [token, courseId])
 
+  // Resume: when no module in URL and enrolled, redirect to last viewed module
+  useEffect(() => {
+    if (!token || !courseId || !enrolled || !course || resumeCheckedRef.current) return
+    if (moduleId) {
+      resumeCheckedRef.current = true
+      return
+    }
+    resumeCheckedRef.current = true
+    getResumePoint(token, courseId).then((resume) => {
+      if (resume?.lastModuleId && course.modules?.some((m) => m.id === resume.lastModuleId)) {
+        navigate(`/dashboard/courses/${courseId}/modules/${resume.lastModuleId}`, { replace: true })
+      }
+    })
+  }, [token, courseId, enrolled, course, moduleId, navigate])
+
   const selectedModule = course?.modules?.find((m) => m.id === moduleId) ?? course?.modules?.[0]
+
+  // Record progress when a block is viewed (for completion % and resume)
+  const handleBlockViewed = useCallback(
+    (modId, blockId) => {
+      if (!token || !courseId || !modId || !blockId) return
+      recordProgress(token, courseId, modId, blockId)
+    },
+    [token, courseId]
+  )
+
+  // Record progress for modules with no content blocks (use module id as block id)
+  useEffect(() => {
+    if (!token || !courseId || !selectedModule || !enrolled) return
+    const blocks = selectedModule.contentBlocks
+    if (blocks && blocks.length > 0) return // blocks case handled by BlockWithProgressObserver
+    recordProgress(token, courseId, selectedModule.id, selectedModule.id)
+  }, [token, courseId, selectedModule?.id, enrolled])
 
   if (loading) {
     return (
@@ -393,7 +455,12 @@ export function CourseDetailPage() {
                   <p style={{ margin: '0 0 1.5rem', color: 'var(--slogbaa-text-muted)' }}>{selectedModule.description}</p>
                 )}
                 {selectedModule.contentBlocks?.map((block) => (
-                  <ContentBlockRenderer key={block.id} block={block} />
+                  <BlockWithProgressObserver
+                    key={block.id}
+                    block={block}
+                    moduleId={selectedModule.id}
+                    onViewed={handleBlockViewed}
+                  />
                 ))}
                 {(!selectedModule.contentBlocks || selectedModule.contentBlocks.length === 0) && (
                   <p style={{ color: 'var(--slogbaa-text-muted)' }}>No content in this module yet.</p>
