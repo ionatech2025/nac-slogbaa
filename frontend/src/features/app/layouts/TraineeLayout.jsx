@@ -5,6 +5,7 @@ import { ProfileViewModal } from '../components/trainee/ProfileViewModal.jsx'
 import { EditProfileModal } from '../components/trainee/EditProfileModal.jsx'
 import { useAuth } from '../../iam/hooks/useAuth.js'
 import { getTraineeProfile, updateTraineeProfile } from '../../../api/trainee.js'
+import { getEnrolledCourses } from '../../../api/learning/courses.js'
 
 const backLinkStyle = {
   display: 'inline-flex',
@@ -23,6 +24,7 @@ export function TraineeLayout() {
   const isDashboardIndex = location.pathname === '/dashboard' || location.pathname === '/dashboard/'
   const [profileModalOpen, setProfileModalOpen] = useState(false)
   const [profileData, setProfileData] = useState(null)
+  const [profileEnrolledCourses, setProfileEnrolledCourses] = useState([])
   const [profileLoading, setProfileLoading] = useState(false)
   const [profileError, setProfileError] = useState(null)
   const [editProfileOpen, setEditProfileOpen] = useState(false)
@@ -33,10 +35,17 @@ export function TraineeLayout() {
     setProfileModalOpen(true)
     setProfileError(null)
     setProfileData(null)
+    setProfileEnrolledCourses([])
     if (!token) return
     setProfileLoading(true)
-    getTraineeProfile(token)
-      .then((data) => setProfileData(data))
+    Promise.all([
+      getTraineeProfile(token),
+      getEnrolledCourses(token),
+    ])
+      .then(([data, enrolled]) => {
+        setProfileData(data)
+        setProfileEnrolledCourses(Array.isArray(enrolled) ? enrolled : [])
+      })
       .catch((err) => setProfileError(err?.message ?? 'Failed to load profile.'))
       .finally(() => setProfileLoading(false))
   }, [token])
@@ -44,6 +53,7 @@ export function TraineeLayout() {
   const handleCloseProfile = useCallback(() => {
     setProfileModalOpen(false)
     setProfileData(null)
+    setProfileEnrolledCourses([])
     setProfileError(null)
   }, [])
 
@@ -82,6 +92,7 @@ export function TraineeLayout() {
       {profileModalOpen && profileData && (
         <ProfileViewModal
           profile={profileData}
+          enrolledCourses={profileEnrolledCourses}
           onClose={handleCloseProfile}
           onEdit={handleEditProfile}
         />

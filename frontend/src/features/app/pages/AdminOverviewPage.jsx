@@ -3,7 +3,7 @@ import { useOutletContext } from 'react-router-dom'
 import { FontAwesomeIcon, icons } from '../../../shared/icons.js'
 import { ConfirmModal } from '../../../shared/components/ConfirmModal.jsx'
 import { ProfileViewModal } from '../components/trainee/ProfileViewModal.jsx'
-import { getTraineeProfile as getTraineeProfileApi } from '../../../api/admin/trainees.js'
+import { getTraineeProfile as getTraineeProfileApi, getTraineeEnrolledCourses } from '../../../api/admin/trainees.js'
 
 const styles = {
   pageTitle: {
@@ -138,6 +138,7 @@ export function AdminOverviewPage() {
   const [deletingId, setDeletingId] = useState(null)
   const [confirmTarget, setConfirmTarget] = useState(null) // { type: 'staff', item } | { type: 'trainee', item }
   const [profileViewTrainee, setProfileViewTrainee] = useState(null)
+  const [profileViewEnrolledCourses, setProfileViewEnrolledCourses] = useState([])
   const [profileViewLoading, setProfileViewLoading] = useState(false)
   const [profileViewError, setProfileViewError] = useState(null)
 
@@ -177,17 +178,31 @@ export function AdminOverviewPage() {
 
   const onViewTraineeProfile = useCallback((t) => {
     setProfileViewTrainee(null)
+    setProfileViewEnrolledCourses([])
     setProfileViewError(null)
     if (!token) return
     setProfileViewLoading(true)
     getTraineeProfileApi(token, t.id)
-      .then((data) => setProfileViewTrainee(data))
-      .catch((err) => setProfileViewError(err?.message ?? 'Failed to load trainee profile.'))
-      .finally(() => setProfileViewLoading(false))
+      .then((profile) => {
+        setProfileViewTrainee(profile)
+        setProfileViewLoading(false)
+        const traineeId = profile?.id ?? t.id
+        return getTraineeEnrolledCourses(token, traineeId)
+      })
+      .then((enrolled) => {
+        if (enrolled !== undefined) {
+          setProfileViewEnrolledCourses(Array.isArray(enrolled) ? enrolled : [])
+        }
+      })
+      .catch((err) => {
+        setProfileViewError(err?.message ?? 'Failed to load trainee profile.')
+        setProfileViewLoading(false)
+      })
   }, [token])
 
   const closeProfileView = useCallback(() => {
     setProfileViewTrainee(null)
+    setProfileViewEnrolledCourses([])
     setProfileViewError(null)
   }, [])
 
@@ -234,6 +249,7 @@ export function AdminOverviewPage() {
       {profileViewTrainee && (
         <ProfileViewModal
           profile={profileViewTrainee}
+          enrolledCourses={Array.isArray(profileViewEnrolledCourses) ? profileViewEnrolledCourses : []}
           onClose={closeProfileView}
           showEditButton={false}
           title="Trainee profile"
