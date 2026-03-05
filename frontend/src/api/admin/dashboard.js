@@ -21,3 +21,15 @@ export async function getDashboardOverview(token) {
     },
   }
 }
+
+/**
+ * Fetch course count for admin dashboard. Returns number or 0 on error.
+ */
+export async function getCourseCount(token) {
+  if (!token) return 0
+  const client = apiClient(token)
+  const res = await client.get('/api/admin/courses/count')
+  if (!res.ok) return 0
+  const body = await res.json().catch(() => ({}))
+  return typeof body?.count === 'number' ? body.count : 0
+}

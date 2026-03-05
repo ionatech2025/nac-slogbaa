@@ -33,25 +33,44 @@ const styles = {
   statsRow: {
     display: 'grid',
     gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
-    gap: '1rem',
-    marginBottom: '1.5rem',
+    gap: '1.25rem',
+    marginBottom: '2rem',
   },
   statCard: {
-    padding: '1rem 1.25rem',
+    padding: '1.5rem 1.5rem',
     background: 'var(--slogbaa-surface)',
-    border: '1px solid var(--slogbaa-border)',
-    borderRadius: 10,
-    boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+    border: '2px solid var(--slogbaa-border)',
+    borderRadius: 14,
+    boxShadow: '0 4px 14px rgba(0,0,0,0.12)',
+    textAlign: 'center',
+    transition: 'border-color 0.2s, box-shadow 0.2s',
+  },
+  statCardHighlight: {
+    borderColor: 'rgba(241, 134, 37, 0.5)',
+    background: 'rgba(241, 134, 37, 0.06)',
+    boxShadow: '0 4px 14px rgba(241, 134, 37, 0.15)',
   },
   statValue: {
     margin: 0,
-    fontSize: '1.5rem',
-    fontWeight: 700,
+    fontSize: '2.25rem',
+    fontWeight: 800,
     color: 'var(--slogbaa-blue)',
+    lineHeight: 1.2,
+    letterSpacing: '-0.02em',
+  },
+  statValueMuted: {
+    margin: 0,
+    fontSize: '2.25rem',
+    fontWeight: 800,
+    color: 'var(--slogbaa-text-muted)',
+    lineHeight: 1.2,
   },
   statLabel: {
-    margin: '0.25rem 0 0',
+    margin: '0.5rem 0 0',
     fontSize: '0.8125rem',
+    fontWeight: 600,
+    textTransform: 'uppercase',
+    letterSpacing: '0.05em',
     color: 'var(--slogbaa-text-muted)',
   },
   tableWrap: {
@@ -133,7 +152,7 @@ const styles = {
 }
 
 export function AdminOverviewPage() {
-  const { staff, trainees, overviewLoading, overviewError, handleDeleteStaff, handleDeleteTrainee, isSuperAdmin, token, currentUserId, currentUserEmail } = useOutletContext()
+  const { staff, trainees, courseCount = 0, overviewLoading, overviewError, handleDeleteStaff, handleDeleteTrainee, isSuperAdmin, token, currentUserId, currentUserEmail } = useOutletContext()
   const [deleteError, setDeleteError] = useState(null)
   const [deletingId, setDeletingId] = useState(null)
   const [confirmTarget, setConfirmTarget] = useState(null) // { type: 'staff', item } | { type: 'trainee', item }
@@ -301,20 +320,20 @@ export function AdminOverviewPage() {
 
       <section style={styles.section}>
         <div style={styles.statsRow}>
-          <div style={styles.statCard}>
+          <div style={{ ...styles.statCard, ...styles.statCardHighlight }}>
             <p style={styles.statValue}>{staff.length}</p>
             <p style={styles.statLabel}>Staff</p>
           </div>
-          <div style={styles.statCard}>
+          <div style={{ ...styles.statCard, ...styles.statCardHighlight }}>
             <p style={styles.statValue}>{trainees.length}</p>
             <p style={styles.statLabel}>Trainees</p>
           </div>
-          <div style={styles.statCard}>
-            <p style={styles.statValue}>—</p>
+          <div style={{ ...styles.statCard, ...styles.statCardHighlight }}>
+            <p style={styles.statValue}>{courseCount}</p>
             <p style={styles.statLabel}>Courses</p>
           </div>
           <div style={styles.statCard}>
-            <p style={styles.statValue}>—</p>
+            <p style={styles.statValueMuted}>0</p>
             <p style={styles.statLabel}>Certificates</p>
           </div>
         </div>

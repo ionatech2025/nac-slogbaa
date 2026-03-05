@@ -100,6 +100,13 @@ public class AdminCourseController {
         this.unpublishCourseUseCase = unpublishCourseUseCase;
     }
 
+    @GetMapping("/count")
+    @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN')")
+    public ResponseEntity<Map<String, Long>> getCourseCount() {
+        long count = getAdminCoursesUseCase.getAllCourses().size();
+        return ResponseEntity.ok(Map.of("count", count));
+    }
+
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN')")
     public ResponseEntity<List<AdminCourseSummaryResponse>> getAllCourses() {
