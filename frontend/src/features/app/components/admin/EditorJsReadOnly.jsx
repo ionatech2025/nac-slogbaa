@@ -1,5 +1,22 @@
+const blockWrapperStyle = {
+  marginBottom: '1.25rem',
+  padding: '1rem 1.25rem',
+  background: 'var(--slogbaa-surface)',
+  border: '1px solid var(--slogbaa-border)',
+  borderRadius: 12,
+  boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+}
+
+// Variants for distinct block types (left border only on focused block via parent; quote gets right blue border)
+const listBlockStyle = { ...blockWrapperStyle }
+const tableBlockStyle = { ...blockWrapperStyle }
+const quoteBlockStyle = { ...blockWrapperStyle, background: 'rgba(39, 129, 191, 0.04)', borderRight: '4px solid var(--slogbaa-blue)' }
+const embedBlockStyle = { ...blockWrapperStyle }
+const imageBlockStyle = { ...blockWrapperStyle }
+
 /**
  * Renders Editor.js JSON output as read-only HTML. Use for trainee/public view.
+ * Each internal block (paragraph, list, table, quote, etc.) is wrapped in a distinct container.
  */
 export function EditorJsReadOnly({ data, className, style = {} }) {
   if (!data) return null
@@ -17,10 +34,22 @@ export function EditorJsReadOnly({ data, className, style = {} }) {
 
   if (!blocks.length) return null
 
+  const getWrapperStyle = (block) => {
+    const t = block?.type
+    if (t === 'list') return listBlockStyle
+    if (t === 'table') return tableBlockStyle
+    if (t === 'quote') return quoteBlockStyle
+    if (t === 'embed') return embedBlockStyle
+    if (t === 'image') return imageBlockStyle
+    return blockWrapperStyle
+  }
+
   return (
     <div className={className} style={{ ...style, fontSize: '0.9375rem', lineHeight: 1.6 }}>
       {blocks.map((block, i) => (
-        <EditorJsBlockView key={i} block={block} />
+        <div key={i} style={getWrapperStyle(block)}>
+          <EditorJsBlockView block={block} />
+        </div>
       ))}
     </div>
   )
@@ -31,11 +60,11 @@ function EditorJsBlockView({ block }) {
   const { type, data } = block
 
   if (type === 'paragraph' && data?.text) {
-    return <p style={{ margin: '0 0 0.75rem' }} dangerouslySetInnerHTML={{ __html: data.text }} />
+    return <p style={{ margin: 0 }} dangerouslySetInnerHTML={{ __html: data.text }} />
   }
   if (type === 'header' && data?.text) {
     const Level = `h${Math.min(6, Math.max(1, data.level ?? 2))}`
-    return <Level style={{ margin: '1rem 0 0.5rem', fontWeight: 700 }} dangerouslySetInnerHTML={{ __html: data.text }} />
+    return <Level style={{ margin: 0, fontWeight: 700 }} dangerouslySetInnerHTML={{ __html: data.text }} />
   }
   if (type === 'list' && Array.isArray(data?.items)) {
     const isOrdered = data.style === 'ordered'
@@ -59,7 +88,7 @@ function EditorJsBlockView({ block }) {
     }
     const ListTag = isOrdered ? 'ol' : 'ul'
     return (
-      <ListTag style={{ margin: '0 0 0.75rem', paddingLeft: '1.5rem' }}>
+      <ListTag style={{ margin: 0, paddingLeft: '1.5rem' }}>
         {data.items.map(renderItem)}
       </ListTag>
     )
@@ -69,7 +98,7 @@ function EditorJsBlockView({ block }) {
     const caption = data?.caption ?? data?.file?.caption ?? ''
     if (url || caption) {
       return (
-        <figure style={{ margin: '1rem 0' }}>
+        <figure style={{ margin: 0 }}>
           {url && (
             <img
               src={url}
@@ -92,7 +121,7 @@ function EditorJsBlockView({ block }) {
     const embedUrl = data?.embed ?? data?.url
     if (embedUrl) {
       return (
-        <div style={{ margin: '1rem 0', aspectRatio: '16/9', maxWidth: 560 }}>
+        <div style={{ margin: 0, aspectRatio: '16/9', maxWidth: 560 }}>
           <iframe
             src={embedUrl}
             title="Embedded content"
@@ -109,7 +138,7 @@ function EditorJsBlockView({ block }) {
   }
   if (type === 'quote' && (data?.text || data?.caption)) {
     return (
-      <blockquote style={{ margin: '1rem 0', paddingLeft: '1rem', borderLeft: '4px solid var(--slogbaa-blue)', color: 'var(--slogbaa-text-muted)', fontStyle: 'italic' }}>
+      <blockquote style={{ margin: 0, paddingLeft: '1rem', color: 'var(--slogbaa-text-muted)', fontStyle: 'italic' }}>
         {data.text && <p style={{ margin: 0 }} dangerouslySetInnerHTML={{ __html: data.text }} />}
         {data.caption && <cite style={{ display: 'block', marginTop: '0.5rem', fontSize: '0.875rem' }} dangerouslySetInnerHTML={{ __html: data.caption }} />}
       </blockquote>
@@ -117,14 +146,14 @@ function EditorJsBlockView({ block }) {
   }
   if (type === 'delimiter') {
     return (
-      <div style={{ margin: '1.5rem 0', textAlign: 'center', color: 'var(--slogbaa-text-muted)' }}>
+      <div style={{ margin: 0, textAlign: 'center', color: 'var(--slogbaa-text-muted)' }}>
         * * *
       </div>
     )
   }
   if (type === 'warning' && (data?.title || data?.message)) {
     return (
-      <div style={{ margin: '1rem 0', padding: '1rem', background: 'rgba(241, 134, 37, 0.08)', borderLeft: '4px solid var(--slogbaa-orange)', borderRadius: 6 }}>
+      <div style={{ margin: 0, padding: '1rem', background: 'rgba(241, 134, 37, 0.08)', borderLeft: '4px solid var(--slogbaa-orange)', borderRadius: 6 }}>
         {data.title && <strong style={{ display: 'block', marginBottom: '0.25rem' }} dangerouslySetInnerHTML={{ __html: data.title }} />}
         {data.message && <div dangerouslySetInnerHTML={{ __html: data.message }} />}
       </div>
@@ -134,7 +163,7 @@ function EditorJsBlockView({ block }) {
     const rows = data.content
     const withHeadings = data.withHeadings === true
     return (
-      <div style={{ margin: '1rem 0', overflowX: 'auto' }}>
+      <div style={{ margin: 0, overflowX: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9375rem' }}>
           {withHeadings && rows.length > 0 && (
             <thead>
@@ -161,7 +190,7 @@ function EditorJsBlockView({ block }) {
   if (type === 'code' && data?.code != null) {
     const code = String(data.code)
     return (
-      <pre style={{ margin: '1rem 0', padding: '1rem', background: 'var(--slogbaa-bg-secondary)', borderRadius: 8, overflow: 'auto', fontSize: '0.875rem', lineHeight: 1.5 }}>
+      <pre style={{ margin: 0, padding: '1rem', background: 'var(--slogbaa-bg-secondary)', borderRadius: 8, overflow: 'auto', fontSize: '0.875rem', lineHeight: 1.5 }}>
         <code style={{ fontFamily: 'ui-monospace, monospace' }}>{code}</code>
       </pre>
     )

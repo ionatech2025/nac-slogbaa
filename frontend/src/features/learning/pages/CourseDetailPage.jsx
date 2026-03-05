@@ -7,22 +7,26 @@ import { EditorJsReadOnly } from '../../app/components/admin/EditorJsReadOnly.js
 
 const styles = {
   layout: {
-    minHeight: '100vh',
+    flex: 1,
+    minHeight: 0,
     display: 'flex',
     flexDirection: 'column',
+    overflow: 'hidden',
     background: 'var(--slogbaa-bg)',
   },
   main: {
     flex: 1,
+    minHeight: 0,
     padding: '1.5rem 2rem',
     maxWidth: 1000,
     margin: '0 auto',
     width: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+    overflow: 'hidden',
   },
   topBar: {
-    position: 'sticky',
-    top: 0,
-    zIndex: 10,
+    flexShrink: 0,
     background: 'var(--slogbaa-bg)',
     paddingBottom: '0.5rem',
     marginBottom: '0.5rem',
@@ -73,16 +77,17 @@ const styles = {
     color: 'var(--slogbaa-text-muted)',
   },
   content: {
+    flex: 1,
+    minHeight: 0,
     display: 'flex',
     gap: '2rem',
-    flexWrap: 'wrap',
+    flexWrap: 'nowrap',
+    overflow: 'hidden',
   },
   sidebar: {
     flex: '0 0 240px',
     minWidth: 200,
-    position: 'sticky',
-    top: '1rem',
-    alignSelf: 'flex-start',
+    overflowY: 'auto',
   },
   moduleList: {
     listStyle: 'none',
@@ -117,6 +122,22 @@ const styles = {
     color: '#fff',
     borderColor: 'var(--slogbaa-blue)',
   },
+  sidebarBackLinks: {
+    marginTop: '1rem',
+    paddingTop: '1rem',
+    borderTop: '1px solid var(--slogbaa-border)',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.5rem',
+  },
+  sidebarBackLink: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '0.35rem',
+    fontSize: '0.9375rem',
+    color: 'var(--slogbaa-blue)',
+    textDecoration: 'none',
+  },
   moduleTitle: {
     fontWeight: 500,
   },
@@ -127,6 +148,8 @@ const styles = {
   article: {
     flex: 1,
     minWidth: 280,
+    minHeight: 0,
+    overflowY: 'auto',
   },
   block: {
     marginBottom: '1.5rem',
@@ -459,9 +482,6 @@ export function CourseDetailPage() {
     <div style={styles.layout}>
       <main style={styles.main}>
         <div style={styles.topBar}>
-          <Link to="/dashboard/courses" style={styles.backLink}>
-            ← Back to courses
-          </Link>
           <header style={styles.header}>
           {course.imageUrl ? (
             <img src={getAssetUrl(course.imageUrl)} alt="" style={styles.courseImage} onError={(e) => { e.target.style.display = 'none' }} />
@@ -499,6 +519,14 @@ export function CourseDetailPage() {
                 </li>
               ))}
             </ul>
+            <div style={styles.sidebarBackLinks}>
+              <Link to="/dashboard/courses" style={styles.sidebarBackLink}>
+                ← Back to courses
+              </Link>
+              <Link to="/dashboard" style={styles.sidebarBackLink}>
+                ← Back to dashboard
+              </Link>
+            </div>
           </aside>
           <article style={styles.article}>
             {selectedModule ? (

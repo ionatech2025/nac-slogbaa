@@ -22,6 +22,7 @@ export function TraineeLayout() {
   const { token } = useAuth()
   const location = useLocation()
   const isDashboardIndex = location.pathname === '/dashboard' || location.pathname === '/dashboard/'
+  const isCourseDetail = /^\/dashboard\/courses\/[^/]+/.test(location.pathname)
   const [profileModalOpen, setProfileModalOpen] = useState(false)
   const [profileData, setProfileData] = useState(null)
   const [profileEnrolledCourses, setProfileEnrolledCourses] = useState([])
@@ -86,8 +87,23 @@ export function TraineeLayout() {
     [token]
   )
 
+  const layoutWrapperStyle = {
+    display: 'flex',
+    flexDirection: 'column',
+    height: '100vh',
+    overflow: 'hidden',
+    background: 'var(--slogbaa-bg)',
+  }
+  const contentAreaStyle = {
+    flex: 1,
+    minHeight: 0,
+    overflow: isCourseDetail ? 'hidden' : 'auto',
+    display: isCourseDetail ? 'flex' : 'block',
+    flexDirection: 'column',
+  }
+
   return (
-    <>
+    <div style={layoutWrapperStyle}>
       <TraineeNav onOpenProfile={handleOpenProfile} />
       {profileModalOpen && profileData && (
         <ProfileViewModal
@@ -173,14 +189,16 @@ export function TraineeLayout() {
           </div>
         </div>
       )}
-      {!isDashboardIndex && (
-        <div style={{ padding: '0 1.5rem 0 2rem', maxWidth: 1200, margin: '0 auto' }}>
-          <Link to="/dashboard" style={backLinkStyle}>
-            ← Back to dashboard
-          </Link>
-        </div>
-      )}
-      <Outlet />
-    </>
+      <div style={contentAreaStyle}>
+        {!isDashboardIndex && !isCourseDetail && (
+          <div style={{ padding: '0 1.5rem 0 2rem', maxWidth: 1200, margin: '0 auto', flexShrink: 0 }}>
+            <Link to="/dashboard" style={backLinkStyle}>
+              ← Back to dashboard
+            </Link>
+          </div>
+        )}
+        <Outlet />
+      </div>
+    </div>
   )
 }
