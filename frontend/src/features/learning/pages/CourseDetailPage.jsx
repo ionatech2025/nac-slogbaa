@@ -19,6 +19,14 @@ const styles = {
     margin: '0 auto',
     width: '100%',
   },
+  topBar: {
+    position: 'sticky',
+    top: 0,
+    zIndex: 10,
+    background: 'var(--slogbaa-bg)',
+    paddingBottom: '0.5rem',
+    marginBottom: '0.5rem',
+  },
   backLink: {
     display: 'inline-flex',
     alignItems: 'center',
@@ -72,6 +80,9 @@ const styles = {
   sidebar: {
     flex: '0 0 240px',
     minWidth: 200,
+    position: 'sticky',
+    top: '1rem',
+    alignSelf: 'flex-start',
   },
   moduleList: {
     listStyle: 'none',
@@ -119,6 +130,17 @@ const styles = {
   },
   block: {
     marginBottom: '1.5rem',
+  },
+  blockWrapper: {
+    marginBottom: '1.5rem',
+    borderRadius: 12,
+    padding: '0.5rem',
+    transition: 'background 0.2s, box-shadow 0.2s, border-color 0.2s',
+  },
+  blockWrapperFocused: {
+    background: 'rgba(241, 134, 37, 0.06)',
+    borderLeft: '4px solid var(--slogbaa-orange)',
+    boxShadow: '0 2px 12px rgba(241, 134, 37, 0.12)',
   },
   blockTitle: {
     margin: '0 0 0.5rem',
@@ -195,29 +217,37 @@ const styles = {
   },
 }
 
-function BlockWithProgressObserver({ block, moduleId, onViewed }) {
+function BlockWithProgressObserver({ block, moduleId, blockOrder, onViewed, onFocusChange, isFocused }) {
   const ref = useRef(null)
-  const reportedRef = useRef(false)
 
   useEffect(() => {
-    if (!onViewed || !moduleId || !block?.id) return
+    if (!moduleId || !block?.id) return
     const el = ref.current
     if (!el) return
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (!entry.isIntersecting || reportedRef.current) return
-        reportedRef.current = true
-        onViewed(moduleId, block.id)
+        const ratio = entry.intersectionRatio
+        onFocusChange?.(block.id, ratio)
+        // Only record progress when advancing (higher blockOrder) and block is meaningfully visible
+        if (ratio >= 0.25 && onViewed && blockOrder != null) {
+          onViewed(moduleId, block.id, blockOrder)
+        }
       },
-      { threshold: 0.3, rootMargin: '0px 0px -50px 0px' }
+      { threshold: [0, 0.1, 0.25, 0.5, 0.75, 1], rootMargin: '0px 0px -10% 0px' }
     )
     observer.observe(el)
     return () => observer.disconnect()
-  }, [block?.id, moduleId, onViewed])
+  }, [block?.id, blockOrder, moduleId, onViewed, onFocusChange])
 
   return (
-    <div ref={ref}>
+    <div
+      ref={ref}
+      style={{
+        ...styles.blockWrapper,
+        ...(isFocused ? styles.blockWrapperFocused : {}),
+      }}
+    >
       <ContentBlockRenderer block={block} />
     </div>
   )
@@ -329,15 +359,38 @@ export function CourseDetailPage() {
   }, [token, courseId, enrolled, course, moduleId, navigate])
 
   const selectedModule = course?.modules?.find((m) => m.id === moduleId) ?? course?.modules?.[0]
+  const maxBlockOrderRecordedRef = useRef(-1)
+  const blockRatiosRef = useRef({})
+  const [focusedBlockId, setFocusedBlockId] = useState(null)
 
-  // Record progress when a block is viewed (for completion % and resume)
+  // Reset max recorded when switching modules
+  useEffect(() => {
+    maxBlockOrderRecordedRef.current = -1
+    blockRatiosRef.current = {}
+    setFocusedBlockId(null)
+  }, [selectedModule?.id])
+
+  // Record progress only when advancing (never overwrite with earlier blocks when scrolling up)
   const handleBlockViewed = useCallback(
-    (modId, blockId) => {
-      if (!token || !courseId || !modId || !blockId) return
+    (modId, blockId, blockOrder) => {
+      if (!token || !courseId || !modId || !blockId || blockOrder == null) return
+      if (blockOrder <= maxBlockOrderRecordedRef.current) return
+      maxBlockOrderRecordedRef.current = blockOrder
       recordProgress(token, courseId, modId, blockId)
     },
     [token, courseId]
   )
+
+  const handleFocusChange = useCallback((blockId, ratio) => {
+    blockRatiosRef.current[blockId] = ratio
+    const entries = Object.entries(blockRatiosRef.current).filter(([, r]) => r > 0.15)
+    if (entries.length === 0) {
+      setFocusedBlockId(null)
+      return
+    }
+    const best = entries.reduce((a, b) => (a[1] >= b[1] ? a : b))
+    setFocusedBlockId((prev) => (prev === best[0] ? prev : best[0]))
+  }, [])
 
   // Record progress for modules with no content blocks (use module id as block id)
   useEffect(() => {
@@ -405,10 +458,11 @@ export function CourseDetailPage() {
   return (
     <div style={styles.layout}>
       <main style={styles.main}>
-        <Link to="/dashboard/courses" style={styles.backLink}>
-          ← Back to courses
-        </Link>
-        <header style={styles.header}>
+        <div style={styles.topBar}>
+          <Link to="/dashboard/courses" style={styles.backLink}>
+            ← Back to courses
+          </Link>
+          <header style={styles.header}>
           {course.imageUrl ? (
             <img src={getAssetUrl(course.imageUrl)} alt="" style={styles.courseImage} onError={(e) => { e.target.style.display = 'none' }} />
           ) : (
@@ -419,6 +473,7 @@ export function CourseDetailPage() {
             <p style={styles.description}>{course.description || ''}</p>
           </div>
         </header>
+        </div>
         <div style={styles.content}>
           <aside style={styles.sidebar}>
             <ul style={styles.moduleList}>
@@ -459,7 +514,10 @@ export function CourseDetailPage() {
                     key={block.id}
                     block={block}
                     moduleId={selectedModule.id}
+                    blockOrder={block.blockOrder ?? 0}
                     onViewed={handleBlockViewed}
+                    onFocusChange={handleFocusChange}
+                    isFocused={focusedBlockId === block.id}
                   />
                 ))}
                 {(!selectedModule.contentBlocks || selectedModule.contentBlocks.length === 0) && (
