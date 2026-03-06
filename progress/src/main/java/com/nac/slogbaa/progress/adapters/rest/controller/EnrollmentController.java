@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.nac.slogbaa.progress.application.port.in.GetResumePointUseCase;
+import com.nac.slogbaa.progress.application.port.in.RecordModuleCompletionUseCase;
 import com.nac.slogbaa.progress.application.port.in.RecordProgressUseCase;
 
 import java.util.List;
@@ -33,17 +34,20 @@ public class EnrollmentController {
     private final EnrollTraineeUseCase enrollTraineeUseCase;
     private final GetEnrolledCoursesUseCase getEnrolledCoursesUseCase;
     private final RecordProgressUseCase recordProgressUseCase;
+    private final RecordModuleCompletionUseCase recordModuleCompletionUseCase;
     private final GetResumePointUseCase getResumePointUseCase;
     private final TraineeProgressRepositoryPort traineeProgressRepository;
 
     public EnrollmentController(EnrollTraineeUseCase enrollTraineeUseCase,
                                GetEnrolledCoursesUseCase getEnrolledCoursesUseCase,
                                RecordProgressUseCase recordProgressUseCase,
+                               RecordModuleCompletionUseCase recordModuleCompletionUseCase,
                                GetResumePointUseCase getResumePointUseCase,
                                TraineeProgressRepositoryPort traineeProgressRepository) {
         this.enrollTraineeUseCase = enrollTraineeUseCase;
         this.getEnrolledCoursesUseCase = getEnrolledCoursesUseCase;
         this.recordProgressUseCase = recordProgressUseCase;
+        this.recordModuleCompletionUseCase = recordModuleCompletionUseCase;
         this.getResumePointUseCase = getResumePointUseCase;
         this.traineeProgressRepository = traineeProgressRepository;
     }
@@ -92,6 +96,16 @@ public class EnrollmentController {
         if (request != null && request.moduleId() != null && request.contentBlockId() != null) {
             recordProgressUseCase.record(identity.getUserId(), courseId, request.moduleId(), request.contentBlockId());
         }
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{courseId}/modules/{moduleId}/complete")
+    @PreAuthorize("hasRole('TRAINEE')")
+    public ResponseEntity<Void> recordModuleComplete(
+            @AuthenticationPrincipal AuthenticatedIdentity identity,
+            @PathVariable UUID courseId,
+            @PathVariable UUID moduleId) {
+        recordModuleCompletionUseCase.record(identity.getUserId(), courseId, moduleId);
         return ResponseEntity.noContent().build();
     }
 

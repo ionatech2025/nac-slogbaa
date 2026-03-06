@@ -21,4 +21,9 @@ public interface TraineeProgressRepositoryPort {
     Optional<ResumePoint> findResumePoint(UUID traineeId, UUID courseId);
 
     void updateResumePoint(UUID traineeId, UUID courseId, UUID lastModuleId, UUID lastContentBlockId, int completionPercentage);
+
+    /**
+     * Update completion status and percentage (e.g. set COMPLETED when all modules are done).
+     */
+    void updateCompletionStatus(UUID traineeId, UUID courseId, String status, int completionPercentage);
 }

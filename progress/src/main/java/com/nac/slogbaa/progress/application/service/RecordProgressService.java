@@ -4,6 +4,7 @@ import com.nac.slogbaa.learning.application.dto.result.ContentBlockSummary;
 import com.nac.slogbaa.learning.application.dto.result.CourseDetails;
 import com.nac.slogbaa.learning.application.dto.result.ModuleSummary;
 import com.nac.slogbaa.learning.application.port.out.CourseDetailsQueryPort;
+import com.nac.slogbaa.progress.application.port.in.RecordModuleCompletionUseCase;
 import com.nac.slogbaa.progress.application.port.in.RecordProgressUseCase;
 import com.nac.slogbaa.progress.application.port.out.TraineeProgressRepositoryPort;
 
@@ -20,11 +21,14 @@ public final class RecordProgressService implements RecordProgressUseCase {
 
     private final TraineeProgressRepositoryPort traineeProgressRepository;
     private final CourseDetailsQueryPort courseDetailsQueryPort;
+    private final RecordModuleCompletionUseCase recordModuleCompletionUseCase;
 
     public RecordProgressService(TraineeProgressRepositoryPort traineeProgressRepository,
-                                CourseDetailsQueryPort courseDetailsQueryPort) {
+                                CourseDetailsQueryPort courseDetailsQueryPort,
+                                RecordModuleCompletionUseCase recordModuleCompletionUseCase) {
         this.traineeProgressRepository = traineeProgressRepository;
         this.courseDetailsQueryPort = courseDetailsQueryPort;
+        this.recordModuleCompletionUseCase = recordModuleCompletionUseCase;
     }
 
     @Override
@@ -62,6 +66,10 @@ public final class RecordProgressService implements RecordProgressUseCase {
         }
 
         traineeProgressRepository.updateResumePoint(traineeId, courseId, moduleId, contentBlockId, completionPercentage);
+
+        if (isLastBlockOfModule) {
+            recordModuleCompletionUseCase.record(traineeId, courseId, moduleId);
+        }
     }
 
     private int findModuleIndex(List<ModuleSummary> modules, UUID moduleId) {

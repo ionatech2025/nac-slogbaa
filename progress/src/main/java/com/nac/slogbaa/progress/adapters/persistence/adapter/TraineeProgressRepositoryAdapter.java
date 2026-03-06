@@ -58,6 +58,16 @@ public class TraineeProgressRepositoryAdapter implements TraineeProgressReposito
                 });
     }
 
+    @Override
+    public void updateCompletionStatus(UUID traineeId, UUID courseId, String status, int completionPercentage) {
+        jpaRepository.findOneByTraineeIdAndCourseId(traineeId, courseId)
+                .ifPresent(entity -> {
+                    entity.setStatus(status);
+                    entity.setCompletionPercentage(Math.max(0, Math.min(100, completionPercentage)));
+                    jpaRepository.save(entity);
+                });
+    }
+
     private TraineeProgressEntity toEntity(TraineeProgress domain) {
         TraineeProgressEntity e = new TraineeProgressEntity();
         e.setId(domain.getId());

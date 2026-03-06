@@ -6,11 +6,14 @@ import com.nac.slogbaa.learning.application.port.out.CourseSummaryQueryPort;
 import com.nac.slogbaa.progress.application.port.in.EnrollTraineeUseCase;
 import com.nac.slogbaa.progress.application.port.in.GetEnrolledCoursesUseCase;
 import com.nac.slogbaa.progress.application.port.in.GetResumePointUseCase;
+import com.nac.slogbaa.progress.application.port.in.RecordModuleCompletionUseCase;
 import com.nac.slogbaa.progress.application.port.in.RecordProgressUseCase;
+import com.nac.slogbaa.progress.application.port.out.ModuleCompletionPort;
 import com.nac.slogbaa.progress.application.port.out.TraineeProgressRepositoryPort;
 import com.nac.slogbaa.progress.application.service.EnrollTraineeService;
 import com.nac.slogbaa.progress.application.service.GetEnrolledCoursesService;
 import com.nac.slogbaa.progress.application.service.GetResumePointService;
+import com.nac.slogbaa.progress.application.service.RecordModuleCompletionService;
 import com.nac.slogbaa.progress.application.service.RecordProgressService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -33,10 +36,19 @@ public class ProgressConfiguration {
     }
 
     @Bean
+    public RecordModuleCompletionUseCase recordModuleCompletionUseCase(
+            TraineeProgressRepositoryPort traineeProgressRepository,
+            ModuleCompletionPort moduleCompletionPort,
+            CourseDetailsQueryPort courseDetailsQueryPort) {
+        return new RecordModuleCompletionService(traineeProgressRepository, moduleCompletionPort, courseDetailsQueryPort);
+    }
+
+    @Bean
     public RecordProgressUseCase recordProgressUseCase(
             TraineeProgressRepositoryPort traineeProgressRepository,
-            CourseDetailsQueryPort courseDetailsQueryPort) {
-        return new RecordProgressService(traineeProgressRepository, courseDetailsQueryPort);
+            CourseDetailsQueryPort courseDetailsQueryPort,
+            RecordModuleCompletionUseCase recordModuleCompletionUseCase) {
+        return new RecordProgressService(traineeProgressRepository, courseDetailsQueryPort, recordModuleCompletionUseCase);
     }
 
     @Bean
