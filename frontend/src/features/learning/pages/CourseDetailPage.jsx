@@ -1,23 +1,35 @@
-import { useState, useEffect } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { useParams, Link, useNavigate } from 'react-router-dom'
 import { getAssetUrl } from '../../../api/client.js'
 import { useAuth } from '../../iam/hooks/useAuth.js'
-import { getCourseDetails, checkEnrollment } from '../../../api/learning/courses.js'
+import { getCourseDetails, checkEnrollment, getResumePoint, recordProgress } from '../../../api/learning/courses.js'
 import { EditorJsReadOnly } from '../../app/components/admin/EditorJsReadOnly.jsx'
 
 const styles = {
   layout: {
-    minHeight: '100vh',
+    flex: 1,
+    minHeight: 0,
     display: 'flex',
     flexDirection: 'column',
+    overflow: 'hidden',
     background: 'var(--slogbaa-bg)',
   },
   main: {
     flex: 1,
+    minHeight: 0,
     padding: '1.5rem 2rem',
     maxWidth: 1000,
     margin: '0 auto',
     width: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+    overflow: 'hidden',
+  },
+  topBar: {
+    flexShrink: 0,
+    background: 'var(--slogbaa-bg)',
+    paddingBottom: '0.5rem',
+    marginBottom: '0.5rem',
   },
   backLink: {
     display: 'inline-flex',
@@ -65,13 +77,17 @@ const styles = {
     color: 'var(--slogbaa-text-muted)',
   },
   content: {
+    flex: 1,
+    minHeight: 0,
     display: 'flex',
     gap: '2rem',
-    flexWrap: 'wrap',
+    flexWrap: 'nowrap',
+    overflow: 'hidden',
   },
   sidebar: {
     flex: '0 0 240px',
     minWidth: 200,
+    overflowY: 'auto',
   },
   moduleList: {
     listStyle: 'none',
@@ -106,6 +122,22 @@ const styles = {
     color: '#fff',
     borderColor: 'var(--slogbaa-blue)',
   },
+  sidebarBackLinks: {
+    marginTop: '1rem',
+    paddingTop: '1rem',
+    borderTop: '1px solid var(--slogbaa-border)',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.5rem',
+  },
+  sidebarBackLink: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '0.35rem',
+    fontSize: '0.9375rem',
+    color: 'var(--slogbaa-blue)',
+    textDecoration: 'none',
+  },
   moduleTitle: {
     fontWeight: 500,
   },
@@ -116,9 +148,22 @@ const styles = {
   article: {
     flex: 1,
     minWidth: 280,
+    minHeight: 0,
+    overflowY: 'auto',
   },
   block: {
     marginBottom: '1.5rem',
+  },
+  blockWrapper: {
+    marginBottom: '1.5rem',
+    borderRadius: 12,
+    padding: '0.5rem',
+    transition: 'background 0.2s, box-shadow 0.2s, border-color 0.2s',
+  },
+  blockWrapperFocused: {
+    background: 'rgba(241, 134, 37, 0.06)',
+    borderLeft: '4px solid var(--slogbaa-orange)',
+    boxShadow: '0 2px 12px rgba(241, 134, 37, 0.12)',
   },
   blockTitle: {
     margin: '0 0 0.5rem',
@@ -195,6 +240,46 @@ const styles = {
   },
 }
 
+function BlockWithProgressObserver({ block, moduleId, blockOrder, onViewed, onFocusChange, isFocused, scrollRoot }) {
+  const ref = useRef(null)
+
+  useEffect(() => {
+    if (!moduleId || !block?.id) return
+    const el = ref.current
+    if (!el) return
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        const ratio = entry.intersectionRatio
+        onFocusChange?.(block.id, ratio)
+        // Only record progress when advancing (higher blockOrder) and block is meaningfully visible
+        if (ratio >= 0.25 && onViewed && blockOrder != null) {
+          onViewed(moduleId, block.id, blockOrder)
+        }
+      },
+      {
+        root: scrollRoot ?? null,
+        threshold: [0, 0.1, 0.25, 0.5, 0.75, 1],
+        rootMargin: '0px 0px -10% 0px',
+      }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [block?.id, blockOrder, moduleId, onViewed, onFocusChange, scrollRoot])
+
+  return (
+    <div
+      ref={ref}
+      style={{
+        ...styles.blockWrapper,
+        ...(isFocused ? styles.blockWrapperFocused : {}),
+      }}
+    >
+      <ContentBlockRenderer block={block} />
+    </div>
+  )
+}
+
 function ContentBlockRenderer({ block }) {
   const { blockType, richText, imageUrl, imageAltText, imageCaption, videoUrl, videoId, activityInstructions, activityResources } = block
 
@@ -264,11 +349,13 @@ function ContentBlockRenderer({ block }) {
 
 export function CourseDetailPage() {
   const { courseId, moduleId } = useParams()
+  const navigate = useNavigate()
   const { token } = useAuth()
   const [course, setCourse] = useState(null)
   const [enrolled, setEnrolled] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const resumeCheckedRef = useRef(false)
 
   useEffect(() => {
     if (!token || !courseId) return
@@ -283,7 +370,64 @@ export function CourseDetailPage() {
       .finally(() => setLoading(false))
   }, [token, courseId])
 
+  // Resume: when no module in URL and enrolled, redirect to last viewed module
+  useEffect(() => {
+    if (!token || !courseId || !enrolled || !course || resumeCheckedRef.current) return
+    if (moduleId) {
+      resumeCheckedRef.current = true
+      return
+    }
+    resumeCheckedRef.current = true
+    getResumePoint(token, courseId).then((resume) => {
+      if (resume?.lastModuleId && course.modules?.some((m) => m.id === resume.lastModuleId)) {
+        navigate(`/dashboard/courses/${courseId}/modules/${resume.lastModuleId}`, { replace: true })
+      }
+    })
+  }, [token, courseId, enrolled, course, moduleId, navigate])
+
   const selectedModule = course?.modules?.find((m) => m.id === moduleId) ?? course?.modules?.[0]
+  const maxBlockOrderRecordedRef = useRef(-1)
+  const blockRatiosRef = useRef({})
+  const [articleEl, setArticleEl] = useState(null)
+  const articleRef = useCallback((el) => setArticleEl(el), [])
+  const [focusedBlockId, setFocusedBlockId] = useState(null)
+
+  // Reset max recorded and focus when switching modules
+  useEffect(() => {
+    maxBlockOrderRecordedRef.current = -1
+    blockRatiosRef.current = {}
+    setFocusedBlockId(null)
+  }, [selectedModule?.id])
+
+  // Record progress only when advancing (never overwrite with earlier blocks when scrolling up)
+  const handleBlockViewed = useCallback(
+    (modId, blockId, blockOrder) => {
+      if (!token || !courseId || !modId || !blockId || blockOrder == null) return
+      if (blockOrder <= maxBlockOrderRecordedRef.current) return
+      maxBlockOrderRecordedRef.current = blockOrder
+      recordProgress(token, courseId, modId, blockId)
+    },
+    [token, courseId]
+  )
+
+  const handleFocusChange = useCallback((blockId, ratio) => {
+    blockRatiosRef.current[blockId] = ratio
+    const entries = Object.entries(blockRatiosRef.current).filter(([, r]) => r > 0.05)
+    if (entries.length === 0) {
+      setFocusedBlockId(null)
+      return
+    }
+    const best = entries.reduce((a, b) => (a[1] >= b[1] ? a : b))
+    setFocusedBlockId((prev) => (prev === best[0] ? prev : best[0]))
+  }, [])
+
+  // Record progress for modules with no content blocks (use module id as block id)
+  useEffect(() => {
+    if (!token || !courseId || !selectedModule || !enrolled) return
+    const blocks = selectedModule.contentBlocks
+    if (blocks && blocks.length > 0) return // blocks case handled by BlockWithProgressObserver
+    recordProgress(token, courseId, selectedModule.id, selectedModule.id)
+  }, [token, courseId, selectedModule?.id, enrolled])
 
   if (loading) {
     return (
@@ -343,10 +487,8 @@ export function CourseDetailPage() {
   return (
     <div style={styles.layout}>
       <main style={styles.main}>
-        <Link to="/dashboard/courses" style={styles.backLink}>
-          ← Back to courses
-        </Link>
-        <header style={styles.header}>
+        <div style={styles.topBar}>
+          <header style={styles.header}>
           {course.imageUrl ? (
             <img src={getAssetUrl(course.imageUrl)} alt="" style={styles.courseImage} onError={(e) => { e.target.style.display = 'none' }} />
           ) : (
@@ -357,6 +499,7 @@ export function CourseDetailPage() {
             <p style={styles.description}>{course.description || ''}</p>
           </div>
         </header>
+        </div>
         <div style={styles.content}>
           <aside style={styles.sidebar}>
             <ul style={styles.moduleList}>
@@ -382,8 +525,16 @@ export function CourseDetailPage() {
                 </li>
               ))}
             </ul>
+            <div style={styles.sidebarBackLinks}>
+              <Link to="/dashboard/courses" style={styles.sidebarBackLink}>
+                ← Back to courses
+              </Link>
+              <Link to="/dashboard" style={styles.sidebarBackLink}>
+                ← Back to dashboard
+              </Link>
+            </div>
           </aside>
-          <article style={styles.article}>
+          <article ref={articleRef} style={styles.article}>
             {selectedModule ? (
               <>
                 <h2 style={{ margin: '0 0 1rem', fontSize: '1.25rem', color: 'var(--slogbaa-text)' }}>
@@ -393,7 +544,16 @@ export function CourseDetailPage() {
                   <p style={{ margin: '0 0 1.5rem', color: 'var(--slogbaa-text-muted)' }}>{selectedModule.description}</p>
                 )}
                 {selectedModule.contentBlocks?.map((block) => (
-                  <ContentBlockRenderer key={block.id} block={block} />
+                  <BlockWithProgressObserver
+                    key={block.id}
+                    block={block}
+                    moduleId={selectedModule.id}
+                    blockOrder={block.blockOrder ?? 0}
+                    onViewed={handleBlockViewed}
+                    onFocusChange={handleFocusChange}
+                    isFocused={focusedBlockId === block.id}
+                    scrollRoot={articleEl}
+                  />
                 ))}
                 {(!selectedModule.contentBlocks || selectedModule.contentBlocks.length === 0) && (
                   <p style={{ color: 'var(--slogbaa-text-muted)' }}>No content in this module yet.</p>

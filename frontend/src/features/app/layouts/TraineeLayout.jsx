@@ -5,6 +5,7 @@ import { ProfileViewModal } from '../components/trainee/ProfileViewModal.jsx'
 import { EditProfileModal } from '../components/trainee/EditProfileModal.jsx'
 import { useAuth } from '../../iam/hooks/useAuth.js'
 import { getTraineeProfile, updateTraineeProfile } from '../../../api/trainee.js'
+import { getEnrolledCourses } from '../../../api/learning/courses.js'
 
 const backLinkStyle = {
   display: 'inline-flex',
@@ -21,8 +22,10 @@ export function TraineeLayout() {
   const { token } = useAuth()
   const location = useLocation()
   const isDashboardIndex = location.pathname === '/dashboard' || location.pathname === '/dashboard/'
+  const isCourseDetail = /^\/dashboard\/courses\/[^/]+/.test(location.pathname)
   const [profileModalOpen, setProfileModalOpen] = useState(false)
   const [profileData, setProfileData] = useState(null)
+  const [profileEnrolledCourses, setProfileEnrolledCourses] = useState([])
   const [profileLoading, setProfileLoading] = useState(false)
   const [profileError, setProfileError] = useState(null)
   const [editProfileOpen, setEditProfileOpen] = useState(false)
@@ -33,10 +36,17 @@ export function TraineeLayout() {
     setProfileModalOpen(true)
     setProfileError(null)
     setProfileData(null)
+    setProfileEnrolledCourses([])
     if (!token) return
     setProfileLoading(true)
-    getTraineeProfile(token)
-      .then((data) => setProfileData(data))
+    Promise.all([
+      getTraineeProfile(token),
+      getEnrolledCourses(token),
+    ])
+      .then(([data, enrolled]) => {
+        setProfileData(data)
+        setProfileEnrolledCourses(Array.isArray(enrolled) ? enrolled : [])
+      })
       .catch((err) => setProfileError(err?.message ?? 'Failed to load profile.'))
       .finally(() => setProfileLoading(false))
   }, [token])
@@ -44,6 +54,7 @@ export function TraineeLayout() {
   const handleCloseProfile = useCallback(() => {
     setProfileModalOpen(false)
     setProfileData(null)
+    setProfileEnrolledCourses([])
     setProfileError(null)
   }, [])
 
@@ -76,12 +87,28 @@ export function TraineeLayout() {
     [token]
   )
 
+  const layoutWrapperStyle = {
+    display: 'flex',
+    flexDirection: 'column',
+    height: '100vh',
+    overflow: 'hidden',
+    background: 'var(--slogbaa-bg)',
+  }
+  const contentAreaStyle = {
+    flex: 1,
+    minHeight: 0,
+    overflow: isCourseDetail ? 'hidden' : 'auto',
+    display: isCourseDetail ? 'flex' : 'block',
+    flexDirection: 'column',
+  }
+
   return (
-    <>
+    <div style={layoutWrapperStyle}>
       <TraineeNav onOpenProfile={handleOpenProfile} />
       {profileModalOpen && profileData && (
         <ProfileViewModal
           profile={profileData}
+          enrolledCourses={profileEnrolledCourses}
           onClose={handleCloseProfile}
           onEdit={handleEditProfile}
         />
@@ -162,14 +189,16 @@ export function TraineeLayout() {
           </div>
         </div>
       )}
-      {!isDashboardIndex && (
-        <div style={{ padding: '0 1.5rem 0 2rem', maxWidth: 1200, margin: '0 auto' }}>
-          <Link to="/dashboard" style={backLinkStyle}>
-            ← Back to dashboard
-          </Link>
-        </div>
-      )}
-      <Outlet />
-    </>
+      <div style={contentAreaStyle}>
+        {!isDashboardIndex && !isCourseDetail && (
+          <div style={{ padding: '0 1.5rem 0 2rem', maxWidth: 1200, margin: '0 auto', flexShrink: 0 }}>
+            <Link to="/dashboard" style={backLinkStyle}>
+              ← Back to dashboard
+            </Link>
+          </div>
+        )}
+        <Outlet />
+      </div>
+    </div>
   )
 }

@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { Navigate, NavLink, Outlet } from 'react-router-dom'
 import { FontAwesomeIcon, icons } from '../../../shared/icons.js'
 import { useAuth } from '../../iam/hooks/useAuth.js'
-import { getDashboardOverview } from '../../../api/admin/dashboard.js'
+import { getDashboardOverview, getCourseCount } from '../../../api/admin/dashboard.js'
 import { changePassword as changePasswordApi } from '../../../api/admin/me.js'
 import { createStaff as createStaffApi, deleteStaff as deleteStaffApi } from '../../../api/admin/staff.js'
 import { deleteTrainee as deleteTraineeApi } from '../../../api/admin/trainees.js'
@@ -141,6 +141,7 @@ export function AdminLayout() {
   const { isAuthenticated, user, token } = useAuth()
   const [staff, setStaff] = useState([])
   const [trainees, setTrainees] = useState([])
+  const [courseCount, setCourseCount] = useState(0)
   const [overviewLoading, setOverviewLoading] = useState(true)
   const [overviewError, setOverviewError] = useState(null)
   const [modal, setModal] = useState(null)
@@ -149,14 +150,18 @@ export function AdminLayout() {
     if (!token) return
     setOverviewLoading(true)
     setOverviewError(null)
-    getDashboardOverview(token)
-      .then((result) => {
+    Promise.all([
+      getDashboardOverview(token),
+      getCourseCount(token),
+    ])
+      .then(([result, count]) => {
         if (result.error) {
           setOverviewError(result.error)
           return
         }
         setStaff(result.data.staff ?? [])
         setTrainees(result.data.trainees ?? [])
+        setCourseCount(typeof count === 'number' ? count : 0)
       })
       .finally(() => setOverviewLoading(false))
   }, [token])
@@ -209,6 +214,7 @@ export function AdminLayout() {
   const outletContext = {
     staff,
     trainees,
+    courseCount,
     overviewLoading,
     overviewError,
     handleCreateStaff,

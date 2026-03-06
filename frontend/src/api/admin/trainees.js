@@ -25,6 +25,18 @@ export async function getTraineeProfile(token, traineeId) {
 }
 
 /**
+ * Get enrolled courses for a trainee by id (ADMIN and SUPER_ADMIN).
+ * Returns array of { id, title, description, imageUrl, moduleCount, completionPercentage }. Returns [] on error.
+ */
+export async function getTraineeEnrolledCourses(token, traineeId) {
+  if (!token || !traineeId) return []
+  const client = apiClient(token)
+  const res = await client.get(`/api/admin/progress/trainees/${traineeId}/enrolled-courses`)
+  if (!res.ok) return []
+  return res.json().catch(() => [])
+}
+
+/**
  * Delete a trainee by id (SUPER_ADMIN only). Throws on failure.
  */
 export async function deleteTrainee(token, traineeId) {

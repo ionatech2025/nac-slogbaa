@@ -2,11 +2,13 @@ package com.nac.slogbaa.progress.adapters.persistence.adapter;
 
 import com.nac.slogbaa.progress.adapters.persistence.entity.TraineeProgressEntity;
 import com.nac.slogbaa.progress.adapters.persistence.repository.JpaTraineeProgressRepository;
+import com.nac.slogbaa.progress.application.dto.ResumePoint;
 import com.nac.slogbaa.progress.application.port.out.TraineeProgressRepositoryPort;
 import com.nac.slogbaa.progress.core.aggregate.TraineeProgress;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Component
@@ -35,6 +37,35 @@ public class TraineeProgressRepositoryAdapter implements TraineeProgressReposito
         return jpaRepository.findByTraineeIdOrderByEnrollmentDateDesc(traineeId).stream()
                 .map(this::toDomain)
                 .toList();
+    }
+
+    @Override
+    public Optional<ResumePoint> findResumePoint(UUID traineeId, UUID courseId) {
+        return jpaRepository.findOneByTraineeIdAndCourseId(traineeId, courseId)
+                .filter(e -> e.getLastModuleId() != null)
+                .map(e -> new ResumePoint(e.getLastModuleId(), e.getLastContentBlockId()));
+    }
+
+    @Override
+    public void updateResumePoint(UUID traineeId, UUID courseId, UUID lastModuleId, UUID lastContentBlockId, int completionPercentage) {
+        jpaRepository.findOneByTraineeIdAndCourseId(traineeId, courseId)
+                .ifPresent(entity -> {
+                    entity.setLastModuleId(lastModuleId);
+                    entity.setLastContentBlockId(lastContentBlockId);
+                    entity.setLastAccessedAt(java.time.Instant.now());
+                    entity.setCompletionPercentage(Math.max(0, Math.min(100, completionPercentage)));
+                    jpaRepository.save(entity);
+                });
+    }
+
+    @Override
+    public void updateCompletionStatus(UUID traineeId, UUID courseId, String status, int completionPercentage) {
+        jpaRepository.findOneByTraineeIdAndCourseId(traineeId, courseId)
+                .ifPresent(entity -> {
+                    entity.setStatus(status);
+                    entity.setCompletionPercentage(Math.max(0, Math.min(100, completionPercentage)));
+                    jpaRepository.save(entity);
+                });
     }
 
     private TraineeProgressEntity toEntity(TraineeProgress domain) {

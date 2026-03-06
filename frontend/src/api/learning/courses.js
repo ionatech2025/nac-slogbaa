@@ -59,6 +59,36 @@ export async function enrollInCourse(token, courseId) {
 }
 
 /**
+ * Record progress when trainee views course content (POST /api/courses/:courseId/progress).
+ * Body: { moduleId, contentBlockId }. No-op if not enrolled. Fire-and-forget.
+ */
+export async function recordProgress(token, courseId, moduleId, contentBlockId) {
+  if (!token || !courseId || !moduleId || !contentBlockId) return
+  const client = apiClient(token)
+  const res = await client.post(`/api/courses/${courseId}/progress`, { moduleId, contentBlockId })
+  if (!res.ok) {
+    // fire-and-forget, don't throw
+    return
+  }
+}
+
+/**
+ * Get trainee's resume point for a course (GET /api/courses/:courseId/resume).
+ * Returns { lastModuleId, lastContentBlockId } or { lastModuleId: null, lastContentBlockId: null }.
+ */
+export async function getResumePoint(token, courseId) {
+  if (!token || !courseId) return { lastModuleId: null, lastContentBlockId: null }
+  const client = apiClient(token)
+  const res = await client.get(`/api/courses/${courseId}/resume`)
+  if (!res.ok) return { lastModuleId: null, lastContentBlockId: null }
+  const data = await res.json().catch(() => ({}))
+  return {
+    lastModuleId: data.lastModuleId ?? null,
+    lastContentBlockId: data.lastContentBlockId ?? null,
+  }
+}
+
+/**
  * Fetch course details with modules and content blocks (GET /api/courses/:id). Requires auth token.
  * Returns full course object or throws on 404/error.
  */
