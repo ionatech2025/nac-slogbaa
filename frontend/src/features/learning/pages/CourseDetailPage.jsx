@@ -240,7 +240,7 @@ const styles = {
   },
 }
 
-function BlockWithProgressObserver({ block, moduleId, blockOrder, onViewed, onFocusChange, isFocused }) {
+function BlockWithProgressObserver({ block, moduleId, blockOrder, onViewed, onFocusChange, isFocused, scrollRoot }) {
   const ref = useRef(null)
 
   useEffect(() => {
@@ -257,11 +257,15 @@ function BlockWithProgressObserver({ block, moduleId, blockOrder, onViewed, onFo
           onViewed(moduleId, block.id, blockOrder)
         }
       },
-      { threshold: [0, 0.1, 0.25, 0.5, 0.75, 1], rootMargin: '0px 0px -10% 0px' }
+      {
+        root: scrollRoot ?? null,
+        threshold: [0, 0.1, 0.25, 0.5, 0.75, 1],
+        rootMargin: '0px 0px -10% 0px',
+      }
     )
     observer.observe(el)
     return () => observer.disconnect()
-  }, [block?.id, blockOrder, moduleId, onViewed, onFocusChange])
+  }, [block?.id, blockOrder, moduleId, onViewed, onFocusChange, scrollRoot])
 
   return (
     <div
@@ -384,9 +388,11 @@ export function CourseDetailPage() {
   const selectedModule = course?.modules?.find((m) => m.id === moduleId) ?? course?.modules?.[0]
   const maxBlockOrderRecordedRef = useRef(-1)
   const blockRatiosRef = useRef({})
+  const [articleEl, setArticleEl] = useState(null)
+  const articleRef = useCallback((el) => setArticleEl(el), [])
   const [focusedBlockId, setFocusedBlockId] = useState(null)
 
-  // Reset max recorded when switching modules
+  // Reset max recorded and focus when switching modules
   useEffect(() => {
     maxBlockOrderRecordedRef.current = -1
     blockRatiosRef.current = {}
@@ -406,7 +412,7 @@ export function CourseDetailPage() {
 
   const handleFocusChange = useCallback((blockId, ratio) => {
     blockRatiosRef.current[blockId] = ratio
-    const entries = Object.entries(blockRatiosRef.current).filter(([, r]) => r > 0.15)
+    const entries = Object.entries(blockRatiosRef.current).filter(([, r]) => r > 0.05)
     if (entries.length === 0) {
       setFocusedBlockId(null)
       return
@@ -528,7 +534,7 @@ export function CourseDetailPage() {
               </Link>
             </div>
           </aside>
-          <article style={styles.article}>
+          <article ref={articleRef} style={styles.article}>
             {selectedModule ? (
               <>
                 <h2 style={{ margin: '0 0 1rem', fontSize: '1.25rem', color: 'var(--slogbaa-text)' }}>
@@ -546,6 +552,7 @@ export function CourseDetailPage() {
                     onViewed={handleBlockViewed}
                     onFocusChange={handleFocusChange}
                     isFocused={focusedBlockId === block.id}
+                    scrollRoot={articleEl}
                   />
                 ))}
                 {(!selectedModule.contentBlocks || selectedModule.contentBlocks.length === 0) && (

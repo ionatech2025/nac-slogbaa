@@ -118,6 +118,16 @@ select {
   max-width: none;
 }
 
+/* Editor.js: reserve space for toolbar so text doesn't overlap; keep toolbar visible */
+[data-editor-holder] .ce-block__content {
+  margin-left: 3.5rem !important;
+}
+[data-editor-holder] .ce-toolbar,
+[data-editor-holder] .ce-toolbar__actions {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
 /* Editor.js dark mode: override default light styles when theme is dark */
 [data-theme='dark'] [data-editor-holder] .codex-editor,
 [data-theme='dark'] [data-editor-holder] .codex-editor__redactor,
@@ -162,6 +172,34 @@ select {
   color: var(--slogbaa-text) !important;
   background: transparent !important;
 }
+/* Menu/settings button always visible in dark mode (like plus icon), same contrast */
+[data-theme='dark'] [data-editor-holder] .ce-toolbar__settings-btn,
+[data-theme='dark'] [data-editor-holder] .ce-settings__button {
+  opacity: 1 !important;
+  visibility: visible !important;
+  color: var(--slogbaa-text) !important;
+}
+[data-theme='dark'] [data-editor-holder] .ce-toolbar__settings-btn:hover,
+[data-theme='dark'] [data-editor-holder] .ce-toolbar__settings-btn:focus,
+[data-theme='dark'] [data-editor-holder] .ce-settings__button:hover,
+[data-theme='dark'] [data-editor-holder] .ce-settings__button:focus {
+  color: var(--slogbaa-text) !important;
+  background: transparent !important;
+}
+[data-theme='dark'] [data-editor-holder] .ce-toolbar__settings-btn svg,
+[data-theme='dark'] [data-editor-holder] .ce-settings__button svg {
+  fill: var(--slogbaa-text) !important;
+  stroke: var(--slogbaa-text) !important;
+  color: var(--slogbaa-text) !important;
+}
+[data-theme='dark'] [data-editor-holder] .ce-toolbar__settings-btn:hover svg,
+[data-theme='dark'] [data-editor-holder] .ce-toolbar__settings-btn:focus svg,
+[data-theme='dark'] [data-editor-holder] .ce-settings__button:hover svg,
+[data-theme='dark'] [data-editor-holder] .ce-settings__button:focus svg {
+  fill: var(--slogbaa-text) !important;
+  stroke: var(--slogbaa-text) !important;
+  color: var(--slogbaa-text) !important;
+}
 [data-theme='dark'] [data-editor-holder] .ce-popover,
 [data-theme='dark'] [data-editor-holder] .ce-popover__items {
   background: var(--slogbaa-surface) !important;
@@ -171,6 +209,31 @@ select {
 [data-theme='dark'] [data-editor-holder] .ce-popover-item__icon,
 [data-theme='dark'] [data-editor-holder] .ce-popover-item__title {
   color: var(--slogbaa-text) !important;
+}
+/* Add-block popover: hover/focus item stays dark with good contrast (no white highlight) */
+[data-theme='dark'] [data-editor-holder] .ce-popover-item:hover,
+[data-theme='dark'] [data-editor-holder] .ce-popover-item.ce-popover-item--focused,
+[data-theme='dark'] [data-editor-holder] .ce-popover-item:focus,
+[data-theme='dark'] [data-editor-holder] .ce-popover-item[class*='focused'] {
+  background: var(--slogbaa-bg-secondary) !important;
+  color: var(--slogbaa-text) !important;
+}
+[data-theme='dark'] [data-editor-holder] .ce-popover-item:hover .ce-popover-item__icon,
+[data-theme='dark'] [data-editor-holder] .ce-popover-item:hover .ce-popover-item__title,
+[data-theme='dark'] [data-editor-holder] .ce-popover-item.ce-popover-item--focused .ce-popover-item__icon,
+[data-theme='dark'] [data-editor-holder] .ce-popover-item.ce-popover-item--focused .ce-popover-item__title {
+  color: var(--slogbaa-text) !important;
+}
+/* Filter input in add-block popover */
+[data-theme='dark'] [data-editor-holder] .ce-popover input,
+[data-theme='dark'] [data-editor-holder] .ce-popover .ce-popover__search,
+[data-theme='dark'] [data-editor-holder] .ce-popover .cdx-search-field__input {
+  background: var(--slogbaa-bg-secondary) !important;
+  color: var(--slogbaa-text) !important;
+  border-color: var(--slogbaa-border) !important;
+}
+[data-theme='dark'] [data-editor-holder] .ce-popover input::placeholder {
+  color: var(--slogbaa-text-muted) !important;
 }
 [data-theme='dark'] [data-editor-holder] .tc-table,
 [data-theme='dark'] [data-editor-holder] .tc-row,
