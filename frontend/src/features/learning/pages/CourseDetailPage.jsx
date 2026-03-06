@@ -388,28 +388,49 @@ export function CourseDetailPage() {
 
   const selectedModule = course?.modules?.find((m) => m.id === moduleId) ?? course?.modules?.[0]
   const maxBlockOrderRecordedRef = useRef(-1)
+  const maxBlockOrderRef = useRef(0)
   const blockRatiosRef = useRef({})
   const [articleEl, setArticleEl] = useState(null)
   const articleRef = useCallback((el) => setArticleEl(el), [])
   const [focusedBlockId, setFocusedBlockId] = useState(null)
+  const [notesVisible, setNotesVisible] = useState(true)
+  const [notesReadThrough, setNotesReadThrough] = useState(false)
 
-  // Reset max recorded and focus when switching modules
+  const blocks = selectedModule?.contentBlocks ?? []
+  const maxBlockOrder = blocks.length === 0 ? 0 : Math.max(0, ...blocks.map((b) => b.blockOrder ?? 0))
+
+  // Keep max block order ref in sync for use inside handleBlockViewed
+  useEffect(() => {
+    maxBlockOrderRef.current = maxBlockOrder
+  }, [maxBlockOrder])
+
+  // Reset state when switching modules
   useEffect(() => {
     maxBlockOrderRecordedRef.current = -1
     blockRatiosRef.current = {}
     setFocusedBlockId(null)
+    setNotesVisible(true)
+    setNotesReadThrough(false)
   }, [selectedModule?.id])
 
-  // Record progress only when advancing (never overwrite with earlier blocks when scrolling up)
+  // Record progress only when advancing; mark notes as read-through when last block is viewed
   const handleBlockViewed = useCallback(
     (modId, blockId, blockOrder) => {
       if (!token || !courseId || !modId || !blockId || blockOrder == null) return
       if (blockOrder <= maxBlockOrderRecordedRef.current) return
       maxBlockOrderRecordedRef.current = blockOrder
       recordProgress(token, courseId, modId, blockId)
+      if (blockOrder >= maxBlockOrderRef.current) setNotesReadThrough(true)
     },
     [token, courseId]
   )
+
+  const handleStartQuiz = useCallback(() => setNotesVisible(false), [])
+  const handleRereadNotes = useCallback(() => {
+    maxBlockOrderRecordedRef.current = -1
+    setNotesVisible(true)
+    setNotesReadThrough(false)
+  }, [])
 
   const handleFocusChange = useCallback((blockId, ratio) => {
     blockRatiosRef.current[blockId] = ratio
@@ -544,26 +565,76 @@ export function CourseDetailPage() {
                 {selectedModule.description && (
                   <p style={{ margin: '0 0 1.5rem', color: 'var(--slogbaa-text-muted)' }}>{selectedModule.description}</p>
                 )}
-                <ModuleQuizPanel
-                  token={token}
-                  courseId={courseId}
-                  moduleId={selectedModule.id}
-                  visible={Boolean(selectedModule.hasQuiz)}
-                />
-                {selectedModule.contentBlocks?.map((block) => (
-                  <BlockWithProgressObserver
-                    key={block.id}
-                    block={block}
+                {selectedModule.hasQuiz && notesVisible && (
+                  <div
+                    style={{
+                      marginBottom: '1.25rem',
+                      padding: '1rem 1.25rem',
+                      borderRadius: 12,
+                      background: 'var(--slogbaa-surface)',
+                      border: '1px solid var(--slogbaa-border)',
+                    }}
+                  >
+                    <p style={{ margin: 0, fontSize: '0.9375rem', color: 'var(--slogbaa-text-muted)' }}>
+                      After reading the notes below, when you&apos;re ready, click <strong style={{ color: 'var(--slogbaa-text)' }}>Start quiz</strong> to take the module quiz.
+                    </p>
+                  </div>
+                )}
+                {notesVisible ? (
+                  <>
+                    {selectedModule.contentBlocks?.map((block) => (
+                      <BlockWithProgressObserver
+                        key={block.id}
+                        block={block}
+                        moduleId={selectedModule.id}
+                        blockOrder={block.blockOrder ?? 0}
+                        onViewed={handleBlockViewed}
+                        onFocusChange={handleFocusChange}
+                        isFocused={focusedBlockId === block.id}
+                        scrollRoot={articleEl}
+                      />
+                    ))}
+                    {(!selectedModule.contentBlocks || selectedModule.contentBlocks.length === 0) && (
+                      <p style={{ color: 'var(--slogbaa-text-muted)' }}>No content in this module yet.</p>
+                    )}
+                  </>
+                ) : (
+                  <div style={{ marginTop: '1rem', padding: '1rem 1.25rem', borderRadius: 12, background: 'var(--slogbaa-surface)', border: '1px solid var(--slogbaa-border)' }}>
+                    <p style={{ margin: '0 0 0.75rem', fontSize: '0.9375rem', color: 'var(--slogbaa-text-muted)' }}>
+                      Module notes are hidden while the quiz is available. Re-read the notes anytime to refresh.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={handleRereadNotes}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        padding: '0.55rem 0.9rem',
+                        borderRadius: 10,
+                        border: '1px solid var(--slogbaa-border)',
+                        background: 'transparent',
+                        color: 'var(--slogbaa-text)',
+                        fontSize: '0.9375rem',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Re-read Notes
+                    </button>
+                  </div>
+                )}
+                {(!notesVisible || notesReadThrough || blocks.length === 0) && (
+                  <ModuleQuizPanel
+                    token={token}
+                    courseId={courseId}
                     moduleId={selectedModule.id}
-                    blockOrder={block.blockOrder ?? 0}
-                    onViewed={handleBlockViewed}
-                    onFocusChange={handleFocusChange}
-                    isFocused={focusedBlockId === block.id}
-                    scrollRoot={articleEl}
+                    visible={Boolean(selectedModule.hasQuiz)}
+                    showPanel
+                    notesReadThrough={notesReadThrough || blocks.length === 0}
+                    notesVisible={notesVisible}
+                    onStartQuiz={handleStartQuiz}
+                    onRereadNotes={handleRereadNotes}
                   />
-                ))}
-                {(!selectedModule.contentBlocks || selectedModule.contentBlocks.length === 0) && (
-                  <p style={{ color: 'var(--slogbaa-text-muted)' }}>No content in this module yet.</p>
                 )}
               </>
             ) : (

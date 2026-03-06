@@ -7,6 +7,7 @@ import com.nac.slogbaa.assessment.adapters.persistence.repository.JpaQuizAttempt
 import com.nac.slogbaa.assessment.adapters.persistence.repository.JpaQuizRepository;
 import com.nac.slogbaa.assessment.adapters.persistence.repository.JpaTraineeAssessmentRepository;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.*;
@@ -27,6 +28,7 @@ public class AttemptAdapter implements AttemptPort {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Optional<QuizForAttemptDto> getQuizForAttempt(UUID quizId) {
         return quizRepository.findById(quizId)
                 .filter(q -> !q.getQuestions().isEmpty())
@@ -34,6 +36,7 @@ public class AttemptAdapter implements AttemptPort {
     }
 
     @Override
+    @Transactional
     public AttemptDto startAttempt(UUID traineeId, UUID quizId, UUID moduleId) {
         QuizEntity quiz = quizRepository.findById(quizId).orElseThrow(() -> new NoSuchElementException("Quiz not found: " + quizId));
         TraineeAssessmentEntity assessment = traineeAssessmentRepository.findByTraineeIdAndQuizId(traineeId, quizId)
@@ -65,6 +68,7 @@ public class AttemptAdapter implements AttemptPort {
     }
 
     @Override
+    @Transactional
     public SubmittedAttemptDto submitAttempt(UUID attemptId, UUID traineeId, List<AnswerSubmission> answers) {
         QuizAttemptEntity attempt = attemptRepository.findById(attemptId)
                 .orElseThrow(() -> new NoSuchElementException("Attempt not found: " + attemptId));

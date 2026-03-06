@@ -5,6 +5,7 @@
     <groupId>com.nac</groupId>
     <artifactId>slogbaa</artifactId>
     <version>0.0.1-SNAPSHOT</version>
+    <relativePath>../pom.xml</relativePath>
   </parent>
   <artifactId>assessment</artifactId>
   <name>assessment</name>

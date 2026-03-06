@@ -106,7 +106,7 @@ function normalizeType(t) {
   return String(t || '').toUpperCase()
 }
 
-export function ModuleQuizPanel({ token, courseId, moduleId, visible }) {
+export function ModuleQuizPanel({ token, courseId, moduleId, visible, showPanel = true, notesReadThrough = true, notesVisible = true, onStartQuiz, onRereadNotes }) {
   const [loading, setLoading] = useState(false)
   const [quiz, setQuiz] = useState(null)
   const [attempt, setAttempt] = useState(null)
@@ -114,6 +114,7 @@ export function ModuleQuizPanel({ token, courseId, moduleId, visible }) {
   const [submitting, setSubmitting] = useState(false)
   const [result, setResult] = useState(null)
   const [error, setError] = useState(null)
+  const canStartQuiz = notesReadThrough && !loading && quiz
 
   useEffect(() => {
     if (!visible || !token || !courseId || !moduleId) return
@@ -147,7 +148,7 @@ export function ModuleQuizPanel({ token, courseId, moduleId, visible }) {
   const questions = useMemo(() => quiz?.questions ?? [], [quiz])
 
   const start = async () => {
-    if (!token || !courseId || !moduleId) return
+    if (!token || !courseId || !moduleId || !canStartQuiz) return
     setError(null)
     setSubmitting(false)
     setResult(null)
@@ -157,6 +158,7 @@ export function ModuleQuizPanel({ token, courseId, moduleId, visible }) {
       const a = await startQuizAttempt(token, courseId, moduleId)
       setAttempt(a)
       setQuiz(a.quiz)
+      onStartQuiz?.()
     } catch (e) {
       setError(e?.message ?? 'Failed to start attempt.')
     } finally {
@@ -190,7 +192,7 @@ export function ModuleQuizPanel({ token, courseId, moduleId, visible }) {
     }
   }
 
-  if (!visible) return null
+  if (!visible || !showPanel) return null
 
   return (
     <section style={styles.card}>
@@ -201,18 +203,28 @@ export function ModuleQuizPanel({ token, courseId, moduleId, visible }) {
             {loading ? 'Loading quiz…' : null}
             {!loading && quiz ? `${questions.length} question${questions.length === 1 ? '' : 's'} · Pass mark: ${quiz.passThresholdPercent}%` : null}
             {!loading && !quiz ? 'No quiz is configured for this module yet.' : null}
+            {!loading && quiz && !notesReadThrough ? ' Read through the module notes above to unlock the quiz.' : null}
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
+        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
           <button
             type="button"
             onClick={start}
-            disabled={loading || !quiz}
-            style={styles.button('primary', loading || !quiz)}
+            disabled={!canStartQuiz}
+            style={styles.button('primary', !canStartQuiz)}
           >
             Start quiz
           </button>
+          {!notesVisible && typeof onRereadNotes === 'function' && (
+            <button
+              type="button"
+              onClick={onRereadNotes}
+              style={styles.button('ghost')}
+            >
+              Re-read Notes
+            </button>
+          )}
           {attempt?.attemptId && (
             <button
               type="button"

@@ -9,6 +9,7 @@ import com.nac.slogbaa.assessment.adapters.persistence.entity.QuestionEntity;
 import com.nac.slogbaa.assessment.adapters.persistence.entity.QuizOptionEntity;
 import com.nac.slogbaa.assessment.adapters.persistence.repository.JpaQuizRepository;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -24,6 +25,7 @@ public class QuizStoreAdapter implements QuizStorePort {
     }
 
     @Override
+    @Transactional
     public QuizDto save(QuizDto dto) {
         QuizEntity entity = quizRepository.findById(dto.id()).orElseGet(QuizEntity::new);
         entity.setId(dto.id() != null ? dto.id() : UUID.randomUUID());
@@ -58,11 +60,13 @@ public class QuizStoreAdapter implements QuizStorePort {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Optional<QuizDto> findById(UUID quizId) {
         return quizRepository.findById(quizId).map(this::toDto);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Optional<QuizDto> findByModuleId(UUID moduleId) {
         return quizRepository.findByModuleId(moduleId).map(this::toDto);
     }

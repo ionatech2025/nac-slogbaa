@@ -10,6 +10,9 @@ export async function getQuizForModule(token, courseId, moduleId) {
   const client = apiClient(token)
   const res = await client.get(`/api/courses/${courseId}/modules/${moduleId}/quiz`)
   if (res.status === 404) return null
+  if (res.status === 401) {
+    throw new Error('Session expired or invalid. Please log out and log in again to view the quiz.')
+  }
   if (!res.ok) throw new Error(await parseError(res))
   return res.json()
 }
