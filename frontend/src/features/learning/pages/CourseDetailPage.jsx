@@ -4,6 +4,7 @@ import { getAssetUrl } from '../../../api/client.js'
 import { useAuth } from '../../iam/hooks/useAuth.js'
 import { getCourseDetails, checkEnrollment, getResumePoint, recordProgress } from '../../../api/learning/courses.js'
 import { EditorJsReadOnly } from '../../app/components/admin/EditorJsReadOnly.jsx'
+import { ModuleQuizPanel } from '../../assessment/components/ModuleQuizPanel.jsx'
 
 const styles = {
   layout: {
@@ -543,6 +544,12 @@ export function CourseDetailPage() {
                 {selectedModule.description && (
                   <p style={{ margin: '0 0 1.5rem', color: 'var(--slogbaa-text-muted)' }}>{selectedModule.description}</p>
                 )}
+                <ModuleQuizPanel
+                  token={token}
+                  courseId={courseId}
+                  moduleId={selectedModule.id}
+                  visible={Boolean(selectedModule.hasQuiz)}
+                />
                 {selectedModule.contentBlocks?.map((block) => (
                   <BlockWithProgressObserver
                     key={block.id}
