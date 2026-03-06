@@ -10,16 +10,18 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
 
 @SpringBootApplication
-@ComponentScan(basePackages = { "com.nac.slogbaa", "com.nac.slogbaa.iam", "com.nac.slogbaa.learning", "com.nac.slogbaa.progress" })
+@ComponentScan(basePackages = { "com.nac.slogbaa", "com.nac.slogbaa.iam", "com.nac.slogbaa.learning", "com.nac.slogbaa.progress", "com.nac.slogbaa.assessment" })
 @EntityScan(basePackages = {
         "com.nac.slogbaa.iam.adapters.persistence.entity",
         "com.nac.slogbaa.learning.adapters.persistence.entity",
-        "com.nac.slogbaa.progress.adapters.persistence.entity"
+        "com.nac.slogbaa.progress.adapters.persistence.entity",
+        "com.nac.slogbaa.assessment.adapters.persistence.entity"
 })
 @EnableJpaRepositories(basePackages = {
         "com.nac.slogbaa.iam.adapters.persistence.repository",
         "com.nac.slogbaa.learning.adapters.persistence.repository",
-        "com.nac.slogbaa.progress.adapters.persistence.repository"
+        "com.nac.slogbaa.progress.adapters.persistence.repository",
+        "com.nac.slogbaa.assessment.adapters.persistence.repository"
 })
 public class SlogbaaApplication {
 

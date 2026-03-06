@@ -29,6 +29,7 @@
 		<module>app</module>
 		<module>learning</module>
 		<module>progress</module>
+		<module>assessment</module>
 	</modules>
 
 	<dependencies>
@@ -60,6 +61,11 @@
 			<dependency>
 				<groupId>com.nac</groupId>
 				<artifactId>progress</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.nac</groupId>
+				<artifactId>assessment</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
