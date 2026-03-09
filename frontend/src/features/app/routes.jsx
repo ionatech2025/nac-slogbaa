@@ -11,6 +11,7 @@ import { LibraryPage } from '../learning/pages/LibraryPage.jsx'
 import { AdminLayout } from './pages/AdminLayout.jsx'
 import { AdminOverviewPage } from './pages/AdminOverviewPage.jsx'
 import { AdminPlaceholderPage } from './pages/AdminPlaceholderPage.jsx'
+import { AdminAssessmentPage } from './pages/AdminAssessmentPage.jsx'
 import { AdminLearningPage } from './pages/AdminLearningPage.jsx'
 import { AdminCoursePage } from './pages/AdminCoursePage.jsx'
 import { AdminModuleEditorPage } from './pages/AdminModuleEditorPage.jsx'
@@ -39,7 +40,7 @@ export function AppRoutes() {
         <Route path="learning/:courseId" element={<AdminCoursePage />} />
         <Route path="learning/:courseId/modules/:moduleId" element={<AdminModuleEditorPage />} />
         <Route path="library" element={<AdminLibraryPage />} />
-        <Route path="assessment" element={<AdminPlaceholderPage title="Assessment" />} />
+        <Route path="assessment" element={<AdminAssessmentPage />} />
         <Route path="reports" element={<AdminPlaceholderPage title="Reports & Analytics" />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
