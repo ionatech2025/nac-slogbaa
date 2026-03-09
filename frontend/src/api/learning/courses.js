@@ -76,10 +76,10 @@ export async function recordProgress(token, courseId, moduleId, contentBlockId) 
  * Record module completion (POST /api/courses/:courseId/modules/:moduleId/complete).
  * Used when trainee passes a quiz. Fire-and-forget.
  */
-export async function recordModuleCompletion(token, courseId, moduleId) {
+export async function recordModuleCompletion(token, courseId, moduleId, quizPassed = false) {
   if (!token || !courseId || !moduleId) return
   const client = apiClient(token)
-  await client.post(`/api/courses/${courseId}/modules/${moduleId}/complete`, {}).catch(() => null)
+  await client.post(`/api/courses/${courseId}/modules/${moduleId}/complete`, { quizPassed }).catch(() => null)
 }
 
 /**

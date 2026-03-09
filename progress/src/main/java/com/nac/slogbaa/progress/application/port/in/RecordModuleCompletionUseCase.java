@@ -11,6 +11,7 @@ public interface RecordModuleCompletionUseCase {
     /**
      * Record module as completed for the trainee on the course. Idempotent.
      * If all modules are now completed, marks the course as COMPLETED.
+     * @param quizPassed true when completion is from passing a quiz; false when from content viewing only.
      */
-    void record(UUID traineeId, UUID courseId, UUID moduleId);
+    void record(UUID traineeId, UUID courseId, UUID moduleId, boolean quizPassed);
 }

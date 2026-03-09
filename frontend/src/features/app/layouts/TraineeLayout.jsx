@@ -5,6 +5,7 @@ import { ProfileViewModal } from '../components/trainee/ProfileViewModal.jsx'
 import { EditProfileModal } from '../components/trainee/EditProfileModal.jsx'
 import { useAuth } from '../../iam/hooks/useAuth.js'
 import { getTraineeProfile, updateTraineeProfile } from '../../../api/trainee.js'
+import { getTraineeSettings, updateTraineeSettings } from '../../../api/traineeSettings.js'
 import { getEnrolledCourses } from '../../../api/learning/courses.js'
 
 const backLinkStyle = {
@@ -31,21 +32,25 @@ export function TraineeLayout() {
   const [editProfileOpen, setEditProfileOpen] = useState(false)
   const [profileSaving, setProfileSaving] = useState(false)
   const [profileSaveError, setProfileSaveError] = useState(null)
+  const [traineeSettings, setTraineeSettings] = useState(null)
 
   const handleOpenProfile = useCallback(() => {
     setProfileModalOpen(true)
     setProfileError(null)
     setProfileData(null)
     setProfileEnrolledCourses([])
+    setTraineeSettings(null)
     if (!token) return
     setProfileLoading(true)
     Promise.all([
       getTraineeProfile(token),
       getEnrolledCourses(token),
+      getTraineeSettings(token).catch(() => ({ certificateEmailOptIn: false })),
     ])
-      .then(([data, enrolled]) => {
+      .then(([data, enrolled, settings]) => {
         setProfileData(data)
         setProfileEnrolledCourses(Array.isArray(enrolled) ? enrolled : [])
+        setTraineeSettings(settings)
       })
       .catch((err) => setProfileError(err?.message ?? 'Failed to load profile.'))
       .finally(() => setProfileLoading(false))
@@ -74,10 +79,18 @@ export function TraineeLayout() {
       setProfileSaveError(null)
       setProfileSaving(true)
       try {
-        await updateTraineeProfile(token, payload)
+        const { certificateEmailOptIn, ...profilePayload } = payload
+        await Promise.all([
+          updateTraineeProfile(token, profilePayload),
+          updateTraineeSettings(token, { certificateEmailOptIn: !!certificateEmailOptIn }),
+        ])
         setEditProfileOpen(false)
-        const updated = await getTraineeProfile(token)
+        const [updated, settings] = await Promise.all([
+          getTraineeProfile(token),
+          getTraineeSettings(token).catch(() => ({ certificateEmailOptIn: false })),
+        ])
         setProfileData(updated)
+        setTraineeSettings(settings)
       } catch (err) {
         setProfileSaveError(err?.message ?? 'Failed to update profile.')
       } finally {
@@ -116,6 +129,7 @@ export function TraineeLayout() {
       {editProfileOpen && profileData && (
         <EditProfileModal
           profile={profileData}
+          certificateEmailOptIn={traineeSettings?.certificateEmailOptIn ?? false}
           onClose={handleCloseEditProfile}
           onSave={handleSaveProfile}
           saving={profileSaving}

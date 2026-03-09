@@ -1,0 +1,72 @@
+package com.nac.slogbaa.progress.adapters.rest.controller;
+
+import com.nac.slogbaa.progress.application.dto.CertificateSummaryResult;
+import com.nac.slogbaa.progress.application.port.in.ListCertificatesUseCase;
+import com.nac.slogbaa.progress.application.port.in.RevokeCertificateUseCase;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.UUID;
+
+/**
+ * REST controller for admin certificate management.
+ * List: ADMIN and SUPER_ADMIN. Revoke: SUPER_ADMIN only.
+ */
+@RestController
+@RequestMapping("/api/admin/certificates")
+public class AdminCertificateController {
+
+    private final ListCertificatesUseCase listCertificatesUseCase;
+    private final RevokeCertificateUseCase revokeCertificateUseCase;
+
+    public AdminCertificateController(ListCertificatesUseCase listCertificatesUseCase,
+                                      RevokeCertificateUseCase revokeCertificateUseCase) {
+        this.listCertificatesUseCase = listCertificatesUseCase;
+        this.revokeCertificateUseCase = revokeCertificateUseCase;
+    }
+
+    @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN')")
+    public ResponseEntity<List<CertificateResponse>> list() {
+        List<CertificateSummaryResult> results = listCertificatesUseCase.list();
+        List<CertificateResponse> body = results.stream()
+                .map(r -> new CertificateResponse(
+                        r.id().toString(),
+                        r.traineeId().toString(),
+                        r.courseId().toString(),
+                        r.certificateNumber(),
+                        r.issuedDate().toString(),
+                        r.finalScorePercent(),
+                        r.revoked(),
+                        r.traineeName(),
+                        r.courseTitle()
+                ))
+                .toList();
+        return ResponseEntity.ok(body);
+    }
+
+    @PostMapping("/{id}/revoke")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    public ResponseEntity<Void> revoke(@PathVariable UUID id) {
+        try {
+            revokeCertificateUseCase.revoke(id);
+            return ResponseEntity.noContent().build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    public record CertificateResponse(
+            String id,
+            String traineeId,
+            String courseId,
+            String certificateNumber,
+            String issuedDate,
+            int finalScorePercent,
+            boolean revoked,
+            String traineeName,
+            String courseTitle
+    ) {}
+}

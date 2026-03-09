@@ -8,18 +8,19 @@ const styles = {
     boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
     border: '1px solid var(--slogbaa-border)',
   },
-  imageWrap: {
-    height: 180,
-    background: 'var(--slogbaa-border)',
-    overflow: 'hidden',
+  header: {
+    height: 140,
+    background: 'linear-gradient(135deg, var(--slogbaa-blue) 0%, #1a4d7a 100%)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  image: {
-    width: '100%',
-    height: '100%',
-    objectFit: 'cover',
+  headerIcon: {
+    fontSize: '3.5rem',
+    color: 'rgba(255,255,255,0.9)',
   },
   body: {
-    padding: '1rem 1.25rem',
+    padding: '1.25rem 1.5rem',
   },
   title: {
     margin: '0 0 0.5rem',
@@ -49,6 +50,10 @@ const styles = {
     cursor: 'pointer',
     border: 'none',
   },
+  buttonDisabled: {
+    opacity: 0.7,
+    cursor: 'not-allowed',
+  },
   primary: {
     background: 'var(--slogbaa-blue)',
     color: '#fff',
@@ -59,21 +64,13 @@ const styles = {
   },
 }
 
-export function CertificateCard({ certificate, onPreview, onDownload }) {
-  const imgSrc = certificate.imageUrl || '/assets/images/certificates/placeholder.jpg'
+export function CertificateCard({ certificate, actionLoading = false, onPreview, onDownload, onSendEmail }) {
+  const disabled = actionLoading
 
   return (
     <article style={styles.card}>
-      <div style={styles.imageWrap}>
-        <img
-          src={imgSrc}
-          alt=""
-          style={styles.image}
-          onError={(e) => {
-            e.target.onerror = null
-            e.target.src = 'https://placehold.co/400x220/e0e0e0/6b6b6b?text=Certificate'
-          }}
-        />
+      <div style={styles.header}>
+        <FontAwesomeIcon icon={icons.certificate} style={styles.headerIcon} />
       </div>
       <div style={styles.body}>
         <h3 style={styles.title}>{certificate.title}</h3>
@@ -81,20 +78,33 @@ export function CertificateCard({ certificate, onPreview, onDownload }) {
         <div style={styles.actions}>
           <button
             type="button"
-            style={{ ...styles.button, ...styles.primary }}
+            style={{ ...styles.button, ...styles.primary, ...(disabled ? styles.buttonDisabled : {}) }}
             onClick={() => onPreview?.(certificate)}
+            disabled={disabled}
           >
             <FontAwesomeIcon icon={icons.previewPdf} />
             Preview PDF
           </button>
           <button
             type="button"
-            style={{ ...styles.button, ...styles.secondary }}
+            style={{ ...styles.button, ...styles.secondary, ...(disabled ? styles.buttonDisabled : {}) }}
             onClick={() => onDownload?.(certificate)}
+            disabled={disabled}
           >
             <FontAwesomeIcon icon={icons.download} />
             Download
           </button>
+          {onSendEmail && (
+            <button
+              type="button"
+              style={{ ...styles.button, ...styles.secondary, ...(disabled ? styles.buttonDisabled : {}) }}
+              onClick={() => onSendEmail(certificate)}
+              disabled={disabled}
+            >
+              <FontAwesomeIcon icon={icons.download} />
+              Download &amp; email me
+            </button>
+          )}
         </div>
       </div>
     </article>

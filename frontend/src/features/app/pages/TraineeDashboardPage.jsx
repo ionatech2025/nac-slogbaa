@@ -1,27 +1,12 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { FontAwesomeIcon, icons } from '../../../shared/icons.js'
 import { useAuth } from '../../iam/hooks/useAuth.js'
 import { getEnrolledCourses, getPublishedCourses, enrollInCourse } from '../../../api/learning/courses.js'
+import { getMyCertificates, downloadCertificate, sendCertificateEmail } from '../../../api/certificates.js'
 import { CourseCard } from '../components/trainee/CourseCard.jsx'
 import { CoursePreviewModal } from '../../learning/components/CoursePreviewModal.jsx'
 import { CertificateCard } from '../components/trainee/CertificateCard.jsx'
-const MOCK_CERTIFICATES = [
-  {
-    id: 'c1',
-    title: 'Introduction to Civic Engagement',
-    description: 'Completed on completion of all modules and passing the final assessment.',
-    imageUrl: '/assets/images/certificates/cert1.jpg',
-    pdfUrl: '#',
-  },
-  {
-    id: 'c2',
-    title: 'Digital Literacy for Leaders',
-    description: 'Completed on completion of all modules and passing the final assessment.',
-    imageUrl: '/assets/images/certificates/cert2.jpg',
-    pdfUrl: '#',
-  },
-]
 
 const styles = {
   layout: {
@@ -138,6 +123,10 @@ export function TraineeDashboardPage() {
   const [enrolledLoading, setEnrolledLoading] = useState(true)
   const [publishedLoading, setPublishedLoading] = useState(true)
   const [enrollingId, setEnrollingId] = useState(null)
+  const [certificates, setCertificates] = useState([])
+  const [certificatesLoading, setCertificatesLoading] = useState(false)
+  const [certificateActionId, setCertificateActionId] = useState(null)
+  const [certificateError, setCertificateError] = useState(null)
   const [previewCourse, setPreviewCourse] = useState(null)
   const [coursesError, setCoursesError] = useState(null)
   const displayName = user?.fullName || user?.email || 'Trainee'
@@ -183,13 +172,59 @@ export function TraineeDashboardPage() {
 
   const handlePreview = (course) => setPreviewCourse(course)
 
-  const handlePreviewCertificate = (cert) => {
-    if (cert.pdfUrl && cert.pdfUrl !== '#') window.open(cert.pdfUrl, '_blank')
-    else console.log('Preview', cert.id)
+  const loadCertificates = useCallback(async () => {
+    if (!token) return
+    setCertificatesLoading(true)
+    try {
+      const data = await getMyCertificates(token)
+      setCertificates(data ?? [])
+    } catch {
+      setCertificates([])
+    } finally {
+      setCertificatesLoading(false)
+    }
+  }, [token])
+
+  useEffect(() => {
+    if (activeTab === 'certificates') loadCertificates()
+  }, [activeTab, loadCertificates])
+
+  const handlePreviewCertificate = async (cert) => {
+    if (!token || certificateActionId) return
+    setCertificateActionId(cert.id)
+    setCertificateError(null)
+    try {
+      const blob = await downloadCertificate(token, cert.id)
+      const url = URL.createObjectURL(blob)
+      window.open(url, '_blank', 'noopener,noreferrer')
+      setTimeout(() => URL.revokeObjectURL(url), 60000)
+    } catch (e) {
+      setCertificateError('Could not preview certificate. Please try downloading instead.')
+    } finally {
+      setCertificateActionId(null)
+    }
   }
 
-  const handleDownloadCertificate = (cert) => {
-    console.log('Download', cert.id)
+  const handleDownloadCertificate = async (cert, alsoSendEmail = false) => {
+    if (!token || certificateActionId) return
+    setCertificateActionId(cert.id)
+    setCertificateError(null)
+    try {
+      const blob = await downloadCertificate(token, cert.id)
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `${cert.certificateNumber || 'certificate'}.pdf`
+      a.click()
+      URL.revokeObjectURL(url)
+      if (alsoSendEmail) {
+        await sendCertificateEmail(token, cert.id)
+      }
+    } catch (e) {
+      setCertificateError('Could not download certificate. Please try again.')
+    } finally {
+      setCertificateActionId(null)
+    }
   }
 
   return (
@@ -394,22 +429,35 @@ export function TraineeDashboardPage() {
         {activeTab === 'certificates' && (
           <>
             <h2 style={styles.sectionTitle}>Achieved Certificates</h2>
-            <div style={styles.cardGrid}>
-              {MOCK_CERTIFICATES.length === 0 ? (
-                <p style={{ color: 'var(--slogbaa-text-muted)', fontSize: '0.9375rem' }}>
-                  No certificates yet. Complete courses to earn certificates.
-                </p>
-              ) : (
-                MOCK_CERTIFICATES.map((cert) => (
+            {certificateError && (
+              <p style={{ margin: '0 0 1rem', color: 'var(--slogbaa-error)', fontSize: '0.9375rem' }}>{certificateError}</p>
+            )}
+            {certificatesLoading ? (
+              <p style={{ color: 'var(--slogbaa-text-muted)', fontSize: '0.9375rem' }}>Loading certificates…</p>
+            ) : certificates.length === 0 ? (
+              <p style={{ color: 'var(--slogbaa-text-muted)', fontSize: '0.9375rem' }}>
+                No certificates yet. Complete courses with passing quiz scores to earn certificates.
+              </p>
+            ) : (
+              <div style={styles.cardGrid}>
+                {certificates.map((cert) => (
                   <CertificateCard
                     key={cert.id}
-                    certificate={cert}
+                    certificate={{
+                      id: cert.id,
+                      title: cert.courseTitle || cert.certificateNumber,
+                      description: `Score: ${cert.finalScorePercent}%. Issued: ${cert.issuedDate}.`,
+                      certificateNumber: cert.certificateNumber,
+                      fileUrl: cert.fileUrl,
+                    }}
+                    actionLoading={certificateActionId === cert.id}
                     onPreview={handlePreviewCertificate}
-                    onDownload={handleDownloadCertificate}
+                    onDownload={(c) => handleDownloadCertificate(c)}
+                    onSendEmail={(c) => handleDownloadCertificate(c, true)}
                   />
-                ))
-              )}
-            </div>
+                ))}
+              </div>
+            )}
           </>
         )}
       </main>

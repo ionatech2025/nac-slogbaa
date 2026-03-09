@@ -182,8 +182,7 @@ export function ModuleQuizPanel({ token, courseId, moduleId, visible, showPanel 
       const r = await submitQuizAttempt(token, courseId, moduleId, attempt.attemptId, payload)
       setResult(r)
       if (r?.passed) {
-        // Phase 4 integration: quiz passed => module completed
-        await recordModuleCompletion(token, courseId, moduleId)
+        await recordModuleCompletion(token, courseId, moduleId, true)
       }
     } catch (e) {
       setError(e?.message ?? 'Failed to submit attempt.')

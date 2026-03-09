@@ -67,8 +67,8 @@ public final class RecordProgressService implements RecordProgressUseCase {
 
         traineeProgressRepository.updateResumePoint(traineeId, courseId, moduleId, contentBlockId, completionPercentage);
 
-        if (isLastBlockOfModule) {
-            recordModuleCompletionUseCase.record(traineeId, courseId, moduleId);
+        if (isLastBlockOfModule && !module.isHasQuiz()) {
+            recordModuleCompletionUseCase.record(traineeId, courseId, moduleId, false);
         }
     }
 

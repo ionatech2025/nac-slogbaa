@@ -29,6 +29,15 @@ public class EmailTraineeNotificationAdapter implements TraineeNotificationPort 
         emailService.sendHtmlEmail(toEmail, "Welcome to SLOGBAA", htmlContent);
     }
 
+    @Override
+    public void sendCertificateEmail(String toEmail, String traineeName, String courseTitle, byte[] pdfBytes) {
+        String body = "Hello " + escapeHtml(traineeName) + ",\n\n"
+                + "Congratulations! Your certificate for \"" + escapeHtml(courseTitle) + "\" is attached.\n\n"
+                + "— The SLOGBAA Team";
+        String filename = "certificate-" + escapeHtml(courseTitle).replaceAll("[^a-zA-Z0-9-]", "-") + ".pdf";
+        emailService.sendEmailWithAttachment(toEmail, "Your SLOGBAA Certificate", body, pdfBytes, filename);
+    }
+
     private String escapeHtml(String s) {
         if (s == null) return "";
         return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;");

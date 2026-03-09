@@ -105,13 +105,13 @@ function toForm(profile) {
   }
 }
 
-export function EditProfileModal({ profile, onClose, onSave, saving = false, error: externalError }) {
-  const [form, setForm] = useState(toForm(profile))
+export function EditProfileModal({ profile, certificateEmailOptIn = false, onClose, onSave, saving = false, error: externalError }) {
+  const [form, setForm] = useState({ ...toForm(profile), certificateEmailOptIn })
   const [error, setError] = useState(externalError ?? null)
 
   useEffect(() => {
-    setForm(toForm(profile))
-  }, [profile])
+    setForm((prev) => ({ ...toForm(profile), certificateEmailOptIn: certificateEmailOptIn ?? prev.certificateEmailOptIn }))
+  }, [profile, certificateEmailOptIn])
 
   useEffect(() => {
     setError(externalError ?? null)
@@ -143,6 +143,7 @@ export function EditProfileModal({ profile, onClose, onSave, saving = false, err
       street: form.street?.trim() ?? '',
       city: form.city?.trim() ?? '',
       postalCode: form.postalCode?.trim() ?? '',
+      certificateEmailOptIn: !!form.certificateEmailOptIn,
     })
   }
 
@@ -261,6 +262,17 @@ export function EditProfileModal({ profile, onClose, onSave, saving = false, err
               placeholder="e.g. 712345678"
             />
           </div>
+        </div>
+
+        <div style={{ ...styles.field, ...styles.fullWidth }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+            <input
+              type="checkbox"
+              checked={!!form.certificateEmailOptIn}
+              onChange={(e) => update('certificateEmailOptIn', e.target.checked)}
+            />
+            <span style={styles.label}>Send me certificates by email when I earn them</span>
+          </label>
         </div>
 
         <div style={styles.field}>

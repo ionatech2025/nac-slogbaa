@@ -104,8 +104,10 @@ public class EnrollmentController {
     public ResponseEntity<Void> recordModuleComplete(
             @AuthenticationPrincipal AuthenticatedIdentity identity,
             @PathVariable UUID courseId,
-            @PathVariable UUID moduleId) {
-        recordModuleCompletionUseCase.record(identity.getUserId(), courseId, moduleId);
+            @PathVariable UUID moduleId,
+            @RequestBody(required = false) RecordModuleCompleteRequest body) {
+        boolean quizPassed = body != null && Boolean.TRUE.equals(body.quizPassed());
+        recordModuleCompletionUseCase.record(identity.getUserId(), courseId, moduleId, quizPassed);
         return ResponseEntity.noContent().build();
     }
 
@@ -122,5 +124,6 @@ public class EnrollmentController {
 
     public record EnrolledCourseResponse(String id, String title, String description, String imageUrl, int moduleCount, int completionPercentage) {}
     public record RecordProgressRequest(java.util.UUID moduleId, java.util.UUID contentBlockId) {}
+    public record RecordModuleCompleteRequest(Boolean quizPassed) {}
     public record ResumePointResponse(String lastModuleId, String lastContentBlockId) {}
 }

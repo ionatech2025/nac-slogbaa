@@ -11,8 +11,9 @@ public interface ModuleCompletionPort {
     /**
      * Record that the given module is completed for the trainee's progress on the course.
      * Idempotent: if already completed, no-op.
+     * @param quizPassed true when completion is from passing a quiz (sets quiz_status=PASSED).
      */
-    void recordModuleCompleted(UUID traineeId, UUID courseId, UUID moduleId);
+    void recordModuleCompleted(UUID traineeId, UUID courseId, UUID moduleId, boolean quizPassed);
 
     /**
      * Count how many modules are in COMPLETED status for this trainee's course progress.
