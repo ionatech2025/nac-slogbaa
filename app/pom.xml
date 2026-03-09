@@ -29,6 +29,10 @@
             <groupId>com.nac</groupId>
             <artifactId>progress</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.nac</groupId>
+            <artifactId>assessment</artifactId>
+        </dependency>
          <dependency>
             <groupId>com.nac</groupId>
             <artifactId>infrastructure</artifactId>

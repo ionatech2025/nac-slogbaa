@@ -6,6 +6,8 @@ import { getAssetUrl } from '../../../api/client.js'
 import { getCourseDetails } from '../../../api/learning/courses.js'
 import { ModuleEditorJs } from '../components/admin/ModuleEditorJs.jsx'
 import { EditorJsReadOnly } from '../components/admin/EditorJsReadOnly.jsx'
+import { AdminQuizEditor } from '../../assessment/components/AdminQuizEditor.jsx'
+import { AdminQuizReadOnly } from '../../assessment/components/AdminQuizReadOnly.jsx'
 import { GripVertical, Pencil } from 'lucide-react'
 
 function focusBlockAndCursorStart(el) {
@@ -639,6 +641,19 @@ export function AdminModuleEditorPage() {
             </div>
           )}
         </div>
+
+        {/* Module quiz: read-only for admin, editable for SuperAdmin */}
+        {(module.hasQuiz === true || module.has_quiz === true) && (
+          isSuperAdmin ? (
+            <AdminQuizEditor
+              token={token}
+              moduleId={moduleId}
+              onSaved={() => refresh()}
+            />
+          ) : (
+            <AdminQuizReadOnly token={token} moduleId={moduleId} />
+          )
+        )}
       </div>
     </div>
   )

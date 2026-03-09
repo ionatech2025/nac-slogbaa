@@ -23,60 +23,47 @@ function buildUrl(path) {
 }
 
 /**
+ * Normalize token to raw JWT so we always send exactly "Bearer <jwt>" (no double prefix).
+ */
+function normalizeToken(token) {
+  if (!token || typeof token !== 'string') return null
+  let t = token.trim()
+  while (t.toLowerCase().startsWith('bearer ')) t = t.slice(7).trim()
+  return t || null
+}
+
+/**
  * Optional: pass token to attach Authorization header for protected endpoints.
+ * Uses credentials: 'include' when a token is present so cross-origin requests send the header.
  * Usage: apiClient(token).get('/some/protected-path')
  */
 export function apiClient(token = null) {
-  const authHeaders = token ? { Authorization: `Bearer ${token}` } : {}
+  const rawToken = normalizeToken(token)
+  const authHeaders = rawToken ? { Authorization: `Bearer ${rawToken}` } : {}
+  const credentials = rawToken ? 'include' : 'same-origin'
+
+  const request = (path, method, options = {}, body = undefined) => {
+    const url = buildUrl(path)
+    const headers = {
+      ...(method !== 'GET' && method !== 'DELETE' ? { 'Content-Type': 'application/json' } : {}),
+      ...authHeaders,
+      ...(options.headers || {}),
+    }
+    const opts = {
+      ...options,
+      method,
+      credentials,
+      headers,
+      ...(body != null && method !== 'GET' && method !== 'DELETE' ? { body: JSON.stringify(body) } : {}),
+    }
+    return fetch(url, opts)
+  }
+
   return {
-    get: (path, options = {}) =>
-      fetch(buildUrl(path), {
-        ...options,
-        method: 'GET',
-        headers: { ...authHeaders, ...options.headers },
-      }),
-
-    post: (path, body, options = {}) =>
-      fetch(buildUrl(path), {
-        ...options,
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...authHeaders,
-          ...options.headers,
-        },
-        body: body != null ? JSON.stringify(body) : undefined,
-      }),
-
-    put: (path, body, options = {}) =>
-      fetch(buildUrl(path), {
-        ...options,
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          ...authHeaders,
-          ...options.headers,
-        },
-        body: body != null ? JSON.stringify(body) : undefined,
-      }),
-
-    patch: (path, body, options = {}) =>
-      fetch(buildUrl(path), {
-        ...options,
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          ...authHeaders,
-          ...options.headers,
-        },
-        body: body != null ? JSON.stringify(body) : undefined,
-      }),
-
-    delete: (path, options = {}) =>
-      fetch(buildUrl(path), {
-        ...options,
-        method: 'DELETE',
-        headers: { ...authHeaders, ...options.headers },
-      }),
+    get: (path, options = {}) => request(path, 'GET', options),
+    post: (path, body, options = {}) => request(path, 'POST', options, body),
+    put: (path, body, options = {}) => request(path, 'PUT', options, body),
+    patch: (path, body, options = {}) => request(path, 'PATCH', options, body),
+    delete: (path, options = {}) => request(path, 'DELETE', options),
   }
 }
