@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import { useOutletContext } from 'react-router-dom'
+import { Link, useOutletContext } from 'react-router-dom'
 import { FontAwesomeIcon, icons } from '../../../shared/icons.js'
 import { ConfirmModal } from '../../../shared/components/ConfirmModal.jsx'
 import { ProfileViewModal } from '../components/trainee/ProfileViewModal.jsx'
@@ -372,11 +372,22 @@ export function AdminOverviewPage() {
                       ...(i % 2 === 1 ? styles.trStriped : {}),
                     }}
                   >
-                    <td style={styles.td}>{s.fullName}</td>
+                    <td style={styles.td}>
+                      <Link to={`/admin/users/staff/${s.id}`} style={{ color: 'var(--slogbaa-blue)', fontWeight: 600, textDecoration: 'none' }}>
+                        {s.fullName}
+                      </Link>
+                    </td>
                     <td style={styles.td}>{s.email}</td>
                     <td style={styles.td}>{s.role === 'SUPER_ADMIN' ? 'Super Admin' : 'Admin'}</td>
                     {isSuperAdmin && (
                       <td style={styles.td}>
+                        <Link
+                          to={`/admin/users/staff/${s.id}`}
+                          style={styles.viewProfileBtn}
+                          title="View / manage staff"
+                        >
+                          <FontAwesomeIcon icon={icons.eye} />
+                        </Link>
                         {(s.id !== currentUserId && s.email !== currentUserEmail) ? (
                           <button
                             type="button"
@@ -424,16 +435,27 @@ export function AdminOverviewPage() {
                       ...(i % 2 === 1 ? styles.trStriped : {}),
                     }}
                   >
-                    <td style={styles.td}>{t.fullName}</td>
+                    <td style={styles.td}>
+                      <Link to={`/admin/users/trainee/${t.id}`} style={{ color: 'var(--slogbaa-blue)', fontWeight: 600, textDecoration: 'none' }}>
+                        {t.fullName}
+                      </Link>
+                    </td>
                     <td style={styles.td}>{t.email}</td>
                     <td style={styles.td}>{t.districtName ?? t.district ?? '—'}</td>
                     <td style={styles.td}>
+                      <Link
+                        to={`/admin/users/trainee/${t.id}`}
+                        style={styles.viewProfileBtn}
+                        title="View / manage trainee"
+                      >
+                        <FontAwesomeIcon icon={icons.eye} />
+                      </Link>
                       <button
                         type="button"
                         style={styles.viewProfileBtn}
                         onClick={() => onViewTraineeProfile(t)}
                         disabled={profileViewLoading}
-                        title="View profile"
+                        title="View profile (quick view)"
                       >
                         <FontAwesomeIcon icon={icons.viewProfile} />
                       </button>

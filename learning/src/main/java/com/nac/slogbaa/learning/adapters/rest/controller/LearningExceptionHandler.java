@@ -1,8 +1,10 @@
 package com.nac.slogbaa.learning.adapters.rest.controller;
 
 import com.nac.slogbaa.learning.core.exception.ContentBlockNotFoundException;
+import com.nac.slogbaa.learning.core.exception.CourseHasEnrollmentsException;
 import com.nac.slogbaa.learning.core.exception.CourseNotFoundException;
 import com.nac.slogbaa.learning.core.exception.LibraryResourceNotFoundException;
+import com.nac.slogbaa.learning.core.exception.ModuleHasCompletionsException;
 import com.nac.slogbaa.learning.core.exception.ModuleNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -40,6 +42,20 @@ public class LearningExceptionHandler {
     public ProblemDetail handleLibraryResourceNotFound(LibraryResourceNotFoundException e) {
         ProblemDetail detail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, e.getMessage());
         detail.setTitle("Library resource not found");
+        return detail;
+    }
+
+    @ExceptionHandler(CourseHasEnrollmentsException.class)
+    public ProblemDetail handleCourseHasEnrollments(CourseHasEnrollmentsException e) {
+        ProblemDetail detail = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, e.getMessage());
+        detail.setTitle("Course cannot be deleted");
+        return detail;
+    }
+
+    @ExceptionHandler(ModuleHasCompletionsException.class)
+    public ProblemDetail handleModuleHasCompletions(ModuleHasCompletionsException e) {
+        ProblemDetail detail = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, e.getMessage());
+        detail.setTitle("Module cannot be deleted");
         return detail;
     }
 }

@@ -10,8 +10,13 @@ import com.nac.slogbaa.iam.application.port.in.CreateStaffUseCase;
 import com.nac.slogbaa.iam.application.port.in.DeleteStaffUseCase;
 import com.nac.slogbaa.iam.application.port.in.DeleteTraineeUseCase;
 import com.nac.slogbaa.iam.application.port.in.GetAdminDashboardOverviewUseCase;
+import com.nac.slogbaa.iam.application.port.in.GetStaffByIdUseCase;
 import com.nac.slogbaa.iam.application.port.in.GetTraineeByIdUseCase;
 import com.nac.slogbaa.iam.application.port.in.RegisterTraineeUseCase;
+import com.nac.slogbaa.iam.application.port.in.SetStaffActiveUseCase;
+import com.nac.slogbaa.iam.application.port.in.SetStaffPasswordByAdminUseCase;
+import com.nac.slogbaa.iam.application.port.in.SetTraineePasswordByAdminUseCase;
+import com.nac.slogbaa.iam.application.port.in.UpdateStaffProfileByAdminUseCase;
 import com.nac.slogbaa.iam.application.port.in.PasswordResetUseCase;
 import com.nac.slogbaa.iam.application.port.in.UpdateTraineeProfileUseCase;
 import com.nac.slogbaa.iam.application.port.out.AuthTokenPort;
@@ -25,8 +30,13 @@ import com.nac.slogbaa.iam.application.service.CreateStaffService;
 import com.nac.slogbaa.iam.application.service.DeleteStaffService;
 import com.nac.slogbaa.iam.application.service.DeleteTraineeService;
 import com.nac.slogbaa.iam.application.service.GetAdminDashboardOverviewService;
+import com.nac.slogbaa.iam.application.service.GetStaffByIdService;
 import com.nac.slogbaa.iam.application.service.GetTraineeByIdService;
 import com.nac.slogbaa.iam.application.service.PasswordResetService;
+import com.nac.slogbaa.iam.application.service.SetStaffActiveService;
+import com.nac.slogbaa.iam.application.service.SetStaffPasswordByAdminService;
+import com.nac.slogbaa.iam.application.service.SetTraineePasswordByAdminService;
+import com.nac.slogbaa.iam.application.service.UpdateStaffProfileByAdminService;
 import com.nac.slogbaa.iam.application.service.RegisterTraineeService;
 import com.nac.slogbaa.iam.application.service.UpdateTraineeProfileService;
 import com.nac.slogbaa.shared.ports.PasswordResetNotificationPort;
@@ -116,6 +126,37 @@ public class IamConfiguration {
     @Bean
     public DeleteTraineeUseCase deleteTraineeUseCase(TraineeRepositoryPort traineeRepository) {
         return new DeleteTraineeService(traineeRepository);
+    }
+
+    @Bean
+    public GetStaffByIdUseCase getStaffByIdUseCase(StaffUserRepositoryPort staffUserRepository) {
+        return new GetStaffByIdService(staffUserRepository);
+    }
+
+    @Bean
+    public SetStaffPasswordByAdminUseCase setStaffPasswordByAdminUseCase(
+            StaffUserRepositoryPort staffUserRepository,
+            PasswordHasherPort passwordHasher) {
+        return new SetStaffPasswordByAdminService(staffUserRepository, passwordHasher);
+    }
+
+    @Bean
+    public SetTraineePasswordByAdminUseCase setTraineePasswordByAdminUseCase(
+            TraineeRepositoryPort traineeRepository,
+            PasswordHasherPort passwordHasher) {
+        return new SetTraineePasswordByAdminService(traineeRepository, passwordHasher);
+    }
+
+    @Bean
+    public SetStaffActiveUseCase setStaffActiveUseCase(StaffUserRepositoryPort staffUserRepository) {
+        return new SetStaffActiveService(staffUserRepository);
+    }
+
+    @Bean
+    public UpdateStaffProfileByAdminUseCase updateStaffProfileByAdminUseCase(
+            StaffUserRepositoryPort staffUserRepository,
+            TraineeRepositoryPort traineeRepository) {
+        return new UpdateStaffProfileByAdminService(staffUserRepository, traineeRepository);
     }
 
     @Bean

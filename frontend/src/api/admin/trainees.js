@@ -37,6 +37,36 @@ export async function getTraineeEnrolledCourses(token, traineeId) {
 }
 
 /**
+ * Update trainee profile by admin (ADMIN and SUPER_ADMIN). Same shape as trainee self-update.
+ */
+export async function updateTraineeProfile(token, traineeId, payload) {
+  if (!token) {
+    throw new Error('Your session is missing. Please log in again.')
+  }
+  const client = apiClient(token)
+  const res = await client.patch(`/api/admin/trainees/${traineeId}`, payload)
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}))
+    throw new Error(body.detail ?? body.message ?? `Request failed (${res.status})`)
+  }
+}
+
+/**
+ * Set a trainee's password (SUPER_ADMIN only). newPassword min 8 chars.
+ */
+export async function setTraineePassword(token, traineeId, newPassword) {
+  if (!token) {
+    throw new Error('Your session is missing. Please log in again.')
+  }
+  const client = apiClient(token)
+  const res = await client.post(`/api/admin/trainees/${traineeId}/password`, { newPassword })
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}))
+    throw new Error(body.detail ?? body.message ?? `Request failed (${res.status})`)
+  }
+}
+
+/**
  * Delete a trainee by id (SUPER_ADMIN only). Throws on failure.
  */
 export async function deleteTrainee(token, traineeId) {

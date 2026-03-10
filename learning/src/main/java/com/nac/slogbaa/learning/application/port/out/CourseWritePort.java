@@ -31,4 +31,14 @@ public interface CourseWritePort {
     void publish(CourseId courseId);
 
     void unpublish(CourseId courseId);
+
+    /**
+     * Delete a module and all its content blocks. Caller must ensure no trainee has completed this module.
+     */
+    void deleteModule(java.util.UUID moduleId);
+
+    /**
+     * Delete a course and all its modules and content. Caller must ensure no trainee is enrolled.
+     */
+    void deleteCourse(java.util.UUID courseId);
 }

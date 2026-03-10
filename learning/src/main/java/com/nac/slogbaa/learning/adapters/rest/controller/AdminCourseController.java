@@ -18,6 +18,8 @@ import com.nac.slogbaa.learning.application.dto.command.UpdateCourseCommand;
 import com.nac.slogbaa.learning.application.port.in.AddContentBlockToModuleUseCase;
 import com.nac.slogbaa.learning.application.port.in.AddModuleToCourseUseCase;
 import com.nac.slogbaa.learning.application.port.in.CreateCourseUseCase;
+import com.nac.slogbaa.learning.application.port.in.DeleteCourseUseCase;
+import com.nac.slogbaa.learning.application.port.in.DeleteModuleUseCase;
 import com.nac.slogbaa.learning.application.port.in.GetAdminCourseDetailsUseCase;
 import com.nac.slogbaa.learning.application.port.in.GetAdminCoursesUseCase;
 import com.nac.slogbaa.learning.application.port.in.PublishCourseUseCase;
@@ -75,6 +77,8 @@ public class AdminCourseController {
     private final DeleteContentBlockUseCase deleteContentBlockUseCase;
     private final PublishCourseUseCase publishCourseUseCase;
     private final UnpublishCourseUseCase unpublishCourseUseCase;
+    private final DeleteCourseUseCase deleteCourseUseCase;
+    private final DeleteModuleUseCase deleteModuleUseCase;
 
     public AdminCourseController(GetAdminCoursesUseCase getAdminCoursesUseCase,
                                 GetAdminCourseDetailsUseCase getAdminCourseDetailsUseCase,
@@ -86,7 +90,9 @@ public class AdminCourseController {
                                 UpdateContentBlockUseCase updateContentBlockUseCase,
                                 DeleteContentBlockUseCase deleteContentBlockUseCase,
                                 PublishCourseUseCase publishCourseUseCase,
-                                UnpublishCourseUseCase unpublishCourseUseCase) {
+                                UnpublishCourseUseCase unpublishCourseUseCase,
+                                DeleteCourseUseCase deleteCourseUseCase,
+                                DeleteModuleUseCase deleteModuleUseCase) {
         this.getAdminCoursesUseCase = getAdminCoursesUseCase;
         this.getAdminCourseDetailsUseCase = getAdminCourseDetailsUseCase;
         this.createCourseUseCase = createCourseUseCase;
@@ -98,6 +104,8 @@ public class AdminCourseController {
         this.deleteContentBlockUseCase = deleteContentBlockUseCase;
         this.publishCourseUseCase = publishCourseUseCase;
         this.unpublishCourseUseCase = unpublishCourseUseCase;
+        this.deleteCourseUseCase = deleteCourseUseCase;
+        this.deleteModuleUseCase = deleteModuleUseCase;
     }
 
     @GetMapping("/count")
@@ -272,6 +280,22 @@ public class AdminCourseController {
     public ResponseEntity<Void> unpublishCourse(@PathVariable UUID id) {
         UnpublishCourseCommand command = new UnpublishCourseCommand(id);
         unpublishCourseUseCase.execute(command);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    public ResponseEntity<Void> deleteCourse(@PathVariable UUID id) {
+        deleteCourseUseCase.execute(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/{courseId}/modules/{moduleId}")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    public ResponseEntity<Void> deleteModule(
+            @PathVariable UUID courseId,
+            @PathVariable UUID moduleId) {
+        deleteModuleUseCase.execute(moduleId);
         return ResponseEntity.noContent().build();
     }
 

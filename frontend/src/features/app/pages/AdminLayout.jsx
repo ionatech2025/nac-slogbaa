@@ -15,6 +15,7 @@ const MODULES_SUPER_ADMIN = [
   { path: 'homepage', label: 'Homepage', icon: icons.home },
   { path: 'overview', label: 'Overview', icon: icons.overview },
   { path: 'learning', label: 'Learning', icon: icons.learning },
+  { path: 'coursemanagement', label: 'Course Management', icon: icons.course },
   { path: 'library', label: 'Library', icon: icons.library },
   { path: 'assessment', label: 'Assessment', icon: icons.assessment },
   { path: 'reports', label: 'Reports & Analytics', icon: icons.reports },

@@ -135,6 +135,11 @@
 					<artifactId>spring-boot-maven-plugin</artifactId>
 					<version>${spring-boot.version}</version>
 				</plugin>
+				<plugin>
+					<groupId>org.flywaydb</groupId>
+					<artifactId>flyway-maven-plugin</artifactId>
+					<version>${flyway.version}</version>
+				</plugin>
 			</plugins>
 		</pluginManagement>
 	</build>

@@ -164,3 +164,27 @@ export async function unpublishCourse(token, courseId) {
     throw new Error(body.detail ?? body.message ?? `Request failed (${res.status})`)
   }
 }
+
+/**
+ * DELETE /api/admin/courses/:id — delete course and all modules (SuperAdmin only). Fails if any trainee enrolled.
+ */
+export async function deleteCourse(token, courseId) {
+  assertToken(token)
+  const res = await apiClient(token).delete(`/api/admin/courses/${courseId}`)
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}))
+    throw new Error(body.detail ?? body.message ?? `Request failed (${res.status})`)
+  }
+}
+
+/**
+ * DELETE /api/admin/courses/:courseId/modules/:moduleId — delete module (SuperAdmin only). Fails if any trainee completed it.
+ */
+export async function deleteModule(token, courseId, moduleId) {
+  assertToken(token)
+  const res = await apiClient(token).delete(`/api/admin/courses/${courseId}/modules/${moduleId}`)
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}))
+    throw new Error(body.detail ?? body.message ?? `Request failed (${res.status})`)
+  }
+}

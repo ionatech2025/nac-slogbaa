@@ -42,6 +42,9 @@ import {
   faMagnifyingGlass,
   faSun,
   faMoon,
+  faEnvelope,
+  faUserSlash,
+  faUsers,
 } from '@fortawesome/free-solid-svg-icons'
 
 export { FontAwesomeIcon }
@@ -86,4 +89,7 @@ export const icons = {
   search: faMagnifyingGlass,
   sun: faSun,
   moon: faMoon,
+  envelope: faEnvelope,
+  userSlash: faUserSlash,
+  users: faUsers,
 }
