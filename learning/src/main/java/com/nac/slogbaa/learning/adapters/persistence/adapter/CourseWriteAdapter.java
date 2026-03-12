@@ -208,4 +208,26 @@ public class CourseWriteAdapter implements CourseWritePort {
         entity.setUpdatedAt(Instant.now());
         jpaCourseRepository.save(entity);
     }
+
+    @Override
+    public void deleteModule(UUID moduleId) {
+        ModuleEntity module = jpaModuleRepository.findById(moduleId)
+                .orElseThrow(() -> new ModuleNotFoundException(moduleId));
+        List<ContentBlockEntity> blocks = jpaContentBlockRepository.findByModuleIdOrderByBlockOrder(moduleId);
+        jpaContentBlockRepository.deleteAll(blocks);
+        jpaModuleRepository.delete(module);
+    }
+
+    @Override
+    public void deleteCourse(UUID courseId) {
+        CourseEntity course = jpaCourseRepository.findById(courseId)
+                .orElseThrow(() -> new CourseNotFoundException(courseId));
+        List<ModuleEntity> modules = jpaModuleRepository.findByCourseIdOrderByModuleOrder(courseId);
+        for (ModuleEntity module : modules) {
+            List<ContentBlockEntity> blocks = jpaContentBlockRepository.findByModuleIdOrderByBlockOrder(module.getId());
+            jpaContentBlockRepository.deleteAll(blocks);
+            jpaModuleRepository.delete(module);
+        }
+        jpaCourseRepository.delete(course);
+    }
 }

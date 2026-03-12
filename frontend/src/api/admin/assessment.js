@@ -41,6 +41,19 @@ export async function saveAdminQuiz(token, moduleId, payload) {
 }
 
 /**
+ * GET /api/admin/assessment/attempts — list all completed quiz attempts (Admin and SuperAdmin).
+ */
+export async function getAdminQuizAttempts(token) {
+  assertToken(token)
+  const res = await apiClient(token).get('/api/admin/assessment/attempts')
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}))
+    throw new Error(body.detail ?? body.message ?? `Request failed (${res.status})`)
+  }
+  return res.json()
+}
+
+/**
  * DELETE /api/admin/assessment/modules/:moduleId/quiz — delete quiz for module.
  */
 export async function deleteAdminQuiz(token, moduleId) {

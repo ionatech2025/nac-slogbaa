@@ -51,6 +51,33 @@ public class EmailStaffNotificationAdapter implements StaffNotificationPort {
         emailService.sendHtmlEmail(toEmail, "Your SLOGBAA staff account", htmlContent);
     }
 
+    @Override
+    public void sendPasswordChangedByAdmin(String toEmail, String fullName, String newPassword) {
+        String loginUrl = frontendBaseUrl + "/auth/login";
+        String htmlContent = """
+            <h2>Your SLOGBAA password was updated</h2>
+            <p>Hello <strong>%s</strong>,</p>
+            <p>An administrator has updated your SLOGBAA staff account password. Use the credentials below to log in:</p>
+            <ul>
+                <li><strong>Email:</strong> %s</li>
+                <li><strong>New password:</strong> %s</li>
+            </ul>
+            <p style="margin-top: 24px;">
+                <a href="%s" style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold;">
+                    Log in to SLOGBAA
+                </a>
+            </p>
+            <p style="margin-top: 24px; color: #6b7280;">If you did not request this change, please contact your administrator.</p>
+            <p>— The SLOGBAA Team</p>
+            """.formatted(
+                escapeHtml(fullName),
+                escapeHtml(toEmail),
+                escapeHtml(newPassword),
+                escapeHtml(loginUrl)
+        );
+        emailService.sendHtmlEmail(toEmail, "Your SLOGBAA password was updated", htmlContent);
+    }
+
     private String escapeHtml(String s) {
         if (s == null) return "";
         return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;");

@@ -15,4 +15,8 @@ public interface JpaTraineeProgressRepository extends JpaRepository<TraineeProgr
     Optional<TraineeProgressEntity> findOneByTraineeIdAndCourseId(UUID traineeId, UUID courseId);
 
     List<TraineeProgressEntity> findByTraineeIdOrderByEnrollmentDateDesc(UUID traineeId);
+
+    long countByCourseId(UUID courseId);
+
+    List<TraineeProgressEntity> findByCourseIdOrderByEnrollmentDateDesc(UUID courseId);
 }

@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react'
 import { FontAwesomeIcon, icons } from '../../../../shared/icons.js'
 import { Modal } from '../../../../shared/components/Modal.jsx'
+import { LoadingButton } from '../../../../shared/components/LoadingButton.jsx'
 import { uploadFile } from '../../../../api/files.js'
 import { getAssetUrl } from '../../../../api/client.js'
 
@@ -192,9 +193,9 @@ export function AddModuleModal({ token, course, onClose, onSubmit }) {
         {error && <p style={styles.error}>{error}</p>}
         <div style={styles.actions}>
           <button type="button" style={styles.btnSecondary} onClick={onClose}>Cancel</button>
-          <button type="submit" style={styles.btnPrimary} disabled={loading}>
-            <FontAwesomeIcon icon={icons.modules} /> {loading ? 'Adding…' : 'Add module'}
-          </button>
+          <LoadingButton type="submit" loading={loading} style={styles.btnPrimary}>
+            <FontAwesomeIcon icon={icons.modules} /> Add module
+          </LoadingButton>
         </div>
       </form>
     </Modal>

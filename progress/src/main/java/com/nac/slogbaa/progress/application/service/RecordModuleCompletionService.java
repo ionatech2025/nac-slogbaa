@@ -1,6 +1,7 @@
 package com.nac.slogbaa.progress.application.service;
 
 import com.nac.slogbaa.learning.application.port.out.CourseDetailsQueryPort;
+import com.nac.slogbaa.progress.application.port.in.IssueCertificateUseCase;
 import com.nac.slogbaa.progress.application.port.in.RecordModuleCompletionUseCase;
 import com.nac.slogbaa.progress.application.port.out.ModuleCompletionPort;
 import com.nac.slogbaa.progress.application.port.out.TraineeProgressRepositoryPort;
@@ -17,22 +18,25 @@ public final class RecordModuleCompletionService implements RecordModuleCompleti
     private final TraineeProgressRepositoryPort traineeProgressRepository;
     private final ModuleCompletionPort moduleCompletionPort;
     private final CourseDetailsQueryPort courseDetailsQueryPort;
+    private final IssueCertificateUseCase issueCertificateUseCase;
 
     public RecordModuleCompletionService(TraineeProgressRepositoryPort traineeProgressRepository,
                                          ModuleCompletionPort moduleCompletionPort,
-                                         CourseDetailsQueryPort courseDetailsQueryPort) {
+                                         CourseDetailsQueryPort courseDetailsQueryPort,
+                                         IssueCertificateUseCase issueCertificateUseCase) {
         this.traineeProgressRepository = traineeProgressRepository;
         this.moduleCompletionPort = moduleCompletionPort;
         this.courseDetailsQueryPort = courseDetailsQueryPort;
+        this.issueCertificateUseCase = issueCertificateUseCase;
     }
 
     @Override
-    public void record(UUID traineeId, UUID courseId, UUID moduleId) {
+    public void record(UUID traineeId, UUID courseId, UUID moduleId, boolean quizPassed) {
         if (!traineeProgressRepository.existsByTraineeIdAndCourseId(traineeId, courseId)) {
             return;
         }
 
-        moduleCompletionPort.recordModuleCompleted(traineeId, courseId, moduleId);
+        moduleCompletionPort.recordModuleCompleted(traineeId, courseId, moduleId, quizPassed);
 
         int totalModules = courseDetailsQueryPort.findCourseDetailsById(courseId)
                 .map(c -> c.getModules().size())
@@ -48,5 +52,12 @@ public final class RecordModuleCompletionService implements RecordModuleCompleti
         int percentage = allComplete ? 100 : completionPercentage;
 
         traineeProgressRepository.updateCompletionStatus(traineeId, courseId, status, percentage);
+
+        if (allComplete) {
+            try {
+                issueCertificateUseCase.issueIfEligible(traineeId, courseId);
+            } catch (Exception ignored) {
+            }
+        }
     }
 }

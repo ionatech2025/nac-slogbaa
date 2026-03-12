@@ -14,4 +14,10 @@ public interface JpaModuleProgressRepository extends JpaRepository<ModuleProgres
 
     @Query("SELECT COUNT(m) FROM ModuleProgressEntity m WHERE m.traineeProgress.id = :traineeProgressId AND m.status = 'COMPLETED'")
     long countCompletedByTraineeProgressId(UUID traineeProgressId);
+
+    @Query("SELECT COUNT(m) FROM ModuleProgressEntity m WHERE m.moduleId = :moduleId AND m.status = 'COMPLETED'")
+    long countCompletedByModuleId(UUID moduleId);
+
+    @Query("SELECT m FROM ModuleProgressEntity m WHERE m.traineeProgress.id = :traineeProgressId AND m.status = 'COMPLETED'")
+    java.util.List<ModuleProgressEntity> findByTraineeProgressIdAndStatusCompleted(UUID traineeProgressId);
 }

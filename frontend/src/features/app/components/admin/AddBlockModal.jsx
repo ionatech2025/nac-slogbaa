@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { FontAwesomeIcon, icons } from '../../../../shared/icons.js'
 import { Modal } from '../../../../shared/components/Modal.jsx'
+import { LoadingButton } from '../../../../shared/components/LoadingButton.jsx'
 import { serializeTextLines } from './TextBlockInlineEditor.jsx'
 
 function uuid() {
@@ -271,9 +272,9 @@ export function AddBlockModal({ course, module, preselectedType, onClose, onSubm
         {error && <p style={styles.error}>{error}</p>}
         <div style={styles.actions}>
           <button type="button" style={styles.btnSecondary} onClick={onClose}>Cancel</button>
-          <button type="submit" style={styles.btnPrimary} disabled={loading}>
-            <FontAwesomeIcon icon={icons.addBlock} /> {loading ? 'Adding…' : 'Add block'}
-          </button>
+          <LoadingButton type="submit" loading={loading} style={styles.btnPrimary}>
+            <FontAwesomeIcon icon={icons.addBlock} /> Add block
+          </LoadingButton>
         </div>
       </form>
     </Modal>

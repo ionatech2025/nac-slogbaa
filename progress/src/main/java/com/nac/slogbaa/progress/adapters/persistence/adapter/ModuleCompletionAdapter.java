@@ -23,7 +23,7 @@ public class ModuleCompletionAdapter implements ModuleCompletionPort {
     }
 
     @Override
-    public void recordModuleCompleted(UUID traineeId, UUID courseId, UUID moduleId) {
+    public void recordModuleCompleted(UUID traineeId, UUID courseId, UUID moduleId, boolean quizPassed) {
         traineeProgressRepository.findOneByTraineeIdAndCourseId(traineeId, courseId)
                 .ifPresent(progress -> {
                     moduleProgressRepository.findByTraineeProgress_IdAndModuleId(progress.getId(), moduleId)
@@ -32,6 +32,10 @@ public class ModuleCompletionAdapter implements ModuleCompletionPort {
                                         if (!"COMPLETED".equals(existing.getStatus())) {
                                             existing.setStatus("COMPLETED");
                                             existing.setCompletedAt(Instant.now());
+                                            existing.setQuizStatus(quizPassed ? "PASSED" : "NOT_ATTEMPTED");
+                                            moduleProgressRepository.save(existing);
+                                        } else if (quizPassed) {
+                                            existing.setQuizStatus("PASSED");
                                             moduleProgressRepository.save(existing);
                                         }
                                     },
@@ -41,7 +45,7 @@ public class ModuleCompletionAdapter implements ModuleCompletionPort {
                                         entity.setModuleId(moduleId);
                                         entity.setStatus("COMPLETED");
                                         entity.setCompletedAt(Instant.now());
-                                        entity.setQuizStatus("NOT_ATTEMPTED");
+                                        entity.setQuizStatus(quizPassed ? "PASSED" : "NOT_ATTEMPTED");
                                         moduleProgressRepository.save(entity);
                                     }
                             );

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { getAdminQuiz, saveAdminQuiz, deleteAdminQuiz } from '../../../api/admin/assessment.js'
+import { LoadingButton } from '../../../shared/components/LoadingButton.jsx'
 
 const QUESTION_TYPES = [
   { value: 'MULTIPLE_CHOICE', label: 'Multiple choice' },
@@ -432,9 +433,9 @@ export function AdminQuizEditor({ token, moduleId, onSaved }) {
       {success && <p style={styles.success}>{success}</p>}
 
       <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1.25rem', flexWrap: 'wrap' }}>
-        <button type="button" onClick={handleSave} disabled={saving} style={styles.btn('primary')}>
-          {saving ? 'Saving…' : 'Save quiz'}
-        </button>
+        <LoadingButton type="button" onClick={handleSave} loading={saving} style={styles.btn('primary')}>
+          Save quiz
+        </LoadingButton>
         {form?.id && (
           <button type="button" onClick={handleDelete} disabled={deleting} style={styles.btnDanger}>
             {deleting ? 'Deleting…' : 'Delete quiz'}

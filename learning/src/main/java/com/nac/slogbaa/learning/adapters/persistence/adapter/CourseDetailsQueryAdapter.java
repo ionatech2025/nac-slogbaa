@@ -52,6 +52,13 @@ public class CourseDetailsQueryAdapter implements CourseDetailsQueryPort, Course
     }
 
     @Override
+    public Optional<CourseDetails> findCourseDetailsByIdIncludingUnpublished(UUID courseId) {
+        return jpaCourseRepository.findById(courseId)
+                .map(this::toCourseWithModules)
+                .map(this::toCourseDetails);
+    }
+
+    @Override
     public List<AdminCourseSummary> findAllCourses() {
         return jpaCourseRepository.findAll().stream()
                 .map(c -> {

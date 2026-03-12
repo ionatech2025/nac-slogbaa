@@ -21,4 +21,10 @@ public class LoggingStaffNotificationAdapter implements StaffNotificationPort {
         log.info("Staff credentials (configure SMTP to send by email): to={}, fullName={}, initialPassword={}",
                 toEmail, fullName, initialPassword);
     }
+
+    @Override
+    public void sendPasswordChangedByAdmin(String toEmail, String fullName, String newPassword) {
+        log.info("Staff password changed by admin (configure SMTP to send by email): to={}, fullName={}, newPassword={}",
+                toEmail, fullName, newPassword);
+    }
 }

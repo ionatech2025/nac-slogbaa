@@ -11,10 +11,13 @@ import { LibraryPage } from '../learning/pages/LibraryPage.jsx'
 import { AdminLayout } from './pages/AdminLayout.jsx'
 import { AdminOverviewPage } from './pages/AdminOverviewPage.jsx'
 import { AdminPlaceholderPage } from './pages/AdminPlaceholderPage.jsx'
+import { AdminAssessmentPage } from './pages/AdminAssessmentPage.jsx'
 import { AdminLearningPage } from './pages/AdminLearningPage.jsx'
 import { AdminCoursePage } from './pages/AdminCoursePage.jsx'
 import { AdminModuleEditorPage } from './pages/AdminModuleEditorPage.jsx'
 import { AdminLibraryPage } from './pages/AdminLibraryPage.jsx'
+import { AdminCourseManagementPage } from './pages/AdminCourseManagementPage.jsx'
+import { AdminUserDetailPage } from './pages/AdminUserDetailPage.jsx'
 
 export function AppRoutes() {
   return (
@@ -34,12 +37,14 @@ export function AppRoutes() {
       <Route path="/admin" element={<AdminLayout />}>
         <Route index element={<Navigate to="overview" replace />} />
         <Route path="overview" element={<AdminOverviewPage />} />
+        <Route path="users/:userType/:userId" element={<AdminUserDetailPage />} />
         <Route path="homepage" element={<AdminPlaceholderPage title="Homepage" />} />
         <Route path="learning" element={<AdminLearningPage />} />
         <Route path="learning/:courseId" element={<AdminCoursePage />} />
+        <Route path="coursemanagement" element={<AdminCourseManagementPage />} />
         <Route path="learning/:courseId/modules/:moduleId" element={<AdminModuleEditorPage />} />
         <Route path="library" element={<AdminLibraryPage />} />
-        <Route path="assessment" element={<AdminPlaceholderPage title="Assessment" />} />
+        <Route path="assessment" element={<AdminAssessmentPage />} />
         <Route path="reports" element={<AdminPlaceholderPage title="Reports & Analytics" />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
