@@ -31,25 +31,31 @@ const MODULES_ADMIN = [
 
 const styles = {
   layout: {
+    height: '100vh',
     minHeight: '100vh',
     display: 'flex',
     flexDirection: 'column',
     background: 'var(--slogbaa-bg)',
+    overflow: 'hidden',
   },
   body: {
     flex: 1,
     display: 'flex',
     minHeight: 0,
+    overflow: 'hidden',
   },
   sidebar: {
     width: 260,
     flexShrink: 0,
+    height: '100%',
     background: 'var(--slogbaa-dark)',
     borderRight: '3px solid var(--slogbaa-orange)',
     display: 'flex',
     flexDirection: 'column',
     padding: '1.25rem 0',
     boxShadow: '2px 0 12px rgba(0,0,0,0.12)',
+    overflowY: 'auto',
+    overflowX: 'hidden',
   },
   sidebarSection: {
     padding: '0 0 1rem',
@@ -117,7 +123,9 @@ const styles = {
   },
   main: {
     flex: 1,
-    overflow: 'auto',
+    minWidth: 0,
+    overflowY: 'auto',
+    overflowX: 'hidden',
     padding: '1.5rem 2rem',
     maxWidth: 1000,
     margin: '0 auto',
