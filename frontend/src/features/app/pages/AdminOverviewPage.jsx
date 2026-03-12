@@ -1,9 +1,7 @@
-import { useState, useCallback } from 'react'
+import { useState } from 'react'
 import { Link, useOutletContext } from 'react-router-dom'
 import { FontAwesomeIcon, icons } from '../../../shared/icons.js'
 import { ConfirmModal } from '../../../shared/components/ConfirmModal.jsx'
-import { ProfileViewModal } from '../components/trainee/ProfileViewModal.jsx'
-import { getTraineeProfile as getTraineeProfileApi, getTraineeEnrolledCourses } from '../../../api/admin/trainees.js'
 
 const styles = {
   pageTitle: {
@@ -156,10 +154,6 @@ export function AdminOverviewPage() {
   const [deleteError, setDeleteError] = useState(null)
   const [deletingId, setDeletingId] = useState(null)
   const [confirmTarget, setConfirmTarget] = useState(null) // { type: 'staff', item } | { type: 'trainee', item }
-  const [profileViewTrainee, setProfileViewTrainee] = useState(null)
-  const [profileViewEnrolledCourses, setProfileViewEnrolledCourses] = useState([])
-  const [profileViewLoading, setProfileViewLoading] = useState(false)
-  const [profileViewError, setProfileViewError] = useState(null)
 
   const runDeleteStaff = async (s) => {
     setConfirmTarget(null)
@@ -194,36 +188,6 @@ export function AdminOverviewPage() {
   const onDeleteTrainee = (t) => {
     setConfirmTarget({ type: 'trainee', item: t })
   }
-
-  const onViewTraineeProfile = useCallback((t) => {
-    setProfileViewTrainee(null)
-    setProfileViewEnrolledCourses([])
-    setProfileViewError(null)
-    if (!token) return
-    setProfileViewLoading(true)
-    getTraineeProfileApi(token, t.id)
-      .then((profile) => {
-        setProfileViewTrainee(profile)
-        setProfileViewLoading(false)
-        const traineeId = profile?.id ?? t.id
-        return getTraineeEnrolledCourses(token, traineeId)
-      })
-      .then((enrolled) => {
-        if (enrolled !== undefined) {
-          setProfileViewEnrolledCourses(Array.isArray(enrolled) ? enrolled : [])
-        }
-      })
-      .catch((err) => {
-        setProfileViewError(err?.message ?? 'Failed to load trainee profile.')
-        setProfileViewLoading(false)
-      })
-  }, [token])
-
-  const closeProfileView = useCallback(() => {
-    setProfileViewTrainee(null)
-    setProfileViewEnrolledCourses([])
-    setProfileViewError(null)
-  }, [])
 
   if (overviewLoading) {
     return (
@@ -263,59 +227,6 @@ export function AdminOverviewPage() {
           }
           onCancel={() => setConfirmTarget(null)}
         />
-      )}
-
-      {profileViewTrainee && (
-        <ProfileViewModal
-          profile={profileViewTrainee}
-          enrolledCourses={Array.isArray(profileViewEnrolledCourses) ? profileViewEnrolledCourses : []}
-          onClose={closeProfileView}
-          showEditButton={false}
-          title="Trainee profile"
-        />
-      )}
-      {profileViewLoading && (
-        <div style={{
-          position: 'fixed',
-          inset: 0,
-          background: 'rgba(0,0,0,0.3)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1001,
-          fontSize: '0.9375rem',
-          color: 'var(--slogbaa-text)',
-        }}>
-          Loading profile…
-        </div>
-      )}
-      {profileViewError && !profileViewTrainee && (
-        <div style={{
-          position: 'fixed',
-          inset: 0,
-          background: 'rgba(0,0,0,0.45)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1001,
-          padding: '1.5rem',
-        }}>
-          <div style={{
-            background: 'var(--slogbaa-surface)',
-            padding: '1.5rem',
-            borderRadius: 12,
-            maxWidth: 400,
-            border: '1px solid var(--slogbaa-border)',
-          }}>
-            <p style={{ margin: '0 0 0.5rem', fontSize: '0.875rem', fontWeight: 600, color: 'var(--slogbaa-text)' }}>
-              Couldn't load trainee profile
-            </p>
-            <p style={{ margin: 0, fontSize: '0.9375rem', color: 'var(--slogbaa-error)' }}>{profileViewError}</p>
-            <button type="button" onClick={closeProfileView} style={{ marginTop: '1.25rem', padding: '0.5rem 1rem', border: '1px solid var(--slogbaa-border)', borderRadius: 8, background: 'var(--slogbaa-surface)', cursor: 'pointer' }}>
-              Close
-            </button>
-          </div>
-        </div>
       )}
 
       <section style={styles.section}>
@@ -450,15 +361,6 @@ export function AdminOverviewPage() {
                       >
                         <FontAwesomeIcon icon={icons.eye} />
                       </Link>
-                      <button
-                        type="button"
-                        style={styles.viewProfileBtn}
-                        onClick={() => onViewTraineeProfile(t)}
-                        disabled={profileViewLoading}
-                        title="View profile (quick view)"
-                      >
-                        <FontAwesomeIcon icon={icons.viewProfile} />
-                      </button>
                       {isSuperAdmin && (
                         <button
                           type="button"

@@ -4,10 +4,12 @@ import { FontAwesomeIcon, icons } from '../../../shared/icons.js'
 import { getStaffProfile, setStaffPassword, setStaffActive, deleteStaff, updateStaffProfile } from '../../../api/admin/staff.js'
 import {
   getTraineeProfile,
+  getTraineeEnrolledCourses,
   setTraineePassword,
   deleteTrainee,
   updateTraineeProfile,
 } from '../../../api/admin/trainees.js'
+import { getAdminCertificates } from '../../../api/admin/certificates.js'
 import { getAssetUrl } from '../../../api/client.js'
 import { Modal } from '../../../shared/components/Modal.jsx'
 import { ConfirmModal } from '../../../shared/components/ConfirmModal.jsx'
@@ -260,6 +262,112 @@ const styles = {
   error: { marginTop: '0.5rem', fontSize: '0.875rem', color: 'var(--slogbaa-error)' },
   success: { marginTop: '0.5rem', fontSize: '0.875rem', color: 'var(--slogbaa-green)' },
   loading: { padding: '2rem', textAlign: 'center', color: 'var(--slogbaa-text-muted)' },
+  // Trainee learning stats & sections
+  statsRow: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
+    gap: '1rem',
+    marginBottom: '1.75rem',
+  },
+  statCard: {
+    padding: '1.25rem 1.5rem',
+    background: 'var(--slogbaa-surface)',
+    border: '1px solid var(--slogbaa-border)',
+    borderRadius: 12,
+    boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+    transition: 'box-shadow 0.2s, border-color 0.2s',
+  },
+  statCardHighlight: {
+    borderColor: 'rgba(39, 129, 191, 0.25)',
+    background: 'linear-gradient(135deg, rgba(39, 129, 191, 0.06) 0%, rgba(14, 116, 144, 0.04) 100%)',
+    boxShadow: '0 2px 8px rgba(39, 129, 191, 0.12)',
+  },
+  statValue: {
+    margin: 0,
+    fontSize: '1.75rem',
+    fontWeight: 800,
+    color: 'var(--slogbaa-blue)',
+    letterSpacing: '-0.02em',
+    lineHeight: 1.2,
+  },
+  statLabel: {
+    margin: '0.35rem 0 0',
+    fontSize: '0.75rem',
+    fontWeight: 600,
+    textTransform: 'uppercase',
+    letterSpacing: '0.05em',
+    color: 'var(--slogbaa-text-muted)',
+  },
+  sectionTitle: {
+    margin: '0 0 1rem',
+    fontSize: '1.125rem',
+    fontWeight: 700,
+    color: 'var(--slogbaa-text)',
+    letterSpacing: '-0.01em',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem',
+  },
+  tableCard: {
+    background: 'var(--slogbaa-surface)',
+    borderRadius: 14,
+    border: '1px solid var(--slogbaa-border)',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+    overflow: 'hidden',
+    marginBottom: '1.5rem',
+  },
+  table: {
+    width: '100%',
+    borderCollapse: 'collapse',
+    fontSize: '0.9375rem',
+  },
+  tableTh: {
+    textAlign: 'left',
+    padding: '0.75rem 1.25rem',
+    fontWeight: 600,
+    fontSize: '0.6875rem',
+    textTransform: 'uppercase',
+    letterSpacing: '0.05em',
+    color: 'var(--slogbaa-text-muted)',
+    background: 'rgba(0,0,0,0.03)',
+    borderBottom: '1px solid var(--slogbaa-border)',
+  },
+  tableTd: {
+    padding: '0.875rem 1.25rem',
+    borderBottom: '1px solid var(--slogbaa-border)',
+    color: 'var(--slogbaa-text)',
+  },
+  tableTrLast: { borderBottom: 'none' },
+  progressBarWrap: {
+    width: 120,
+    height: 8,
+    borderRadius: 4,
+    background: 'var(--slogbaa-border)',
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    height: '100%',
+    borderRadius: 4,
+    background: 'linear-gradient(90deg, var(--slogbaa-teal, #0d9488), var(--slogbaa-blue))',
+    transition: 'width 0.2s',
+  },
+  certBadge: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '0.35rem',
+    padding: '0.25rem 0.6rem',
+    borderRadius: 8,
+    fontSize: '0.8125rem',
+    fontWeight: 600,
+    background: 'rgba(34, 197, 94, 0.12)',
+    color: 'var(--slogbaa-green)',
+  },
+  emptyState: {
+    padding: '2rem 1.5rem',
+    textAlign: 'center',
+    color: 'var(--slogbaa-text-muted)',
+    fontSize: '0.9375rem',
+  },
 }
 
 function formatPhone(cc, nn) {
@@ -290,6 +398,9 @@ export function AdminUserDetailPage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
   const [showStaffEditModal, setShowStaffEditModal] = useState(false)
+  const [enrolledCourses, setEnrolledCourses] = useState([])
+  const [certificates, setCertificates] = useState([])
+  const [traineeDataLoading, setTraineeDataLoading] = useState(false)
 
   const isStaff = userType === 'staff'
   const isTrainee = userType === 'trainee'
@@ -315,6 +426,28 @@ export function AdminUserDetailPage() {
       setLoading(false)
     }
   }, [token, userId, isStaff, isTrainee])
+
+  useEffect(() => {
+    if (!isTrainee || !token || !userId) return
+    let cancelled = false
+    setTraineeDataLoading(true)
+    Promise.all([
+      getTraineeEnrolledCourses(token, userId),
+      getAdminCertificates(token).catch(() => []),
+    ])
+      .then(([courses, allCerts]) => {
+        if (cancelled) return
+        setEnrolledCourses(Array.isArray(courses) ? courses : [])
+        const traineeCerts = Array.isArray(allCerts)
+          ? allCerts.filter((c) => c.traineeId === userId && !c.revoked)
+          : []
+        setCertificates(traineeCerts)
+      })
+      .finally(() => {
+        if (!cancelled) setTraineeDataLoading(false)
+      })
+    return () => { cancelled = true }
+  }, [isTrainee, token, userId])
 
   useEffect(() => {
     loadUser()
@@ -459,8 +592,10 @@ export function AdminUserDetailPage() {
   const canChangePassword = isSuperAdmin
   const canToggleActive = isStaff && isSuperAdmin && user.id !== currentUserId
 
+  const pageStyle = isTrainee ? { ...styles.page, maxWidth: 1100 } : styles.page
+
   return (
-    <div style={styles.page}>
+    <div style={pageStyle}>
       <Link to="/admin/overview" style={styles.backLink}>
         <FontAwesomeIcon icon={icons.viewList} /> Back to Overview
       </Link>
@@ -541,6 +676,25 @@ export function AdminUserDetailPage() {
         </div>
       </header>
 
+      {isTrainee && (
+        <div style={styles.statsRow}>
+          <div style={{ ...styles.statCard, ...styles.statCardHighlight }}>
+            <p style={styles.statValue}>{traineeDataLoading ? '—' : enrolledCourses.length}</p>
+            <p style={styles.statLabel}>Courses enrolled</p>
+          </div>
+          <div style={styles.statCard}>
+            <p style={styles.statValue}>
+              {traineeDataLoading ? '—' : enrolledCourses.filter((c) => (c.completionPercentage ?? 0) >= 100).length}
+            </p>
+            <p style={styles.statLabel}>Courses completed</p>
+          </div>
+          <div style={styles.statCard}>
+            <p style={styles.statValue}>{traineeDataLoading ? '—' : certificates.length}</p>
+            <p style={styles.statLabel}>Certificates</p>
+          </div>
+        </div>
+      )}
+
       <div style={styles.grid}>
         <div>
           <div style={styles.card}>
@@ -555,13 +709,31 @@ export function AdminUserDetailPage() {
                 <p style={styles.value}>{user.email ?? '—'}</p>
                 <label style={styles.label}>Phone</label>
                 <p style={styles.value}>{formatPhone(user.phoneCountryCode, user.phoneNationalNumber)}</p>
-                <label style={styles.label}>Biological Sex</label>
+                <label style={styles.label}>Gender</label>
                 <p style={styles.value}>{user.gender ?? '—'}</p>
-                <label style={styles.label}>Joined</label>
-                <p style={styles.value}>—</p>
-                <label style={styles.label}>Last Login</label>
-                <p style={styles.value}>—</p>
-                <label style={styles.label}>Roles</label>
+                {(user.districtName || user.region) && (
+                  <>
+                    <label style={styles.label}>District / Region</label>
+                    <p style={styles.value}>
+                      {[user.districtName, user.region].filter(Boolean).join(' · ') || '—'}
+                    </p>
+                  </>
+                )}
+                {(user.street || user.city) && (
+                  <>
+                    <label style={styles.label}>Address</label>
+                    <p style={styles.value}>
+                      {[user.street, user.city, user.postalCode].filter(Boolean).join(', ') || '—'}
+                    </p>
+                  </>
+                )}
+                {user.category && (
+                  <>
+                    <label style={styles.label}>Category</label>
+                    <p style={styles.value}>{user.category}</p>
+                  </>
+                )}
+                <label style={styles.label}>Role</label>
                 <p style={styles.value}>
                   <span style={styles.roleBadge}>Trainee</span>
                 </p>
@@ -690,6 +862,121 @@ export function AdminUserDetailPage() {
           </div>
         </div>
       </div>
+
+      {isTrainee && (
+        <>
+          <section style={{ marginTop: '0.5rem' }}>
+            <h2 style={styles.sectionTitle}>
+              <FontAwesomeIcon icon={icons.course} style={{ color: 'var(--slogbaa-blue)' }} />
+              Courses
+            </h2>
+            <div style={styles.tableCard}>
+              {traineeDataLoading ? (
+                <p style={styles.emptyState}>Loading courses…</p>
+              ) : enrolledCourses.length === 0 ? (
+                <p style={styles.emptyState}>No courses enrolled yet.</p>
+              ) : (
+                <table style={styles.table}>
+                  <thead>
+                    <tr>
+                      <th style={styles.tableTh}>Course</th>
+                      <th style={styles.tableTh}>Modules</th>
+                      <th style={styles.tableTh}>Progress</th>
+                      <th style={styles.tableTh}>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {enrolledCourses.map((c, i) => {
+                      const completed = (c.completionPercentage ?? 0) >= 100
+                      return (
+                        <tr
+                          key={c.id}
+                          style={i === enrolledCourses.length - 1 ? styles.tableTrLast : undefined}
+                        >
+                          <td style={styles.tableTd}>
+                            <span style={{ fontWeight: 600, color: 'var(--slogbaa-text)' }}>
+                              {c.title ?? 'Untitled'}
+                            </span>
+                          </td>
+                          <td style={styles.tableTd}>{c.moduleCount ?? 0}</td>
+                          <td style={styles.tableTd}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                              <div style={styles.progressBarWrap}>
+                                <div
+                                  style={{
+                                    ...styles.progressBarFill,
+                                    width: `${Math.min(100, c.completionPercentage ?? 0)}%`,
+                                  }}
+                                />
+                              </div>
+                              <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--slogbaa-text-muted)', minWidth: '2.5rem' }}>
+                                {c.completionPercentage ?? 0}%
+                              </span>
+                            </div>
+                          </td>
+                          <td style={styles.tableTd}>
+                            {completed ? (
+                              <span style={styles.certBadge}>
+                                <FontAwesomeIcon icon={icons.enrolled} /> Completed
+                              </span>
+                            ) : (
+                              <span style={{ fontSize: '0.875rem', color: 'var(--slogbaa-text-muted)' }}>
+                                In progress
+                              </span>
+                            )}
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </section>
+
+          <section>
+            <h2 style={styles.sectionTitle}>
+              <FontAwesomeIcon icon={icons.certificate} style={{ color: 'var(--slogbaa-orange)' }} />
+              Certifications
+            </h2>
+            <div style={styles.tableCard}>
+              {traineeDataLoading ? (
+                <p style={styles.emptyState}>Loading certificates…</p>
+              ) : certificates.length === 0 ? (
+                <p style={styles.emptyState}>No certificates earned yet.</p>
+              ) : (
+                <table style={styles.table}>
+                  <thead>
+                    <tr>
+                      <th style={styles.tableTh}>Course</th>
+                      <th style={styles.tableTh}>Certificate number</th>
+                      <th style={styles.tableTh}>Issued</th>
+                      <th style={styles.tableTh}>Score</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {certificates.map((cert, i) => (
+                      <tr
+                        key={cert.id}
+                        style={i === certificates.length - 1 ? styles.tableTrLast : undefined}
+                      >
+                        <td style={styles.tableTd}>{cert.courseTitle ?? '—'}</td>
+                        <td style={styles.tableTd}>
+                          <code style={{ fontSize: '0.8125rem', background: 'rgba(0,0,0,0.06)', padding: '0.2rem 0.5rem', borderRadius: 6 }}>
+                            {cert.certificateNumber ?? '—'}
+                          </code>
+                        </td>
+                        <td style={styles.tableTd}>{cert.issuedDate ?? '—'}</td>
+                        <td style={styles.tableTd}>{cert.finalScorePercent != null ? `${cert.finalScorePercent}%` : '—'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </section>
+        </>
+      )}
 
       {showDeleteConfirm && (
         <ConfirmModal
