@@ -524,7 +524,6 @@ export function AdminCourseManagementPage() {
                     title={!canDelCourse ? 'Cannot delete: course has enrolled trainees' : 'Delete course'}
                   >
                     <FontAwesomeIcon icon={icons.delete} />
-                    Delete course
                   </button>
                   <FontAwesomeIcon
                     icon={icons.viewList}
@@ -556,7 +555,6 @@ export function AdminCourseManagementPage() {
                                     title="View / edit module"
                                   >
                                     <FontAwesomeIcon icon={icons.eye} />
-                                    View
                                   </Link>
                                   <button
                                     type="button"
@@ -570,7 +568,6 @@ export function AdminCourseManagementPage() {
                                     title={!canDelModules[m.id] ? 'Cannot delete: at least one trainee completed this module' : 'Delete module'}
                                   >
                                     <FontAwesomeIcon icon={icons.delete} />
-                                    Delete
                                   </button>
                                 </span>
                               </li>
