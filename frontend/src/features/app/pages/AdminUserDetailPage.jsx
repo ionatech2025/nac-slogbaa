@@ -385,7 +385,7 @@ function roleLabel(role) {
 export function AdminUserDetailPage() {
   const { userType, userId } = useParams()
   const navigate = useNavigate()
-  const { token, isSuperAdmin, currentUserId } = useOutletContext() || {}
+  const { token, isSuperAdmin, currentUserId, refreshOverview } = useOutletContext() || {}
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -496,8 +496,13 @@ export function AdminUserDetailPage() {
     setShowDeleteConfirm(false)
     setActionLoading(true)
     try {
-      if (isStaff) await deleteStaff(token, userId)
-      else await deleteTrainee(token, userId)
+      if (isStaff) {
+        await deleteStaff(token, userId)
+        await refreshOverview?.()
+      } else {
+        await deleteTrainee(token, userId)
+        await refreshOverview?.()
+      }
       navigate('/admin/overview')
     } catch (e) {
       setError(e?.message ?? 'Failed to delete user.')

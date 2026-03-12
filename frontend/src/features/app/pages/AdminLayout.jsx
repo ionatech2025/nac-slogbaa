@@ -210,6 +210,7 @@ export function AdminLayout() {
 
   const handleDeleteTrainee = async (id) => {
     await deleteTraineeApi(token, id)
+    setTrainees((prev) => prev.filter((t) => String(t.id) !== String(id)))
     refreshOverview()
   }
 
@@ -222,6 +223,7 @@ export function AdminLayout() {
     handleCreateStaff,
     handleDeleteStaff,
     handleDeleteTrainee,
+    refreshOverview,
     isSuperAdmin,
     displayName,
     token,
