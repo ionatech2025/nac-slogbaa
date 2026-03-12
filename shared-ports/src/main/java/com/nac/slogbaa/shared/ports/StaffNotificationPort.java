@@ -10,4 +10,9 @@ public interface StaffNotificationPort {
      * Send a welcome email to newly created staff with their initial password.
      */
     void sendStaffWelcomeEmail(String toEmail, String fullName, String initialPassword);
+
+    /**
+     * Notify staff that their password was changed by an administrator. Includes credentials to log in.
+     */
+    void sendPasswordChangedByAdmin(String toEmail, String fullName, String newPassword);
 }

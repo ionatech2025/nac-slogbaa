@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { useParams, Link, useOutletContext } from 'react-router-dom'
+import { useParams, useLocation, Link, useOutletContext } from 'react-router-dom'
 import { getAdminCourseDetails, addContentBlock, updateContentBlock, updateModule } from '../../../api/admin/courses.js'
 import { uploadFile } from '../../../api/files.js'
 import { getAssetUrl } from '../../../api/client.js'
@@ -254,7 +254,9 @@ function AdminContentBlockRenderer({ block }) {
 
 export function AdminModuleEditorPage() {
   const { courseId, moduleId } = useParams()
+  const location = useLocation()
   const { token, isSuperAdmin } = useOutletContext()
+  const quizSectionRef = useRef(null)
   const [course, setCourse] = useState(null)
   const [module, setModule] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -370,6 +372,15 @@ export function AdminModuleEditorPage() {
   useEffect(() => {
     setEditorReady(false)
   }, [moduleId])
+
+  // Scroll to quiz section when navigating with #quiz (e.g. from Assessment page)
+  useEffect(() => {
+    if (location.hash !== '#quiz' || !module) return
+    const el = document.getElementById('quiz') || quizSectionRef.current
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  }, [location.hash, module])
 
   const handleEditorAreaClick = useCallback((e) => {
     if (e.target.closest('a[href]') || e.target.closest('button') || e.target.closest('[role="menu"]')) return
@@ -644,15 +655,17 @@ export function AdminModuleEditorPage() {
 
         {/* Module quiz: read-only for admin, editable for SuperAdmin */}
         {(module.hasQuiz === true || module.has_quiz === true) && (
-          isSuperAdmin ? (
-            <AdminQuizEditor
-              token={token}
-              moduleId={moduleId}
-              onSaved={() => refresh()}
-            />
-          ) : (
-            <AdminQuizReadOnly token={token} moduleId={moduleId} />
-          )
+          <div id="quiz" ref={quizSectionRef}>
+            {isSuperAdmin ? (
+              <AdminQuizEditor
+                token={token}
+                moduleId={moduleId}
+                onSaved={() => refresh()}
+              />
+            ) : (
+              <AdminQuizReadOnly token={token} moduleId={moduleId} />
+            )}
+          </div>
         )}
       </div>
     </div>

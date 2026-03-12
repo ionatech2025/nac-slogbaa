@@ -136,15 +136,17 @@ public class IamConfiguration {
     @Bean
     public SetStaffPasswordByAdminUseCase setStaffPasswordByAdminUseCase(
             StaffUserRepositoryPort staffUserRepository,
-            PasswordHasherPort passwordHasher) {
-        return new SetStaffPasswordByAdminService(staffUserRepository, passwordHasher);
+            PasswordHasherPort passwordHasher,
+            StaffNotificationPort staffNotificationPort) {
+        return new SetStaffPasswordByAdminService(staffUserRepository, passwordHasher, staffNotificationPort);
     }
 
     @Bean
     public SetTraineePasswordByAdminUseCase setTraineePasswordByAdminUseCase(
             TraineeRepositoryPort traineeRepository,
-            PasswordHasherPort passwordHasher) {
-        return new SetTraineePasswordByAdminService(traineeRepository, passwordHasher);
+            PasswordHasherPort passwordHasher,
+            TraineeNotificationPort traineeNotificationPort) {
+        return new SetTraineePasswordByAdminService(traineeRepository, passwordHasher, traineeNotificationPort);
     }
 
     @Bean

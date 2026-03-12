@@ -298,19 +298,14 @@ export function AdminAssessmentPage() {
                       <td style={styles.td}>{row.moduleTitle}</td>
                       <td style={styles.td}>
                         <Link
-                          to={`/admin/learning/${row.courseId}/modules/${row.moduleId}`}
+                          to={`/admin/learning/${row.courseId}/modules/${row.moduleId}#quiz`}
                           style={styles.link}
+                          title={isSuperAdmin ? 'Edit quiz' : 'View quiz'}
                         >
                           {isSuperAdmin ? (
-                            <>
-                              <FontAwesomeIcon icon={icons.edit} />
-                              Edit quiz
-                            </>
+                            <FontAwesomeIcon icon={icons.edit} />
                           ) : (
-                            <>
-                              <FontAwesomeIcon icon={icons.eye} />
-                              View quiz
-                            </>
+                            <FontAwesomeIcon icon={icons.eye} />
                           )}
                         </Link>
                       </td>

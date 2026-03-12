@@ -25,4 +25,10 @@ public class LoggingTraineeNotificationAdapter implements TraineeNotificationPor
     public void sendCertificateEmail(String toEmail, String traineeName, String courseTitle, byte[] pdfBytes) {
         log.info("Certificate email (configure SMTP to send): to={}, course={}, pdfSize={}", toEmail, courseTitle, pdfBytes != null ? pdfBytes.length : 0);
     }
+
+    @Override
+    public void sendPasswordChangedByAdmin(String toEmail, String fullName, String newPassword) {
+        log.info("Trainee password changed by admin (configure SMTP to send by email): to={}, fullName={}, newPassword={}",
+                toEmail, fullName, newPassword);
+    }
 }

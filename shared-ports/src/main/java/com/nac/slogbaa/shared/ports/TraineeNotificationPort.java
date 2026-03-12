@@ -15,4 +15,9 @@ public interface TraineeNotificationPort {
      * Send certificate PDF to trainee by email.
      */
     void sendCertificateEmail(String toEmail, String traineeName, String courseTitle, byte[] pdfBytes);
+
+    /**
+     * Notify trainee that their password was changed by an administrator. Includes credentials to log in.
+     */
+    void sendPasswordChangedByAdmin(String toEmail, String fullName, String newPassword);
 }
