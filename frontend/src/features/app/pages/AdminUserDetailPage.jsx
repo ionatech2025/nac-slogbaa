@@ -13,6 +13,7 @@ import { getAdminCertificates } from '../../../api/admin/certificates.js'
 import { getAssetUrl } from '../../../api/client.js'
 import { Modal } from '../../../shared/components/Modal.jsx'
 import { ConfirmModal } from '../../../shared/components/ConfirmModal.jsx'
+import { LoadingButton } from '../../../shared/components/LoadingButton.jsx'
 
 const styles = {
   page: {
@@ -808,16 +809,13 @@ export function AdminUserDetailPage() {
                     <FontAwesomeIcon icon={showPassword ? icons.eyeSlash : icons.eye} />
                   </button>
                 </div>
-                <button
+                <LoadingButton
                   type="submit"
-                  style={{
-                    ...styles.btnPrimary,
-                    ...(actionLoading ? styles.btnPrimaryDisabled : {}),
-                  }}
-                  disabled={actionLoading}
+                  loading={actionLoading}
+                  style={styles.btnPrimary}
                 >
                   <FontAwesomeIcon icon={icons.changePassword} /> Update Password
-                </button>
+                </LoadingButton>
                 {passwordError && <p style={styles.error}>{passwordError}</p>}
                 {passwordSuccess && <p style={styles.success}>Password updated.</p>}
               </form>
@@ -1095,9 +1093,9 @@ function EditTraineeProfileModal({ profile, onClose, onSave, disabled }) {
           <button type="button" style={styles.actionBtn} onClick={onClose}>
             Cancel
           </button>
-          <button type="submit" style={styles.btnPrimary} disabled={disabled}>
+          <LoadingButton type="submit" loading={disabled} style={styles.btnPrimary}>
             Save changes
-          </button>
+          </LoadingButton>
         </div>
       </form>
     </Modal>
@@ -1138,9 +1136,9 @@ function EditStaffProfileModal({ profile, onClose, onSave, disabled }) {
           <button type="button" style={styles.actionBtn} onClick={onClose}>
             Cancel
           </button>
-          <button type="submit" style={styles.btnPrimary} disabled={disabled}>
+          <LoadingButton type="submit" loading={disabled} style={styles.btnPrimary}>
             Save changes
-          </button>
+          </LoadingButton>
         </div>
       </form>
     </Modal>

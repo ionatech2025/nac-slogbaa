@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Save } from 'lucide-react'
 import { Modal } from '../../../../shared/components/Modal.jsx'
+import { LoadingButton } from '../../../../shared/components/LoadingButton.jsx'
 
 const styles = {
   form: { display: 'flex', flexDirection: 'column', gap: '1.25rem' },
@@ -227,9 +228,9 @@ export function EditBlockModal({ block, courseId, module, onClose, onSubmit }) {
           <button type="button" style={styles.btnSecondary} onClick={onClose}>
             Cancel
           </button>
-          <button type="submit" style={styles.btnPrimary} disabled={loading}>
-            <Save size={16} /> {loading ? 'Saving…' : 'Save'}
-          </button>
+          <LoadingButton type="submit" loading={loading} style={styles.btnPrimary}>
+            <Save size={16} /> Save
+          </LoadingButton>
         </div>
       </form>
     </Modal>

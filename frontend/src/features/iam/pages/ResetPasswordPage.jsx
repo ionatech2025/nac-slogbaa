@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useSearchParams, Link, useNavigate } from 'react-router-dom'
 import { FontAwesomeIcon, icons } from '../../../shared/icons.js'
 import { verifyResetToken, confirmPasswordReset } from '../../../api/iam/auth.js'
+import { LoadingButton } from '../../../shared/components/LoadingButton.jsx'
 
 const styles = {
   page: {
@@ -241,14 +242,10 @@ export function ResetPasswordPage() {
               />
             </div>
             {error && <p style={styles.error}>{error}</p>}
-            <button
-              type="submit"
-              style={{ ...styles.submit, ...(loading ? styles.submitDisabled : {}) }}
-              disabled={loading}
-            >
+            <LoadingButton type="submit" loading={loading} style={styles.submit}>
               <FontAwesomeIcon icon={icons.changePassword} />
-              {loading ? 'Resetting…' : 'Reset password'}
-            </button>
+              Reset password
+            </LoadingButton>
           </form>
         )}
 

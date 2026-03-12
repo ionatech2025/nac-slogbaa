@@ -1,8 +1,9 @@
 import { Link } from 'react-router-dom'
 import { FontAwesomeIcon, icons } from '../../../../shared/icons.js'
 import { useAuth } from '../../../iam/hooks/useAuth.js'
+import { useTheme } from '../../../../contexts/ThemeContext.jsx'
 
-const styles = {
+const darkStyles = {
   nav: {
     display: 'flex',
     alignItems: 'center',
@@ -15,18 +16,7 @@ const styles = {
     zIndex: 100,
     boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
   },
-  left: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '1rem',
-  },
-  logo: {
-    margin: 0,
-    fontSize: '1.25rem',
-    fontWeight: 600,
-    color: '#fff',
-    textDecoration: 'none',
-  },
+  logo: { margin: 0, fontSize: '1.25rem', fontWeight: 600, color: '#fff', textDecoration: 'none' },
   roleBadge: {
     padding: '0.2rem 0.5rem',
     borderRadius: 6,
@@ -35,15 +25,7 @@ const styles = {
     background: 'rgba(255,255,255,0.15)',
     color: '#fff',
   },
-  right: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.75rem',
-  },
-  userLabel: {
-    fontSize: '0.9375rem',
-    color: 'rgba(255,255,255,0.9)',
-  },
+  userLabel: { fontSize: '0.9375rem', color: 'rgba(255,255,255,0.9)' },
   signOut: {
     display: 'inline-flex',
     alignItems: 'center',
@@ -58,21 +40,47 @@ const styles = {
   },
 }
 
+const lightStyles = {
+  nav: {
+    ...darkStyles.nav,
+    background: '#ffffff',
+    color: 'var(--slogbaa-text)',
+    borderBottom: '1px solid var(--slogbaa-border)',
+    boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+  },
+  logo: { ...darkStyles.logo, color: 'var(--slogbaa-text)' },
+  roleBadge: {
+    ...darkStyles.roleBadge,
+    background: 'rgba(241, 134, 37, 0.12)',
+    color: 'var(--slogbaa-orange)',
+  },
+  userLabel: { ...darkStyles.userLabel, color: 'var(--slogbaa-text)' },
+  signOut: {
+    ...darkStyles.signOut,
+    color: 'var(--slogbaa-text)',
+    border: '1px solid var(--slogbaa-border)',
+  },
+}
+
 export function AdminNav() {
   const { user, logout } = useAuth()
-  const displayName = user?.fullName || user?.email || 'Staff'
-  const roleLabel = user?.role === 'SUPER_ADMIN' ? 'Super Admin' : 'Admin'
+  const { theme } = useTheme()
+  const isLight = theme === 'light'
+  const styles = isLight ? lightStyles : darkStyles
+
+  const leftStyle = { display: 'flex', alignItems: 'center', gap: '1rem' }
+  const rightStyle = { display: 'flex', alignItems: 'center', gap: '0.75rem' }
 
   return (
     <header style={styles.nav}>
-      <div style={styles.left}>
+      <div style={leftStyle}>
         <Link to="/admin" style={styles.logo}>
           SLOGBAA Admin
         </Link>
-        <span style={styles.roleBadge}>{roleLabel}</span>
+        <span style={styles.roleBadge}>{user?.role === 'SUPER_ADMIN' ? 'Super Admin' : 'Admin'}</span>
       </div>
-      <div style={styles.right}>
-        <span style={styles.userLabel}>{displayName}</span>
+      <div style={rightStyle}>
+        <span style={styles.userLabel}>{user?.fullName || user?.email || 'Staff'}</span>
         <button type="button" style={styles.signOut} onClick={logout}>
           <FontAwesomeIcon icon={icons.signOut} />
           Sign out

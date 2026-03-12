@@ -8,6 +8,7 @@ import { ModuleEditorJs } from '../components/admin/ModuleEditorJs.jsx'
 import { EditorJsReadOnly } from '../components/admin/EditorJsReadOnly.jsx'
 import { AdminQuizEditor } from '../../assessment/components/AdminQuizEditor.jsx'
 import { AdminQuizReadOnly } from '../../assessment/components/AdminQuizReadOnly.jsx'
+import { LoadingButton } from '../../../shared/components/LoadingButton.jsx'
 import { GripVertical, Pencil } from 'lucide-react'
 
 function focusBlockAndCursorStart(el) {
@@ -628,23 +629,24 @@ export function AdminModuleEditorPage() {
                 </p>
               )}
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                <button
+                <LoadingButton
                   type="button"
                   onClick={handleSaveContent}
-                  disabled={saving || !editorReady}
+                  loading={saving}
+                  disabled={!editorReady}
                   style={{
                     padding: '0.5rem 1rem',
-                    background: saving ? 'var(--slogbaa-text-muted)' : 'var(--slogbaa-orange)',
+                    background: 'var(--slogbaa-orange)',
                     color: '#fff',
                     border: 'none',
                     borderRadius: 8,
                     fontSize: '0.9375rem',
                     fontWeight: 500,
-                    cursor: saving ? 'not-allowed' : 'pointer',
+                    cursor: editorReady ? 'pointer' : 'not-allowed',
                   }}
                 >
-                  {saving ? 'Saving…' : editorReady ? 'Save content' : 'Waiting for editor…'}
-                </button>
+                  {editorReady ? 'Save content' : 'Waiting for editor…'}
+                </LoadingButton>
                 <span style={{ fontSize: '0.8125rem', color: 'var(--slogbaa-text-muted)' }}>
                   {editorReady ? 'Click to push editor content to the module. Trainees will see it after save.' : 'Editor is loading…'}
                 </span>

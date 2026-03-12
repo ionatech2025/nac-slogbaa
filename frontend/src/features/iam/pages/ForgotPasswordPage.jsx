@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { FontAwesomeIcon, icons } from '../../../shared/icons.js'
 import { requestPasswordReset } from '../../../api/iam/auth.js'
+import { LoadingButton } from '../../../shared/components/LoadingButton.jsx'
 
 const styles = {
   page: {
@@ -152,14 +153,10 @@ export function ForgotPasswordPage() {
               />
             </div>
             {error && <p style={styles.error}>{error}</p>}
-            <button
-              type="submit"
-              style={{ ...styles.submit, ...(loading ? styles.submitDisabled : {}) }}
-              disabled={loading}
-            >
+            <LoadingButton type="submit" loading={loading} style={styles.submit}>
               <FontAwesomeIcon icon={icons.changePassword} />
-              {loading ? 'Sending…' : 'Send reset link'}
-            </button>
+              Send reset link
+            </LoadingButton>
             <div style={styles.links}>
               <Link to="/auth/login">Back to Sign in</Link>
             </div>

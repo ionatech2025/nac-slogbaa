@@ -4,6 +4,7 @@ import { FontAwesomeIcon, icons } from '../../../shared/icons.js'
 import { useAuth } from '../hooks/useAuth.js'
 import { register as registerApi, login as loginApi } from '../../../api/iam/auth.js'
 import { PHONE_COUNTRY_CODES } from '../../../shared/countryCodes.js'
+import { LoadingButton } from '../../../shared/components/LoadingButton.jsx'
 
 const TRAINEE_CATEGORIES = [
   { value: '', label: 'Select category' },
@@ -341,10 +342,10 @@ export function RegisterForm() {
         </div>
       </div>
       {error && <p style={styles.error}>{error}</p>}
-      <button type="submit" style={styles.submit} disabled={loading}>
+      <LoadingButton type="submit" loading={loading} style={styles.submit}>
         <FontAwesomeIcon icon={icons.register} />
-        {loading ? 'Creating account…' : 'Create account'}
-      </button>
+        Create account
+      </LoadingButton>
     </form>
   )
 }

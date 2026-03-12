@@ -6,6 +6,7 @@ import { getDashboardOverview, getCourseCount } from '../../../api/admin/dashboa
 import { changePassword as changePasswordApi } from '../../../api/admin/me.js'
 import { createStaff as createStaffApi, deleteStaff as deleteStaffApi } from '../../../api/admin/staff.js'
 import { deleteTrainee as deleteTraineeApi } from '../../../api/admin/trainees.js'
+import { useTheme } from '../../../contexts/ThemeContext.jsx'
 import { AdminNav } from '../components/admin/AdminNav.jsx'
 import { CreateStaffModal } from '../components/admin/CreateStaffModal.jsx'
 import { UpdateCoursesModal } from '../components/admin/UpdateCoursesModal.jsx'
@@ -29,7 +30,7 @@ const MODULES_ADMIN = [
   { path: 'reports', label: 'Reports & Analytics', icon: icons.reports },
 ]
 
-const styles = {
+const baseStyles = {
   layout: {
     height: '100vh',
     minHeight: '100vh',
@@ -44,6 +45,14 @@ const styles = {
     minHeight: 0,
     overflow: 'hidden',
   },
+  sidebarSection: { padding: '0 0 1rem' },
+  sidebarSectionLast: { paddingBottom: 0 },
+  sidebarSectionInner: { padding: '0 1rem' },
+  navLinkIcon: { width: '1.1em', opacity: 0.9 },
+  quickActionIcon: { width: '1.1em', opacity: 0.9 },
+}
+
+const darkSidebarStyles = {
   sidebar: {
     width: 260,
     flexShrink: 0,
@@ -56,15 +65,6 @@ const styles = {
     boxShadow: '2px 0 12px rgba(0,0,0,0.12)',
     overflowY: 'auto',
     overflowX: 'hidden',
-  },
-  sidebarSection: {
-    padding: '0 0 1rem',
-  },
-  sidebarSectionLast: {
-    paddingBottom: 0,
-  },
-  sidebarSectionInner: {
-    padding: '0 1rem',
   },
   sidebarLabel: {
     margin: '0 1rem 0.6rem',
@@ -88,10 +88,6 @@ const styles = {
     borderRadius: 6,
     transition: 'background 0.15s, color 0.15s',
   },
-  navLinkIcon: {
-    width: '1.1em',
-    opacity: 0.9,
-  },
   navLinkActive: {
     background: 'var(--slogbaa-orange)',
     color: '#fff',
@@ -113,14 +109,36 @@ const styles = {
     borderRadius: 6,
     transition: 'background 0.15s, color 0.15s',
   },
-  quickActionIcon: {
-    width: '1.1em',
-    opacity: 0.9,
+}
+
+const lightSidebarStyles = {
+  sidebar: {
+    ...darkSidebarStyles.sidebar,
+    background: '#ffffff',
+    borderRight: '3px solid var(--slogbaa-orange)',
+    boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
   },
-  quickActionBtnHover: {
-    background: 'rgba(241, 134, 37, 0.2)',
+  sidebarLabel: {
+    ...darkSidebarStyles.sidebarLabel,
+    borderBottom: '1px solid rgba(241, 134, 37, 0.25)',
+  },
+  navLink: {
+    ...darkSidebarStyles.navLink,
+    color: 'var(--slogbaa-text)',
+  },
+  navLinkActive: {
+    background: 'var(--slogbaa-orange)',
     color: '#fff',
+    fontWeight: 600,
   },
+  quickActionBtn: {
+    ...darkSidebarStyles.quickActionBtn,
+    color: 'var(--slogbaa-text)',
+  },
+}
+
+const styles = {
+  ...baseStyles,
   main: {
     flex: 1,
     minWidth: 0,
@@ -191,6 +209,9 @@ export function AdminLayout() {
     return <Navigate to="/dashboard" replace />
   }
 
+  const { theme } = useTheme()
+  const isLight = theme === 'light'
+  const sidebarStyles = isLight ? lightSidebarStyles : darkSidebarStyles
   const displayName = user?.fullName || user?.email || 'Admin'
   const modules = isSuperAdmin ? MODULES_SUPER_ADMIN : MODULES_ADMIN
 
@@ -243,9 +264,9 @@ export function AdminLayout() {
     <div style={styles.layout}>
       <AdminNav />
       <div style={styles.body}>
-        <aside style={styles.sidebar}>
+        <aside className="admin-sidebar" style={sidebarStyles.sidebar}>
           <div style={styles.sidebarSection}>
-            <p style={styles.sidebarLabel}>Sections</p>
+            <p style={sidebarStyles.sidebarLabel}>Sections</p>
             <div style={styles.sidebarSectionInner}>
               {modules.map(({ path, label, icon }) => (
                 <NavLink
@@ -253,8 +274,8 @@ export function AdminLayout() {
                   to={`/admin/${path}`}
                   end={path === 'overview'}
                   style={({ isActive }) => ({
-                    ...styles.navLink,
-                    ...(isActive ? styles.navLinkActive : {}),
+                    ...sidebarStyles.navLink,
+                    ...(isActive ? sidebarStyles.navLinkActive : {}),
                   })}
                 >
                   {icon && <FontAwesomeIcon icon={icon} style={styles.navLinkIcon} />}
@@ -265,13 +286,13 @@ export function AdminLayout() {
           </div>
 
           <div style={{ ...styles.sidebarSection, ...styles.sidebarSectionLast }}>
-            <p style={styles.sidebarLabel}>Quick Actions</p>
+            <p style={sidebarStyles.sidebarLabel}>Quick Actions</p>
             <div style={styles.sidebarSectionInner}>
               {isSuperAdmin && (
                 <>
                   <button
                     type="button"
-                    style={styles.quickActionBtn}
+                    style={sidebarStyles.quickActionBtn}
                     onClick={() => setModal('updateCourses')}
                   >
                     <FontAwesomeIcon icon={icons.updateCourses} style={styles.quickActionIcon} />
@@ -279,7 +300,7 @@ export function AdminLayout() {
                   </button>
                   <button
                     type="button"
-                    style={styles.quickActionBtn}
+                    style={sidebarStyles.quickActionBtn}
                     onClick={() => setModal('createStaff')}
                   >
                     <FontAwesomeIcon icon={icons.createStaff} style={styles.quickActionIcon} />
@@ -289,7 +310,7 @@ export function AdminLayout() {
               )}
               <button
                 type="button"
-                style={styles.quickActionBtn}
+                style={sidebarStyles.quickActionBtn}
                 onClick={() => setModal('changePassword')}
               >
                 <FontAwesomeIcon icon={icons.changePassword} style={styles.quickActionIcon} />

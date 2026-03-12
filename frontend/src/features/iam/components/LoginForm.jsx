@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import { FontAwesomeIcon, icons } from '../../../shared/icons.js'
 import { useAuth } from '../hooks/useAuth.js'
 import { login as loginApi } from '../../../api/iam/auth.js'
+import { LoadingButton } from '../../../shared/components/LoadingButton.jsx'
 
 const styles = {
   form: {
@@ -161,14 +162,10 @@ export function LoginForm() {
         </Link>
       </div>
       {error && <p style={styles.error}>{error}</p>}
-      <button
-        type="submit"
-        style={{ ...styles.submit, ...(loading ? styles.submitDisabled : {}) }}
-        disabled={loading}
-      >
+      <LoadingButton type="submit" loading={loading} style={styles.submit}>
         <FontAwesomeIcon icon={icons.signIn} />
-        {loading ? 'Signing in…' : 'Sign in'}
-      </button>
+        Sign in
+      </LoadingButton>
     </form>
   )
 }

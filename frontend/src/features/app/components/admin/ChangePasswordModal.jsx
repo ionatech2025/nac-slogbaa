@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { FontAwesomeIcon, icons } from '../../../../shared/icons.js'
 import { Modal } from '../../../../shared/components/Modal.jsx'
+import { LoadingButton } from '../../../../shared/components/LoadingButton.jsx'
 
 const styles = {
   form: {
@@ -206,14 +207,15 @@ export function ChangePasswordModal({ onClose, onSubmit }) {
           <button type="button" style={styles.btnSecondary} onClick={onClose}>
             Cancel
           </button>
-          <button
+          <LoadingButton
             type="submit"
-            style={{ ...styles.btnPrimary, ...(loading || success ? styles.btnPrimaryDisabled : {}) }}
-            disabled={loading || success}
+            loading={loading}
+            disabled={success}
+            style={styles.btnPrimary}
           >
             <FontAwesomeIcon icon={icons.changePassword} />
-            {loading ? 'Updating…' : success ? 'Updated' : 'Update Password'}
-          </button>
+            {success ? 'Updated' : 'Update Password'}
+          </LoadingButton>
         </div>
       </form>
     </Modal>

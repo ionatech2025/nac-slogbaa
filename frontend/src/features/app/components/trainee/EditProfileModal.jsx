@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Modal } from '../../../../shared/components/Modal.jsx'
+import { LoadingButton } from '../../../../shared/components/LoadingButton.jsx'
 import { PHONE_COUNTRY_CODES } from '../../../../shared/countryCodes.js'
 
 const CATEGORY_OPTIONS = [
@@ -314,9 +315,9 @@ export function EditProfileModal({ profile, certificateEmailOptIn = false, onClo
           <button type="button" style={styles.btnSecondary} onClick={onClose} disabled={saving}>
             Cancel
           </button>
-          <button type="submit" style={styles.btnPrimary} disabled={saving}>
-            {saving ? 'Saving…' : 'Save'}
-          </button>
+          <LoadingButton type="submit" loading={saving} style={styles.btnPrimary}>
+            Save
+          </LoadingButton>
         </div>
       </form>
     </Modal>
