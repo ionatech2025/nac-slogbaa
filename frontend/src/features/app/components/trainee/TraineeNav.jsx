@@ -21,7 +21,8 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     gap: '0.5rem',
-    padding: '0.375rem 0.75rem',
+    padding: '0.5rem 0.75rem',
+    minHeight: 44,
     background: 'transparent',
     border: '1px solid rgba(255,255,255,0.3)',
     borderRadius: 8,
@@ -58,7 +59,8 @@ const styles = {
     alignItems: 'center',
     gap: '0.5rem',
     width: '100%',
-    padding: '0.625rem 1rem',
+    padding: '0.75rem 1rem',
+    minHeight: 44,
     border: 'none',
     background: 'none',
     cursor: 'pointer',
@@ -100,8 +102,17 @@ export function TraineeNav({ onOpenProfile }) {
     function handleClickOutside(e) {
       if (ref.current && !ref.current.contains(e.target)) setOpen(false)
     }
-    if (open) document.addEventListener('click', handleClickOutside)
-    return () => document.removeEventListener('click', handleClickOutside)
+    function handleEscape(e) {
+      if (e.key === 'Escape') setOpen(false)
+    }
+    if (open) {
+      document.addEventListener('click', handleClickOutside)
+      document.addEventListener('keydown', handleEscape)
+    }
+    return () => {
+      document.removeEventListener('click', handleClickOutside)
+      document.removeEventListener('keydown', handleEscape)
+    }
   }, [open])
 
   const displayName = user?.fullName || user?.email || 'Trainee'

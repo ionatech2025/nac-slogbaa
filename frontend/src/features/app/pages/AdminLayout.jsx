@@ -45,9 +45,9 @@ const baseStyles = {
 const darkSidebarStyles = {
   sidebar: { width: 260, flexShrink: 0, height: '100%', background: 'var(--slogbaa-dark)', borderRight: '1px solid var(--slogbaa-border)', display: 'flex', flexDirection: 'column', padding: '1.25rem 0', boxShadow: '1px 0 8px rgba(0,0,0,0.08)', overflowY: 'auto', overflowX: 'hidden' },
   sidebarLabel: { margin: '0 1rem 0.6rem', fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--slogbaa-text-muted)', borderBottom: '1px solid var(--slogbaa-border)', paddingBottom: '0.5rem' },
-  navLink: { display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 1rem', marginBottom: 2, fontSize: '0.9375rem', color: 'rgba(255,255,255,0.75)', textDecoration: 'none', borderRadius: 8, transition: 'background 0.15s, color 0.15s' },
+  navLink: { display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.7rem 1rem', minHeight: 44, marginBottom: 2, fontSize: '0.9375rem', color: 'rgba(255,255,255,0.75)', textDecoration: 'none', borderRadius: 8, transition: 'background 0.15s, color 0.15s' },
   navLinkActive: { background: 'var(--slogbaa-blue)', color: '#fff', fontWeight: 600 },
-  quickActionBtn: { display: 'flex', alignItems: 'center', gap: '0.5rem', width: '100%', padding: '0.6rem 1rem', marginBottom: 2, border: 'none', background: 'transparent', textAlign: 'left', fontSize: '0.9375rem', color: 'rgba(255,255,255,0.75)', cursor: 'pointer', borderRadius: 8, transition: 'background 0.15s, color 0.15s' },
+  quickActionBtn: { display: 'flex', alignItems: 'center', gap: '0.5rem', width: '100%', padding: '0.7rem 1rem', minHeight: 44, marginBottom: 2, border: 'none', background: 'transparent', textAlign: 'left', fontSize: '0.9375rem', color: 'rgba(255,255,255,0.75)', cursor: 'pointer', borderRadius: 8, transition: 'background 0.15s, color 0.15s' },
 }
 
 const lightSidebarStyles = {
@@ -241,7 +241,7 @@ export function AdminLayout() {
             className="admin-sidebar-mobile"
           >
             <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '0.75rem 1rem 0' }}>
-              <button type="button" onClick={() => setMobileMenuOpen(false)} style={{ border: 'none', background: 'none', color: 'rgba(255,255,255,0.7)', fontSize: '1.25rem', cursor: 'pointer', padding: '0.25rem' }} aria-label="Close menu">
+              <button type="button" onClick={() => setMobileMenuOpen(false)} style={{ border: 'none', background: 'none', color: 'rgba(255,255,255,0.7)', fontSize: '1.25rem', cursor: 'pointer', padding: '0.5rem', minWidth: 44, minHeight: 44, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', borderRadius: 8 }} aria-label="Close menu">
                 <FontAwesomeIcon icon={icons.close} />
               </button>
             </div>
@@ -259,12 +259,12 @@ export function AdminLayout() {
           </aside>
         )}
 
-        <main style={styles.main}>
+        <main className="admin-main-content" style={styles.main}>
           {/* Mobile hamburger button (visible only on small screens) */}
           <button
             type="button"
             className="mobile-menu-btn"
-            style={{ display: 'none', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', padding: '0.5rem 0.75rem', border: '1px solid var(--slogbaa-border)', borderRadius: 8, background: 'var(--slogbaa-surface)', color: 'var(--slogbaa-text)', fontSize: '0.9375rem', fontWeight: 500, cursor: 'pointer' }}
+            style={{ display: 'none', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', padding: '0.625rem 1rem', minHeight: 44, border: '1px solid var(--slogbaa-border)', borderRadius: 8, background: 'var(--slogbaa-surface)', color: 'var(--slogbaa-text)', fontSize: '0.9375rem', fontWeight: 500, cursor: 'pointer' }}
             onClick={() => setMobileMenuOpen(true)}
             aria-label="Open navigation menu"
           >

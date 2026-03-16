@@ -42,7 +42,8 @@ const styles = {
   cardHorizontal: {
     display: 'flex',
     flexDirection: 'row',
-    minHeight: 200,
+    flexWrap: 'wrap',
+    minHeight: 'auto',
   },
   imageWrap: {
     height: 160,
@@ -50,11 +51,12 @@ const styles = {
     overflow: 'hidden',
   },
   imageWrapHorizontal: {
-    width: 280,
-    minWidth: 240,
+    width: 'clamp(200px, 30%, 280px)',
+    minWidth: 200,
     flexShrink: 0,
+    flexGrow: 1,
     height: 'auto',
-    minHeight: 200,
+    minHeight: 180,
     position: 'relative',
   },
   image: {

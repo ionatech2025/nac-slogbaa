@@ -64,7 +64,8 @@ const styles = {
     marginBottom: '1.5rem',
   },
   tableWrap: {
-    overflow: 'hidden',
+    overflowX: 'auto',
+    WebkitOverflowScrolling: 'touch',
     border: '1px solid var(--slogbaa-border)',
     borderRadius: 12,
     background: 'var(--slogbaa-surface)',
@@ -136,13 +137,15 @@ const styles = {
     display: 'inline-flex',
     alignItems: 'center',
     justifyContent: 'center',
-    width: 32,
-    height: 32,
+    width: 40,
+    height: 40,
+    minWidth: 44,
+    minHeight: 44,
     padding: 0,
     background: 'rgba(39, 129, 191, 0.12)',
     color: 'var(--slogbaa-blue)',
     border: 'none',
-    borderRadius: 6,
+    borderRadius: 8,
     cursor: 'pointer',
     marginRight: '0.35rem',
   },
@@ -292,6 +295,7 @@ export function AdminLearningPage() {
 
       <div style={styles.tableWrap}>
         <table style={styles.table}>
+          <caption style={{ position: 'absolute', width: 1, height: 1, padding: 0, margin: -1, overflow: 'hidden', clip: 'rect(0,0,0,0)', whiteSpace: 'nowrap', border: 0 }}>Courses list</caption>
           <thead>
             <tr>
               <th style={styles.th}>Title</th>

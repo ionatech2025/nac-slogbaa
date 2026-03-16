@@ -46,9 +46,9 @@ const variants = {
 }
 
 const sizes = {
-  sm: { padding: '0.35rem 0.75rem', fontSize: '0.8125rem' },
-  md: {},
-  lg: { padding: '0.75rem 1.5rem', fontSize: '1rem' },
+  sm: { padding: '0.5rem 0.75rem', fontSize: '0.8125rem', minHeight: 36 },
+  md: { minHeight: 44 },
+  lg: { padding: '0.75rem 1.5rem', fontSize: '1rem', minHeight: 48 },
 }
 
 /**

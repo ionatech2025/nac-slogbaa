@@ -13,13 +13,13 @@ const styles = {
   container: {
     position: 'fixed',
     bottom: 20,
-    right: 80,
+    right: 20,
     zIndex: 9998,
     display: 'flex',
     flexDirection: 'column',
     gap: '0.5rem',
     maxWidth: 380,
-    width: '100%',
+    width: 'calc(100% - 2.5rem)',
     pointerEvents: 'none',
   },
   toast: {
@@ -48,8 +48,13 @@ const styles = {
     background: 'none',
     cursor: 'pointer',
     color: 'var(--slogbaa-text-muted)',
-    padding: 2,
-    borderRadius: 4,
+    padding: '0.5rem',
+    minWidth: 44,
+    minHeight: 44,
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
   },
 }
 

@@ -1,3 +1,5 @@
+import { useId } from 'react'
+
 /**
  * SLOGBAA Logo System — 2026 Design
  *
@@ -22,7 +24,11 @@ const COLORS = {
   auto: { text: 'currentColor', subtitleText: 'currentColor' },
 }
 
-function LogoIcon({ size = 32 }) {
+function LogoIcon({ size = 32, standalone = false }) {
+  const uid = useId()
+  const bgId = `slogbaa-bg-${uid}`
+  const accentId = `slogbaa-accent-${uid}`
+
   return (
     <svg
       viewBox="0 0 512 512"
@@ -30,42 +36,44 @@ function LogoIcon({ size = 32 }) {
       height={size}
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      aria-hidden="true"
+      role={standalone ? 'img' : undefined}
+      aria-label={standalone ? 'SLOGBAA' : undefined}
+      aria-hidden={standalone ? undefined : true}
       style={{ flexShrink: 0, display: 'block' }}
     >
       <defs>
-        <linearGradient id="slogbaa-bg" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
+        <linearGradient id={bgId} x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
           <stop offset="0%" stopColor="#2563eb" />
           <stop offset="100%" stopColor="#1d4ed8" />
         </linearGradient>
-        <linearGradient id="slogbaa-accent" x1="160" y1="128" x2="352" y2="384" gradientUnits="userSpaceOnUse">
+        <linearGradient id={accentId} x1="180" y1="160" x2="332" y2="352" gradientUnits="userSpaceOnUse">
           <stop offset="0%" stopColor="#ffffff" />
           <stop offset="100%" stopColor="#dbeafe" />
         </linearGradient>
       </defs>
-      <rect width="512" height="512" rx="112" fill="url(#slogbaa-bg)" />
+      <rect width="512" height="512" rx="112" fill={`url(#${bgId})`} />
       <path
-        d="M256 120c-48 0-96 16-128 44v8c32-24 80-36 128-36s96 12 128 36v-8c-32-28-80-44-128-44z"
+        d="M256 148c-40 0-80 13-108 37v7c28-20 68-30 108-30s80 10 108 30v-7c-28-24-68-37-108-37z"
         fill="rgba(255,255,255,0.25)"
       />
       <path
-        d="M310 168c-40-16-88-8-112 24s-16 72 16 96 72 28 96 8"
-        stroke="url(#slogbaa-accent)"
-        strokeWidth="36"
+        d="M300 192c-36-14-78-7-100 21s-14 64 14 85 64 25 85 7"
+        stroke={`url(#${accentId})`}
+        strokeWidth="34"
         strokeLinecap="round"
         fill="none"
       />
       <path
-        d="M202 344c40 16 88 8 112-24s16-72-16-96"
-        stroke="url(#slogbaa-accent)"
-        strokeWidth="36"
+        d="M212 320c36 14 78 7 100-21s14-64-14-85"
+        stroke={`url(#${accentId})`}
+        strokeWidth="34"
         strokeLinecap="round"
         fill="none"
       />
       <path
-        d="M310 168l-4-32 28 20"
+        d="M300 192l-3-28 24 17"
         stroke="#ffffff"
-        strokeWidth="24"
+        strokeWidth="22"
         strokeLinecap="round"
         strokeLinejoin="round"
         fill="none"
@@ -87,7 +95,7 @@ export function Logo({
   if (variant === 'icon') {
     return (
       <span className={className} style={{ display: 'inline-flex', alignItems: 'center', ...style }}>
-        <LogoIcon size={size} />
+        <LogoIcon size={size} standalone />
       </span>
     )
   }
