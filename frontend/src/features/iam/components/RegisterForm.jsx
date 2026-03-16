@@ -4,6 +4,7 @@ import { FontAwesomeIcon, icons } from '../../../shared/icons.jsx'
 import { register as registerApi, resendVerification } from '../../../api/iam/auth.js'
 import { PHONE_COUNTRY_CODES } from '../../../shared/countryCodes.js'
 import { LoadingButton } from '../../../shared/components/LoadingButton.jsx'
+import { registerSchema } from '../validation/schemas.js'
 
 const TRAINEE_CATEGORIES = [
   { value: '', label: 'Select category' },
@@ -204,14 +205,9 @@ export function RegisterForm() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError(null)
-    const required = ['firstName', 'lastName', 'email', 'password', 'gender', 'districtName', 'traineeCategory']
-    const missing = required.filter((k) => !String(form[k]).trim())
-    if (missing.length) {
-      setError('Please fill in all required fields (name, email, password, gender, district, category).')
-      return
-    }
-    if (form.password.length < 6) {
-      setError('Password should be at least 6 characters.')
+    const parsed = registerSchema.safeParse(form)
+    if (!parsed.success) {
+      setError(parsed.error.issues[0].message)
       return
     }
     setLoading(true)

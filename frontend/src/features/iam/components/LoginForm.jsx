@@ -4,6 +4,7 @@ import { FontAwesomeIcon, icons } from '../../../shared/icons.jsx'
 import { useAuth } from '../hooks/useAuth.js'
 import { login as loginApi, resendVerification } from '../../../api/iam/auth.js'
 import { LoadingButton } from '../../../shared/components/LoadingButton.jsx'
+import { loginSchema } from '../validation/schemas.js'
 
 const styles = {
   form: {
@@ -152,8 +153,9 @@ export function LoginForm() {
     setError(null)
     setEmailNotVerified(false)
     setResendMsg(null)
-    if (!email.trim() || !password) {
-      setError('Please enter email and password.')
+    const parsed = loginSchema.safeParse({ email, password })
+    if (!parsed.success) {
+      setError(parsed.error.issues[0].message)
       return
     }
     setLoading(true)

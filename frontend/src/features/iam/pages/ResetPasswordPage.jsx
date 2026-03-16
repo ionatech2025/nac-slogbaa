@@ -3,7 +3,9 @@ import { useSearchParams, Link, useNavigate } from 'react-router-dom'
 import { FontAwesomeIcon, icons } from '../../../shared/icons.jsx'
 import { verifyResetToken, confirmPasswordReset } from '../../../api/iam/auth.js'
 import { LoadingButton } from '../../../shared/components/LoadingButton.jsx'
+import { resetPasswordSchema } from '../validation/schemas.js'
 import { Logo } from '../../../shared/components/Logo.jsx'
+import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle.js'
 
 const styles = {
   page: {
@@ -131,6 +133,7 @@ const styles = {
 }
 
 export function ResetPasswordPage() {
+  useDocumentTitle('Reset Password')
   const [searchParams] = useSearchParams()
   const token = searchParams.get('token')
   const navigate = useNavigate()
@@ -159,12 +162,9 @@ export function ResetPasswordPage() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError(null)
-    if (newPassword.length < 6) {
-      setError('Password must be at least 6 characters.')
-      return
-    }
-    if (newPassword !== confirmPassword) {
-      setError('Passwords do not match.')
+    const parsed = resetPasswordSchema.safeParse({ newPassword, confirmPassword })
+    if (!parsed.success) {
+      setError(parsed.error.issues[0].message)
       return
     }
     setLoading(true)
