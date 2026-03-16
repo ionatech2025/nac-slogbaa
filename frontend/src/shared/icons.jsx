@@ -19,7 +19,7 @@ import {
   Search, Sun, Moon, Mail, UserX, Users, Loader2,
   GripVertical, Save, Type,
   Phone, MapPin, Building2, Hash, Globe, Lock, ShieldCheck,
-  Flame, Target, Bookmark,
+  Flame, Target, MessageSquare, CheckCircle,
 } from 'lucide-react'
 
 /**
@@ -100,5 +100,6 @@ export const icons = {
   shield: ShieldCheck,
   flame: Flame,
   target: Target,
-  bookmark: Bookmark,
+  messageSquare: MessageSquare,
+  checkCircle: CheckCircle,
 }

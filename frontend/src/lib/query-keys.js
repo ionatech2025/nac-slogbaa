@@ -3,11 +3,6 @@
  * Follows the key hierarchy: [domain, scope, ...params] pattern.
  */
 export const queryKeys = {
-  // === Categories ===
-  categories: {
-    all: () => ['categories'],
-  },
-
   // === Trainee courses ===
   courses: {
     all: ['courses'],
@@ -30,23 +25,25 @@ export const queryKeys = {
     mine: () => [...queryKeys.certificates.all, 'mine'],
   },
 
+  // === Reviews ===
+  reviews: {
+    all: ['reviews'],
+    byCourse: (courseId) => [...queryKeys.reviews.all, 'course', courseId],
+    rating: (courseId) => [...queryKeys.reviews.all, 'rating', courseId],
+  },
+
+  // === Discussions ===
+  discussions: {
+    all: ['discussions'],
+    byCourse: (courseId) => [...queryKeys.discussions.all, 'course', courseId],
+    byCourseAndModule: (courseId, moduleId) => [...queryKeys.discussions.all, 'course', courseId, 'module', moduleId],
+    thread: (courseId, threadId) => [...queryKeys.discussions.all, 'course', courseId, 'thread', threadId],
+  },
+
   // === Leaderboard ===
   leaderboard: {
     all: ['leaderboard'],
     top: (limit) => [...queryKeys.leaderboard.all, 'top', limit],
-  },
-
-  // === Bookmarks ===
-  bookmarks: {
-    all: ['bookmarks'],
-    list: (courseId) => courseId ? ['bookmarks', 'course', courseId] : ['bookmarks', 'all'],
-  },
-
-  // === Trainee profile ===
-  trainee: {
-    all: ['trainee'],
-    profile: () => [...queryKeys.trainee.all, 'profile'],
-    settings: () => [...queryKeys.trainee.all, 'settings'],
   },
 
   // === Streak ===
@@ -55,9 +52,11 @@ export const queryKeys = {
     current: () => [...queryKeys.streak.all, 'current'],
   },
 
-  // === Achievements ===
-  achievements: {
-    all: () => ['achievements'],
+  // === Trainee profile ===
+  trainee: {
+    all: ['trainee'],
+    profile: () => [...queryKeys.trainee.all, 'profile'],
+    settings: () => [...queryKeys.trainee.all, 'settings'],
   },
 
   // === Admin dashboard ===

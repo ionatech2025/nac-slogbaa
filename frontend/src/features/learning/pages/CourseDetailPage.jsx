@@ -3,13 +3,11 @@ import { useParams, Link, useNavigate } from 'react-router-dom'
 import { getAssetUrl } from '../../../api/client.js'
 import { useAuth } from '../../iam/hooks/useAuth.js'
 import { useCourseDetail, useCheckEnrollment, useResumePoint, useRecordProgress } from '../../../lib/hooks/use-courses.js'
-import { useBookmarks } from '../../../lib/hooks/use-bookmarks.js'
 import { EditorJsReadOnly } from '../../app/components/admin/EditorJsReadOnly.jsx'
 import { ModuleQuizPanel } from '../../assessment/components/ModuleQuizPanel.jsx'
 import { SafeHtml } from '../../../shared/components/SafeHtml.jsx'
-import { VideoPlayer } from '../../../shared/components/VideoPlayer.jsx'
-import { BookmarkButton } from '../../../shared/components/BookmarkButton.jsx'
 import { CourseDetailSkeleton } from '../../../shared/components/ContentSkeletons.jsx'
+import { DiscussionPanel } from '../components/DiscussionPanel.jsx'
 
 const styles = {
   layout: {
@@ -257,7 +255,7 @@ const styles = {
   },
 }
 
-function BlockWithProgressObserver({ block, moduleId, blockOrder, onViewed, onFocusChange, isFocused, scrollRoot, courseId, bookmarks }) {
+function BlockWithProgressObserver({ block, moduleId, blockOrder, onViewed, onFocusChange, isFocused, scrollRoot }) {
   const ref = useRef(null)
 
   useEffect(() => {
@@ -292,19 +290,7 @@ function BlockWithProgressObserver({ block, moduleId, blockOrder, onViewed, onFo
         ...(isFocused ? styles.blockWrapperFocused : {}),
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '0.5rem' }}>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <ContentBlockRenderer block={block} />
-        </div>
-        {courseId && moduleId && (
-          <BookmarkButton
-            courseId={courseId}
-            moduleId={moduleId}
-            contentBlockId={block.id}
-            bookmarks={bookmarks}
-          />
-        )}
-      </div>
+      <ContentBlockRenderer block={block} />
     </div>
   )
 }
@@ -340,9 +326,22 @@ function ContentBlockRenderer({ block }) {
     )
   }
   if (blockType === 'VIDEO' && (videoId || videoUrl)) {
+    const embedId = videoId || (videoUrl && videoUrl.match(/(?:v=|\/)([\w-]{11})(?:&|$)/)?.[1])
     return (
       <div style={styles.block}>
-        <VideoPlayer videoUrl={videoUrl} videoId={videoId} />
+        {embedId ? (
+          <iframe
+            title="Video content"
+            src={`https://www.youtube.com/embed/${embedId}`}
+            style={styles.blockVideo}
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          />
+        ) : (
+          <a href={videoUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--slogbaa-blue)' }}>
+            Watch video
+          </a>
+        )}
       </div>
     )
   }
@@ -418,7 +417,6 @@ export function CourseDetailPage() {
     setNotesReadThrough(false)
   }, [selectedModule?.id])
 
-  const { data: bookmarks = [] } = useBookmarks(courseId)
   const progressMutation = useRecordProgress()
 
   // Record progress only when advancing; mark notes as read-through when last block is viewed
@@ -603,8 +601,6 @@ export function CourseDetailPage() {
                         onFocusChange={handleFocusChange}
                         isFocused={focusedBlockId === block.id}
                         scrollRoot={articleEl}
-                        courseId={courseId}
-                        bookmarks={bookmarks}
                       />
                     ))}
                     {(!selectedModule.contentBlocks || selectedModule.contentBlocks.length === 0) && (
@@ -649,6 +645,7 @@ export function CourseDetailPage() {
                     onRereadNotes={handleRereadNotes}
                   />
                 )}
+                <DiscussionPanel courseId={courseId} moduleId={selectedModule?.id} />
               </>
             ) : (
               <p style={{ color: 'var(--slogbaa-text-muted)' }}>Select a module to view content.</p>

@@ -1,5 +1,6 @@
 package com.nac.slogbaa.progress.config;
 
+import com.nac.slogbaa.iam.application.port.in.GetStaffByIdUseCase;
 import com.nac.slogbaa.iam.application.port.in.GetTraineeByIdUseCase;
 import com.nac.slogbaa.learning.application.port.out.CourseDetailsQueryPort;
 import com.nac.slogbaa.learning.application.port.out.CoursePublicationPort;
@@ -8,43 +9,41 @@ import com.nac.slogbaa.shared.ports.CertificatePdfGeneratorPort;
 import com.nac.slogbaa.shared.ports.FileStoragePort;
 import com.nac.slogbaa.shared.ports.TraineeCourseQuizScorePort;
 import com.nac.slogbaa.shared.ports.TraineeNotificationPort;
-import com.nac.slogbaa.progress.application.port.in.CheckAndAwardBadgesUseCase;
-import com.nac.slogbaa.progress.application.port.in.GetBookmarksUseCase;
-import com.nac.slogbaa.progress.application.port.in.ToggleBookmarkUseCase;
-import com.nac.slogbaa.progress.application.port.out.BookmarkPort;
-import com.nac.slogbaa.progress.application.service.GetBookmarksService;
-import com.nac.slogbaa.progress.application.service.ToggleBookmarkService;
+import com.nac.slogbaa.progress.application.port.in.CreateDiscussionThreadUseCase;
 import com.nac.slogbaa.progress.application.port.in.EnrollTraineeUseCase;
 import com.nac.slogbaa.progress.application.port.in.GetCourseReviewsUseCase;
+import com.nac.slogbaa.progress.application.port.in.GetDiscussionThreadsUseCase;
 import com.nac.slogbaa.progress.application.port.in.GetEnrolledCoursesUseCase;
 import com.nac.slogbaa.progress.application.port.in.GetLeaderboardUseCase;
 import com.nac.slogbaa.progress.application.port.in.GetResumePointUseCase;
 import com.nac.slogbaa.progress.application.port.in.GetStreakUseCase;
-import com.nac.slogbaa.progress.application.port.in.GetTraineeAchievementsUseCase;
 import com.nac.slogbaa.progress.application.port.in.IssueCertificateUseCase;
 import com.nac.slogbaa.progress.application.port.in.ListCertificatesUseCase;
 import com.nac.slogbaa.progress.application.port.in.RecordActivityUseCase;
 import com.nac.slogbaa.progress.application.port.in.RecordModuleCompletionUseCase;
+import com.nac.slogbaa.progress.application.port.in.ReplyToThreadUseCase;
+import com.nac.slogbaa.progress.application.port.in.ResolveThreadUseCase;
 import com.nac.slogbaa.progress.application.port.in.RevokeCertificateUseCase;
 import com.nac.slogbaa.progress.application.port.in.RecordProgressUseCase;
 import com.nac.slogbaa.progress.application.port.in.SubmitCourseReviewUseCase;
 import com.nac.slogbaa.progress.application.port.in.UpdateDailyGoalUseCase;
-import com.nac.slogbaa.progress.application.port.out.BadgePort;
 import com.nac.slogbaa.progress.application.port.out.CertificateRepositoryPort;
 import com.nac.slogbaa.progress.application.port.out.CourseReviewPort;
+import com.nac.slogbaa.progress.application.port.out.DiscussionPort;
 import com.nac.slogbaa.progress.application.port.out.ModuleCompletionPort;
 import com.nac.slogbaa.progress.application.port.out.StreakPort;
 import com.nac.slogbaa.progress.application.port.out.TraineeProgressRepositoryPort;
-import com.nac.slogbaa.progress.application.port.out.XpPort;
-import com.nac.slogbaa.progress.application.service.CheckAndAwardBadgesService;
+import com.nac.slogbaa.progress.application.service.CreateDiscussionThreadService;
 import com.nac.slogbaa.progress.application.service.EnrollTraineeService;
 import com.nac.slogbaa.progress.application.service.GetCourseReviewsService;
+import com.nac.slogbaa.progress.application.service.GetDiscussionThreadsService;
 import com.nac.slogbaa.progress.application.service.GetLeaderboardService;
 import com.nac.slogbaa.progress.application.service.GetStreakService;
-import com.nac.slogbaa.progress.application.service.GetTraineeAchievementsService;
 import com.nac.slogbaa.progress.application.service.IssueCertificateService;
 import com.nac.slogbaa.progress.application.service.ListCertificatesService;
 import com.nac.slogbaa.progress.application.service.RecordActivityService;
+import com.nac.slogbaa.progress.application.service.ReplyToThreadService;
+import com.nac.slogbaa.progress.application.service.ResolveThreadService;
 import com.nac.slogbaa.progress.application.service.RevokeCertificateService;
 import com.nac.slogbaa.progress.application.service.GetEnrolledCoursesService;
 import com.nac.slogbaa.progress.application.service.GetResumePointService;
@@ -61,9 +60,8 @@ public class ProgressConfiguration {
     @Bean
     public EnrollTraineeUseCase enrollTraineeUseCase(
             CoursePublicationPort coursePublicationPort,
-            TraineeProgressRepositoryPort traineeProgressRepository,
-            CheckAndAwardBadgesUseCase checkAndAwardBadgesUseCase) {
-        return new EnrollTraineeService(coursePublicationPort, traineeProgressRepository, checkAndAwardBadgesUseCase);
+            TraineeProgressRepositoryPort traineeProgressRepository) {
+        return new EnrollTraineeService(coursePublicationPort, traineeProgressRepository);
     }
 
     @Bean
@@ -78,9 +76,8 @@ public class ProgressConfiguration {
             TraineeProgressRepositoryPort traineeProgressRepository,
             ModuleCompletionPort moduleCompletionPort,
             CourseDetailsQueryPort courseDetailsQueryPort,
-            IssueCertificateUseCase issueCertificateUseCase,
-            CheckAndAwardBadgesUseCase checkAndAwardBadgesUseCase) {
-        return new RecordModuleCompletionService(traineeProgressRepository, moduleCompletionPort, courseDetailsQueryPort, issueCertificateUseCase, checkAndAwardBadgesUseCase);
+            IssueCertificateUseCase issueCertificateUseCase) {
+        return new RecordModuleCompletionService(traineeProgressRepository, moduleCompletionPort, courseDetailsQueryPort, issueCertificateUseCase);
     }
 
     @Bean
@@ -104,8 +101,8 @@ public class ProgressConfiguration {
     }
 
     @Bean
-    public GetStreakUseCase getStreakUseCase(StreakPort streakPort, CheckAndAwardBadgesUseCase checkAndAwardBadgesUseCase) {
-        return new GetStreakService(streakPort, checkAndAwardBadgesUseCase);
+    public GetStreakUseCase getStreakUseCase(StreakPort streakPort) {
+        return new GetStreakService(streakPort);
     }
 
     @Bean
@@ -150,9 +147,8 @@ public class ProgressConfiguration {
     @Bean
     public SubmitCourseReviewUseCase submitCourseReviewUseCase(
             CourseReviewPort courseReviewPort,
-            TraineeProgressRepositoryPort traineeProgressRepository,
-            CheckAndAwardBadgesUseCase checkAndAwardBadgesUseCase) {
-        return new SubmitCourseReviewService(courseReviewPort, traineeProgressRepository, checkAndAwardBadgesUseCase);
+            TraineeProgressRepositoryPort traineeProgressRepository) {
+        return new SubmitCourseReviewService(courseReviewPort, traineeProgressRepository);
     }
 
     @Bean
@@ -163,30 +159,31 @@ public class ProgressConfiguration {
     }
 
     @Bean
-    public GetTraineeAchievementsUseCase getTraineeAchievementsUseCase(
-            BadgePort badgePort, XpPort xpPort) {
-        return new GetTraineeAchievementsService(badgePort, xpPort);
+    public CreateDiscussionThreadUseCase createDiscussionThreadUseCase(
+            DiscussionPort discussionPort,
+            GetTraineeByIdUseCase getTraineeByIdUseCase,
+            GetStaffByIdUseCase getStaffByIdUseCase) {
+        return new CreateDiscussionThreadService(discussionPort, getTraineeByIdUseCase, getStaffByIdUseCase);
     }
 
     @Bean
-    public CheckAndAwardBadgesUseCase checkAndAwardBadgesUseCase(
-            BadgePort badgePort, XpPort xpPort,
-            TraineeProgressRepositoryPort traineeProgressRepository,
-            StreakPort streakPort) {
-        return new CheckAndAwardBadgesService(badgePort, xpPort, traineeProgressRepository, streakPort);
+    public ReplyToThreadUseCase replyToThreadUseCase(
+            DiscussionPort discussionPort,
+            GetTraineeByIdUseCase getTraineeByIdUseCase,
+            GetStaffByIdUseCase getStaffByIdUseCase) {
+        return new ReplyToThreadService(discussionPort, getTraineeByIdUseCase, getStaffByIdUseCase);
     }
 
     @Bean
-    public ToggleBookmarkUseCase toggleBookmarkUseCase(
-            BookmarkPort bookmarkPort,
-            CourseDetailsQueryPort courseDetailsQueryPort) {
-        return new ToggleBookmarkService(bookmarkPort, courseDetailsQueryPort);
+    public GetDiscussionThreadsUseCase getDiscussionThreadsUseCase(
+            DiscussionPort discussionPort,
+            GetTraineeByIdUseCase getTraineeByIdUseCase,
+            GetStaffByIdUseCase getStaffByIdUseCase) {
+        return new GetDiscussionThreadsService(discussionPort, getTraineeByIdUseCase, getStaffByIdUseCase);
     }
 
     @Bean
-    public GetBookmarksUseCase getBookmarksUseCase(
-            BookmarkPort bookmarkPort,
-            CourseDetailsQueryPort courseDetailsQueryPort) {
-        return new GetBookmarksService(bookmarkPort, courseDetailsQueryPort);
+    public ResolveThreadUseCase resolveThreadUseCase(DiscussionPort discussionPort) {
+        return new ResolveThreadService(discussionPort);
     }
 }
