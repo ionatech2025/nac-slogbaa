@@ -229,7 +229,7 @@ export function AdminLayout() {
         {/* Mobile menu overlay */}
         {mobileMenuOpen && (
           <div
-            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 900 }}
+            style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.4)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', zIndex: 900 }}
             onClick={() => setMobileMenuOpen(false)}
             aria-hidden="true"
           />
@@ -264,7 +264,7 @@ export function AdminLayout() {
           <button
             type="button"
             className="mobile-menu-btn"
-            style={{ display: 'none', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', padding: '0.625rem 1rem', minHeight: 44, border: '1px solid var(--slogbaa-border)', borderRadius: 8, background: 'var(--slogbaa-surface)', color: 'var(--slogbaa-text)', fontSize: '0.9375rem', fontWeight: 500, cursor: 'pointer' }}
+            style={{ display: 'none', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', padding: '0.625rem 1rem', minHeight: 44, border: '1px solid var(--slogbaa-glass-border)', borderRadius: 10, background: 'var(--slogbaa-glass-bg-subtle)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', color: 'var(--slogbaa-text)', fontSize: '0.9375rem', fontWeight: 500, cursor: 'pointer' }}
             onClick={() => setMobileMenuOpen(true)}
             aria-label="Open navigation menu"
           >
