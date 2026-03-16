@@ -1,6 +1,7 @@
 package com.nac.slogbaa.progress.application.service;
 
 import com.nac.slogbaa.progress.adapters.persistence.entity.CourseReviewEntity;
+import com.nac.slogbaa.progress.application.port.in.CheckAndAwardBadgesUseCase;
 import com.nac.slogbaa.progress.application.port.in.SubmitCourseReviewUseCase;
 import com.nac.slogbaa.progress.application.port.out.CourseReviewPort;
 import com.nac.slogbaa.progress.application.port.out.TraineeProgressRepositoryPort;
@@ -14,11 +15,14 @@ public final class SubmitCourseReviewService implements SubmitCourseReviewUseCas
 
     private final CourseReviewPort courseReviewPort;
     private final TraineeProgressRepositoryPort traineeProgressRepository;
+    private final CheckAndAwardBadgesUseCase checkAndAwardBadgesUseCase;
 
     public SubmitCourseReviewService(CourseReviewPort courseReviewPort,
-                                     TraineeProgressRepositoryPort traineeProgressRepository) {
+                                     TraineeProgressRepositoryPort traineeProgressRepository,
+                                     CheckAndAwardBadgesUseCase checkAndAwardBadgesUseCase) {
         this.courseReviewPort = courseReviewPort;
         this.traineeProgressRepository = traineeProgressRepository;
+        this.checkAndAwardBadgesUseCase = checkAndAwardBadgesUseCase;
     }
 
     @Override
@@ -41,5 +45,11 @@ public final class SubmitCourseReviewService implements SubmitCourseReviewUseCas
         entity.setRating((short) rating);
         entity.setReviewText(reviewText);
         courseReviewPort.save(entity);
+
+        try {
+            checkAndAwardBadgesUseCase.checkAndAward(traineeId, "REVIEW_WRITTEN");
+        } catch (Exception ignored) {
+            // Badge checks must never break the main review flow
+        }
     }
 }

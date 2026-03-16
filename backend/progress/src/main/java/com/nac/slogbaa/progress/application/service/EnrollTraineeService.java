@@ -1,6 +1,7 @@
 package com.nac.slogbaa.progress.application.service;
 
 import com.nac.slogbaa.learning.application.port.out.CoursePublicationPort;
+import com.nac.slogbaa.progress.application.port.in.CheckAndAwardBadgesUseCase;
 import com.nac.slogbaa.progress.application.port.in.EnrollTraineeUseCase;
 import com.nac.slogbaa.progress.application.port.out.TraineeProgressRepositoryPort;
 import com.nac.slogbaa.progress.core.aggregate.TraineeProgress;
@@ -16,11 +17,14 @@ public final class EnrollTraineeService implements EnrollTraineeUseCase {
 
     private final CoursePublicationPort coursePublicationPort;
     private final TraineeProgressRepositoryPort traineeProgressRepository;
+    private final CheckAndAwardBadgesUseCase checkAndAwardBadgesUseCase;
 
     public EnrollTraineeService(CoursePublicationPort coursePublicationPort,
-                                TraineeProgressRepositoryPort traineeProgressRepository) {
+                                TraineeProgressRepositoryPort traineeProgressRepository,
+                                CheckAndAwardBadgesUseCase checkAndAwardBadgesUseCase) {
         this.coursePublicationPort = coursePublicationPort;
         this.traineeProgressRepository = traineeProgressRepository;
+        this.checkAndAwardBadgesUseCase = checkAndAwardBadgesUseCase;
     }
 
     @Override
@@ -33,5 +37,11 @@ public final class EnrollTraineeService implements EnrollTraineeUseCase {
         }
         TraineeProgress progress = TraineeProgress.newEnrollment(traineeId, courseId);
         traineeProgressRepository.save(progress);
+
+        try {
+            checkAndAwardBadgesUseCase.checkAndAward(traineeId, "FIRST_ENROLLMENT");
+        } catch (Exception ignored) {
+            // Badge checks must never break the main enrollment flow
+        }
     }
 }

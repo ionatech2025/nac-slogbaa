@@ -9,6 +9,11 @@ import com.nac.slogbaa.shared.ports.FileStoragePort;
 import com.nac.slogbaa.shared.ports.TraineeCourseQuizScorePort;
 import com.nac.slogbaa.shared.ports.TraineeNotificationPort;
 import com.nac.slogbaa.progress.application.port.in.CheckAndAwardBadgesUseCase;
+import com.nac.slogbaa.progress.application.port.in.GetBookmarksUseCase;
+import com.nac.slogbaa.progress.application.port.in.ToggleBookmarkUseCase;
+import com.nac.slogbaa.progress.application.port.out.BookmarkPort;
+import com.nac.slogbaa.progress.application.service.GetBookmarksService;
+import com.nac.slogbaa.progress.application.service.ToggleBookmarkService;
 import com.nac.slogbaa.progress.application.port.in.EnrollTraineeUseCase;
 import com.nac.slogbaa.progress.application.port.in.GetCourseReviewsUseCase;
 import com.nac.slogbaa.progress.application.port.in.GetEnrolledCoursesUseCase;
@@ -169,5 +174,19 @@ public class ProgressConfiguration {
             TraineeProgressRepositoryPort traineeProgressRepository,
             StreakPort streakPort) {
         return new CheckAndAwardBadgesService(badgePort, xpPort, traineeProgressRepository, streakPort);
+    }
+
+    @Bean
+    public ToggleBookmarkUseCase toggleBookmarkUseCase(
+            BookmarkPort bookmarkPort,
+            CourseDetailsQueryPort courseDetailsQueryPort) {
+        return new ToggleBookmarkService(bookmarkPort, courseDetailsQueryPort);
+    }
+
+    @Bean
+    public GetBookmarksUseCase getBookmarksUseCase(
+            BookmarkPort bookmarkPort,
+            CourseDetailsQueryPort courseDetailsQueryPort) {
+        return new GetBookmarksService(bookmarkPort, courseDetailsQueryPort);
     }
 }

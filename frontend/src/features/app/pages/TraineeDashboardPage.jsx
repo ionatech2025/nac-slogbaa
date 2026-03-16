@@ -13,6 +13,7 @@ import { CertificateCard } from '../components/trainee/CertificateCard.jsx'
 import { StatsSkeleton, CardGridSkeleton } from '../../../shared/components/ContentSkeletons.jsx'
 import { LeaderboardWidget } from '../../../shared/components/LeaderboardWidget.jsx'
 import { StreakWidget } from '../../../shared/components/StreakWidget.jsx'
+import { AchievementsWidget } from '../../../shared/components/AchievementsWidget.jsx'
 import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle.js'
 
 const styles = {
@@ -286,6 +287,11 @@ export function TraineeDashboardPage() {
         {/* Streak widget — Duolingo-style daily streak */}
         <div style={{ marginBottom: '1.5rem' }}>
           <StreakWidget />
+        </div>
+
+        {/* Achievements widget — Khan Academy-style XP & badges */}
+        <div style={{ marginBottom: '1.5rem' }}>
+          <AchievementsWidget />
         </div>
 
         {/* Motivation stats */}

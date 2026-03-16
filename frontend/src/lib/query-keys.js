@@ -49,6 +49,17 @@ export const queryKeys = {
     settings: () => [...queryKeys.trainee.all, 'settings'],
   },
 
+  // === Streak ===
+  streak: {
+    all: ['streak'],
+    current: () => [...queryKeys.streak.all, 'current'],
+  },
+
+  // === Achievements ===
+  achievements: {
+    all: () => ['achievements'],
+  },
+
   // === Admin dashboard ===
   admin: {
     all: ['admin'],
