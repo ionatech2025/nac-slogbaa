@@ -27,6 +27,10 @@ public class CourseEntity {
     @Column(name = "is_published", nullable = false)
     private boolean published = false;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id")
+    private CourseCategoryEntity category;
+
     @Column(name = "created_by", nullable = false, updatable = false)
     private UUID createdBy;
 
@@ -58,6 +62,8 @@ public class CourseEntity {
     public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
     public boolean isPublished() { return published; }
     public void setPublished(boolean published) { this.published = published; }
+    public CourseCategoryEntity getCategory() { return category; }
+    public void setCategory(CourseCategoryEntity category) { this.category = category; }
     public UUID getCreatedBy() { return createdBy; }
     public void setCreatedBy(UUID createdBy) { this.createdBy = createdBy; }
     public Instant getCreatedAt() { return createdAt; }

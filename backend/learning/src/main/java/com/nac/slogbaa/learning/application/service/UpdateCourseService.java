@@ -22,7 +22,8 @@ public class UpdateCourseService implements UpdateCourseUseCase {
                 command.getCourseId(),
                 command.getTitle(),
                 command.getDescription(),
-                command.getImageUrl()
+                command.getImageUrl(),
+                command.getCategoryId()
         );
     }
 }

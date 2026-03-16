@@ -3,6 +3,8 @@ package com.nac.slogbaa.learning.adapters.rest.dto.request;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
+import java.util.UUID;
+
 /**
  * REST request for updating a course.
  */
@@ -14,5 +16,7 @@ public record UpdateCourseRequest(
         String description,
 
         @Size(max = 2048)
-        String imageUrl
+        String imageUrl,
+
+        UUID categoryId
 ) {}
