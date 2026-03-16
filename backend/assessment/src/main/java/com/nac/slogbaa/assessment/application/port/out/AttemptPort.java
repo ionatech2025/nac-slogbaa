@@ -4,6 +4,7 @@ import com.nac.slogbaa.assessment.application.dto.AttemptDto;
 import com.nac.slogbaa.assessment.application.dto.QuizForAttemptDto;
 import com.nac.slogbaa.assessment.application.dto.SubmittedAttemptDto;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -19,6 +20,17 @@ public interface AttemptPort {
     java.util.Optional<QuizForAttemptDto> getQuizForAttempt(UUID quizId);
 
     /**
+     * Count existing attempts for a trainee on a specific quiz.
+     */
+    long countAttemptsByTraineeAndQuiz(UUID traineeId, UUID quizId);
+
+    /**
+     * Return timing metadata for an attempt (startedAt and quiz timeLimitMinutes).
+     * Returns empty if the attempt is not found.
+     */
+    java.util.Optional<AttemptTimingInfo> getAttemptTimingInfo(UUID attemptId);
+
+    /**
      * Create or get trainee assessment, then create a new attempt. Returns attempt + quiz for attempt.
      */
     AttemptDto startAttempt(UUID traineeId, UUID quizId, UUID moduleId);
@@ -31,4 +43,6 @@ public interface AttemptPort {
     SubmittedAttemptDto submitAttempt(UUID attemptId, UUID traineeId, List<AnswerSubmission> answers);
 
     record AnswerSubmission(UUID questionId, UUID selectedOptionId, String textAnswer) {}
+
+    record AttemptTimingInfo(Instant startedAt, Integer timeLimitMinutes) {}
 }

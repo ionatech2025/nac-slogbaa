@@ -36,6 +36,24 @@ public class AttemptAdapter implements AttemptPort {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public long countAttemptsByTraineeAndQuiz(UUID traineeId, UUID quizId) {
+        return traineeAssessmentRepository.findByTraineeIdAndQuizId(traineeId, quizId)
+                .map(a -> attemptRepository.countByTraineeAssessmentId(a.getId()))
+                .orElse(0L);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<AttemptTimingInfo> getAttemptTimingInfo(UUID attemptId) {
+        return attemptRepository.findById(attemptId)
+                .map(a -> new AttemptTimingInfo(
+                        a.getStartedAt(),
+                        a.getTraineeAssessment().getQuiz().getTimeLimitMinutes()
+                ));
+    }
+
+    @Override
     @Transactional
     public AttemptDto startAttempt(UUID traineeId, UUID quizId, UUID moduleId) {
         QuizEntity quiz = quizRepository.findById(quizId).orElseThrow(() -> new NoSuchElementException("Quiz not found: " + quizId));
