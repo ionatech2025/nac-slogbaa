@@ -74,13 +74,26 @@ public class TraineeQuizController {
                 .toList();
         try {
             SubmittedAttemptDto dto = submitAttemptUseCase.submit(attemptId, identity.getUserId(), answers);
+            List<SubmittedAnswerResponse> answerResponses = dto.answers() == null ? List.of() :
+                    dto.answers().stream().map(a -> new SubmittedAnswerResponse(
+                            a.questionId() != null ? a.questionId().toString() : null,
+                            a.questionText(),
+                            a.selectedOptionId() != null ? a.selectedOptionId().toString() : null,
+                            a.selectedOptionText(),
+                            a.correctOptionId() != null ? a.correctOptionId().toString() : null,
+                            a.correctOptionText(),
+                            a.correct(),
+                            a.pointsAwarded(),
+                            a.totalPoints()
+                    )).toList();
             return ResponseEntity.ok(new SubmittedAttemptResponse(
                     dto.attemptId().toString(),
                     dto.pointsEarned(),
                     dto.totalPoints(),
                     dto.percentScore(),
                     dto.passed(),
-                    dto.completedAt().toString()
+                    dto.completedAt().toString(),
+                    answerResponses
             ));
         } catch (SecurityException e) {
             return ResponseEntity.status(403).build();
@@ -130,5 +143,6 @@ public class TraineeQuizController {
     public record OptionForAttemptResponse(String id, String optionText, int optionOrder) {}
 
     public record AttemptResponse(String attemptId, String traineeAssessmentId, int attemptNumber, String startedAt, QuizForAttemptResponse quiz) {}
-    public record SubmittedAttemptResponse(String attemptId, int pointsEarned, int totalPoints, int percentScore, boolean passed, String completedAt) {}
+    public record SubmittedAttemptResponse(String attemptId, int pointsEarned, int totalPoints, int percentScore, boolean passed, String completedAt, List<SubmittedAnswerResponse> answers) {}
+    public record SubmittedAnswerResponse(String questionId, String questionText, String selectedOptionId, String selectedOptionText, String correctOptionId, String correctOptionText, boolean correct, int pointsAwarded, int totalPoints) {}
 }
