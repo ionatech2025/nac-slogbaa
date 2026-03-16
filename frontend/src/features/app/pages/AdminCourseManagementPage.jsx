@@ -1,15 +1,13 @@
-import { useState } from 'react'
+import { useState, memo, useCallback } from 'react'
 import { Link, useOutletContext } from 'react-router-dom'
 import { FontAwesomeIcon, icons } from '../../../shared/icons.jsx'
 import { Modal } from '../../../shared/components/Modal.jsx'
-import { useAdminCourses, useAdminCourseDetail, useDeleteCourse, useDeleteModule } from '../../../lib/hooks/use-admin.js'
-import { getAdminCourseDetails } from '../../../api/admin/courses.js'
-import { getCourseEnrollments, canDeleteCourse, canDeleteModule } from '../../../api/admin/courseManagement.js'
+import { useAdminCourses, useCourseExpandedDetail, useDeleteCourse, useDeleteModule } from '../../../lib/hooks/use-admin.js'
 import { getAssetUrl } from '../../../api/client.js'
 import defaultCourseImg from '../../../assets/images/courses/course1.jpg'
-import { useAuth } from '../../iam/hooks/useAuth.js'
 import { useToast } from '../../../shared/hooks/useToast.js'
 import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle.js'
+import { Skeleton } from '../../../shared/components/Skeleton.jsx'
 
 const styles = {
   page: {
@@ -264,57 +262,126 @@ const styles = {
   },
 }
 
+/** Skeleton for expanded course detail loading state */
+function ExpandedSkeleton() {
+  return (
+    <div style={{ padding: '0.5rem 0' }}>
+      <Skeleton height={12} width={80} style={{ marginBottom: 12 }} />
+      {Array.from({ length: 3 }, (_, i) => (
+        <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.5rem 0.75rem', borderRadius: 8, background: 'var(--slogbaa-bg)', marginBottom: 4 }}>
+          <Skeleton height={14} width={`${40 + i * 10}%`} />
+          <Skeleton height={28} width={60} style={{ borderRadius: 6 }} />
+        </div>
+      ))}
+      <Skeleton height={12} width={160} style={{ marginTop: 16, marginBottom: 8 }} />
+      <Skeleton height={100} width="100%" style={{ borderRadius: 8 }} />
+    </div>
+  )
+}
+
+/** Memoized expanded detail panel — uses React Query for caching + dedup */
+const ExpandedCourseDetail = memo(function ExpandedCourseDetail({ courseId, courses, isSuperAdmin, deleting, onConfirmCourse, onConfirmModule }) {
+  const { data, isLoading, isError, refetch } = useCourseExpandedDetail(courseId)
+
+  if (isLoading) return <ExpandedSkeleton />
+  if (isError) {
+    return (
+      <p style={{ margin: 0, fontSize: '0.9375rem', color: 'var(--slogbaa-error)' }}>
+        Failed to load course details.{' '}
+        <button type="button" onClick={() => refetch()} style={{ background: 'none', border: 'none', color: 'var(--slogbaa-blue)', cursor: 'pointer', textDecoration: 'underline', fontSize: 'inherit', padding: 0 }}>
+          Retry
+        </button>
+      </p>
+    )
+  }
+
+  const { detail, enrollments, canDeleteCourse: canDelCourse, canDeleteModules } = data
+  const course = courses.find((c) => c.id === courseId)
+
+  return (
+    <>
+      {detail?.modules?.length > 0 && (
+        <>
+          <h3 style={styles.sectionTitle}>Modules</h3>
+          <ul style={styles.moduleList}>
+            {detail.modules.map((m) => (
+              <li key={m.id} style={styles.moduleItem}>
+                <span>
+                  {m.title}
+                  {m.hasQuiz && <span style={styles.moduleQuiz}> · Quiz</span>}
+                </span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <Link to={`/admin/learning/${courseId}/modules/${m.id}`} style={styles.iconLinkModule} title="View / edit module" aria-label={`View / edit module: ${m.title}`}>
+                    <FontAwesomeIcon icon={icons.eye} />
+                  </Link>
+                  <button
+                    type="button"
+                    style={{ ...styles.btn(), ...styles.btnDanger, ...(!canDeleteModules[m.id] || deleting === m.id ? styles.btnDangerDisabled : {}) }}
+                    disabled={!canDeleteModules[m.id] || deleting === m.id}
+                    onClick={(e) => onConfirmModule(e, courseId, m)}
+                    title={!canDeleteModules[m.id] ? 'Cannot delete: at least one trainee completed this module' : 'Delete module'}
+                    aria-label={`Delete module: ${m.title}`}
+                  >
+                    <FontAwesomeIcon icon={icons.delete} />
+                  </button>
+                </span>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+
+      <h3 style={styles.sectionTitle}>Trainees enrolled & progress</h3>
+      {enrollments.length === 0 ? (
+        <p style={{ margin: '0.5rem 0', fontSize: '0.9375rem', color: 'var(--slogbaa-text-muted)' }}>No trainees enrolled.</p>
+      ) : (
+        <table style={styles.enrollmentsTable}>
+          <thead>
+            <tr>
+              <th style={styles.enrollTh}>Trainee</th>
+              <th style={styles.enrollTh}>Enrolled</th>
+              <th style={styles.enrollTh}>Progress</th>
+              <th style={styles.enrollTh}>Completed modules</th>
+            </tr>
+          </thead>
+          <tbody>
+            {enrollments.map((en) => (
+              <tr key={en.traineeId}>
+                <td style={styles.enrollTd}>{en.traineeName}</td>
+                <td style={styles.enrollTd}>{en.enrollmentDate ?? '—'}</td>
+                <td style={styles.enrollTd}>
+                  <div style={styles.progressBar}>
+                    <div style={{ ...styles.progressFill, width: `${en.completionPercentage ?? 0}%` }} />
+                  </div>
+                  <span style={{ marginLeft: 8, fontSize: '0.8125rem' }}>{en.completionPercentage ?? 0}%</span>
+                </td>
+                <td style={styles.enrollTd}>
+                  {(en.completedModuleIds?.length ?? 0)} of {detail?.modules?.length ?? 0}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </>
+  )
+})
+
 export function AdminCourseManagementPage() {
   useDocumentTitle('Course Management')
   const { token, isSuperAdmin } = useOutletContext()
-  const { token: authToken } = useAuth()
   const { data: courses = [], isLoading: loading, error: queryError } = useAdminCourses()
   const deleteCourseMutation = useDeleteCourse()
   const deleteModuleMutation = useDeleteModule()
   const [error, setError] = useState(null)
   const [expandedId, setExpandedId] = useState(null)
-  const [details, setDetails] = useState({})
-  const [enrollments, setEnrollments] = useState({})
-  const [canDeleteCourseMap, setCanDeleteCourseMap] = useState({})
-  const [canDeleteModuleMap, setCanDeleteModuleMap] = useState({})
   const [deleting, setDeleting] = useState(null)
   const [confirmModal, setConfirmModal] = useState(null)
   const toast = useToast()
 
-  // Load expanded course details (complex nested data — uses imperative fetch within TanStack-managed list)
-  const loadExpanded = async (courseId) => {
-    if (!authToken || !courseId) return
-    try {
-      const [detailRes, enrollRes, canCourse] = await Promise.all([
-        getAdminCourseDetails(authToken, courseId),
-        getCourseEnrollments(authToken, courseId).catch(() => []),
-        canDeleteCourse(authToken, courseId),
-      ])
-      setDetails((prev) => ({ ...prev, [courseId]: detailRes }))
-      setEnrollments((prev) => ({ ...prev, [courseId]: enrollRes }))
-      setCanDeleteCourseMap((prev) => ({ ...prev, [courseId]: canCourse.canDelete }))
-      const modules = detailRes?.modules ?? []
-      const canModule = {}
-      await Promise.all(
-        modules.map(async (m) => {
-          const r = await canDeleteModule(authToken, courseId, m.id)
-          canModule[m.id] = r.canDelete
-        })
-      )
-      setCanDeleteModuleMap((prev) => ({ ...prev, [courseId]: canModule }))
-    } catch {
-      setDetails((prev) => ({ ...prev, [courseId]: { _error: true } }))
-      setEnrollments((prev) => ({ ...prev, [courseId]: [] }))
-    }
-  }
-
-  const toggleExpand = (courseId) => {
-    setExpandedId((prev) => {
-      const next = prev === courseId ? null : courseId
-      if (next && !details[next]) loadExpanded(next)
-      return next
-    })
-  }
+  const toggleExpand = useCallback((courseId) => {
+    setExpandedId((prev) => prev === courseId ? null : courseId)
+  }, [])
 
   const openConfirmCourse = (e, course) => {
     e.stopPropagation()
@@ -339,46 +406,23 @@ export function AdminCourseManagementPage() {
 
   const performConfirmDelete = async () => {
     if (!token || !confirmModal) return
-    if (confirmModal.type === 'course') {
-      setDeleting(confirmModal.courseId)
-      setError(null)
-      setConfirmModal(null)
-      try {
-        await deleteCourseMutation.mutateAsync(confirmModal.courseId)
-        setExpandedId((prev) => (prev === confirmModal.courseId ? null : prev))
+    const { type, courseId, moduleId } = confirmModal
+    setDeleting(type === 'course' ? courseId : moduleId)
+    setError(null)
+    setConfirmModal(null)
+    try {
+      if (type === 'course') {
+        await deleteCourseMutation.mutateAsync(courseId)
+        setExpandedId((prev) => (prev === courseId ? null : prev))
         toast.success('Course deleted.')
-      } catch (e) {
-        toast.error(e?.message ?? 'Failed to delete course.')
-      } finally {
-        setDeleting(null)
-      }
-    } else {
-      setDeleting(confirmModal.moduleId)
-      setError(null)
-      setConfirmModal(null)
-      try {
-        await deleteModuleMutation.mutateAsync({ courseId: confirmModal.courseId, moduleId: confirmModal.moduleId })
-        const detail = details[confirmModal.courseId]
-        if (detail?.modules) {
-          setDetails((prev) => ({
-            ...prev,
-            [confirmModal.courseId]: {
-              ...detail,
-              modules: detail.modules.filter((m) => m.id !== confirmModal.moduleId),
-            },
-          }))
-        }
-        setCanDeleteModuleMap((prev) => {
-          const next = { ...(prev[confirmModal.courseId] || {}) }
-          delete next[confirmModal.moduleId]
-          return { ...prev, [confirmModal.courseId]: next }
-        })
+      } else {
+        await deleteModuleMutation.mutateAsync({ courseId, moduleId })
         toast.success('Module deleted.')
-      } catch (e) {
-        toast.error(e?.message ?? 'Failed to delete module.')
-      } finally {
-        setDeleting(null)
       }
+    } catch (e) {
+      toast.error(e?.message ?? `Failed to delete ${type}.`)
+    } finally {
+      setDeleting(null)
     }
   }
 
@@ -463,10 +507,6 @@ export function AdminCourseManagementPage() {
       ) : (
         courses.map((course) => {
           const isOpen = expandedId === course.id
-          const detail = details[course.id]
-          const enrollList = enrollments[course.id] ?? []
-          const canDelCourse = canDeleteCourseMap[course.id]
-          const canDelModules = canDeleteModuleMap[course.id] || {}
 
           return (
             <div key={course.id} style={styles.card}>
@@ -482,6 +522,8 @@ export function AdminCourseManagementPage() {
                   <img
                     src={course.imageUrl ? getAssetUrl(course.imageUrl) : defaultCourseImg}
                     alt={`Course: ${course.title}`}
+                    width={56}
+                    height={40}
                     style={styles.courseThumb}
                     loading="lazy"
                     onError={(e) => { e.target.onerror = null; e.target.src = defaultCourseImg }}
@@ -490,7 +532,6 @@ export function AdminCourseManagementPage() {
                     <h2 style={styles.courseTitle}>{course.title}</h2>
                     <p style={styles.courseMeta}>
                       {course.moduleCount ?? 0} module{(course.moduleCount ?? 0) !== 1 ? 's' : ''}
-                      {enrollList.length > 0 && ` · ${enrollList.length} enrolled`}
                     </p>
                   </div>
                   <span style={{ ...styles.badge, ...(course.published ? {} : styles.badgeDraft) }}>
@@ -514,9 +555,9 @@ export function AdminCourseManagementPage() {
                       ...styles.btnDanger,
                       ...(deleting === course.id ? styles.btnDangerDisabled : {}),
                     }}
-                    disabled={!canDelCourse || deleting === course.id}
+                    disabled={deleting === course.id}
                     onClick={(e) => openConfirmCourse(e, course)}
-                    title={!canDelCourse ? 'Cannot delete: course has enrolled trainees' : 'Delete course'}
+                    title="Delete course"
                     aria-label={`Delete course: ${course.title}`}
                   >
                     <FontAwesomeIcon icon={icons.delete} />
@@ -530,100 +571,14 @@ export function AdminCourseManagementPage() {
 
               {isOpen && (
                 <div style={styles.expandContent}>
-                  {detail == null ? (
-                    <p style={{ margin: 0, fontSize: '0.9375rem', color: 'var(--slogbaa-text-muted)' }}>Loading…</p>
-                  ) : detail._error ? (
-                    <p style={{ margin: 0, fontSize: '0.9375rem', color: 'var(--slogbaa-error)' }}>
-                      Failed to load course details.{' '}
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setDetails((prev) => { const n = { ...prev }; delete n[course.id]; return n })
-                          loadExpanded(course.id)
-                        }}
-                        style={{ background: 'none', border: 'none', color: 'var(--slogbaa-blue)', cursor: 'pointer', textDecoration: 'underline', fontSize: 'inherit', padding: 0 }}
-                      >
-                        Retry
-                      </button>
-                    </p>
-                  ) : (
-                    <>
-                      {detail?.modules?.length > 0 && (
-                        <>
-                          <h3 style={styles.sectionTitle}>Modules</h3>
-                          <ul style={styles.moduleList}>
-                            {detail.modules.map((m) => (
-                              <li key={m.id} style={styles.moduleItem}>
-                                <span>
-                                  {m.title}
-                                  {m.hasQuiz && <span style={styles.moduleQuiz}> · Quiz</span>}
-                                </span>
-                                <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                  <Link
-                                    to={`/admin/learning/${course.id}/modules/${m.id}`}
-                                    style={styles.iconLinkModule}
-                                    title="View / edit module"
-                                    aria-label={`View / edit module: ${m.title}`}
-                                  >
-                                    <FontAwesomeIcon icon={icons.eye} />
-                                  </Link>
-                                  <button
-                                    type="button"
-                                    style={{
-                                      ...styles.btn(),
-                                      ...styles.btnDanger,
-                                      ...(!canDelModules[m.id] || deleting === m.id ? styles.btnDangerDisabled : {}),
-                                    }}
-                                    disabled={!canDelModules[m.id] || deleting === m.id}
-                                    onClick={(e) => openConfirmModule(e, course.id, m)}
-                                    title={!canDelModules[m.id] ? 'Cannot delete: at least one trainee completed this module' : 'Delete module'}
-                                    aria-label={`Delete module: ${m.title}`}
-                                  >
-                                    <FontAwesomeIcon icon={icons.delete} />
-                                  </button>
-                                </span>
-                              </li>
-                            ))}
-                          </ul>
-                        </>
-                      )}
-
-                      <h3 style={styles.sectionTitle}>Trainees enrolled & progress</h3>
-                      {enrollList.length === 0 ? (
-                        <p style={{ margin: '0.5rem 0', fontSize: '0.9375rem', color: 'var(--slogbaa-text-muted)' }}>
-                          No trainees enrolled.
-                        </p>
-                      ) : (
-                        <table style={styles.enrollmentsTable}>
-                          <thead>
-                            <tr>
-                              <th style={styles.enrollTh}>Trainee</th>
-                              <th style={styles.enrollTh}>Enrolled</th>
-                              <th style={styles.enrollTh}>Progress</th>
-                              <th style={styles.enrollTh}>Completed modules</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {enrollList.map((en) => (
-                              <tr key={en.traineeId}>
-                                <td style={styles.enrollTd}>{en.traineeName}</td>
-                                <td style={styles.enrollTd}>{en.enrollmentDate ?? '—'}</td>
-                                <td style={styles.enrollTd}>
-                                  <div style={styles.progressBar}>
-                                    <div style={{ ...styles.progressFill, width: `${en.completionPercentage ?? 0}%` }} />
-                                  </div>
-                                  <span style={{ marginLeft: 8, fontSize: '0.8125rem' }}>{en.completionPercentage ?? 0}%</span>
-                                </td>
-                                <td style={styles.enrollTd}>
-                                  {(en.completedModuleIds?.length ?? 0)} of {detail?.modules?.length ?? 0}
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      )}
-                    </>
-                  )}
+                  <ExpandedCourseDetail
+                    courseId={course.id}
+                    courses={courses}
+                    isSuperAdmin={isSuperAdmin}
+                    deleting={deleting}
+                    onConfirmCourse={openConfirmCourse}
+                    onConfirmModule={openConfirmModule}
+                  />
                 </div>
               )}
             </div>
