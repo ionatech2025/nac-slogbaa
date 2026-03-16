@@ -1,0 +1,33 @@
+# =============================================================================
+# Render Blueprint — SLOGBAA Backend
+# https://docs.render.com/infrastructure-as-code
+# =============================================================================
+
+services:
+  - type: web
+    name: slogbaa-backend
+    runtime: docker
+    repo: https://github.com/ionatech2025/nac-slogbaa.git
+    branch: dev
+    rootDir: backend
+    region: singapore
+    plan: free
+    healthCheckPath: /actuator/health/readiness
+    autoDeploy: false
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: PORT
+        value: "8080"
+      - key: DATASOURCE_URL
+        sync: false
+      - key: DATASOURCE_USERNAME
+        sync: false
+      - key: DATASOURCE_PASSWORD
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CORS_ALLOWED_ORIGINS
+        value: https://slogbaa-backend.onrender.com
+      - key: PASSWORD_RESET_BASE_URL
+        value: https://slogbaa-backend.onrender.com
