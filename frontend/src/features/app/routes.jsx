@@ -29,6 +29,7 @@ const AdminModuleEditorPage = lazy(() => import('./pages/AdminModuleEditorPage.j
 const AdminLibraryPage = lazy(() => import('./pages/AdminLibraryPage.jsx').then((m) => ({ default: m.AdminLibraryPage })))
 const AdminCourseManagementPage = lazy(() => import('./pages/AdminCourseManagementPage.jsx').then((m) => ({ default: m.AdminCourseManagementPage })))
 const AdminUserDetailPage = lazy(() => import('./pages/AdminUserDetailPage.jsx').then((m) => ({ default: m.AdminUserDetailPage })))
+const AdminHomePage = lazy(() => import('./pages/AdminHomePage.jsx').then((m) => ({ default: m.AdminHomePage })))
 
 function Lazy({ children }) {
   return <Suspense fallback={<PageSkeleton />}>{children}</Suspense>
@@ -53,7 +54,7 @@ export function AppRoutes() {
         <Route index element={<Navigate to="overview" replace />} />
         <Route path="overview" element={<Lazy><AdminOverviewPage /></Lazy>} />
         <Route path="users/:userType/:userId" element={<Lazy><AdminUserDetailPage /></Lazy>} />
-        <Route path="homepage" element={<Lazy><AdminPlaceholderPage title="Homepage" /></Lazy>} />
+        <Route path="homepage" element={<Lazy><AdminHomePage /></Lazy>} />
         <Route path="learning" element={<Lazy><AdminLearningPage /></Lazy>} />
         <Route path="learning/:courseId" element={<Lazy><AdminCoursePage /></Lazy>} />
         <Route path="coursemanagement" element={<Lazy><AdminCourseManagementPage /></Lazy>} />
