@@ -252,10 +252,19 @@ SUPPORT_EMAIL=<set-in-env>
 
 ### GitHub Secrets (Required for CI/CD)
 
-| Secret | Purpose |
-|--------|---------|
-| `RENDER_API_KEY` | Render CLI/API key for triggering deploys |
-| `GITHUB_TOKEN` | Auto-provided by GitHub |
+| Secret | Purpose | Set On |
+|--------|---------|--------|
+| `RENDER_API_KEY` | Render API key for backend deploys | 2026-03-16 |
+| `VERCEL_TOKEN` | Vercel API token for frontend deploys | 2026-03-16 |
+| `VERCEL_ORG_ID` | Vercel organization/team ID (`team_P28KoAOd4pWgJ9U1YKfh9R07`) | 2026-03-16 |
+| `VERCEL_PROJECT_ID` | Vercel project ID (`prj_6Bke5FBGJ33zWQO6YIroJh7LgZ7S`) | 2026-03-16 |
+| `GITHUB_TOKEN` | Auto-provided by GitHub | auto |
+
+### Vercel Environment Variables (Frontend)
+
+| Variable | Production | Preview | Development |
+|----------|-----------|---------|-------------|
+| `VITE_API_BASE_URL` | `https://slogbaa-backend.onrender.com` | `https://slogbaa-backend.onrender.com` | `http://localhost:8080` |
 
 ### Pre-Deployment Steps
 

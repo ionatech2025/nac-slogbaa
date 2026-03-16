@@ -2,6 +2,9 @@
 
 Technical reference for the Spring Boot backend. Updated March 2026.
 
+> **Database schema:** See [DATABASE-SCHEMA.md](DATABASE-SCHEMA.md) for full table definitions, ERD, and migration history.
+> **Deployment:** Backend on Render (Singapore), frontend on Vercel. See [PRODUCTION-READINESS.md](PRODUCTION-READINESS.md).
+
 ---
 
 ## Build System
