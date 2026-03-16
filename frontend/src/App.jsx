@@ -10,6 +10,8 @@ import { LiveRegionProvider } from './shared/components/LiveRegion.jsx'
 import { ToastContainer } from './shared/components/Toast.jsx'
 import { ErrorBoundary } from './shared/components/ErrorBoundary.jsx'
 import { ScrollToTop } from './shared/components/ScrollToTop.jsx'
+import { PwaInstallBanner } from './shared/components/PwaInstallBanner.jsx'
+import { CookieConsentBanner } from './shared/components/CookieConsentBanner.jsx'
 
 const ReactQueryDevtools = import.meta.env.DEV
   ? lazy(() => import('@tanstack/react-query-devtools').then((m) => ({ default: m.ReactQueryDevtools })))
@@ -28,6 +30,8 @@ function App() {
                   <AppRoutes />
                 </AppLayout>
                 <ToastContainer />
+                <PwaInstallBanner />
+                <CookieConsentBanner />
               </LiveRegionProvider>
             </AuthProvider>
           </ThemeProvider>

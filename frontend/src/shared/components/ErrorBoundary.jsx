@@ -16,9 +16,13 @@ export class ErrorBoundary extends Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    // In production, send to error tracking service (Sentry, etc.)
     if (import.meta.env.DEV) {
       console.error('ErrorBoundary caught:', error, errorInfo)
+    }
+    if (!import.meta.env.DEV) {
+      import('@sentry/react').then(Sentry => {
+        Sentry.captureException(error, { contexts: { react: { componentStack: errorInfo?.componentStack } } })
+      }).catch(() => {})
     }
   }
 
