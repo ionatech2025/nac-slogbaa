@@ -9,26 +9,38 @@ import com.nac.slogbaa.shared.ports.FileStoragePort;
 import com.nac.slogbaa.shared.ports.TraineeCourseQuizScorePort;
 import com.nac.slogbaa.shared.ports.TraineeNotificationPort;
 import com.nac.slogbaa.progress.application.port.in.EnrollTraineeUseCase;
+import com.nac.slogbaa.progress.application.port.in.GetCourseReviewsUseCase;
 import com.nac.slogbaa.progress.application.port.in.GetEnrolledCoursesUseCase;
 import com.nac.slogbaa.progress.application.port.in.GetLeaderboardUseCase;
 import com.nac.slogbaa.progress.application.port.in.GetResumePointUseCase;
+import com.nac.slogbaa.progress.application.port.in.GetStreakUseCase;
 import com.nac.slogbaa.progress.application.port.in.IssueCertificateUseCase;
 import com.nac.slogbaa.progress.application.port.in.ListCertificatesUseCase;
+import com.nac.slogbaa.progress.application.port.in.RecordActivityUseCase;
 import com.nac.slogbaa.progress.application.port.in.RecordModuleCompletionUseCase;
 import com.nac.slogbaa.progress.application.port.in.RevokeCertificateUseCase;
 import com.nac.slogbaa.progress.application.port.in.RecordProgressUseCase;
+import com.nac.slogbaa.progress.application.port.in.SubmitCourseReviewUseCase;
+import com.nac.slogbaa.progress.application.port.in.UpdateDailyGoalUseCase;
 import com.nac.slogbaa.progress.application.port.out.CertificateRepositoryPort;
+import com.nac.slogbaa.progress.application.port.out.CourseReviewPort;
 import com.nac.slogbaa.progress.application.port.out.ModuleCompletionPort;
+import com.nac.slogbaa.progress.application.port.out.StreakPort;
 import com.nac.slogbaa.progress.application.port.out.TraineeProgressRepositoryPort;
 import com.nac.slogbaa.progress.application.service.EnrollTraineeService;
+import com.nac.slogbaa.progress.application.service.GetCourseReviewsService;
 import com.nac.slogbaa.progress.application.service.GetLeaderboardService;
+import com.nac.slogbaa.progress.application.service.GetStreakService;
 import com.nac.slogbaa.progress.application.service.IssueCertificateService;
 import com.nac.slogbaa.progress.application.service.ListCertificatesService;
+import com.nac.slogbaa.progress.application.service.RecordActivityService;
 import com.nac.slogbaa.progress.application.service.RevokeCertificateService;
 import com.nac.slogbaa.progress.application.service.GetEnrolledCoursesService;
 import com.nac.slogbaa.progress.application.service.GetResumePointService;
 import com.nac.slogbaa.progress.application.service.RecordModuleCompletionService;
 import com.nac.slogbaa.progress.application.service.RecordProgressService;
+import com.nac.slogbaa.progress.application.service.SubmitCourseReviewService;
+import com.nac.slogbaa.progress.application.service.UpdateDailyGoalService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -74,11 +86,27 @@ public class ProgressConfiguration {
     }
 
     @Bean
+    public RecordActivityUseCase recordActivityUseCase(StreakPort streakPort) {
+        return new RecordActivityService(streakPort);
+    }
+
+    @Bean
+    public GetStreakUseCase getStreakUseCase(StreakPort streakPort) {
+        return new GetStreakService(streakPort);
+    }
+
+    @Bean
+    public UpdateDailyGoalUseCase updateDailyGoalUseCase(StreakPort streakPort) {
+        return new UpdateDailyGoalService(streakPort);
+    }
+
+    @Bean
     public RecordProgressUseCase recordProgressUseCase(
             TraineeProgressRepositoryPort traineeProgressRepository,
             CourseDetailsQueryPort courseDetailsQueryPort,
-            RecordModuleCompletionUseCase recordModuleCompletionUseCase) {
-        return new RecordProgressService(traineeProgressRepository, courseDetailsQueryPort, recordModuleCompletionUseCase);
+            RecordModuleCompletionUseCase recordModuleCompletionUseCase,
+            RecordActivityUseCase recordActivityUseCase) {
+        return new RecordProgressService(traineeProgressRepository, courseDetailsQueryPort, recordModuleCompletionUseCase, recordActivityUseCase);
     }
 
     @Bean
@@ -104,5 +132,19 @@ public class ProgressConfiguration {
             TraineeProgressRepositoryPort traineeProgressRepository,
             GetTraineeByIdUseCase getTraineeByIdUseCase) {
         return new GetLeaderboardService(traineeProgressRepository, getTraineeByIdUseCase);
+    }
+
+    @Bean
+    public SubmitCourseReviewUseCase submitCourseReviewUseCase(
+            CourseReviewPort courseReviewPort,
+            TraineeProgressRepositoryPort traineeProgressRepository) {
+        return new SubmitCourseReviewService(courseReviewPort, traineeProgressRepository);
+    }
+
+    @Bean
+    public GetCourseReviewsUseCase getCourseReviewsUseCase(
+            CourseReviewPort courseReviewPort,
+            GetTraineeByIdUseCase getTraineeByIdUseCase) {
+        return new GetCourseReviewsService(courseReviewPort, getTraineeByIdUseCase);
     }
 }

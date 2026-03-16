@@ -12,6 +12,7 @@ import { CoursePreviewModal } from '../../learning/components/CoursePreviewModal
 import { CertificateCard } from '../components/trainee/CertificateCard.jsx'
 import { StatsSkeleton, CardGridSkeleton } from '../../../shared/components/ContentSkeletons.jsx'
 import { LeaderboardWidget } from '../../../shared/components/LeaderboardWidget.jsx'
+import { StreakWidget } from '../../../shared/components/StreakWidget.jsx'
 import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle.js'
 
 const styles = {
@@ -281,6 +282,11 @@ export function TraineeDashboardPage() {
       <main style={styles.main}>
         <h1 style={styles.greeting}>Welcome Back, {displayName}!</h1>
         <hr style={styles.greetingDivider} aria-hidden />
+
+        {/* Streak widget — Duolingo-style daily streak */}
+        <div style={{ marginBottom: '1.5rem' }}>
+          <StreakWidget />
+        </div>
 
         {/* Motivation stats */}
         {enrolledLoading && <StatsSkeleton count={4} />}

@@ -25,10 +25,23 @@ export const queryKeys = {
     mine: () => [...queryKeys.certificates.all, 'mine'],
   },
 
+  // === Reviews ===
+  reviews: {
+    all: ['reviews'],
+    byCourse: (courseId) => [...queryKeys.reviews.all, 'course', courseId],
+    rating: (courseId) => [...queryKeys.reviews.all, 'rating', courseId],
+  },
+
   // === Leaderboard ===
   leaderboard: {
     all: ['leaderboard'],
     top: (limit) => [...queryKeys.leaderboard.all, 'top', limit],
+  },
+
+  // === Streak ===
+  streak: {
+    all: ['streak'],
+    current: () => [...queryKeys.streak.all, 'current'],
   },
 
   // === Trainee profile ===

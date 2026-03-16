@@ -19,6 +19,7 @@ import {
   Search, Sun, Moon, Mail, UserX, Users, Loader2,
   GripVertical, Save, Type,
   Phone, MapPin, Building2, Hash, Globe, Lock, ShieldCheck,
+  Flame, Target,
 } from 'lucide-react'
 
 /**
@@ -97,4 +98,6 @@ export const icons = {
   globe: Globe,
   lock: Lock,
   shield: ShieldCheck,
+  flame: Flame,
+  target: Target,
 }

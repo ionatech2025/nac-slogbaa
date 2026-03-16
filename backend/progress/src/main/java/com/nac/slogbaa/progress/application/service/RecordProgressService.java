@@ -4,6 +4,7 @@ import com.nac.slogbaa.learning.application.dto.result.ContentBlockSummary;
 import com.nac.slogbaa.learning.application.dto.result.CourseDetails;
 import com.nac.slogbaa.learning.application.dto.result.ModuleSummary;
 import com.nac.slogbaa.learning.application.port.out.CourseDetailsQueryPort;
+import com.nac.slogbaa.progress.application.port.in.RecordActivityUseCase;
 import com.nac.slogbaa.progress.application.port.in.RecordModuleCompletionUseCase;
 import com.nac.slogbaa.progress.application.port.in.RecordProgressUseCase;
 import com.nac.slogbaa.progress.application.port.out.TraineeProgressRepositoryPort;
@@ -22,13 +23,16 @@ public final class RecordProgressService implements RecordProgressUseCase {
     private final TraineeProgressRepositoryPort traineeProgressRepository;
     private final CourseDetailsQueryPort courseDetailsQueryPort;
     private final RecordModuleCompletionUseCase recordModuleCompletionUseCase;
+    private final RecordActivityUseCase recordActivityUseCase;
 
     public RecordProgressService(TraineeProgressRepositoryPort traineeProgressRepository,
                                 CourseDetailsQueryPort courseDetailsQueryPort,
-                                RecordModuleCompletionUseCase recordModuleCompletionUseCase) {
+                                RecordModuleCompletionUseCase recordModuleCompletionUseCase,
+                                RecordActivityUseCase recordActivityUseCase) {
         this.traineeProgressRepository = traineeProgressRepository;
         this.courseDetailsQueryPort = courseDetailsQueryPort;
         this.recordModuleCompletionUseCase = recordModuleCompletionUseCase;
+        this.recordActivityUseCase = recordActivityUseCase;
     }
 
     @Override
@@ -69,6 +73,13 @@ public final class RecordProgressService implements RecordProgressUseCase {
 
         if (isLastBlockOfModule && !module.isHasQuiz()) {
             recordModuleCompletionUseCase.record(traineeId, courseId, moduleId, false);
+        }
+
+        // Record 1 minute of activity per content block viewed (feeds streak tracking)
+        try {
+            recordActivityUseCase.record(traineeId, 1);
+        } catch (Exception ignored) {
+            // Streak tracking is non-critical; don't fail content progress recording
         }
     }
 
