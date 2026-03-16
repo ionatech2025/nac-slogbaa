@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useCallback, useEffect } from 'react'
 import { setGlobalLogout, queryClient } from '../../../lib/query-client.js'
+import { useIdleTimeout } from '../../../shared/hooks/useIdleTimeout.js'
 
 const STORAGE_KEY = 'slogbaa_auth'
 const AUTH_CHANNEL = 'slogbaa_auth_sync'
@@ -102,6 +103,12 @@ export function AuthProvider({ children }) {
       try { bc?.close() } catch { /* cleanup */ }
     }
   }, [])
+
+  // Auto-logout after 30 minutes of inactivity (only when authenticated)
+  const idleLogout = useCallback(() => {
+    if (state?.token) logout()
+  }, [state?.token, logout])
+  useIdleTimeout(idleLogout, 30 * 60 * 1000)
 
   const value = {
     token: state?.token ?? null,

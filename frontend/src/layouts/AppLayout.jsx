@@ -10,10 +10,13 @@ const globalToggleStyles = {
 export function AppLayout({ children }) {
   return (
     <div>
+      <a href="#main-content" className="skip-to-content">
+        Skip to main content
+      </a>
       <div style={globalToggleStyles}>
         <ThemeToggle />
       </div>
-      {children}
+      <main id="main-content">{children}</main>
     </div>
   )
 }
