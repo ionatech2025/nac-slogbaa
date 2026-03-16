@@ -15,7 +15,7 @@ on:
   workflow_run:
     workflows: [Deploy]
     types: [completed]
-    branches: [main]
+    branches: [main, dev]
 
 concurrency:
   group: dast
