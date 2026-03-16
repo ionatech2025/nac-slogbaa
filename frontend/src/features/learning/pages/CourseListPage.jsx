@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { FontAwesomeIcon, icons } from '../../../shared/icons.jsx'
 import { usePublishedCourses, useEnrolledCourses, useEnrollInCourse } from '../../../lib/hooks/use-courses.js'
@@ -7,6 +7,9 @@ import { CoursePreviewModal } from '../components/CoursePreviewModal.jsx'
 import { useToast } from '../../../shared/hooks/useToast.js'
 import { QueryError } from '../../../shared/components/QueryError.jsx'
 import { CardGridSkeleton } from '../../../shared/components/ContentSkeletons.jsx'
+import { FilterSortBar } from '../../../shared/components/FilterSortBar.jsx'
+import { EmptyState } from '../../../shared/components/EmptyState.jsx'
+import { filterAndSortItems } from '../../../shared/utils/filterSort.js'
 
 const styles = {
   layout: {
@@ -102,17 +105,62 @@ const styles = {
   },
 }
 
+const STATUS_FILTER_OPTIONS = [
+  { value: 'all', label: 'All courses' },
+  { value: 'available', label: 'Available' },
+  { value: 'enrolled', label: 'Enrolled' },
+]
+
+const SORT_OPTIONS = [
+  { value: 'title:asc', label: 'Title A\u2013Z' },
+  { value: 'title:desc', label: 'Title Z\u2013A' },
+  { value: 'moduleCount:desc', label: 'Most modules' },
+  { value: 'moduleCount:asc', label: 'Fewest modules' },
+]
+
+const FILTERS = [
+  { key: 'status', label: 'Status', options: STATUS_FILTER_OPTIONS },
+]
+
 export function CourseListPage() {
   const { data: courses = [], isLoading: coursesLoading, error: coursesError, refetch } = usePublishedCourses()
   const { data: enrolled = [], isLoading: enrolledLoading } = useEnrolledCourses()
   const enrollMutation = useEnrollInCourse()
   const [courseView, setCourseView] = useState('vertical')
   const [previewCourse, setPreviewCourse] = useState(null)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [filterValues, setFilterValues] = useState({ status: 'all' })
+  const [sortValue, setSortValue] = useState('title:asc')
 
   const loading = coursesLoading || enrolledLoading
   const error = coursesError?.message ?? (enrollMutation.error?.message || null)
 
-  const enrolledIds = new Set(enrolled.map((c) => c.id))
+  const enrolledIds = useMemo(() => new Set(enrolled.map((c) => c.id)), [enrolled])
+
+  const filterConfig = useMemo(() => ({
+    status: {
+      getValue: (item) => enrolledIds.has(item.id) ? 'enrolled' : 'available',
+      options: STATUS_FILTER_OPTIONS,
+    },
+  }), [enrolledIds])
+
+  const filteredCourses = useMemo(
+    () =>
+      filterAndSortItems(courses, {
+        search: searchTerm,
+        searchFields: ['title', 'description'],
+        filters: filterValues,
+        filterConfig,
+        sortBy: sortValue,
+      }),
+    [courses, searchTerm, filterValues, filterConfig, sortValue]
+  )
+
+  const hasCoursesButEmptyResults = courses.length > 0 && filteredCourses.length === 0
+
+  const handleFilterChange = (key, value) => {
+    setFilterValues((prev) => ({ ...prev, [key]: value }))
+  }
 
   const toast = useToast()
 
@@ -159,7 +207,6 @@ export function CourseListPage() {
     )
   }
 
-  const unenrolledCourses = courses.filter((c) => !enrolledIds.has(c.id))
   const isHorizontal = courseView === 'horizontal'
 
   return (
@@ -171,67 +218,88 @@ export function CourseListPage() {
         <div style={styles.header}>
           <h1 style={styles.title}>Courses</h1>
           <p style={styles.subtitle}>
-            {unenrolledCourses.length === 0
-              ? enrolledIds.size > 0
-                ? "You're enrolled in all available courses."
-                : 'No courses available yet.'
-              : `${unenrolledCourses.length} course${unenrolledCourses.length === 1 ? '' : 's'} available to enroll`}
+            {courses.length === 0
+              ? 'No courses available yet.'
+              : `${filteredCourses.length} of ${courses.length} course${courses.length === 1 ? '' : 's'}`}
           </p>
         </div>
+        {courses.length > 0 && (
+          <FilterSortBar
+            searchPlaceholder="Search courses…"
+            searchValue={searchTerm}
+            onSearchChange={setSearchTerm}
+            filters={FILTERS}
+            filterValues={filterValues}
+            onFilterChange={handleFilterChange}
+            sortOptions={SORT_OPTIONS}
+            sortValue={sortValue}
+            onSortChange={setSortValue}
+          />
+        )}
         {error && (
           <p style={{ margin: '0 0 1rem', color: 'var(--slogbaa-error)', fontSize: '0.9375rem' }}>{error}</p>
         )}
-        {unenrolledCourses.length > 0 && (
-          <div style={styles.sectionHeader}>
-            <div />
-            <div style={styles.viewToggle} role="group" aria-label="Course view">
-              <button
-                type="button"
-                style={{
-                  ...styles.viewToggleBtn,
-                  ...(courseView === 'vertical' ? styles.viewToggleBtnActive : {}),
-                }}
-                onClick={() => setCourseView('vertical')}
-                aria-pressed={courseView === 'vertical'}
-                title="Card view"
-              >
-                <FontAwesomeIcon icon={icons.viewCards} style={{ width: '1em', opacity: 0.9 }} />
-                Cards
-              </button>
-              <button
-                type="button"
-                style={{
-                  ...styles.viewToggleBtn,
-                  ...(courseView === 'horizontal' ? styles.viewToggleBtnActive : {}),
-                }}
-                onClick={() => setCourseView('horizontal')}
-                aria-pressed={courseView === 'horizontal'}
-                title="Row view"
-              >
-                <FontAwesomeIcon icon={icons.viewList} style={{ width: '1em', opacity: 0.9 }} />
-                Rows
-              </button>
+        {hasCoursesButEmptyResults ? (
+          <EmptyState
+            icon={icons.search}
+            title="No matching courses"
+            description="Try adjusting your search or filters to find what you're looking for."
+          />
+        ) : (
+          <>
+            {filteredCourses.length > 0 && (
+              <div style={styles.sectionHeader}>
+                <div />
+                <div style={styles.viewToggle} role="group" aria-label="Course view">
+                  <button
+                    type="button"
+                    style={{
+                      ...styles.viewToggleBtn,
+                      ...(courseView === 'vertical' ? styles.viewToggleBtnActive : {}),
+                    }}
+                    onClick={() => setCourseView('vertical')}
+                    aria-pressed={courseView === 'vertical'}
+                    title="Card view"
+                  >
+                    <FontAwesomeIcon icon={icons.viewCards} style={{ width: '1em', opacity: 0.9 }} />
+                    Cards
+                  </button>
+                  <button
+                    type="button"
+                    style={{
+                      ...styles.viewToggleBtn,
+                      ...(courseView === 'horizontal' ? styles.viewToggleBtnActive : {}),
+                    }}
+                    onClick={() => setCourseView('horizontal')}
+                    aria-pressed={courseView === 'horizontal'}
+                    title="Row view"
+                  >
+                    <FontAwesomeIcon icon={icons.viewList} style={{ width: '1em', opacity: 0.9 }} />
+                    Rows
+                  </button>
+                </div>
+              </div>
+            )}
+            <div style={isHorizontal ? styles.cardList : styles.cardGrid}>
+              {filteredCourses.map((course) => (
+                <CourseCard
+                  key={course.id}
+                  course={{
+                    id: course.id,
+                    title: course.title,
+                    description: course.description || 'No description.',
+                    imageUrl: course.imageUrl,
+                    meta: `${course.moduleCount} module${course.moduleCount !== 1 ? 's' : ''}`,
+                  }}
+                  onEnroll={enrolledIds.has(course.id) ? undefined : handleEnroll}
+                  onPreview={handlePreview}
+                  variant={courseView}
+                  enrolling={enrollMutation.isPending && enrollMutation.variables === course.id}
+                />
+              ))}
             </div>
-          </div>
+          </>
         )}
-        <div style={isHorizontal ? styles.cardList : styles.cardGrid}>
-          {unenrolledCourses.map((course) => (
-            <CourseCard
-              key={course.id}
-              course={{
-                id: course.id,
-                title: course.title,
-                description: course.description || 'No description.',
-                imageUrl: course.imageUrl,
-                meta: `${course.moduleCount} module${course.moduleCount !== 1 ? 's' : ''}`,
-              }}
-              onEnroll={handleEnroll}
-              onPreview={handlePreview}
-              variant={courseView}
-              enrolling={enrollMutation.isPending && enrollMutation.variables === course.id}
-            />
-          ))}
-        </div>
         {previewCourse && (
           <CoursePreviewModal
             course={previewCourse}
