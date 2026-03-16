@@ -3,6 +3,7 @@ import { useSearchParams, Link, useNavigate } from 'react-router-dom'
 import { FontAwesomeIcon, icons } from '../../../shared/icons.jsx'
 import { verifyResetToken, confirmPasswordReset } from '../../../api/iam/auth.js'
 import { LoadingButton } from '../../../shared/components/LoadingButton.jsx'
+import { Logo } from '../../../shared/components/Logo.jsx'
 
 const styles = {
   page: {
@@ -16,10 +17,14 @@ const styles = {
   card: {
     width: '100%',
     maxWidth: 400,
-    padding: '2rem',
+    padding: '2.5rem 2rem',
     background: 'var(--slogbaa-surface)',
-    borderRadius: 8,
-    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+    borderRadius: 16,
+    border: '1px solid var(--slogbaa-border)',
+    boxShadow: '0 4px 24px rgba(0,0,0,0.06)',
+  },
+  logoWrap: {
+    marginBottom: '1.75rem',
   },
   title: {
     margin: '0 0 0.5rem',
@@ -178,6 +183,9 @@ export function ResetPasswordPage() {
   return (
     <div style={styles.page}>
       <div style={styles.card}>
+        <div style={styles.logoWrap}>
+          <Logo variant="full" size={40} color="blue" />
+        </div>
         <h1 style={styles.title}>Reset password</h1>
         <p style={styles.subtitle}>Set a new password for your SLOGBAA account.</p>
 

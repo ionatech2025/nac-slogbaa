@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { FontAwesomeIcon, icons } from '../../../../shared/icons.jsx'
 import { useAuth } from '../../../iam/hooks/useAuth.js'
 import { useTheme } from '../../../../contexts/ThemeContext.jsx'
+import { Logo } from '../../../../shared/components/Logo.jsx'
 
 const darkStyles = {
   nav: {
@@ -16,7 +17,7 @@ const darkStyles = {
     zIndex: 100,
     boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
   },
-  logo: { margin: 0, fontSize: '1.25rem', fontWeight: 600, color: '#fff', textDecoration: 'none' },
+  logo: { textDecoration: 'none', display: 'inline-flex', alignItems: 'center' },
   roleBadge: {
     padding: '0.2rem 0.5rem',
     borderRadius: 6,
@@ -48,7 +49,7 @@ const lightStyles = {
     borderBottom: '1px solid var(--slogbaa-border)',
     boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
   },
-  logo: { ...darkStyles.logo, color: 'var(--slogbaa-text)' },
+  logo: { ...darkStyles.logo },
   roleBadge: {
     ...darkStyles.roleBadge,
     background: 'rgba(37, 99, 235, 0.12)',
@@ -75,7 +76,12 @@ export function AdminNav() {
     <header style={styles.nav}>
       <div style={leftStyle}>
         <Link to="/admin" style={styles.logo}>
-          SLOGBAA Admin
+          <Logo
+            variant="full"
+            size={30}
+            color={isLight ? 'dark' : 'white'}
+            subtitle="Admin"
+          />
         </Link>
         <span style={styles.roleBadge}>{user?.role === 'SUPER_ADMIN' ? 'Super Admin' : 'Admin'}</span>
       </div>

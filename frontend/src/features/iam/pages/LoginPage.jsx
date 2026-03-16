@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { LoginForm } from '../components/LoginForm.jsx'
 import { TestCredentialsSidebar } from '../components/TestCredentialsSidebar.jsx'
+import { Logo } from '../../../shared/components/Logo.jsx'
 
 const styles = {
   page: {
@@ -24,19 +25,8 @@ const styles = {
     border: '1px solid var(--slogbaa-border)',
     boxShadow: '0 4px 24px rgba(0,0,0,0.06)',
   },
-  logoMark: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    background: 'var(--slogbaa-blue)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    color: '#fff',
-    fontSize: '1.25rem',
-    fontWeight: 800,
-    marginBottom: '1.5rem',
-    letterSpacing: '-0.02em',
+  logoWrap: {
+    marginBottom: '1.75rem',
   },
   title: {
     margin: '0 0 0.35rem',
@@ -70,7 +60,9 @@ export function LoginPage() {
       <TestCredentialsSidebar />
       <main style={styles.main}>
         <div style={styles.formCard}>
-          <div style={styles.logoMark}>S</div>
+          <div style={styles.logoWrap}>
+            <Logo variant="full" size={44} color="blue" />
+          </div>
           <h1 style={styles.title}>Welcome back</h1>
           <p style={styles.subtitle}>Sign in to your SLOGBAA learning account</p>
           <LoginForm />
