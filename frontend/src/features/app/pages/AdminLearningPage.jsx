@@ -1,11 +1,15 @@
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { useNavigate, useOutletContext } from 'react-router-dom'
-import { FontAwesomeIcon, icons } from '../../../shared/icons.js'
-import { getAdminCourses, createCourse, updateCourse, publishCourse, unpublishCourse } from '../../../api/admin/courses.js'
+import { FontAwesomeIcon, icons } from '../../../shared/icons.jsx'
+import { createCourse, updateCourse } from '../../../api/admin/courses.js'
+import { useAdminCourses, usePublishCourse, useUnpublishCourse } from '../../../lib/hooks/use-admin.js'
 import { getAssetUrl } from '../../../api/client.js'
 import { CreateCourseModal } from '../components/admin/CreateCourseModal.jsx'
 import { EditCourseModal } from '../components/admin/EditCourseModal.jsx'
+import { Badge } from '../../../shared/components/Badge.jsx'
 import { FilterSortBar } from '../../../shared/components/FilterSortBar.jsx'
+import { useToast } from '../../../shared/hooks/useToast.js'
+import { useDebounce } from '../../../shared/hooks/useDebounce.js'
 import { filterAndSortItems } from '../../../shared/utils/filterSort.js'
 
 const COURSE_FILTERS = [
@@ -49,7 +53,7 @@ const styles = {
     margin: '0 0 1rem',
     fontSize: '1.75rem',
     fontWeight: 700,
-    color: 'var(--slogbaa-orange)',
+    color: 'var(--slogbaa-blue)',
   },
   toolbar: {
     display: 'flex',
@@ -79,7 +83,7 @@ const styles = {
     letterSpacing: '0.04em',
     color: '#fff',
     background: 'var(--slogbaa-dark)',
-    borderBottom: '3px solid var(--slogbaa-orange)',
+    borderBottom: '3px solid var(--slogbaa-blue)',
   },
   td: {
     padding: '0.875rem 1.25rem',
@@ -91,8 +95,8 @@ const styles = {
     transition: 'background 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease',
   },
   trHover: {
-    background: 'rgba(241, 134, 37, 0.08)',
-    boxShadow: '0 2px 8px rgba(241, 134, 37, 0.15)',
+    background: 'rgba(37, 99, 235, 0.08)',
+    boxShadow: '0 2px 8px rgba(37, 99, 235, 0.15)',
     position: 'relative',
     zIndex: 1,
     transform: 'scale(1.002)',
@@ -107,7 +111,7 @@ const styles = {
     alignItems: 'center',
     gap: '0.4rem',
     padding: '0.5rem 1rem',
-    background: 'var(--slogbaa-orange)',
+    background: 'var(--slogbaa-blue)',
     color: '#fff',
     border: 'none',
     borderRadius: 8,
@@ -175,8 +179,9 @@ const styles = {
 export function AdminLearningPage() {
   const { token, isSuperAdmin } = useOutletContext()
   const navigate = useNavigate()
-  const [courses, setCourses] = useState([])
-  const [loading, setLoading] = useState(true)
+  const { data: courses = [], isLoading: loading, error: queryError, refetch: refreshCourses } = useAdminCourses()
+  const publishMutation = usePublishCourse()
+  const unpublishMutation = useUnpublishCourse()
   const [error, setError] = useState(null)
   const [modal, setModal] = useState(null)
   const [modalContext, setModalContext] = useState(null)
@@ -184,40 +189,24 @@ export function AdminLearningPage() {
   const [filterValues, setFilterValues] = useState({ status: 'all' })
   const [sortBy, setSortBy] = useState('createdAt:desc')
 
+  const debouncedSearch = useDebounce(search, 250)
+
   const filteredCourses = useMemo(
     () =>
       filterAndSortItems(courses, {
-        search,
+        search: debouncedSearch,
         searchFields: ['title', 'description'],
         filters: filterValues,
         filterConfig: COURSE_FILTER_CONFIG,
         sortBy,
         sortConfig: COURSE_SORT_CONFIG,
       }),
-    [courses, search, filterValues, sortBy]
+    [courses, debouncedSearch, filterValues, sortBy]
   )
 
   const handleFilterChange = useCallback((key, value) => {
     setFilterValues((prev) => ({ ...prev, [key]: value }))
   }, [])
-
-  const refreshCourses = useCallback(async () => {
-    if (!token) return
-    setLoading(true)
-    setError(null)
-    try {
-      const list = await getAdminCourses(token)
-      setCourses(list)
-    } catch (err) {
-      setError(err?.message ?? 'Failed to load courses.')
-    } finally {
-      setLoading(false)
-    }
-  }, [token])
-
-  useEffect(() => {
-    refreshCourses()
-  }, [refreshCourses])
 
   const handleRowClick = (course) => {
     navigate(`/admin/learning/${course.id}`)
@@ -237,16 +226,26 @@ export function AdminLearningPage() {
     await refreshCourses()
   }
 
+  const toast = useToast()
+
   const handlePublish = async (e, courseId) => {
     e.stopPropagation()
-    await publishCourse(token, courseId)
-    await refreshCourses()
+    try {
+      await publishMutation.mutateAsync(courseId)
+      toast.success('Course published.')
+    } catch (err) {
+      toast.error(err?.message ?? 'Failed to publish course.')
+    }
   }
 
   const handleUnpublish = async (e, courseId) => {
     e.stopPropagation()
-    await unpublishCourse(token, courseId)
-    await refreshCourses()
+    try {
+      await unpublishMutation.mutateAsync(courseId)
+      toast.info('Course unpublished.')
+    } catch (err) {
+      toast.error(err?.message ?? 'Failed to unpublish course.')
+    }
   }
 
   if (loading && courses.length === 0) {
@@ -261,7 +260,7 @@ export function AdminLearningPage() {
   return (
     <>
       <h2 style={styles.pageTitle}>Learning</h2>
-      {error && <p style={styles.error}>{error}</p>}
+      {(error || queryError) && <p style={styles.error}>{error || queryError?.message || 'Failed to load courses.'}</p>}
 
       <div style={styles.toolbar}>
         <p style={{ margin: 0, color: 'var(--slogbaa-text-muted)' }}>
@@ -320,6 +319,10 @@ export function AdminLearningPage() {
                   key={course.id}
                   style={styles.trClickable}
                   onClick={() => handleRowClick(course)}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleRowClick(course) } }}
+                  tabIndex={0}
+                  role="button"
+                  aria-label={`View course: ${course.title}`}
                   onMouseEnter={(e) => {
                     if (isSuperAdmin) {
                       e.currentTarget.style.background = styles.trHover.background
@@ -340,7 +343,7 @@ export function AdminLearningPage() {
                   <td style={styles.td}>
                     <div style={styles.thumbWrap}>
                       {course.imageUrl ? (
-                        <img src={getAssetUrl(course.imageUrl)} alt="" style={styles.thumb} onError={(e) => { e.target.style.display = 'none' }} />
+                        <img src={getAssetUrl(course.imageUrl)} alt={`Course: ${course.title}`} style={styles.thumb} onError={(e) => { e.target.style.display = 'none' }} />
                       ) : (
                         <div style={{ ...styles.thumb, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.25rem', color: 'var(--slogbaa-text-muted)' }}>📚</div>
                       )}
@@ -356,14 +359,9 @@ export function AdminLearningPage() {
                     </div>
                   </td>
                   <td style={styles.td}>
-                    <span
-                      style={{
-                        ...styles.badge,
-                        ...(course.published ? {} : styles.badgeDraft),
-                      }}
-                    >
+                    <Badge variant={course.published ? 'success' : 'default'}>
                       {course.published ? 'Published' : 'Draft'}
-                    </span>
+                    </Badge>
                   </td>
                   <td style={styles.td}>{course.moduleCount}</td>
                   {isSuperAdmin && (
@@ -376,6 +374,7 @@ export function AdminLearningPage() {
                           setModal('editCourse')
                         }}
                         title="Edit course"
+                        aria-label="Edit course"
                       >
                         <FontAwesomeIcon icon={icons.edit} />
                       </button>
@@ -385,6 +384,7 @@ export function AdminLearningPage() {
                           style={styles.actionIconBtn}
                           onClick={(e) => handlePublish(e, course.id)}
                           title="Publish"
+                          aria-label="Publish course"
                         >
                           <FontAwesomeIcon icon={icons.publish} />
                         </button>
@@ -394,6 +394,7 @@ export function AdminLearningPage() {
                           style={styles.actionIconBtn}
                           onClick={(e) => handleUnpublish(e, course.id)}
                           title="Unpublish"
+                          aria-label="Unpublish course"
                         >
                           <FontAwesomeIcon icon={icons.unpublish} />
                         </button>

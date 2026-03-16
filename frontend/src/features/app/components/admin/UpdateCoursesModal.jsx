@@ -1,4 +1,4 @@
-import { FontAwesomeIcon, icons } from '../../../../shared/icons.js'
+import { FontAwesomeIcon, icons } from '../../../../shared/icons.jsx'
 import { Modal } from '../../../../shared/components/Modal.jsx'
 
 const styles = {
@@ -20,7 +20,7 @@ const styles = {
     alignItems: 'center',
     gap: '0.4rem',
     padding: '0.5rem 1.25rem',
-    background: 'var(--slogbaa-orange)',
+    background: 'var(--slogbaa-blue)',
     color: '#fff',
     border: 'none',
     borderRadius: 8,

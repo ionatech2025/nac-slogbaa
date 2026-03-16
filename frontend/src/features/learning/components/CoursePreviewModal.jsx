@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Modal } from '../../../shared/components/Modal.jsx'
-import { FontAwesomeIcon, icons } from '../../../shared/icons.js'
+import { FontAwesomeIcon, icons } from '../../../shared/icons.jsx'
 import { useAuth } from '../../iam/hooks/useAuth.js'
 import { getCourseDetails } from '../../../api/learning/courses.js'
 import { getAssetUrl } from '../../../api/client.js'
@@ -90,7 +90,7 @@ const styles = {
     alignItems: 'center',
     gap: '0.4rem',
     padding: '0.5rem 1.25rem',
-    background: 'var(--slogbaa-orange)',
+    background: 'var(--slogbaa-blue)',
     color: '#fff',
     border: 'none',
     borderRadius: 8,
@@ -127,7 +127,7 @@ export function CoursePreviewModal({ course, onClose, onEnroll }) {
       {!loading && !error && details && (
         <>
           {details.imageUrl ? (
-            <img src={getAssetUrl(details.imageUrl)} alt="" style={styles.image} onError={(e) => { e.target.style.display = 'none' }} />
+            <img src={getAssetUrl(details.imageUrl)} alt={`Course: ${details.title ?? ''}`} style={styles.image} onError={(e) => { e.target.style.display = 'none' }} />
           ) : (
             <div style={styles.imagePlaceholder}>📚</div>
           )}

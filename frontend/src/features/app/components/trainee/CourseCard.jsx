@@ -1,8 +1,34 @@
 import { Link } from 'react-router-dom'
-import { FontAwesomeIcon, icons } from '../../../../shared/icons.js'
+import { FontAwesomeIcon, icons } from '../../../../shared/icons.jsx'
 import { getAssetUrl } from '../../../../api/client.js'
 
 const DEFAULT_IMG = 'https://placehold.co/400x200/e0e0e0/6b6b6b?text=Course'
+
+function ProgressRing({ percent = 0, size = 44, strokeWidth = 3.5 }) {
+  const radius = (size - strokeWidth) / 2
+  const circumference = 2 * Math.PI * radius
+  const offset = circumference - (Math.min(100, Math.max(0, percent)) / 100) * circumference
+  const isComplete = percent >= 100
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ flexShrink: 0 }}>
+      <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="var(--slogbaa-border)" strokeWidth={strokeWidth} />
+      <circle
+        cx={size / 2} cy={size / 2} r={radius} fill="none"
+        stroke={isComplete ? 'var(--slogbaa-green)' : 'var(--slogbaa-blue)'}
+        strokeWidth={strokeWidth}
+        strokeDasharray={circumference}
+        strokeDashoffset={offset}
+        strokeLinecap="round"
+        transform={`rotate(-90 ${size / 2} ${size / 2})`}
+        style={{ transition: 'stroke-dashoffset 0.4s ease' }}
+      />
+      <text x="50%" y="50%" dominantBaseline="central" textAnchor="middle"
+        style={{ fontSize: size * 0.26, fontWeight: 700, fill: 'var(--slogbaa-text)' }}>
+        {Math.round(percent)}%
+      </text>
+    </svg>
+  )
+}
 
 const styles = {
   card: {
@@ -129,7 +155,7 @@ const styles = {
     alignItems: 'center',
     gap: '0.4rem',
     padding: '0.5rem 1rem',
-    background: 'var(--slogbaa-orange)',
+    background: 'var(--slogbaa-blue)',
     color: '#fff',
     border: 'none',
     borderRadius: 6,
@@ -223,7 +249,7 @@ export function CourseCard({ course, enrolled, completionPercentage, onEnroll, o
       <div style={imageWrapStyle}>
         <img
           src={imgSrc}
-          alt=""
+          alt={`Course: ${course.title}`}
           style={imageStyle}
           onError={(e) => {
             e.target.onerror = null
@@ -260,21 +286,17 @@ export function CourseCard({ course, enrolled, completionPercentage, onEnroll, o
           course.meta && <p style={styles.meta}>{course.meta}</p>
         )}
         {enrolled && (
-          <div style={{ ...styles.progressWrap, ...(isHorizontal ? styles.badgeHorizontal : {}) }}>
-            <div style={styles.progressLabel}>
-              <span>Progress</span>
-              <span>{Math.min(100, Math.max(0, completionPercentage ?? 0))}%</span>
-            </div>
-            <div style={styles.progressBar}>
-              <div style={{ ...styles.progressFill, width: `${Math.min(100, Math.max(0, completionPercentage ?? 0))}%` }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem', ...(isHorizontal ? { marginTop: 'auto' } : {}) }}>
+            <ProgressRing percent={completionPercentage ?? 0} />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={styles.progressLabel}>
+                <span>{(completionPercentage ?? 0) >= 100 ? 'Completed' : 'In progress'}</span>
+              </div>
+              <div style={styles.progressBar}>
+                <div style={{ ...styles.progressFill, width: `${Math.min(100, Math.max(0, completionPercentage ?? 0))}%` }} />
+              </div>
             </div>
           </div>
-        )}
-        {enrolled && (
-          <span style={{ ...styles.badge, ...(isHorizontal ? styles.badgeHorizontal : {}), display: 'inline-flex', alignItems: 'center' }}>
-            <FontAwesomeIcon icon={icons.enrolled} style={styles.badgeIcon} />
-            ENROLLED
-          </span>
         )}
         {!enrolled && (onEnroll || onPreview) && (
           <div style={{ ...styles.buttonRow, ...(isHorizontal ? { marginTop: 'auto' } : {}) }}>

@@ -1,10 +1,13 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState } from 'react'
 import { Link, useOutletContext } from 'react-router-dom'
-import { FontAwesomeIcon, icons } from '../../../shared/icons.js'
+import { FontAwesomeIcon, icons } from '../../../shared/icons.jsx'
 import { Modal } from '../../../shared/components/Modal.jsx'
-import { getAdminCourses, getAdminCourseDetails, deleteCourse, deleteModule } from '../../../api/admin/courses.js'
+import { useAdminCourses, useAdminCourseDetail, useDeleteCourse, useDeleteModule } from '../../../lib/hooks/use-admin.js'
+import { getAdminCourseDetails } from '../../../api/admin/courses.js'
 import { getCourseEnrollments, canDeleteCourse, canDeleteModule } from '../../../api/admin/courseManagement.js'
 import { getAssetUrl } from '../../../api/client.js'
+import { useAuth } from '../../iam/hooks/useAuth.js'
+import { useToast } from '../../../shared/hooks/useToast.js'
 
 const styles = {
   page: {
@@ -44,7 +47,7 @@ const styles = {
     transition: 'background 0.15s ease',
   },
   courseRowHover: {
-    background: 'rgba(241, 134, 37, 0.06)',
+    background: 'rgba(37, 99, 235, 0.06)',
   },
   courseLeft: {
     display: 'flex',
@@ -102,7 +105,7 @@ const styles = {
     fontWeight: 700,
     textTransform: 'uppercase',
     letterSpacing: '0.05em',
-    color: 'var(--slogbaa-orange)',
+    color: 'var(--slogbaa-blue)',
   },
   moduleList: {
     listStyle: 'none',
@@ -163,7 +166,7 @@ const styles = {
     cursor: 'not-allowed',
   },
   btnPrimary: {
-    background: 'var(--slogbaa-orange)',
+    background: 'var(--slogbaa-blue)',
     color: '#fff',
   },
   iconLink: {
@@ -221,7 +224,7 @@ const styles = {
   progressFill: {
     height: '100%',
     borderRadius: 3,
-    background: 'var(--slogbaa-orange)',
+    background: 'var(--slogbaa-blue)',
     transition: 'width 0.3s ease',
   },
   confirmActions: {
@@ -261,8 +264,10 @@ const styles = {
 
 export function AdminCourseManagementPage() {
   const { token, isSuperAdmin } = useOutletContext()
-  const [courses, setCourses] = useState([])
-  const [loading, setLoading] = useState(true)
+  const { token: authToken } = useAuth()
+  const { data: courses = [], isLoading: loading, error: queryError } = useAdminCourses()
+  const deleteCourseMutation = useDeleteCourse()
+  const deleteModuleMutation = useDeleteModule()
   const [error, setError] = useState(null)
   const [expandedId, setExpandedId] = useState(null)
   const [details, setDetails] = useState({})
@@ -271,33 +276,16 @@ export function AdminCourseManagementPage() {
   const [canDeleteModuleMap, setCanDeleteModuleMap] = useState({})
   const [deleting, setDeleting] = useState(null)
   const [confirmModal, setConfirmModal] = useState(null)
+  const toast = useToast()
 
-  const loadCourses = useCallback(async () => {
-    if (!token) return
-    setLoading(true)
-    setError(null)
-    try {
-      const data = await getAdminCourses(token)
-      setCourses(data ?? [])
-    } catch (e) {
-      setError(e?.message ?? 'Failed to load courses.')
-      setCourses([])
-    } finally {
-      setLoading(false)
-    }
-  }, [token])
-
-  useEffect(() => {
-    loadCourses()
-  }, [loadCourses])
-
-  const loadExpanded = useCallback(async (courseId) => {
-    if (!token || !courseId) return
+  // Load expanded course details (complex nested data — uses imperative fetch within TanStack-managed list)
+  const loadExpanded = async (courseId) => {
+    if (!authToken || !courseId) return
     try {
       const [detailRes, enrollRes, canCourse] = await Promise.all([
-        getAdminCourseDetails(token, courseId),
-        getCourseEnrollments(token, courseId).catch(() => []),
-        canDeleteCourse(token, courseId),
+        getAdminCourseDetails(authToken, courseId),
+        getCourseEnrollments(authToken, courseId).catch(() => []),
+        canDeleteCourse(authToken, courseId),
       ])
       setDetails((prev) => ({ ...prev, [courseId]: detailRes }))
       setEnrollments((prev) => ({ ...prev, [courseId]: enrollRes }))
@@ -306,7 +294,7 @@ export function AdminCourseManagementPage() {
       const canModule = {}
       await Promise.all(
         modules.map(async (m) => {
-          const r = await canDeleteModule(token, courseId, m.id)
+          const r = await canDeleteModule(authToken, courseId, m.id)
           canModule[m.id] = r.canDelete
         })
       )
@@ -315,14 +303,14 @@ export function AdminCourseManagementPage() {
       setDetails((prev) => ({ ...prev, [courseId]: null }))
       setEnrollments((prev) => ({ ...prev, [courseId]: [] }))
     }
-  }, [token])
-
-  useEffect(() => {
-    if (expandedId) loadExpanded(expandedId)
-  }, [expandedId, loadExpanded])
+  }
 
   const toggleExpand = (courseId) => {
-    setExpandedId((prev) => (prev === courseId ? null : courseId))
+    setExpandedId((prev) => {
+      const next = prev === courseId ? null : courseId
+      if (next && !details[next]) loadExpanded(next)
+      return next
+    })
   }
 
   const openConfirmCourse = (e, course) => {
@@ -353,11 +341,11 @@ export function AdminCourseManagementPage() {
       setError(null)
       setConfirmModal(null)
       try {
-        await deleteCourse(token, confirmModal.courseId)
-        setCourses((prev) => prev.filter((c) => c.id !== confirmModal.courseId))
+        await deleteCourseMutation.mutateAsync(confirmModal.courseId)
         setExpandedId((prev) => (prev === confirmModal.courseId ? null : prev))
+        toast.success('Course deleted.')
       } catch (e) {
-        setError(e?.message ?? 'Failed to delete course.')
+        toast.error(e?.message ?? 'Failed to delete course.')
       } finally {
         setDeleting(null)
       }
@@ -366,7 +354,7 @@ export function AdminCourseManagementPage() {
       setError(null)
       setConfirmModal(null)
       try {
-        await deleteModule(token, confirmModal.courseId, confirmModal.moduleId)
+        await deleteModuleMutation.mutateAsync({ courseId: confirmModal.courseId, moduleId: confirmModal.moduleId })
         const detail = details[confirmModal.courseId]
         if (detail?.modules) {
           setDetails((prev) => ({
@@ -382,8 +370,9 @@ export function AdminCourseManagementPage() {
           delete next[confirmModal.moduleId]
           return { ...prev, [confirmModal.courseId]: next }
         })
+        toast.success('Module deleted.')
       } catch (e) {
-        setError(e?.message ?? 'Failed to delete module.')
+        toast.error(e?.message ?? 'Failed to delete module.')
       } finally {
         setDeleting(null)
       }
@@ -488,7 +477,7 @@ export function AdminCourseManagementPage() {
               >
                 <div style={styles.courseLeft}>
                   {course.imageUrl ? (
-                    <img src={getAssetUrl(course.imageUrl)} alt="" style={styles.courseThumb} />
+                    <img src={getAssetUrl(course.imageUrl)} alt={`Course: ${course.title}`} style={styles.courseThumb} />
                   ) : (
                     <div style={{ ...styles.courseThumb, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.25rem' }}>📚</div>
                   )}
@@ -508,6 +497,7 @@ export function AdminCourseManagementPage() {
                     to={`/admin/learning/${course.id}`}
                     style={styles.iconLink}
                     title="View / edit course"
+                    aria-label={`View / edit course: ${course.title}`}
                     onClick={(e) => e.stopPropagation()}
                   >
                     <FontAwesomeIcon icon={icons.eye} />
@@ -522,6 +512,7 @@ export function AdminCourseManagementPage() {
                     disabled={!canDelCourse || deleting === course.id}
                     onClick={(e) => openConfirmCourse(e, course)}
                     title={!canDelCourse ? 'Cannot delete: course has enrolled trainees' : 'Delete course'}
+                    aria-label={`Delete course: ${course.title}`}
                   >
                     <FontAwesomeIcon icon={icons.delete} />
                   </button>
@@ -553,6 +544,7 @@ export function AdminCourseManagementPage() {
                                     to={`/admin/learning/${course.id}/modules/${m.id}`}
                                     style={styles.iconLinkModule}
                                     title="View / edit module"
+                                    aria-label={`View / edit module: ${m.title}`}
                                   >
                                     <FontAwesomeIcon icon={icons.eye} />
                                   </Link>
@@ -566,6 +558,7 @@ export function AdminCourseManagementPage() {
                                     disabled={!canDelModules[m.id] || deleting === m.id}
                                     onClick={(e) => openConfirmModule(e, course.id, m)}
                                     title={!canDelModules[m.id] ? 'Cannot delete: at least one trainee completed this module' : 'Delete module'}
+                                    aria-label={`Delete module: ${m.title}`}
                                   >
                                     <FontAwesomeIcon icon={icons.delete} />
                                   </button>

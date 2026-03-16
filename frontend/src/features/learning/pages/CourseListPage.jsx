@@ -1,10 +1,12 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { FontAwesomeIcon, icons } from '../../../shared/icons.js'
-import { useAuth } from '../../iam/hooks/useAuth.js'
-import { getPublishedCourses, getEnrolledCourses, enrollInCourse } from '../../../api/learning/courses.js'
+import { FontAwesomeIcon, icons } from '../../../shared/icons.jsx'
+import { usePublishedCourses, useEnrolledCourses, useEnrollInCourse } from '../../../lib/hooks/use-courses.js'
 import { CourseCard } from '../../app/components/trainee/CourseCard.jsx'
 import { CoursePreviewModal } from '../components/CoursePreviewModal.jsx'
+import { useToast } from '../../../shared/hooks/useToast.js'
+import { QueryError } from '../../../shared/components/QueryError.jsx'
+import { CardGridSkeleton } from '../../../shared/components/ContentSkeletons.jsx'
 
 const styles = {
   layout: {
@@ -99,40 +101,25 @@ const styles = {
 }
 
 export function CourseListPage() {
-  const { token } = useAuth()
-  const [courses, setCourses] = useState([])
-  const [enrolledIds, setEnrolledIds] = useState(new Set())
+  const { data: courses = [], isLoading: coursesLoading, error: coursesError, refetch } = usePublishedCourses()
+  const { data: enrolled = [], isLoading: enrolledLoading } = useEnrolledCourses()
+  const enrollMutation = useEnrollInCourse()
   const [courseView, setCourseView] = useState('vertical')
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const [enrollingId, setEnrollingId] = useState(null)
   const [previewCourse, setPreviewCourse] = useState(null)
 
-  useEffect(() => {
-    if (!token) return
-    setLoading(true)
-    setError(null)
-    Promise.all([getPublishedCourses(token), getEnrolledCourses(token)])
-      .then(([published, enrolled]) => {
-        setCourses(published)
-        setEnrolledIds(new Set(enrolled.map((c) => c.id)))
-      })
-      .catch((err) => setError(err?.message ?? 'Failed to load courses.'))
-      .finally(() => setLoading(false))
-  }, [token])
+  const loading = coursesLoading || enrolledLoading
+  const error = coursesError?.message ?? (enrollMutation.error?.message || null)
+
+  const enrolledIds = new Set(enrolled.map((c) => c.id))
+
+  const toast = useToast()
 
   const handleEnroll = async (course) => {
-    if (!token || enrollingId) return
-    setEnrollingId(course.id)
     setPreviewCourse(null)
-    try {
-      await enrollInCourse(token, course.id)
-      setEnrolledIds((prev) => new Set([...prev, course.id]))
-    } catch (err) {
-      setError(err?.message ?? 'Enrollment failed.')
-    } finally {
-      setEnrollingId(null)
-    }
+    enrollMutation.mutate(course.id, {
+      onSuccess: () => toast.success(`Enrolled in "${course.title}"!`),
+      onError: (err) => toast.error(err?.message ?? 'Enrollment failed.'),
+    })
   }
 
   const handlePreview = (course) => setPreviewCourse(course)
@@ -148,13 +135,13 @@ export function CourseListPage() {
             <h1 style={styles.title}>Courses</h1>
             <p style={styles.subtitle}>Browse available courses</p>
           </div>
-          <p style={styles.loading}>Loading courses…</p>
+          <CardGridSkeleton count={4} />
         </main>
       </div>
     )
   }
 
-  if (error) {
+  if (coursesError) {
     return (
       <div style={styles.layout}>
         <main style={styles.main}>
@@ -164,7 +151,7 @@ export function CourseListPage() {
           <div style={styles.header}>
             <h1 style={styles.title}>Courses</h1>
           </div>
-          <div style={styles.error}>{error}</div>
+          <QueryError error={coursesError} onRetry={refetch} message="Failed to load courses" />
         </main>
       </div>
     )
@@ -189,6 +176,9 @@ export function CourseListPage() {
               : `${unenrolledCourses.length} course${unenrolledCourses.length === 1 ? '' : 's'} available to enroll`}
           </p>
         </div>
+        {error && (
+          <p style={{ margin: '0 0 1rem', color: 'var(--slogbaa-error)', fontSize: '0.9375rem' }}>{error}</p>
+        )}
         {unenrolledCourses.length > 0 && (
           <div style={styles.sectionHeader}>
             <div />
@@ -236,7 +226,7 @@ export function CourseListPage() {
               onEnroll={handleEnroll}
               onPreview={handlePreview}
               variant={courseView}
-              enrolling={enrollingId === course.id}
+              enrolling={enrollMutation.isPending && enrollMutation.variables === course.id}
             />
           ))}
         </div>

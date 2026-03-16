@@ -1,7 +1,5 @@
-import { useState, useEffect } from 'react'
-import { FontAwesomeIcon, icons } from '../../../shared/icons.js'
-import { useAuth } from '../../iam/hooks/useAuth.js'
-import { getPublishedLibraryResources } from '../../../api/learning/library.js'
+import { FontAwesomeIcon, icons } from '../../../shared/icons.jsx'
+import { usePublishedLibrary } from '../../../lib/hooks/use-library.js'
 
 const RESOURCE_TYPE_LABELS = {
   DOCUMENT: 'Document',
@@ -96,23 +94,7 @@ const styles = {
 }
 
 export function LibraryPage() {
-  const { token } = useAuth()
-  const [resources, setResources] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-
-  useEffect(() => {
-    if (!token) {
-      setLoading(false)
-      return
-    }
-    setLoading(true)
-    setError(null)
-    getPublishedLibraryResources(token)
-      .then(setResources)
-      .catch((err) => setError(err?.message ?? 'Failed to load library.'))
-      .finally(() => setLoading(false))
-  }, [token])
+  const { data: resources = [], isLoading, error } = usePublishedLibrary()
 
   return (
     <div style={styles.layout}>
@@ -124,12 +106,12 @@ export function LibraryPage() {
           </p>
         </header>
 
-        {error && <p style={styles.error}>{error}</p>}
-        {loading && <p style={styles.loading}>Loading…</p>}
-        {!loading && !error && resources.length === 0 && (
+        {error && <p style={styles.error}>{error.message || 'Failed to load library.'}</p>}
+        {isLoading && <p style={styles.loading}>Loading…</p>}
+        {!isLoading && !error && resources.length === 0 && (
           <p style={styles.empty}>No library resources published yet.</p>
         )}
-        {!loading && !error && resources.length > 0 && (
+        {!isLoading && !error && resources.length > 0 && (
           <ul style={styles.list}>
             {resources.map((r) => (
               <li key={r.id} style={styles.card}>

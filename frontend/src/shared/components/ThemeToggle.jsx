@@ -1,4 +1,4 @@
-import { FontAwesomeIcon, icons } from '../icons.js'
+import { FontAwesomeIcon, icons } from '../icons.jsx'
 import { useTheme } from '../../contexts/ThemeContext.jsx'
 
 const styles = {
@@ -6,15 +6,16 @@ const styles = {
     display: 'inline-flex',
     alignItems: 'center',
     justifyContent: 'center',
-    width: 48,
-    height: 48,
+    width: 44,
+    height: 44,
     padding: 0,
     background: 'var(--slogbaa-surface)',
     border: '1px solid var(--slogbaa-border)',
     borderRadius: 12,
-    color: 'var(--slogbaa-text)',
+    color: 'var(--slogbaa-text-muted)',
     cursor: 'pointer',
-    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+    transition: 'background 0.15s, color 0.15s, box-shadow 0.15s',
   },
 }
 

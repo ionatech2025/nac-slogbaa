@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useOutletContext } from 'react-router-dom'
-import { FontAwesomeIcon, icons } from '../../../shared/icons.js'
+import { FontAwesomeIcon, icons } from '../../../shared/icons.jsx'
 import { ConfirmModal } from '../../../shared/components/ConfirmModal.jsx'
 
 const styles = {
@@ -8,7 +8,7 @@ const styles = {
     margin: '0 0 1rem',
     fontSize: '1.75rem',
     fontWeight: 700,
-    color: 'var(--slogbaa-orange)',
+    color: 'var(--slogbaa-blue)',
     letterSpacing: '-0.02em',
   },
   section: {
@@ -18,7 +18,7 @@ const styles = {
     margin: '0 0 1rem',
     fontSize: '1.375rem',
     fontWeight: 700,
-    color: 'var(--slogbaa-orange)',
+    color: 'var(--slogbaa-blue)',
     letterSpacing: '-0.01em',
   },
   subsectionTitle: {
@@ -44,9 +44,9 @@ const styles = {
     transition: 'border-color 0.2s, box-shadow 0.2s',
   },
   statCardHighlight: {
-    borderColor: 'rgba(241, 134, 37, 0.5)',
-    background: 'rgba(241, 134, 37, 0.06)',
-    boxShadow: '0 4px 14px rgba(241, 134, 37, 0.15)',
+    borderColor: 'rgba(37, 99, 235, 0.5)',
+    background: 'rgba(37, 99, 235, 0.06)',
+    boxShadow: '0 4px 14px rgba(37, 99, 235, 0.15)',
   },
   statValue: {
     margin: 0,
@@ -92,7 +92,7 @@ const styles = {
     letterSpacing: '0.04em',
     color: '#fff',
     background: 'var(--slogbaa-dark)',
-    borderBottom: '3px solid var(--slogbaa-orange)',
+    borderBottom: '3px solid var(--slogbaa-blue)',
   },
   thFirst: { borderTopLeftRadius: 11 },
   thLast: { borderTopRightRadius: 11 },
@@ -101,7 +101,7 @@ const styles = {
     borderBottom: '1px solid var(--slogbaa-border)',
     color: 'var(--slogbaa-text)',
   },
-  trStriped: { background: 'rgba(241, 134, 37, 0.04)' },
+  trStriped: { background: 'rgba(37, 99, 235, 0.04)' },
   trLast: { borderBottom: 'none' },
   empty: {
     padding: '2rem 1.5rem',
@@ -296,6 +296,7 @@ export function AdminOverviewPage() {
                           to={`/admin/users/staff/${s.id}`}
                           style={styles.viewProfileBtn}
                           title="View / manage staff"
+                          aria-label={`View / manage staff: ${s.fullName}`}
                         >
                           <FontAwesomeIcon icon={icons.eye} />
                         </Link>
@@ -306,6 +307,7 @@ export function AdminOverviewPage() {
                             onClick={() => onDeleteStaff(s)}
                             disabled={deletingId === s.id}
                             title="Delete staff"
+                            aria-label={`Delete staff: ${s.fullName}`}
                           >
                             <FontAwesomeIcon icon={icons.delete} />
                           </button>
@@ -358,6 +360,7 @@ export function AdminOverviewPage() {
                         to={`/admin/users/trainee/${t.id}`}
                         style={styles.viewProfileBtn}
                         title="View / manage trainee"
+                        aria-label={`View / manage trainee: ${t.fullName}`}
                       >
                         <FontAwesomeIcon icon={icons.eye} />
                       </Link>
@@ -368,6 +371,7 @@ export function AdminOverviewPage() {
                           onClick={() => onDeleteTrainee(t)}
                           disabled={deletingId === t.id}
                           title="Delete trainee"
+                          aria-label={`Delete trainee: ${t.fullName}`}
                         >
                           <FontAwesomeIcon icon={icons.delete} />
                         </button>

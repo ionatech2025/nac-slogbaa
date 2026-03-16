@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
-import { FontAwesomeIcon, icons } from '../../../../shared/icons.js'
+import { FontAwesomeIcon, icons } from '../../../../shared/icons.jsx'
 import { useAuth } from '../../../iam/hooks/useAuth.js'
+import { Avatar } from '../../../../shared/components/Avatar.jsx'
 
 const styles = {
   nav: {
@@ -37,7 +38,7 @@ const styles = {
     width: 32,
     height: 32,
     borderRadius: '50%',
-    background: 'var(--slogbaa-orange)',
+    background: 'var(--slogbaa-blue)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -133,7 +134,7 @@ export function TraineeNav({ onOpenProfile }) {
           aria-expanded={open}
           aria-haspopup="true"
         >
-          <span style={styles.initials}>{initials}</span>
+          <Avatar name={displayName} size="sm" />
           <span>{displayName}</span>
           <span style={{ marginLeft: 4 }}>{open ? '▲' : '▼'}</span>
         </button>
@@ -150,12 +151,13 @@ export function TraineeNav({ onOpenProfile }) {
             </button>
             <button
               type="button"
-              style={styles.dropdownItem}
-              onClick={() => handleAction('grades')}
+              style={{ ...styles.dropdownItem, opacity: 0.5, cursor: 'not-allowed' }}
+              disabled
               role="menuitem"
+              title="Grades will be available soon"
             >
               <FontAwesomeIcon icon={icons.grades} style={styles.dropdownItemIcon} />
-              Grades
+              Grades (coming soon)
             </button>
             <button
               type="button"

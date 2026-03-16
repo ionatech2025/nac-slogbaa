@@ -69,7 +69,7 @@ const styles = {
     padding: '0.5rem 0.9rem',
     borderRadius: 8,
     border: '1px solid ' + (variant === 'secondary' ? 'var(--slogbaa-border)' : 'transparent'),
-    background: variant === 'primary' ? 'var(--slogbaa-orange)' : 'transparent',
+    background: variant === 'primary' ? 'var(--slogbaa-blue)' : 'transparent',
     color: variant === 'primary' ? '#fff' : 'var(--slogbaa-text)',
     fontSize: '0.875rem',
     fontWeight: 500,

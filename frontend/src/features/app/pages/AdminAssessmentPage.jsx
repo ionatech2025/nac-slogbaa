@@ -1,10 +1,11 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState } from 'react'
 import { Link, useOutletContext } from 'react-router-dom'
-import { FontAwesomeIcon, icons } from '../../../shared/icons.js'
-import { getAdminCourses, getAdminCourseDetails } from '../../../api/admin/courses.js'
-import { getAdminCertificates, revokeCertificate } from '../../../api/admin/certificates.js'
-import { getAdminQuizAttempts } from '../../../api/admin/assessment.js'
+import { FontAwesomeIcon, Icon, icons } from '../../../shared/icons.jsx'
+import { useAdminCourses, useAdminCourseDetail, useAdminCertificates, useAdminQuizAttempts, useAdminQuizModules, useRevokeCertificate } from '../../../lib/hooks/use-admin.js'
 import { ConfirmModal } from '../../../shared/components/ConfirmModal.jsx'
+import { Tabs } from '../../../shared/components/Tabs.jsx'
+import { Badge } from '../../../shared/components/Badge.jsx'
+import { useToast } from '../../../shared/hooks/useToast.js'
 
 const TAB_QUIZZES = 'quizzes'
 const TAB_CERTIFICATES = 'certificates'
@@ -15,7 +16,7 @@ const styles = {
     margin: '0 0 1rem',
     fontSize: '1.75rem',
     fontWeight: 700,
-    color: 'var(--slogbaa-orange)',
+    color: 'var(--slogbaa-blue)',
     letterSpacing: '-0.02em',
   },
   tabs: {
@@ -37,8 +38,8 @@ const styles = {
     transition: 'color 0.15s, border-color 0.15s',
   },
   tabActive: {
-    color: 'var(--slogbaa-orange)',
-    borderBottomColor: 'var(--slogbaa-orange)',
+    color: 'var(--slogbaa-blue)',
+    borderBottomColor: 'var(--slogbaa-blue)',
   },
   section: {
     marginBottom: '2rem',
@@ -80,7 +81,7 @@ const styles = {
     borderBottom: 'none',
   },
   link: {
-    color: 'var(--slogbaa-orange)',
+    color: 'var(--slogbaa-blue)',
     textDecoration: 'none',
     fontWeight: 500,
     display: 'inline-flex',
@@ -121,8 +122,8 @@ const styles = {
     fontSize: '0.75rem',
     fontWeight: 600,
     borderRadius: 6,
-    background: 'rgba(241, 134, 37, 0.15)',
-    color: 'var(--slogbaa-orange)',
+    background: 'rgba(37, 99, 235, 0.15)',
+    color: 'var(--slogbaa-blue)',
   },
   btnRevoke: {
     padding: '0.35rem 0.6rem',
@@ -146,95 +147,32 @@ const styles = {
 }
 
 export function AdminAssessmentPage() {
-  const { token, isSuperAdmin } = useOutletContext()
+  const { isSuperAdmin } = useOutletContext()
   const [activeTab, setActiveTab] = useState(TAB_QUIZZES)
-  const [quizModules, setQuizModules] = useState([])
-  const [certificates, setCertificates] = useState([])
-  const [attempts, setAttempts] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [certLoading, setCertLoading] = useState(false)
-  const [attemptsLoading, setAttemptsLoading] = useState(false)
-  const [error, setError] = useState(null)
-  const [certError, setCertError] = useState(null)
-  const [attemptsError, setAttemptsError] = useState(null)
   const [revokeModal, setRevokeModal] = useState(null)
 
-  const loadQuizModules = useCallback(async () => {
-    if (!token) return
-    setLoading(true)
-    setError(null)
-    try {
-      const courses = await getAdminCourses(token)
-      const details = await Promise.all(
-        (courses || []).map((c) => getAdminCourseDetails(token, c.id).catch(() => null))
-      )
-      const modules = []
-      ;(courses || []).forEach((course, i) => {
-        const detail = details[i]
-        if (!detail?.modules) return
-        detail.modules
-          .filter((m) => m.hasQuiz === true || m.has_quiz === true)
-          .forEach((m) => {
-            modules.push({
-              courseId: course.id,
-              courseTitle: course.title || detail.title,
-              moduleId: m.id,
-              moduleTitle: m.title,
-            })
-          })
-      })
-      setQuizModules(modules)
-    } catch (err) {
-      setError(err?.message ?? 'Failed to load quizzes.')
-    } finally {
-      setLoading(false)
-    }
-  }, [token])
+  // TanStack Query — cached, deduplicated, auto-retry
+  const { data: quizModules = [], isLoading: loading, error: quizError } = useAdminQuizModules()
+  const { data: certificates = [], isLoading: certLoading, error: certQueryError } = useAdminCertificates()
+  const { data: attempts = [], isLoading: attemptsLoading, error: attemptsQueryError } = useAdminQuizAttempts()
+  const revokeMutation = useRevokeCertificate()
 
-  const loadCertificates = useCallback(async () => {
-    if (!token) return
-    setCertLoading(true)
-    setCertError(null)
-    try {
-      const data = await getAdminCertificates(token)
-      setCertificates(data ?? [])
-    } catch (err) {
-      setCertError(err?.message ?? 'Failed to load certificates.')
-    } finally {
-      setCertLoading(false)
-    }
-  }, [token])
+  const error = quizError?.message ?? null
+  const certError = certQueryError?.message ?? revokeMutation.error?.message ?? null
+  const attemptsError = attemptsQueryError?.message ?? null
 
-  const loadAttempts = useCallback(async () => {
-    if (!token) return
-    setAttemptsLoading(true)
-    setAttemptsError(null)
-    try {
-      const data = await getAdminQuizAttempts(token)
-      setAttempts(data ?? [])
-    } catch (err) {
-      setAttemptsError(err?.message ?? 'Failed to load quiz attempts.')
-    } finally {
-      setAttemptsLoading(false)
-    }
-  }, [token])
+  const toast = useToast()
 
-  useEffect(() => {
-    if (activeTab === TAB_QUIZZES) loadQuizModules()
-    if (activeTab === TAB_CERTIFICATES) loadCertificates()
-    if (activeTab === TAB_ATTEMPTS) loadAttempts()
-  }, [activeTab, loadQuizModules, loadCertificates, loadAttempts])
-
-  const handleRevoke = useCallback(async (cert) => {
-    if (!token || !isSuperAdmin) return
+  const handleRevoke = async (cert) => {
+    if (!isSuperAdmin) return
     try {
-      await revokeCertificate(token, cert.id)
-      setCertificates((prev) => prev.map((c) => (c.id === cert.id ? { ...c, revoked: true } : c)))
+      await revokeMutation.mutateAsync(cert.id)
       setRevokeModal(null)
-    } catch (err) {
-      setCertError(err?.message ?? 'Failed to revoke certificate.')
+      toast.success('Certificate revoked.')
+    } catch (e) {
+      toast.error(e?.message ?? 'Failed to revoke certificate.')
     }
-  }, [token, isSuperAdmin])
+  }
 
   return (
     <div>
@@ -243,24 +181,15 @@ export function AdminAssessmentPage() {
         Manage quizzes and certificates. {!isSuperAdmin && 'You have view-only access.'}
       </p>
 
-      <div style={styles.tabs}>
-        <button
-          type="button"
-          style={{ ...styles.tab, ...(activeTab === TAB_QUIZZES ? styles.tabActive : {}) }}
-          onClick={() => setActiveTab(TAB_QUIZZES)}
-        >
-          <FontAwesomeIcon icon={icons.blockActivity} style={{ marginRight: '0.5rem' }} />
-          Quizzes
-        </button>
-        <button
-          type="button"
-          style={{ ...styles.tab, ...(activeTab === TAB_CERTIFICATES ? styles.tabActive : {}) }}
-          onClick={() => setActiveTab(TAB_CERTIFICATES)}
-        >
-          <FontAwesomeIcon icon={icons.certificate} style={{ marginRight: '0.5rem' }} />
-          Certificates
-        </button>
-      </div>
+      <Tabs
+        tabs={[
+          { value: TAB_QUIZZES, label: 'Quizzes', icon: <Icon icon={icons.blockActivity} size="1em" /> },
+          { value: TAB_CERTIFICATES, label: 'Certificates', icon: <Icon icon={icons.certificate} size="1em" /> },
+          { value: TAB_ATTEMPTS, label: 'Attempts', icon: <Icon icon={icons.viewList} size="1em" /> },
+        ]}
+        activeTab={activeTab}
+        onChange={setActiveTab}
+      />
 
       {activeTab === TAB_QUIZZES && (
         <div style={styles.section}>
@@ -301,6 +230,7 @@ export function AdminAssessmentPage() {
                           to={`/admin/learning/${row.courseId}/modules/${row.moduleId}#quiz`}
                           style={styles.link}
                           title={isSuperAdmin ? 'Edit quiz' : 'View quiz'}
+                          aria-label={`${isSuperAdmin ? 'Edit' : 'View'} quiz: ${row.moduleTitle}`}
                         >
                           {isSuperAdmin ? (
                             <FontAwesomeIcon icon={icons.edit} />
@@ -358,9 +288,9 @@ export function AdminAssessmentPage() {
                       <td style={styles.td}>{cert.issuedDate}</td>
                       <td style={styles.td}>
                         {cert.revoked ? (
-                          <span style={styles.badgeRevoked}>Revoked</span>
+                          <Badge variant="danger">Revoked</Badge>
                         ) : (
-                          <span style={styles.badge}>Active</span>
+                          <Badge variant="primary">Active</Badge>
                         )}
                       </td>
                       {isSuperAdmin && (
@@ -431,9 +361,9 @@ export function AdminAssessmentPage() {
                       <td style={styles.td}>{a.pointsEarned}/{a.totalPoints} ({a.scorePercent}%)</td>
                       <td style={styles.td}>
                         {a.passed ? (
-                          <span style={styles.badge}>Passed</span>
+                          <Badge variant="success">Passed</Badge>
                         ) : (
-                          <span style={styles.badgeRevoked}>Failed</span>
+                          <Badge variant="danger">Failed</Badge>
                         )}
                       </td>
                       <td style={styles.td}>

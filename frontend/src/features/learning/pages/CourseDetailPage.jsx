@@ -2,9 +2,10 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { getAssetUrl } from '../../../api/client.js'
 import { useAuth } from '../../iam/hooks/useAuth.js'
-import { getCourseDetails, checkEnrollment, getResumePoint, recordProgress } from '../../../api/learning/courses.js'
+import { useCourseDetail, useCheckEnrollment, useResumePoint, useRecordProgress } from '../../../lib/hooks/use-courses.js'
 import { EditorJsReadOnly } from '../../app/components/admin/EditorJsReadOnly.jsx'
 import { ModuleQuizPanel } from '../../assessment/components/ModuleQuizPanel.jsx'
+import { SafeHtml } from '../../../shared/components/SafeHtml.jsx'
 
 const styles = {
   layout: {
@@ -162,9 +163,9 @@ const styles = {
     transition: 'background 0.2s, box-shadow 0.2s, border-color 0.2s',
   },
   blockWrapperFocused: {
-    background: 'rgba(241, 134, 37, 0.06)',
-    borderLeft: '4px solid var(--slogbaa-orange)',
-    boxShadow: '0 2px 12px rgba(241, 134, 37, 0.12)',
+    background: 'rgba(37, 99, 235, 0.06)',
+    borderLeft: '4px solid var(--slogbaa-blue)',
+    boxShadow: '0 2px 12px rgba(37, 99, 235, 0.12)',
   },
   blockTitle: {
     margin: '0 0 0.5rem',
@@ -207,7 +208,7 @@ const styles = {
     background: 'var(--slogbaa-surface)',
     border: '1px solid var(--slogbaa-border)',
     borderRadius: 10,
-    borderLeft: '4px solid var(--slogbaa-orange)',
+    borderLeft: '4px solid var(--slogbaa-blue)',
   },
   loading: {
     textAlign: 'center',
@@ -296,7 +297,7 @@ function ContentBlockRenderer({ block }) {
         {isEditorJs ? (
           <EditorJsReadOnly data={richText} style={styles.blockContentHtml} />
         ) : (
-          <div style={styles.blockContentHtml} dangerouslySetInnerHTML={{ __html: richText }} />
+          <SafeHtml html={richText} style={styles.blockContentHtml} />
         )}
       </div>
     )
@@ -336,10 +337,10 @@ function ContentBlockRenderer({ block }) {
       <div style={styles.block}>
         <div style={styles.activityBlock}>
           {activityInstructions && (
-            <div style={styles.blockContentHtml} dangerouslySetInnerHTML={{ __html: activityInstructions }} />
+            <SafeHtml html={activityInstructions} style={styles.blockContentHtml} />
           )}
           {activityResources && (
-            <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--slogbaa-border)' }} dangerouslySetInnerHTML={{ __html: activityResources }} />
+            <SafeHtml html={activityResources} style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--slogbaa-border)' }} />
           )}
         </div>
       </div>
@@ -352,39 +353,29 @@ export function CourseDetailPage() {
   const { courseId, moduleId } = useParams()
   const navigate = useNavigate()
   const { token } = useAuth()
-  const [course, setCourse] = useState(null)
-  const [enrolled, setEnrolled] = useState(false)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
   const resumeCheckedRef = useRef(false)
 
-  useEffect(() => {
-    if (!token || !courseId) return
-    setLoading(true)
-    setError(null)
-    Promise.all([getCourseDetails(token, courseId), checkEnrollment(token, courseId)])
-      .then(([courseData, isEnrolled]) => {
-        setCourse(courseData)
-        setEnrolled(isEnrolled)
-      })
-      .catch((err) => setError(err?.message ?? 'Failed to load course.'))
-      .finally(() => setLoading(false))
-  }, [token, courseId])
+  // TanStack Query — cached, deduplicated, auto-retry
+  const { data: course = null, isLoading: courseLoading, error: courseError } = useCourseDetail(courseId)
+  const { data: enrolled = false, isLoading: enrolledLoading } = useCheckEnrollment(courseId)
+  const { data: resumePoint } = useResumePoint(courseId, { enabled: enrolled && !moduleId && !resumeCheckedRef.current })
+
+  const loading = courseLoading || enrolledLoading
+  const error = courseError?.message ?? null
 
   // Resume: when no module in URL and enrolled, redirect to last viewed module
   useEffect(() => {
-    if (!token || !courseId || !enrolled || !course || resumeCheckedRef.current) return
-    if (moduleId) {
-      resumeCheckedRef.current = true
+    if (!enrolled || !course || resumeCheckedRef.current || moduleId) {
+      if (moduleId) resumeCheckedRef.current = true
       return
     }
-    resumeCheckedRef.current = true
-    getResumePoint(token, courseId).then((resume) => {
-      if (resume?.lastModuleId && course.modules?.some((m) => m.id === resume.lastModuleId)) {
-        navigate(`/dashboard/courses/${courseId}/modules/${resume.lastModuleId}`, { replace: true })
-      }
-    })
-  }, [token, courseId, enrolled, course, moduleId, navigate])
+    if (resumePoint?.lastModuleId && course.modules?.some((m) => m.id === resumePoint.lastModuleId)) {
+      resumeCheckedRef.current = true
+      navigate(`/dashboard/courses/${courseId}/modules/${resumePoint.lastModuleId}`, { replace: true })
+    } else {
+      resumeCheckedRef.current = true
+    }
+  }, [enrolled, course, resumePoint, moduleId, courseId, navigate])
 
   const selectedModule = course?.modules?.find((m) => m.id === moduleId) ?? course?.modules?.[0]
   const maxBlockOrderRecordedRef = useRef(-1)
@@ -413,16 +404,18 @@ export function CourseDetailPage() {
     setNotesReadThrough(false)
   }, [selectedModule?.id])
 
+  const progressMutation = useRecordProgress()
+
   // Record progress only when advancing; mark notes as read-through when last block is viewed
   const handleBlockViewed = useCallback(
     (modId, blockId, blockOrder) => {
-      if (!token || !courseId || !modId || !blockId || blockOrder == null) return
+      if (!courseId || !modId || !blockId || blockOrder == null) return
       if (blockOrder <= maxBlockOrderRecordedRef.current) return
       maxBlockOrderRecordedRef.current = blockOrder
-      recordProgress(token, courseId, modId, blockId)
+      progressMutation.mutate({ courseId, moduleId: modId, contentBlockId: blockId })
       if (blockOrder >= maxBlockOrderRef.current) setNotesReadThrough(true)
     },
-    [token, courseId]
+    [courseId, progressMutation]
   )
 
   const handleStartQuiz = useCallback(() => setNotesVisible(false), [])
@@ -445,11 +438,11 @@ export function CourseDetailPage() {
 
   // Record progress for modules with no content blocks (use module id as block id)
   useEffect(() => {
-    if (!token || !courseId || !selectedModule || !enrolled) return
+    if (!courseId || !selectedModule || !enrolled) return
     const blocks = selectedModule.contentBlocks
     if (blocks && blocks.length > 0) return // blocks case handled by BlockWithProgressObserver
-    recordProgress(token, courseId, selectedModule.id, selectedModule.id)
-  }, [token, courseId, selectedModule?.id, enrolled])
+    progressMutation.mutate({ courseId, moduleId: selectedModule.id, contentBlockId: selectedModule.id })
+  }, [courseId, selectedModule?.id, enrolled, progressMutation])
 
   if (loading) {
     return (
@@ -491,7 +484,7 @@ export function CourseDetailPage() {
               style={{
                 display: 'inline-block',
                 padding: '0.5rem 1.25rem',
-                background: 'var(--slogbaa-orange)',
+                background: 'var(--slogbaa-blue)',
                 color: '#fff',
                 borderRadius: 8,
                 textDecoration: 'none',
@@ -512,7 +505,7 @@ export function CourseDetailPage() {
         <div style={styles.topBar}>
           <header style={styles.header}>
           {course.imageUrl ? (
-            <img src={getAssetUrl(course.imageUrl)} alt="" style={styles.courseImage} onError={(e) => { e.target.style.display = 'none' }} />
+            <img src={getAssetUrl(course.imageUrl)} alt={`Course: ${course.title}`} style={styles.courseImage} onError={(e) => { e.target.style.display = 'none' }} />
           ) : (
             <div style={styles.courseImagePlaceholder}>📚</div>
           )}
@@ -535,7 +528,7 @@ export function CourseDetailPage() {
                     }}
                   >
                     {m.imageUrl ? (
-                      <img src={getAssetUrl(m.imageUrl)} alt="" style={styles.moduleLinkThumb} loading="lazy" onError={(e) => { e.target.style.display = 'none' }} />
+                      <img src={getAssetUrl(m.imageUrl)} alt={`Module: ${m.title}`} style={styles.moduleLinkThumb} loading="lazy" onError={(e) => { e.target.style.display = 'none' }} />
                     ) : (
                       <div style={{ ...styles.moduleLinkThumb, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem' }}>📦</div>
                     )}

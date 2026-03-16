@@ -4,9 +4,8 @@ import { TraineeNav } from '../components/trainee/TraineeNav.jsx'
 import { ProfileViewModal } from '../components/trainee/ProfileViewModal.jsx'
 import { EditProfileModal } from '../components/trainee/EditProfileModal.jsx'
 import { useAuth } from '../../iam/hooks/useAuth.js'
-import { getTraineeProfile, updateTraineeProfile } from '../../../api/trainee.js'
-import { getTraineeSettings, updateTraineeSettings } from '../../../api/traineeSettings.js'
-import { getEnrolledCourses } from '../../../api/learning/courses.js'
+import { useTraineeProfile, useTraineeSettings, useUpdateTraineeProfile, useUpdateTraineeSettings } from '../../../lib/hooks/use-trainee.js'
+import { useEnrolledCourses } from '../../../lib/hooks/use-courses.js'
 
 const backLinkStyle = {
   display: 'inline-flex',
@@ -24,43 +23,25 @@ export function TraineeLayout() {
   const location = useLocation()
   const isDashboardIndex = location.pathname === '/dashboard' || location.pathname === '/dashboard/'
   const isCourseDetail = /^\/dashboard\/courses\/[^/]+/.test(location.pathname)
+
   const [profileModalOpen, setProfileModalOpen] = useState(false)
-  const [profileData, setProfileData] = useState(null)
-  const [profileEnrolledCourses, setProfileEnrolledCourses] = useState([])
-  const [profileLoading, setProfileLoading] = useState(false)
-  const [profileError, setProfileError] = useState(null)
   const [editProfileOpen, setEditProfileOpen] = useState(false)
-  const [profileSaving, setProfileSaving] = useState(false)
   const [profileSaveError, setProfileSaveError] = useState(null)
-  const [traineeSettings, setTraineeSettings] = useState(null)
+
+  // TanStack Query — shared cache, no duplicated fetches
+  const { data: profileData, isLoading: profileLoading, error: profileError, refetch: refetchProfile } = useTraineeProfile()
+  const { data: traineeSettings } = useTraineeSettings()
+  const { data: enrolledCourses = [] } = useEnrolledCourses()
+  const updateProfile = useUpdateTraineeProfile()
+  const updateSettings = useUpdateTraineeSettings()
 
   const handleOpenProfile = useCallback(() => {
     setProfileModalOpen(true)
-    setProfileError(null)
-    setProfileData(null)
-    setProfileEnrolledCourses([])
-    setTraineeSettings(null)
-    if (!token) return
-    setProfileLoading(true)
-    Promise.all([
-      getTraineeProfile(token),
-      getEnrolledCourses(token),
-      getTraineeSettings(token).catch(() => ({ certificateEmailOptIn: false })),
-    ])
-      .then(([data, enrolled, settings]) => {
-        setProfileData(data)
-        setProfileEnrolledCourses(Array.isArray(enrolled) ? enrolled : [])
-        setTraineeSettings(settings)
-      })
-      .catch((err) => setProfileError(err?.message ?? 'Failed to load profile.'))
-      .finally(() => setProfileLoading(false))
-  }, [token])
+    refetchProfile()
+  }, [refetchProfile])
 
   const handleCloseProfile = useCallback(() => {
     setProfileModalOpen(false)
-    setProfileData(null)
-    setProfileEnrolledCourses([])
-    setProfileError(null)
   }, [])
 
   const handleEditProfile = useCallback(() => {
@@ -77,28 +58,21 @@ export function TraineeLayout() {
     async (payload) => {
       if (!token) return
       setProfileSaveError(null)
-      setProfileSaving(true)
       try {
         const { certificateEmailOptIn, ...profilePayload } = payload
         await Promise.all([
-          updateTraineeProfile(token, profilePayload),
-          updateTraineeSettings(token, { certificateEmailOptIn: !!certificateEmailOptIn }),
+          updateProfile.mutateAsync(profilePayload),
+          updateSettings.mutateAsync({ certificateEmailOptIn: !!certificateEmailOptIn }),
         ])
         setEditProfileOpen(false)
-        const [updated, settings] = await Promise.all([
-          getTraineeProfile(token),
-          getTraineeSettings(token).catch(() => ({ certificateEmailOptIn: false })),
-        ])
-        setProfileData(updated)
-        setTraineeSettings(settings)
       } catch (err) {
         setProfileSaveError(err?.message ?? 'Failed to update profile.')
-      } finally {
-        setProfileSaving(false)
       }
     },
-    [token]
+    [token, updateProfile, updateSettings]
   )
+
+  const profileSaving = updateProfile.isPending || updateSettings.isPending
 
   const layoutWrapperStyle = {
     display: 'flex',
@@ -121,7 +95,7 @@ export function TraineeLayout() {
       {profileModalOpen && profileData && (
         <ProfileViewModal
           profile={profileData}
-          enrolledCourses={profileEnrolledCourses}
+          enrolledCourses={enrolledCourses}
           onClose={handleCloseProfile}
           onEdit={handleEditProfile}
         />
@@ -175,17 +149,10 @@ export function TraineeLayout() {
               border: '1px solid var(--slogbaa-border)',
             }}
           >
-            <p
-              style={{
-                margin: '0 0 0.5rem',
-                fontSize: '0.875rem',
-                fontWeight: 600,
-                color: 'var(--slogbaa-text)',
-              }}
-            >
+            <p style={{ margin: '0 0 0.5rem', fontSize: '0.875rem', fontWeight: 600, color: 'var(--slogbaa-text)' }}>
               Couldn't load profile
             </p>
-            <p style={{ margin: 0, fontSize: '0.9375rem', color: 'var(--slogbaa-error)' }}>{profileError}</p>
+            <p style={{ margin: 0, fontSize: '0.9375rem', color: 'var(--slogbaa-error)' }}>{profileError.message || 'Failed to load profile.'}</p>
             <button
               type="button"
               onClick={handleCloseProfile}

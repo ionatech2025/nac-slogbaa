@@ -1,4 +1,4 @@
-import { FontAwesomeIcon, icons } from '../../../../shared/icons.js'
+import { FontAwesomeIcon, icons } from '../../../../shared/icons.jsx'
 import { Modal } from '../../../../shared/components/Modal.jsx'
 import { getAssetUrl } from '../../../../api/client.js'
 
@@ -22,7 +22,7 @@ const styles = {
     width: 80,
     height: 80,
     borderRadius: '50%',
-    background: 'var(--slogbaa-orange)',
+    background: 'var(--slogbaa-blue)',
     color: '#fff',
     display: 'flex',
     alignItems: 'center',
@@ -94,7 +94,7 @@ const styles = {
     alignItems: 'center',
     gap: '0.4rem',
     padding: '0.5rem 1.25rem',
-    background: 'var(--slogbaa-orange)',
+    background: 'var(--slogbaa-blue)',
     color: '#fff',
     border: 'none',
     borderRadius: 8,
@@ -137,8 +137,8 @@ const styles = {
   learningSectionWrap: {
     marginBottom: '1.25rem',
     padding: '1rem 1.25rem',
-    background: 'rgba(241, 134, 37, 0.08)',
-    border: '1px solid rgba(241, 134, 37, 0.35)',
+    background: 'rgba(37, 99, 235, 0.08)',
+    border: '1px solid rgba(37, 99, 235, 0.35)',
     borderRadius: 12,
   },
   learningStatCard: {
@@ -155,7 +155,7 @@ const styles = {
     margin: 0,
     fontSize: '1.5rem',
     fontWeight: 700,
-    color: 'var(--slogbaa-orange)',
+    color: 'var(--slogbaa-blue)',
     lineHeight: 1.2,
   },
   learningStatLabel: {
@@ -204,7 +204,7 @@ export function ProfileViewModal({ profile, onClose, onEdit, showEditButton = tr
         {hasImage ? (
           <img
             src={profile.profileImageUrl}
-            alt=""
+            alt={`Profile photo: ${profile.firstName ?? ''} ${profile.lastName ?? ''}`}
             style={styles.avatar}
           />
         ) : (
@@ -280,7 +280,7 @@ export function ProfileViewModal({ profile, onClose, onEdit, showEditButton = tr
                   {course.imageUrl ? (
                     <img
                       src={getAssetUrl(course.imageUrl)}
-                      alt=""
+                      alt={`Course: ${course.title ?? ''}`}
                       style={styles.courseThumb}
                     />
                   ) : (

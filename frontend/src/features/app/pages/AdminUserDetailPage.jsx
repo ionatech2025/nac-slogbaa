@@ -1,19 +1,19 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState } from 'react'
 import { Link, useParams, useNavigate, useOutletContext } from 'react-router-dom'
-import { FontAwesomeIcon, icons } from '../../../shared/icons.js'
-import { getStaffProfile, setStaffPassword, setStaffActive, deleteStaff, updateStaffProfile } from '../../../api/admin/staff.js'
+import { FontAwesomeIcon, icons } from '../../../shared/icons.jsx'
 import {
-  getTraineeProfile,
-  getTraineeEnrolledCourses,
-  setTraineePassword,
-  deleteTrainee,
-  updateTraineeProfile,
-} from '../../../api/admin/trainees.js'
-import { getAdminCertificates } from '../../../api/admin/certificates.js'
+  useStaffProfile, useTraineeAdminProfile, useTraineeEnrolledCourses, useTraineeCertificates,
+  useSetStaffPassword, useSetTraineePassword, useSetStaffActive,
+  useDeleteStaff, useDeleteTrainee, useUpdateStaffProfile, useUpdateTraineeAdminProfile,
+} from '../../../lib/hooks/use-admin-users.js'
 import { getAssetUrl } from '../../../api/client.js'
 import { Modal } from '../../../shared/components/Modal.jsx'
 import { ConfirmModal } from '../../../shared/components/ConfirmModal.jsx'
 import { LoadingButton } from '../../../shared/components/LoadingButton.jsx'
+import { Avatar } from '../../../shared/components/Avatar.jsx'
+import { Badge } from '../../../shared/components/Badge.jsx'
+import { Input } from '../../../shared/components/Input.jsx'
+import { useToast } from '../../../shared/hooks/useToast.js'
 
 const styles = {
   page: {
@@ -386,174 +386,100 @@ function roleLabel(role) {
 export function AdminUserDetailPage() {
   const { userType, userId } = useParams()
   const navigate = useNavigate()
-  const { token, isSuperAdmin, currentUserId, refreshOverview } = useOutletContext() || {}
-  const [user, setUser] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const { isSuperAdmin, currentUserId, refreshOverview } = useOutletContext() || {}
+
+  const isStaff = userType === 'staff'
+  const isTrainee = userType === 'trainee'
+
+  // TanStack Query — one hook per data concern, cached + deduplicated
+  const { data: staffUser, isLoading: staffLoading, error: staffError } = useStaffProfile(isStaff ? userId : null)
+  const { data: traineeUser, isLoading: traineeLoading, error: traineeError } = useTraineeAdminProfile(isTrainee ? userId : null)
+  const { data: enrolledCourses = [], isLoading: enrolledLoading } = useTraineeEnrolledCourses(isTrainee ? userId : null)
+  const { data: certificates = [], isLoading: certsLoading } = useTraineeCertificates(isTrainee ? userId : null)
+
+  const setStaffPasswordMutation = useSetStaffPassword()
+  const setTraineePasswordMutation = useSetTraineePassword()
+  const setStaffActiveMutation = useSetStaffActive()
+  const deleteStaffMutation = useDeleteStaff()
+  const deleteTraineeMutation = useDeleteTrainee()
+  const updateStaffMutation = useUpdateStaffProfile()
+  const updateTraineeMutation = useUpdateTraineeAdminProfile()
+
+  const user = isStaff ? staffUser : traineeUser
+  const loading = isStaff ? staffLoading : traineeLoading
+  const error = (isStaff ? staffError : traineeError)?.message ?? null
+  const traineeDataLoading = enrolledLoading || certsLoading
+  const actionLoading = setStaffPasswordMutation.isPending || setTraineePasswordMutation.isPending || setStaffActiveMutation.isPending || deleteStaffMutation.isPending || deleteTraineeMutation.isPending || updateStaffMutation.isPending || updateTraineeMutation.isPending
+
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [passwordError, setPasswordError] = useState(null)
   const [passwordSuccess, setPasswordSuccess] = useState(false)
-  const [actionLoading, setActionLoading] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
   const [showStaffEditModal, setShowStaffEditModal] = useState(false)
-  const [enrolledCourses, setEnrolledCourses] = useState([])
-  const [certificates, setCertificates] = useState([])
-  const [traineeDataLoading, setTraineeDataLoading] = useState(false)
-
-  const isStaff = userType === 'staff'
-  const isTrainee = userType === 'trainee'
-
-  const loadUser = useCallback(async () => {
-    if (!token || !userId) return
-    setLoading(true)
-    setError(null)
-    try {
-      if (isStaff) {
-        const data = await getStaffProfile(token, userId)
-        setUser({ ...data, userType: 'staff' })
-      } else if (isTrainee) {
-        const data = await getTraineeProfile(token, userId)
-        const fullName = [data.firstName, data.lastName].filter(Boolean).join(' ').trim() || data.email
-        setUser({ ...data, fullName, userType: 'trainee' })
-      } else {
-        setError('Invalid user type.')
-      }
-    } catch (e) {
-      setError(e?.message ?? 'Failed to load user.')
-    } finally {
-      setLoading(false)
-    }
-  }, [token, userId, isStaff, isTrainee])
-
-  useEffect(() => {
-    if (!isTrainee || !token || !userId) return
-    let cancelled = false
-    setTraineeDataLoading(true)
-    Promise.all([
-      getTraineeEnrolledCourses(token, userId),
-      getAdminCertificates(token).catch(() => []),
-    ])
-      .then(([courses, allCerts]) => {
-        if (cancelled) return
-        setEnrolledCourses(Array.isArray(courses) ? courses : [])
-        const traineeCerts = Array.isArray(allCerts)
-          ? allCerts.filter((c) => c.traineeId === userId && !c.revoked)
-          : []
-        setCertificates(traineeCerts)
-      })
-      .finally(() => {
-        if (!cancelled) setTraineeDataLoading(false)
-      })
-    return () => { cancelled = true }
-  }, [isTrainee, token, userId])
-
-  useEffect(() => {
-    loadUser()
-  }, [loadUser])
 
   const handleUpdatePassword = async (e) => {
     e.preventDefault()
     setPasswordError(null)
     setPasswordSuccess(false)
-    if (newPassword.length < 8) {
-      setPasswordError('Minimum 8 characters required.')
-      return
-    }
-    if (newPassword !== confirmPassword) {
-      setPasswordError('Passwords do not match.')
-      return
-    }
-    setActionLoading(true)
+    if (newPassword.length < 8) { setPasswordError('Minimum 8 characters required.'); return }
+    if (newPassword !== confirmPassword) { setPasswordError('Passwords do not match.'); return }
     try {
-      if (isStaff) await setStaffPassword(token, userId, newPassword)
-      else await setTraineePassword(token, userId, newPassword)
+      if (isStaff) await setStaffPasswordMutation.mutateAsync({ staffId: userId, newPassword })
+      else await setTraineePasswordMutation.mutateAsync({ traineeId: userId, newPassword })
       setPasswordSuccess(true)
       setNewPassword('')
       setConfirmPassword('')
     } catch (e) {
       setPasswordError(e?.message ?? 'Failed to update password.')
-    } finally {
-      setActionLoading(false)
     }
   }
 
+  const toast = useToast()
+
   const handleSetActive = async (active) => {
     if (!isStaff) return
-    setActionLoading(true)
     try {
-      await setStaffActive(token, userId, active)
-      setUser((prev) => (prev ? { ...prev, active } : null))
+      await setStaffActiveMutation.mutateAsync({ staffId: userId, active })
+      toast.success(active ? 'Account activated.' : 'Account deactivated.')
     } catch (e) {
-      setError(e?.message ?? 'Failed to update status.')
-    } finally {
-      setActionLoading(false)
+      toast.error(e?.message ?? 'Failed to update status.')
     }
   }
 
   const handleDelete = async () => {
     setShowDeleteConfirm(false)
-    setActionLoading(true)
     try {
-      if (isStaff) {
-        await deleteStaff(token, userId)
-        await refreshOverview?.()
-      } else {
-        await deleteTrainee(token, userId)
-        await refreshOverview?.()
-      }
+      if (isStaff) await deleteStaffMutation.mutateAsync(userId)
+      else await deleteTraineeMutation.mutateAsync(userId)
+      toast.success('User deleted.')
       navigate('/admin/overview')
     } catch (e) {
-      setError(e?.message ?? 'Failed to delete user.')
-    } finally {
-      setActionLoading(false)
+      toast.error(e?.message ?? 'Failed to delete user.')
     }
   }
 
   const handleEditSave = async (payload) => {
     if (!isTrainee) return
-    setActionLoading(true)
     try {
-      await updateTraineeProfile(token, userId, payload)
-      setUser((prev) => {
-        if (!prev) return prev
-        return {
-          ...prev,
-          firstName: payload.firstName ?? prev.firstName,
-          lastName: payload.lastName ?? prev.lastName,
-          gender: payload.gender ?? prev.gender,
-          districtName: payload.districtName ?? prev.districtName,
-          region: payload.region ?? prev.region,
-          category: payload.category ?? prev.category,
-          street: payload.street ?? prev.street,
-          city: payload.city ?? prev.city,
-          postalCode: payload.postalCode ?? prev.postalCode,
-          phoneCountryCode: payload.phoneCountryCode ?? prev.phoneCountryCode,
-          phoneNationalNumber: payload.phoneNationalNumber ?? prev.phoneNationalNumber,
-          fullName: [payload.firstName, payload.lastName].filter(Boolean).join(' ').trim() || prev.fullName,
-        }
-      })
+      await updateTraineeMutation.mutateAsync({ traineeId: userId, ...payload })
       setShowEditModal(false)
+      toast.success('Profile updated.')
     } catch (e) {
-      setError(e?.message ?? 'Failed to update profile.')
-    } finally {
-      setActionLoading(false)
+      toast.error(e?.message ?? 'Failed to update profile.')
     }
   }
 
   const handleStaffEditSave = async (payload) => {
     if (!isStaff) return
-    setActionLoading(true)
     try {
-      await updateStaffProfile(token, userId, payload)
-      setUser((prev) => (prev ? { ...prev, fullName: payload.fullName, email: payload.email } : null))
+      await updateStaffMutation.mutateAsync({ staffId: userId, ...payload })
       setShowStaffEditModal(false)
+      toast.success('Profile updated.')
     } catch (e) {
-      setError(e?.message ?? 'Failed to update profile.')
-    } finally {
-      setActionLoading(false)
+      toast.error(e?.message ?? 'Failed to update profile.')
     }
   }
 
@@ -612,13 +538,7 @@ export function AdminUserDetailPage() {
 
       <header style={styles.header}>
         <div style={styles.headerLeft}>
-          {user.profileImageUrl ? (
-            <img src={getAssetUrl(user.profileImageUrl)} alt="" style={styles.avatar} />
-          ) : (
-            <div style={styles.avatarPlaceholder}>
-              <FontAwesomeIcon icon={icons.users} />
-            </div>
-          )}
+          <Avatar src={user.profileImageUrl ? getAssetUrl(user.profileImageUrl) : null} name={displayName} size="lg" />
           <div style={styles.nameBlock}>
             <h1 style={styles.userName}>{displayName}</h1>
             <div style={styles.roleStatus}>
@@ -663,9 +583,10 @@ export function AdminUserDetailPage() {
           )}
           <button
             type="button"
-            style={{ ...styles.actionBtn, ...styles.actionBtnEmail }}
-            onClick={() => {}}
-            title="Coming soon"
+            style={{ ...styles.actionBtn, ...styles.actionBtnEmail, opacity: 0.5, cursor: 'not-allowed' }}
+            disabled
+            title="Welcome email will be available once SMTP is configured"
+            aria-label="Send welcome email (not yet available)"
           >
             <FontAwesomeIcon icon={icons.envelope} /> Send Welcome Email
           </button>
@@ -741,7 +662,7 @@ export function AdminUserDetailPage() {
                 )}
                 <label style={styles.label}>Role</label>
                 <p style={styles.value}>
-                  <span style={styles.roleBadge}>Trainee</span>
+                  <Badge variant="success">Trainee</Badge>
                 </p>
               </>
             ) : (
@@ -760,7 +681,7 @@ export function AdminUserDetailPage() {
                 <p style={styles.value}>—</p>
                 <label style={styles.label}>Roles</label>
                 <p style={styles.value}>
-                  <span style={styles.roleBadge}>{roleDisplay}</span>
+                  <Badge variant="success">{roleDisplay}</Badge>
                 </p>
               </>
             )}
@@ -771,42 +692,36 @@ export function AdminUserDetailPage() {
               <h2 style={styles.cardTitle}>Reset Password</h2>
               <form onSubmit={handleUpdatePassword}>
                 <label style={styles.label}>New Password *</label>
-                <div style={styles.inputWrap}>
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    style={styles.input}
-                    placeholder="New password"
-                    autoComplete="new-password"
-                  />
-                  <button
-                    type="button"
-                    style={styles.toggleVisibility}
-                    onClick={() => setShowPassword((v) => !v)}
-                    aria-label="Toggle visibility"
-                  >
-                    <FontAwesomeIcon icon={showPassword ? icons.eyeSlash : icons.eye} />
-                  </button>
-                </div>
+                <Input
+                  type={showPassword ? 'text' : 'password'}
+                  name="newPassword"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="New password"
+                  autoComplete="new-password"
+                  hasError={!!passwordError}
+                />
                 <p style={styles.hint}>Minimum 8 characters</p>
                 <label style={styles.label}>Confirm Password *</label>
-                <div style={styles.inputWrap}>
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    style={styles.input}
-                    placeholder="Confirm new password"
-                    autoComplete="new-password"
-                  />
+                <Input
+                  type={showPassword ? 'text' : 'password'}
+                  name="confirmPassword"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Confirm new password"
+                  autoComplete="new-password"
+                  hasError={!!passwordError}
+                  errorMessage={passwordError}
+                />
+                <div style={{ marginTop: '0.75rem' }}>
                   <button
                     type="button"
-                    style={styles.toggleVisibility}
+                    style={{ ...styles.toggleVisibility, position: 'static', display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.8125rem', color: 'var(--slogbaa-text-muted)', cursor: 'pointer', border: 'none', background: 'none', padding: 0, marginBottom: '0.75rem' }}
                     onClick={() => setShowPassword((v) => !v)}
-                    aria-label="Toggle visibility"
+                    aria-label="Toggle password visibility"
                   >
                     <FontAwesomeIcon icon={showPassword ? icons.eyeSlash : icons.eye} />
+                    {showPassword ? 'Hide password' : 'Show password'}
                   </button>
                 </div>
                 <LoadingButton
@@ -919,13 +834,11 @@ export function AdminUserDetailPage() {
                           </td>
                           <td style={styles.tableTd}>
                             {completed ? (
-                              <span style={styles.certBadge}>
+                              <Badge variant="success">
                                 <FontAwesomeIcon icon={icons.enrolled} /> Completed
-                              </span>
+                              </Badge>
                             ) : (
-                              <span style={{ fontSize: '0.875rem', color: 'var(--slogbaa-text-muted)' }}>
-                                In progress
-                              </span>
+                              <Badge variant="default">In progress</Badge>
                             )}
                           </td>
                         </tr>
@@ -939,7 +852,7 @@ export function AdminUserDetailPage() {
 
           <section>
             <h2 style={styles.sectionTitle}>
-              <FontAwesomeIcon icon={icons.certificate} style={{ color: 'var(--slogbaa-orange)' }} />
+              <FontAwesomeIcon icon={icons.certificate} style={{ color: 'var(--slogbaa-blue)' }} />
               Certifications
             </h2>
             <div style={styles.tableCard}>

@@ -11,7 +11,7 @@
  *   - sortValue, onSortChange: controlled sort
  *   - compact: boolean – use compact layout
  */
-import { FontAwesomeIcon, icons } from '../icons.js'
+import { FontAwesomeIcon, icons } from '../icons.jsx'
 
 const styles = {
   bar: {
@@ -39,7 +39,7 @@ const styles = {
     width: '100%',
     padding: '0.5rem 0.75rem 0.5rem 2.25rem',
     border: '1px solid var(--slogbaa-border)',
-    borderRadius: 8,
+    borderRadius: 10,
     fontSize: '0.9375rem',
     background: 'var(--slogbaa-surface)',
     color: 'var(--slogbaa-text)',
@@ -47,7 +47,7 @@ const styles = {
   select: {
     padding: '0.5rem 2rem 0.5rem 0.75rem',
     border: '1px solid var(--slogbaa-border)',
-    borderRadius: 8,
+    borderRadius: 10,
     fontSize: '0.9375rem',
     background: 'var(--slogbaa-surface)',
     color: 'var(--slogbaa-text)',

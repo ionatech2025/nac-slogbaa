@@ -36,7 +36,7 @@ const styles = {
     borderRadius: 10,
     padding: '0.55rem 0.9rem',
     border: variant === 'ghost' ? `1px solid var(--slogbaa-border)` : '1px solid transparent',
-    background: variant === 'primary' ? 'var(--slogbaa-orange)' : 'transparent',
+    background: variant === 'primary' ? 'var(--slogbaa-blue)' : 'transparent',
     color: variant === 'primary' ? '#fff' : 'var(--slogbaa-text)',
     cursor: disabled ? 'not-allowed' : 'pointer',
     opacity: disabled ? 0.65 : 1,

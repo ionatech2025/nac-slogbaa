@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Loader2 } from 'lucide-react'
+import { icons } from '../icons.jsx'
 
 const SHIMMER_DELAY_MS = 500
 
@@ -68,7 +68,7 @@ export function LoadingButton({
         {...rest}
       >
         {loading ? (
-          <Loader2 size={20} className="loading-button-spin" style={{ flexShrink: 0 }} />
+          <icons.loader size={20} className="loading-button-spin" style={{ flexShrink: 0 }} />
         ) : (
           children
         )}

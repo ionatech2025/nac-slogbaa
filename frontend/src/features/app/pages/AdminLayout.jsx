@@ -1,16 +1,18 @@
-import { useState, useEffect, useCallback } from 'react'
-import { Navigate, NavLink, Outlet } from 'react-router-dom'
-import { FontAwesomeIcon, icons } from '../../../shared/icons.js'
+import { useState, useEffect } from 'react'
+import { Navigate, NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { FontAwesomeIcon, icons } from '../../../shared/icons.jsx'
 import { useAuth } from '../../iam/hooks/useAuth.js'
-import { getDashboardOverview, getCourseCount } from '../../../api/admin/dashboard.js'
+import { useAdminOverview, useAdminCourseCount } from '../../../lib/hooks/use-admin.js'
+import { useDeleteStaff, useDeleteTrainee } from '../../../lib/hooks/use-admin-users.js'
 import { changePassword as changePasswordApi } from '../../../api/admin/me.js'
-import { createStaff as createStaffApi, deleteStaff as deleteStaffApi } from '../../../api/admin/staff.js'
-import { deleteTrainee as deleteTraineeApi } from '../../../api/admin/trainees.js'
+import { createStaff as createStaffApi } from '../../../api/admin/staff.js'
 import { useTheme } from '../../../contexts/ThemeContext.jsx'
 import { AdminNav } from '../components/admin/AdminNav.jsx'
 import { CreateStaffModal } from '../components/admin/CreateStaffModal.jsx'
 import { UpdateCoursesModal } from '../components/admin/UpdateCoursesModal.jsx'
 import { ChangePasswordModal } from '../components/admin/ChangePasswordModal.jsx'
+import { CommandPalette } from '../../../shared/components/CommandPalette.jsx'
+import { useToast } from '../../../shared/hooks/useToast.js'
 
 const MODULES_SUPER_ADMIN = [
   { path: 'homepage', label: 'Homepage', icon: icons.home },
@@ -31,20 +33,8 @@ const MODULES_ADMIN = [
 ]
 
 const baseStyles = {
-  layout: {
-    height: '100vh',
-    minHeight: '100vh',
-    display: 'flex',
-    flexDirection: 'column',
-    background: 'var(--slogbaa-bg)',
-    overflow: 'hidden',
-  },
-  body: {
-    flex: 1,
-    display: 'flex',
-    minHeight: 0,
-    overflow: 'hidden',
-  },
+  layout: { height: '100vh', minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--slogbaa-bg)', overflow: 'hidden' },
+  body: { flex: 1, display: 'flex', minHeight: 0, overflow: 'hidden' },
   sidebarSection: { padding: '0 0 1rem' },
   sidebarSectionLast: { paddingBottom: 0 },
   sidebarSectionInner: { padding: '0 1rem' },
@@ -53,209 +43,131 @@ const baseStyles = {
 }
 
 const darkSidebarStyles = {
-  sidebar: {
-    width: 260,
-    flexShrink: 0,
-    height: '100%',
-    background: 'var(--slogbaa-dark)',
-    borderRight: '3px solid var(--slogbaa-orange)',
-    display: 'flex',
-    flexDirection: 'column',
-    padding: '1.25rem 0',
-    boxShadow: '2px 0 12px rgba(0,0,0,0.12)',
-    overflowY: 'auto',
-    overflowX: 'hidden',
-  },
-  sidebarLabel: {
-    margin: '0 1rem 0.6rem',
-    fontSize: '0.7rem',
-    fontWeight: 700,
-    textTransform: 'uppercase',
-    letterSpacing: '0.08em',
-    color: 'var(--slogbaa-orange)',
-    borderBottom: '1px solid rgba(241, 134, 37, 0.35)',
-    paddingBottom: '0.5rem',
-  },
-  navLink: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.5rem',
-    padding: '0.6rem 1rem',
-    marginBottom: 2,
-    fontSize: '0.9375rem',
-    color: 'rgba(255,255,255,0.85)',
-    textDecoration: 'none',
-    borderRadius: 6,
-    transition: 'background 0.15s, color 0.15s',
-  },
-  navLinkActive: {
-    background: 'var(--slogbaa-orange)',
-    color: '#fff',
-    fontWeight: 600,
-  },
-  quickActionBtn: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.5rem',
-    width: '100%',
-    padding: '0.6rem 1rem',
-    marginBottom: 2,
-    border: 'none',
-    background: 'transparent',
-    textAlign: 'left',
-    fontSize: '0.9375rem',
-    color: 'rgba(255,255,255,0.85)',
-    cursor: 'pointer',
-    borderRadius: 6,
-    transition: 'background 0.15s, color 0.15s',
-  },
+  sidebar: { width: 260, flexShrink: 0, height: '100%', background: 'var(--slogbaa-dark)', borderRight: '1px solid var(--slogbaa-border)', display: 'flex', flexDirection: 'column', padding: '1.25rem 0', boxShadow: '1px 0 8px rgba(0,0,0,0.08)', overflowY: 'auto', overflowX: 'hidden' },
+  sidebarLabel: { margin: '0 1rem 0.6rem', fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--slogbaa-text-muted)', borderBottom: '1px solid var(--slogbaa-border)', paddingBottom: '0.5rem' },
+  navLink: { display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 1rem', marginBottom: 2, fontSize: '0.9375rem', color: 'rgba(255,255,255,0.75)', textDecoration: 'none', borderRadius: 8, transition: 'background 0.15s, color 0.15s' },
+  navLinkActive: { background: 'var(--slogbaa-blue)', color: '#fff', fontWeight: 600 },
+  quickActionBtn: { display: 'flex', alignItems: 'center', gap: '0.5rem', width: '100%', padding: '0.6rem 1rem', marginBottom: 2, border: 'none', background: 'transparent', textAlign: 'left', fontSize: '0.9375rem', color: 'rgba(255,255,255,0.75)', cursor: 'pointer', borderRadius: 8, transition: 'background 0.15s, color 0.15s' },
 }
 
 const lightSidebarStyles = {
-  sidebar: {
-    ...darkSidebarStyles.sidebar,
-    background: '#ffffff',
-    borderRight: '3px solid var(--slogbaa-orange)',
-    boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
-  },
-  sidebarLabel: {
-    ...darkSidebarStyles.sidebarLabel,
-    borderBottom: '1px solid rgba(241, 134, 37, 0.25)',
-  },
-  navLink: {
-    ...darkSidebarStyles.navLink,
-    color: 'var(--slogbaa-text)',
-  },
-  navLinkActive: {
-    background: 'var(--slogbaa-orange)',
-    color: '#fff',
-    fontWeight: 600,
-  },
-  quickActionBtn: {
-    ...darkSidebarStyles.quickActionBtn,
-    color: 'var(--slogbaa-text)',
-  },
+  sidebar: { ...darkSidebarStyles.sidebar, background: '#ffffff', borderRight: '1px solid var(--slogbaa-border)', boxShadow: '1px 0 4px rgba(0,0,0,0.04)' },
+  sidebarLabel: { ...darkSidebarStyles.sidebarLabel, color: 'var(--slogbaa-text-muted)' },
+  navLink: { ...darkSidebarStyles.navLink, color: 'var(--slogbaa-text)' },
+  navLinkActive: { background: 'var(--slogbaa-blue)', color: '#fff', fontWeight: 600 },
+  quickActionBtn: { ...darkSidebarStyles.quickActionBtn, color: 'var(--slogbaa-text)' },
 }
 
 const styles = {
   ...baseStyles,
-  main: {
-    flex: 1,
-    minWidth: 0,
-    overflowY: 'auto',
-    overflowX: 'hidden',
-    padding: '1.5rem 2rem',
-    maxWidth: 1000,
-    margin: '0 auto',
-    width: '100%',
-    background: 'var(--slogbaa-bg)',
-    borderLeft: '1px solid var(--slogbaa-border)',
-  },
-  greeting: {
-    margin: '0 0 0.5rem',
-    fontSize: '1.5rem',
-    fontWeight: 700,
-    color: 'var(--slogbaa-text)',
-  },
-  greetingDivider: {
-    height: 0,
-    border: 'none',
-    borderBottom: '2px solid var(--slogbaa-orange)',
-    margin: '0 0 1.5rem',
-  },
+  main: { flex: 1, minWidth: 0, overflowY: 'auto', overflowX: 'hidden', padding: '1.5rem 2rem', maxWidth: 1000, margin: '0 auto', width: '100%', background: 'var(--slogbaa-bg)', borderLeft: '1px solid var(--slogbaa-border)' },
+  greeting: { margin: '0 0 0.5rem', fontSize: '1.5rem', fontWeight: 700, color: 'var(--slogbaa-text)' },
+  greetingDivider: { height: 0, border: 'none', borderBottom: '2px solid var(--slogbaa-border)', margin: '0 0 1.5rem' },
 }
 
 export function AdminLayout() {
   const { isAuthenticated, user, token } = useAuth()
-  const [staff, setStaff] = useState([])
-  const [trainees, setTrainees] = useState([])
-  const [courseCount, setCourseCount] = useState(0)
-  const [overviewLoading, setOverviewLoading] = useState(true)
-  const [overviewError, setOverviewError] = useState(null)
+  const navigate = useNavigate()
   const [modal, setModal] = useState(null)
+  const [paletteOpen, setPaletteOpen] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
-  const refreshOverview = useCallback(() => {
-    if (!token) return
-    setOverviewLoading(true)
-    setOverviewError(null)
-    Promise.all([
-      getDashboardOverview(token),
-      getCourseCount(token),
-    ])
-      .then(([result, count]) => {
-        if (result.error) {
-          setOverviewError(result.error)
-          return
-        }
-        setStaff(result.data.staff ?? [])
-        setTrainees(result.data.trainees ?? [])
-        setCourseCount(typeof count === 'number' ? count : 0)
-      })
-      .finally(() => setOverviewLoading(false))
-  }, [token])
+  // TanStack Query — cached, auto-refetch, shared across child routes
+  const { data: overviewData, isLoading: overviewLoading, error: overviewQueryError, refetch: refreshOverview } = useAdminOverview()
+  const { data: courseCount = 0 } = useAdminCourseCount()
+  const deleteStaffMutation = useDeleteStaff()
+  const deleteTraineeMutation = useDeleteTrainee()
 
+  const staff = overviewData?.data?.staff ?? []
+  const trainees = overviewData?.data?.trainees ?? []
+  const overviewError = overviewQueryError?.message ?? overviewData?.error ?? null
+
+  // Ctrl+K / Cmd+K command palette + G-prefix keyboard shortcuts
   useEffect(() => {
-    refreshOverview()
-  }, [refreshOverview])
+    let gPressed = false
+    let gTimer = null
+    const handler = (e) => {
+      const tag = e.target?.tagName
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || e.target?.isContentEditable) return
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault()
+        setPaletteOpen((o) => !o)
+        return
+      }
+      if (e.key === 'g' && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        gPressed = true
+        clearTimeout(gTimer)
+        gTimer = setTimeout(() => { gPressed = false }, 500)
+        return
+      }
+      if (gPressed) {
+        gPressed = false
+        clearTimeout(gTimer)
+        const routes = { o: '/admin/overview', l: '/admin/learning', b: '/admin/library', a: '/admin/assessment', c: '/admin/coursemanagement', r: '/admin/reports' }
+        if (routes[e.key]) { e.preventDefault(); navigate(routes[e.key]) }
+      }
+    }
+    document.addEventListener('keydown', handler)
+    return () => { document.removeEventListener('keydown', handler); clearTimeout(gTimer) }
+  }, [navigate])
 
-  if (!isAuthenticated || !user) {
-    return <Navigate to="/auth/login" replace />
-  }
+  if (!isAuthenticated || !user) return <Navigate to="/auth/login" replace />
 
   const roleUpper = user.role && String(user.role).toUpperCase()
   const isSuperAdmin = roleUpper === 'SUPER_ADMIN'
   const isAdmin = roleUpper === 'ADMIN' || isSuperAdmin
-  if (!isAdmin) {
-    return <Navigate to="/dashboard" replace />
-  }
+  if (!isAdmin) return <Navigate to="/dashboard" replace />
 
   const { theme } = useTheme()
-  const isLight = theme === 'light'
-  const sidebarStyles = isLight ? lightSidebarStyles : darkSidebarStyles
+  const sidebarStyles = theme === 'light' ? lightSidebarStyles : darkSidebarStyles
   const displayName = user?.fullName || user?.email || 'Admin'
   const modules = isSuperAdmin ? MODULES_SUPER_ADMIN : MODULES_ADMIN
 
+  const toast = useToast()
+
   const handleCreateStaff = async (data) => {
-    const created = await createStaffApi(token, data)
-    setStaff((prev) => [
-      ...prev,
-      {
-        id: created.id,
-        fullName: created.fullName,
-        email: created.email,
-        role: created.role,
-      },
-    ])
+    try {
+      await createStaffApi(token, data)
+      refreshOverview()
+      toast.success('Staff member created.')
+    } catch (e) {
+      toast.error(e?.message ?? 'Failed to create staff.')
+      throw e
+    }
   }
 
   const handleChangePassword = async (data) => {
-    await changePasswordApi(token, data)
+    try {
+      await changePasswordApi(token, data)
+      toast.success('Password changed.')
+    } catch (e) {
+      toast.error(e?.message ?? 'Failed to change password.')
+      throw e
+    }
   }
 
   const handleDeleteStaff = async (id) => {
-    await deleteStaffApi(token, id)
-    refreshOverview()
+    try {
+      await deleteStaffMutation.mutateAsync(id)
+      toast.success('Staff member deleted.')
+    } catch (e) {
+      toast.error(e?.message ?? 'Failed to delete staff.')
+    }
   }
 
   const handleDeleteTrainee = async (id) => {
-    await deleteTraineeApi(token, id)
-    setTrainees((prev) => prev.filter((t) => String(t.id) !== String(id)))
-    refreshOverview()
+    try {
+      await deleteTraineeMutation.mutateAsync(id)
+      toast.success('Trainee deleted.')
+    } catch (e) {
+      toast.error(e?.message ?? 'Failed to delete trainee.')
+    }
   }
 
   const outletContext = {
-    staff,
-    trainees,
-    courseCount,
-    overviewLoading,
-    overviewError,
-    handleCreateStaff,
-    handleDeleteStaff,
-    handleDeleteTrainee,
-    refreshOverview,
-    isSuperAdmin,
-    displayName,
-    token,
+    staff, trainees, courseCount, overviewLoading, overviewError,
+    handleCreateStaff, handleDeleteStaff, handleDeleteTrainee, refreshOverview,
+    isSuperAdmin, displayName, token,
     currentUserId: user?.userId ?? null,
     currentUserEmail: user?.email ?? null,
   }
@@ -273,10 +185,7 @@ export function AdminLayout() {
                   key={path}
                   to={`/admin/${path}`}
                   end={path === 'overview'}
-                  style={({ isActive }) => ({
-                    ...sidebarStyles.navLink,
-                    ...(isActive ? sidebarStyles.navLinkActive : {}),
-                  })}
+                  style={({ isActive }) => ({ ...sidebarStyles.navLink, ...(isActive ? sidebarStyles.navLinkActive : {}) })}
                 >
                   {icon && <FontAwesomeIcon icon={icon} style={styles.navLinkIcon} />}
                   {label}
@@ -285,61 +194,108 @@ export function AdminLayout() {
             </div>
           </div>
 
+          <div style={{ padding: '0 1rem 1rem' }}>
+            <button
+              type="button"
+              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', width: '100%', padding: '0.5rem 0.75rem', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 8, background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.5)', fontSize: '0.8125rem', cursor: 'pointer', textAlign: 'left' }}
+              onClick={() => setPaletteOpen(true)}
+              aria-label="Open command palette"
+            >
+              <span style={{ flex: 1 }}>Search commands…</span>
+              <kbd style={{ fontSize: '0.6875rem', padding: '0.1rem 0.35rem', borderRadius: 4, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.08)', fontFamily: 'ui-monospace, monospace' }}>⌘K</kbd>
+            </button>
+          </div>
+
           <div style={{ ...styles.sidebarSection, ...styles.sidebarSectionLast }}>
             <p style={sidebarStyles.sidebarLabel}>Quick Actions</p>
             <div style={styles.sidebarSectionInner}>
               {isSuperAdmin && (
                 <>
-                  <button
-                    type="button"
-                    style={sidebarStyles.quickActionBtn}
-                    onClick={() => setModal('updateCourses')}
-                  >
-                    <FontAwesomeIcon icon={icons.updateCourses} style={styles.quickActionIcon} />
-                    Update Courses
+                  <button type="button" style={sidebarStyles.quickActionBtn} onClick={() => setModal('updateCourses')}>
+                    <FontAwesomeIcon icon={icons.updateCourses} style={styles.quickActionIcon} /> Update Courses
                   </button>
-                  <button
-                    type="button"
-                    style={sidebarStyles.quickActionBtn}
-                    onClick={() => setModal('createStaff')}
-                  >
-                    <FontAwesomeIcon icon={icons.createStaff} style={styles.quickActionIcon} />
-                    Create Staff
+                  <button type="button" style={sidebarStyles.quickActionBtn} onClick={() => setModal('createStaff')}>
+                    <FontAwesomeIcon icon={icons.createStaff} style={styles.quickActionIcon} /> Create Staff
                   </button>
                 </>
               )}
-              <button
-                type="button"
-                style={sidebarStyles.quickActionBtn}
-                onClick={() => setModal('changePassword')}
-              >
-                <FontAwesomeIcon icon={icons.changePassword} style={styles.quickActionIcon} />
-                Change Password
+              <button type="button" style={sidebarStyles.quickActionBtn} onClick={() => setModal('changePassword')}>
+                <FontAwesomeIcon icon={icons.changePassword} style={styles.quickActionIcon} /> Change Password
               </button>
             </div>
           </div>
         </aside>
 
+        {/* Mobile menu overlay */}
+        {mobileMenuOpen && (
+          <div
+            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 900 }}
+            onClick={() => setMobileMenuOpen(false)}
+            aria-hidden="true"
+          />
+        )}
+        {/* Mobile slide-out sidebar clone */}
+        {mobileMenuOpen && (
+          <aside
+            style={{ ...sidebarStyles.sidebar, position: 'fixed', left: 0, top: 0, height: '100vh', zIndex: 901, width: 280, boxShadow: '4px 0 20px rgba(0,0,0,0.25)' }}
+            className="admin-sidebar-mobile"
+          >
+            <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '0.75rem 1rem 0' }}>
+              <button type="button" onClick={() => setMobileMenuOpen(false)} style={{ border: 'none', background: 'none', color: 'rgba(255,255,255,0.7)', fontSize: '1.25rem', cursor: 'pointer', padding: '0.25rem' }} aria-label="Close menu">
+                <FontAwesomeIcon icon={icons.close} />
+              </button>
+            </div>
+            <div style={baseStyles.sidebarSection}>
+              <p style={sidebarStyles.sidebarLabel}>Sections</p>
+              <div style={baseStyles.sidebarSectionInner}>
+                {modules.map(({ path, label, icon }) => (
+                  <NavLink key={path} to={`/admin/${path}`} end={path === 'overview'} style={({ isActive }) => ({ ...sidebarStyles.navLink, ...(isActive ? sidebarStyles.navLinkActive : {}) })} onClick={() => setMobileMenuOpen(false)}>
+                    {icon && <FontAwesomeIcon icon={icon} style={baseStyles.navLinkIcon} />}
+                    {label}
+                  </NavLink>
+                ))}
+              </div>
+            </div>
+          </aside>
+        )}
+
         <main style={styles.main}>
-          <h1 style={styles.greeting}>Welcome back, {displayName}! 👋</h1>
+          {/* Mobile hamburger button (visible only on small screens) */}
+          <button
+            type="button"
+            className="mobile-menu-btn"
+            style={{ display: 'none', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', padding: '0.5rem 0.75rem', border: '1px solid var(--slogbaa-border)', borderRadius: 8, background: 'var(--slogbaa-surface)', color: 'var(--slogbaa-text)', fontSize: '0.9375rem', fontWeight: 500, cursor: 'pointer' }}
+            onClick={() => setMobileMenuOpen(true)}
+            aria-label="Open navigation menu"
+          >
+            <FontAwesomeIcon icon={icons.viewList} /> Menu
+          </button>
+          <h1 style={styles.greeting}>Welcome back, {displayName}!</h1>
           <hr style={styles.greetingDivider} aria-hidden />
           <Outlet context={outletContext} />
         </main>
       </div>
 
-      {modal === 'createStaff' && (
-        <CreateStaffModal
-          onClose={() => setModal(null)}
-          onSubmit={handleCreateStaff}
-        />
-      )}
-      {modal === 'updateCourses' && (
-        <UpdateCoursesModal onClose={() => setModal(null)} />
-      )}
-      {modal === 'changePassword' && (
-        <ChangePasswordModal
-          onClose={() => setModal(null)}
-          onSubmit={handleChangePassword}
+      {modal === 'createStaff' && <CreateStaffModal onClose={() => setModal(null)} onSubmit={handleCreateStaff} />}
+      {modal === 'updateCourses' && <UpdateCoursesModal onClose={() => setModal(null)} />}
+      {modal === 'changePassword' && <ChangePasswordModal onClose={() => setModal(null)} onSubmit={handleChangePassword} />}
+
+      {paletteOpen && (
+        <CommandPalette
+          onClose={() => setPaletteOpen(false)}
+          commands={[
+            { label: 'Go to Overview', group: 'Navigation', onSelect: () => navigate('/admin/overview'), shortcut: 'G O' },
+            { label: 'Go to Learning', group: 'Navigation', onSelect: () => navigate('/admin/learning'), shortcut: 'G L' },
+            { label: 'Go to Library', group: 'Navigation', onSelect: () => navigate('/admin/library') },
+            { label: 'Go to Assessment', group: 'Navigation', onSelect: () => navigate('/admin/assessment') },
+            { label: 'Go to Course Management', group: 'Navigation', onSelect: () => navigate('/admin/coursemanagement') },
+            { label: 'Go to Reports', group: 'Navigation', onSelect: () => navigate('/admin/reports') },
+            ...(isSuperAdmin ? [
+              { label: 'Create Staff', group: 'Actions', onSelect: () => setModal('createStaff') },
+              { label: 'Update Courses', group: 'Actions', onSelect: () => setModal('updateCourses') },
+            ] : []),
+            { label: 'Change Password', group: 'Actions', onSelect: () => setModal('changePassword') },
+          ]}
         />
       )}
     </div>

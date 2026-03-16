@@ -1,8 +1,11 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
-import { FontAwesomeIcon, icons } from '../../../shared/icons.js'
-import { getAdminLibraryResources, createLibraryResource, publishLibraryResource, updateLibraryResource, unpublishLibraryResource } from '../../../api/admin/library.js'
+import { FontAwesomeIcon, icons } from '../../../shared/icons.jsx'
+import { updateLibraryResource } from '../../../api/admin/library.js'
+import { useAdminLibrary, useCreateLibraryResource, usePublishLibraryResource, useUnpublishLibraryResource } from '../../../lib/hooks/use-admin.js'
+import { uploadFile } from '../../../api/files.js'
 import { Modal } from '../../../shared/components/Modal.jsx'
+import { useToast } from '../../../shared/hooks/useToast.js'
 
 const RESOURCE_TYPES = [
   { value: 'DOCUMENT', label: 'Document' },
@@ -74,7 +77,7 @@ const styles = {
     fontSize: '0.875rem',
     fontWeight: 500,
     cursor: 'pointer',
-    background: 'var(--slogbaa-orange)',
+    background: 'var(--slogbaa-blue)',
     color: '#fff',
   },
   btnSecondary: {
@@ -104,7 +107,7 @@ const styles = {
     cursor: 'pointer',
   },
   iconBtnHover: { color: 'var(--slogbaa-text)' },
-  iconBtnPrimary: { color: 'var(--slogbaa-orange)' },
+  iconBtnPrimary: { color: 'var(--slogbaa-blue)' },
   placeholderBox: {
     padding: '0.75rem',
     borderRadius: 8,
@@ -117,37 +120,23 @@ const styles = {
 
 export function AdminLibraryPage() {
   const { token, isSuperAdmin } = useOutletContext()
-  const [resources, setResources] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const { data: resources = [], isLoading: loading, error: queryError } = useAdminLibrary()
+  const createMutation = useCreateLibraryResource()
+  const publishMutation = usePublishLibraryResource()
+  const unpublishMutation = useUnpublishLibraryResource()
+  const [error, setError] = useState(queryError?.message ?? null)
   const [modalOpen, setModalOpen] = useState(false)
   const [editResource, setEditResource] = useState(null)
   const [form, setForm] = useState({ title: '', description: '', resourceType: 'DOCUMENT', fileUrl: '', fileType: '' })
-  const [submitting, setSubmitting] = useState(false)
-  const [publishingId, setPublishingId] = useState(null)
-  const [unpublishingId, setUnpublishingId] = useState(null)
   const [savingEditId, setSavingEditId] = useState(null)
 
-  const load = () => {
-    if (!token) return
-    setLoading(true)
-    setError(null)
-    getAdminLibraryResources(token)
-      .then(setResources)
-      .catch((e) => setError(e?.message ?? 'Failed to load.'))
-      .finally(() => setLoading(false))
-  }
-
-  useEffect(() => {
-    load()
-  }, [token])
+  const toast = useToast()
 
   const handleCreate = async (e) => {
     e.preventDefault()
-    if (!token || !form.title?.trim() || !form.fileUrl?.trim()) return
-    setSubmitting(true)
+    if (!form.title?.trim() || !form.fileUrl?.trim()) return
     try {
-      await createLibraryResource(token, {
+      await createMutation.mutateAsync({
         title: form.title.trim(),
         description: form.description?.trim() || undefined,
         resourceType: form.resourceType,
@@ -156,37 +145,26 @@ export function AdminLibraryPage() {
       })
       setModalOpen(false)
       setForm({ title: '', description: '', resourceType: 'DOCUMENT', fileUrl: '', fileType: '' })
-      load()
+      toast.success('Resource created.')
     } catch (e) {
-      setError(e?.message ?? 'Failed to create.')
-    } finally {
-      setSubmitting(false)
+      toast.error(e?.message ?? 'Failed to create resource.')
     }
   }
 
   const handlePublish = async (id) => {
-    if (!token || publishingId) return
-    setPublishingId(id)
     try {
-      await publishLibraryResource(token, id)
-      load()
+      await publishMutation.mutateAsync(id)
+      toast.success('Resource published.')
     } catch (e) {
-      setError(e?.message ?? 'Failed to publish.')
-    } finally {
-      setPublishingId(null)
+      toast.error(e?.message ?? 'Failed to publish.')
     }
   }
 
   const handleUnpublish = async (id) => {
-    if (!token || unpublishingId) return
-    setUnpublishingId(id)
     try {
-      await unpublishLibraryResource(token, id)
-      load()
+      await unpublishMutation.mutateAsync(id)
     } catch (e) {
       setError(e?.message ?? 'Failed to unpublish.')
-    } finally {
-      setUnpublishingId(null)
     }
   }
 
@@ -296,7 +274,7 @@ export function AdminLibraryPage() {
                           type="button"
                           style={styles.iconBtn}
                           title="Unpublish"
-                          disabled={unpublishingId !== null}
+                          disabled={unpublishMutation.isPending}
                           onClick={() => handleUnpublish(r.id)}
                         >
                           <FontAwesomeIcon icon={icons.unpublish} />
@@ -306,7 +284,7 @@ export function AdminLibraryPage() {
                           type="button"
                           style={{ ...styles.iconBtn, ...styles.iconBtnPrimary }}
                           title="Publish"
-                          disabled={publishingId !== null}
+                          disabled={publishMutation.isPending}
                           onClick={() => handlePublish(r.id)}
                         >
                           <FontAwesomeIcon icon={icons.publish} />
@@ -357,6 +335,28 @@ export function AdminLibraryPage() {
               </select>
             </div>
             <div style={styles.formRow}>
+              <label style={styles.label}>Replace file</label>
+              <input
+                type="file"
+                accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0]
+                  if (!file) return
+                  try {
+                    setForm((f) => ({ ...f, fileType: file.name.split('.').pop()?.toUpperCase() || '' }))
+                    const result = await uploadFile(token, file, 'library')
+                    setForm((f) => ({ ...f, fileUrl: result.url, fileType: result.contentType?.split('/')?.pop()?.toUpperCase() || f.fileType }))
+                  } catch (err) {
+                    setCertError?.(err?.message) || setError?.(err?.message ?? 'Upload failed.')
+                  }
+                }}
+                style={styles.input}
+              />
+              <p style={{ margin: '0.25rem 0 0', fontSize: '0.75rem', color: 'var(--slogbaa-text-muted)' }}>
+                Upload a new file to replace the current one, or edit the URL below.
+              </p>
+            </div>
+            <div style={styles.formRow}>
               <label style={styles.label}>File URL *</label>
               <input
                 type="url"
@@ -377,14 +377,6 @@ export function AdminLibraryPage() {
                 placeholder="PDF, DOCX, etc."
               />
             </div>
-            {['DOCUMENT', 'POLICY_DOCUMENT', 'READING_MATERIAL'].includes(form.resourceType) && (
-              <div style={styles.formRow}>
-                <label style={styles.label}>Replace document</label>
-                <div style={styles.placeholderBox}>
-                  Upload new document — coming soon
-                </div>
-              </div>
-            )}
             <div style={styles.formActions}>
               <button type="button" style={{ ...styles.btn, ...styles.btnSecondary }} onClick={closeEditModal}>
                 Cancel
@@ -433,13 +425,35 @@ export function AdminLibraryPage() {
               </select>
             </div>
             <div style={styles.formRow}>
-              <label style={styles.label}>File URL *</label>
+              <label style={styles.label}>Upload file</label>
+              <input
+                type="file"
+                accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0]
+                  if (!file) return
+                  try {
+                    setForm((f) => ({ ...f, fileType: file.name.split('.').pop()?.toUpperCase() || '' }))
+                    const result = await uploadFile(token, file, 'library')
+                    setForm((f) => ({ ...f, fileUrl: result.url, fileType: result.contentType?.split('/')?.pop()?.toUpperCase() || f.fileType }))
+                  } catch (err) {
+                    setError(err?.message ?? 'Upload failed.')
+                  }
+                }}
+                style={styles.input}
+              />
+              <p style={{ margin: '0.25rem 0 0', fontSize: '0.75rem', color: 'var(--slogbaa-text-muted)' }}>
+                Or enter a URL manually below.
+              </p>
+            </div>
+            <div style={styles.formRow}>
+              <label style={styles.label}>File URL {form.fileUrl ? '' : '*'}</label>
               <input
                 type="url"
                 value={form.fileUrl}
                 onChange={(e) => setForm((f) => ({ ...f, fileUrl: e.target.value }))}
                 style={styles.input}
-                placeholder="https://…"
+                placeholder="https://… (auto-filled after upload)"
                 required
               />
             </div>
@@ -457,8 +471,8 @@ export function AdminLibraryPage() {
               <button type="button" style={{ ...styles.btn, ...styles.btnSecondary }} onClick={() => setModalOpen(false)}>
                 Cancel
               </button>
-              <button type="submit" style={styles.btn} disabled={submitting}>
-                {submitting ? 'Adding…' : 'Add resource'}
+              <button type="submit" style={styles.btn} disabled={createMutation.isPending}>
+                {createMutation.isPending ? 'Adding…' : 'Add resource'}
               </button>
             </div>
           </form>

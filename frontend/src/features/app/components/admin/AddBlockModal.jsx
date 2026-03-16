@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { FontAwesomeIcon, icons } from '../../../../shared/icons.js'
+import { FontAwesomeIcon, icons } from '../../../../shared/icons.jsx'
 import { Modal } from '../../../../shared/components/Modal.jsx'
 import { LoadingButton } from '../../../../shared/components/LoadingButton.jsx'
 import { serializeTextLines } from './TextBlockInlineEditor.jsx'
@@ -40,9 +40,9 @@ const styles = {
     color: 'var(--slogbaa-text)',
   },
   typeBtnSelected: {
-    borderColor: 'var(--slogbaa-orange)',
-    background: 'rgba(241, 134, 37, 0.08)',
-    color: 'var(--slogbaa-orange)',
+    borderColor: 'var(--slogbaa-blue)',
+    background: 'rgba(37, 99, 235, 0.08)',
+    color: 'var(--slogbaa-blue)',
   },
   form: { display: 'flex', flexDirection: 'column', gap: '1.25rem' },
   field: { display: 'flex', flexDirection: 'column', gap: '0.35rem' },
@@ -88,7 +88,7 @@ const styles = {
     alignItems: 'center',
     gap: '0.4rem',
     padding: '0.5rem 1.25rem',
-    background: 'var(--slogbaa-orange)',
+    background: 'var(--slogbaa-blue)',
     color: '#fff',
     border: 'none',
     borderRadius: 8,

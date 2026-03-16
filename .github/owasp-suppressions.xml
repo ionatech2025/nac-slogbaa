@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  OWASP Dependency-Check Suppressions
+  Add known false positives here to prevent CI noise.
+  Each suppression must have a documented reason.
+  Review and prune quarterly.
+-->
+<suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
+  <!-- Example suppression (uncomment and customize as needed):
+  <suppress>
+    <notes><![CDATA[
+      Reason: This CVE only affects version X.Y which we don't use.
+      Reviewed: 2026-03-16
+      Reviewer: security-team
+    ]]></notes>
+    <cve>CVE-2024-XXXXX</cve>
+  </suppress>
+  -->
+</suppressions>

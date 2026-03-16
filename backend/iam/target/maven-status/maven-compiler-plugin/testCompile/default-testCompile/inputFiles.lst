@@ -1,0 +1,9 @@
+/home/darkhorse/nac-slogbaa/backend/iam/src/test/java/com/nac/slogbaa/iam/architecture/HexagonalArchitectureTest.java
+/home/darkhorse/nac-slogbaa/backend/iam/src/test/java/com/nac/slogbaa/iam/integration/AuthControllerTest.java
+/home/darkhorse/nac-slogbaa/backend/iam/src/test/java/com/nac/slogbaa/iam/integration/TraineeRepositoryAdapterTest.java
+/home/darkhorse/nac-slogbaa/backend/iam/src/test/java/com/nac/slogbaa/iam/unit/adapters/JwtTokenAdapterTest.java
+/home/darkhorse/nac-slogbaa/backend/iam/src/test/java/com/nac/slogbaa/iam/unit/adapters/RateLimitFilterTest.java
+/home/darkhorse/nac-slogbaa/backend/iam/src/test/java/com/nac/slogbaa/iam/unit/application/AuthenticateUserServiceTest.java
+/home/darkhorse/nac-slogbaa/backend/iam/src/test/java/com/nac/slogbaa/iam/unit/application/RegisterTraineeServiceTest.java
+/home/darkhorse/nac-slogbaa/backend/iam/src/test/java/com/nac/slogbaa/iam/unit/core/EmailTest.java
+/home/darkhorse/nac-slogbaa/backend/iam/src/test/java/com/nac/slogbaa/iam/unit/core/TraineeTest.java

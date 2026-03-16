@@ -1,3 +1,5 @@
+import { SafeHtml, sanitizeHtml } from '../../../../shared/components/SafeHtml.jsx'
+
 const blockWrapperStyle = {
   marginBottom: '1.25rem',
   padding: '1rem 1.25rem',
@@ -60,11 +62,11 @@ function EditorJsBlockView({ block }) {
   const { type, data } = block
 
   if (type === 'paragraph' && data?.text) {
-    return <p style={{ margin: 0 }} dangerouslySetInnerHTML={{ __html: data.text }} />
+    return <SafeHtml html={data.text} as="p" style={{ margin: 0 }} />
   }
   if (type === 'header' && data?.text) {
-    const Level = `h${Math.min(6, Math.max(1, data.level ?? 2))}`
-    return <Level style={{ margin: 0, fontWeight: 700 }} dangerouslySetInnerHTML={{ __html: data.text }} />
+    const level = `h${Math.min(6, Math.max(1, data.level ?? 2))}`
+    return <SafeHtml html={data.text} as={level} style={{ margin: 0, fontWeight: 700 }} />
   }
   if (type === 'list' && Array.isArray(data?.items)) {
     const isOrdered = data.style === 'ordered'
@@ -77,14 +79,14 @@ function EditorJsBlockView({ block }) {
         const ListTag = nestedOrdered ? 'ol' : 'ul'
         return (
           <li key={i}>
-            {text && <span dangerouslySetInnerHTML={{ __html: text }} />}
+            {text && <SafeHtml html={text} as="span" />}
             <ListTag style={{ margin: '0.25rem 0 0', paddingLeft: '1.5rem' }}>
               {item.items.map((nested, j) => renderItem(nested, j))}
             </ListTag>
           </li>
         )
       }
-      return <li key={i} dangerouslySetInnerHTML={{ __html: text }} />
+      return <li key={i} dangerouslySetInnerHTML={{ __html: sanitizeHtml(text) }} />
     }
     const ListTag = isOrdered ? 'ol' : 'ul'
     return (
@@ -139,8 +141,8 @@ function EditorJsBlockView({ block }) {
   if (type === 'quote' && (data?.text || data?.caption)) {
     return (
       <blockquote style={{ margin: 0, paddingLeft: '1rem', color: 'var(--slogbaa-text-muted)', fontStyle: 'italic' }}>
-        {data.text && <p style={{ margin: 0 }} dangerouslySetInnerHTML={{ __html: data.text }} />}
-        {data.caption && <cite style={{ display: 'block', marginTop: '0.5rem', fontSize: '0.875rem' }} dangerouslySetInnerHTML={{ __html: data.caption }} />}
+        {data.text && <SafeHtml html={data.text} as="p" style={{ margin: 0 }} />}
+        {data.caption && <SafeHtml html={data.caption} as="cite" style={{ display: 'block', marginTop: '0.5rem', fontSize: '0.875rem' }} />}
       </blockquote>
     )
   }
@@ -153,9 +155,9 @@ function EditorJsBlockView({ block }) {
   }
   if (type === 'warning' && (data?.title || data?.message)) {
     return (
-      <div style={{ margin: 0, padding: '1rem', background: 'rgba(241, 134, 37, 0.08)', borderLeft: '4px solid var(--slogbaa-orange)', borderRadius: 6 }}>
-        {data.title && <strong style={{ display: 'block', marginBottom: '0.25rem' }} dangerouslySetInnerHTML={{ __html: data.title }} />}
-        {data.message && <div dangerouslySetInnerHTML={{ __html: data.message }} />}
+      <div style={{ margin: 0, padding: '1rem', background: 'rgba(37, 99, 235, 0.08)', borderLeft: '4px solid var(--slogbaa-blue)', borderRadius: 6 }}>
+        {data.title && <SafeHtml html={data.title} as="strong" style={{ display: 'block', marginBottom: '0.25rem' }} />}
+        {data.message && <SafeHtml html={data.message} />}
       </div>
     )
   }
@@ -169,7 +171,7 @@ function EditorJsBlockView({ block }) {
             <thead>
               <tr>
                 {rows[0].map((cell, j) => (
-                  <th key={j} style={{ border: '1px solid var(--slogbaa-border)', padding: '0.5rem 0.75rem', textAlign: 'left', fontWeight: 600 }} dangerouslySetInnerHTML={{ __html: cell }} />
+                  <th key={j} style={{ border: '1px solid var(--slogbaa-border)', padding: '0.5rem 0.75rem', textAlign: 'left', fontWeight: 600 }} dangerouslySetInnerHTML={{ __html: sanitizeHtml(cell) }} />
                 ))}
               </tr>
             </thead>
@@ -178,7 +180,7 @@ function EditorJsBlockView({ block }) {
             {(withHeadings ? rows.slice(1) : rows).map((row, i) => (
               <tr key={i}>
                 {row.map((cell, j) => (
-                  <td key={j} style={{ border: '1px solid var(--slogbaa-border)', padding: '0.5rem 0.75rem' }} dangerouslySetInnerHTML={{ __html: cell }} />
+                  <td key={j} style={{ border: '1px solid var(--slogbaa-border)', padding: '0.5rem 0.75rem' }} dangerouslySetInnerHTML={{ __html: sanitizeHtml(cell) }} />
                 ))}
               </tr>
             ))}

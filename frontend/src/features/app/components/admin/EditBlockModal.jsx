@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Save } from 'lucide-react'
+import { icons } from '../../../../shared/icons.jsx'
+const Save = icons.save
 import { Modal } from '../../../../shared/components/Modal.jsx'
 import { LoadingButton } from '../../../../shared/components/LoadingButton.jsx'
 
@@ -48,7 +49,7 @@ const styles = {
     alignItems: 'center',
     gap: '0.4rem',
     padding: '0.5rem 1.25rem',
-    background: 'var(--slogbaa-orange)',
+    background: 'var(--slogbaa-blue)',
     color: '#fff',
     border: 'none',
     borderRadius: 8,

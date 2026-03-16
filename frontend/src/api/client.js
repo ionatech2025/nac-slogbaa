@@ -1,3 +1,5 @@
+import { AuthError } from '../lib/query-client.js'
+
 /**
  * Base URL for API requests. In dev with Vite proxy use '' so /api/* is proxied to backend.
  * In production set VITE_API_BASE_URL to the backend origin (e.g. https://api.slogbaa.org).
@@ -56,7 +58,10 @@ export function apiClient(token = null) {
       headers,
       ...(body != null && method !== 'GET' && method !== 'DELETE' ? { body: JSON.stringify(body) } : {}),
     }
-    return fetch(url, opts)
+    return fetch(url, opts).then((res) => {
+      if (res.status === 401) throw new AuthError()
+      return res
+    })
   }
 
   return {

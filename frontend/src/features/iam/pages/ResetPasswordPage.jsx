@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams, Link, useNavigate } from 'react-router-dom'
-import { FontAwesomeIcon, icons } from '../../../shared/icons.js'
+import { FontAwesomeIcon, icons } from '../../../shared/icons.jsx'
 import { verifyResetToken, confirmPasswordReset } from '../../../api/iam/auth.js'
 import { LoadingButton } from '../../../shared/components/LoadingButton.jsx'
 
@@ -87,7 +87,7 @@ const styles = {
     gap: '0.4rem',
     marginTop: '0.25rem',
     padding: '0.625rem 1rem',
-    background: 'var(--slogbaa-orange)',
+    background: 'var(--slogbaa-blue)',
     color: '#fff',
     border: 'none',
     borderRadius: 6,

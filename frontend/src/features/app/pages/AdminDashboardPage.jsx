@@ -74,14 +74,14 @@ const styles = {
   greetingDivider: {
     height: 0,
     border: 'none',
-    borderBottom: '2px solid var(--slogbaa-orange)',
+    borderBottom: '2px solid var(--slogbaa-blue)',
     margin: '0 0 1.5rem',
   },
   pageTitle: {
     margin: '0 0 1rem',
     fontSize: '1.75rem',
     fontWeight: 700,
-    color: 'var(--slogbaa-orange)',
+    color: 'var(--slogbaa-blue)',
     letterSpacing: '-0.02em',
   },
   section: {
@@ -91,7 +91,7 @@ const styles = {
     margin: '0 0 1rem',
     fontSize: '1.375rem',
     fontWeight: 700,
-    color: 'var(--slogbaa-orange)',
+    color: 'var(--slogbaa-blue)',
     letterSpacing: '-0.01em',
   },
   subsectionTitle: {
@@ -148,7 +148,7 @@ const styles = {
     letterSpacing: '0.04em',
     color: '#fff',
     background: 'var(--slogbaa-dark)',
-    borderBottom: '3px solid var(--slogbaa-orange)',
+    borderBottom: '3px solid var(--slogbaa-blue)',
   },
   thFirst: {
     borderTopLeftRadius: 11,
@@ -162,7 +162,7 @@ const styles = {
     color: 'var(--slogbaa-text)',
   },
   trStriped: {
-    background: 'rgba(241, 134, 37, 0.04)',
+    background: 'rgba(37, 99, 235, 0.04)',
   },
   trLast: {
     borderBottom: 'none',

@@ -1,33 +1,59 @@
+# =============================================================================
+# SLOGBAA Platform - Development & Production compose
+# Usage:
+#   cp .env.example .env   # fill in secrets
+#   docker compose up -d
+# =============================================================================
+
 services:
+  # ---- Database ----
   postgres:
     image: postgres:16-alpine
     container_name: slogbaa-db
     environment:
-      POSTGRES_DB: slogbaa
-      POSTGRES_USER: slogbaa
-      POSTGRES_PASSWORD: slogbaa
+      POSTGRES_DB: ${POSTGRES_DB:-slogbaa}
+      POSTGRES_USER: ${POSTGRES_USER:-slogbaa}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
     ports:
       - "5432:5432"
     volumes:
       - slogbaa_pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U slogbaa -d slogbaa"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-slogbaa} -d ${POSTGRES_DB:-slogbaa}"]
       interval: 5s
       timeout: 5s
       retries: 5
 
-  app:
-    build: .
-    container_name: slogbaa-app
+  # ---- Backend (Spring Boot API) ----
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: slogbaa-backend
     environment:
-      DATASOURCE_URL: jdbc:postgresql://postgres:5432/slogbaa
-      DATASOURCE_USERNAME: slogbaa
-      DATASOURCE_PASSWORD: slogbaa
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
+      DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-slogbaa}
+      DATASOURCE_USERNAME: ${POSTGRES_USER:-slogbaa}
+      DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env (>= 32 chars)}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:3000}
+      PASSWORD_RESET_BASE_URL: ${PASSWORD_RESET_BASE_URL:-http://localhost:3000}
     ports:
       - "8080:8080"
     depends_on:
       postgres:
         condition: service_healthy
+
+  # ---- Frontend (React SPA via nginx) ----
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: slogbaa-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
 
 volumes:
   slogbaa_pgdata:

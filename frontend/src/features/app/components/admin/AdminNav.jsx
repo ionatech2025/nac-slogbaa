@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { FontAwesomeIcon, icons } from '../../../../shared/icons.js'
+import { FontAwesomeIcon, icons } from '../../../../shared/icons.jsx'
 import { useAuth } from '../../../iam/hooks/useAuth.js'
 import { useTheme } from '../../../../contexts/ThemeContext.jsx'
 
@@ -51,8 +51,8 @@ const lightStyles = {
   logo: { ...darkStyles.logo, color: 'var(--slogbaa-text)' },
   roleBadge: {
     ...darkStyles.roleBadge,
-    background: 'rgba(241, 134, 37, 0.12)',
-    color: 'var(--slogbaa-orange)',
+    background: 'rgba(37, 99, 235, 0.12)',
+    color: 'var(--slogbaa-blue)',
   },
   userLabel: { ...darkStyles.userLabel, color: 'var(--slogbaa-text)' },
   signOut: {

@@ -6,10 +6,14 @@ import { getAssetUrl } from '../../../api/client.js'
 import { getCourseDetails } from '../../../api/learning/courses.js'
 import { ModuleEditorJs } from '../components/admin/ModuleEditorJs.jsx'
 import { EditorJsReadOnly } from '../components/admin/EditorJsReadOnly.jsx'
+import { SafeHtml } from '../../../shared/components/SafeHtml.jsx'
 import { AdminQuizEditor } from '../../assessment/components/AdminQuizEditor.jsx'
 import { AdminQuizReadOnly } from '../../assessment/components/AdminQuizReadOnly.jsx'
 import { LoadingButton } from '../../../shared/components/LoadingButton.jsx'
-import { GripVertical, Pencil } from 'lucide-react'
+import { useToast } from '../../../shared/hooks/useToast.js'
+import { icons as iconSet } from '../../../shared/icons.jsx'
+const GripVertical = iconSet.grip
+const Pencil = iconSet.edit
 
 function focusBlockAndCursorStart(el) {
   if (!el || typeof el.focus !== 'function') return
@@ -51,7 +55,7 @@ const styles = {
     transition: 'background 0.15s ease',
   },
   blockRowFocused: {
-    background: 'rgba(241, 134, 37, 0.06)',
+    background: 'rgba(37, 99, 235, 0.06)',
   },
   blockIcons: {
     position: 'absolute',
@@ -127,7 +131,7 @@ const styles = {
     background: 'var(--slogbaa-surface)',
     border: '1px solid var(--slogbaa-border)',
     borderRadius: 8,
-    borderLeft: '4px solid var(--slogbaa-orange)',
+    borderLeft: '4px solid var(--slogbaa-blue)',
   },
   emptyBlock: {
     color: 'var(--slogbaa-text-muted)',
@@ -201,7 +205,7 @@ function AdminContentBlockRenderer({ block }) {
         {isEditorJsJson(richText) ? (
           <EditorJsReadOnly data={richText} style={styles.blockContentHtml} />
         ) : (
-          <div style={styles.blockContentHtml} dangerouslySetInnerHTML={{ __html: richText }} />
+          <SafeHtml html={richText} style={styles.blockContentHtml} />
         )}
       </div>
     )
@@ -241,10 +245,10 @@ function AdminContentBlockRenderer({ block }) {
       <div style={{ marginBottom: '1.5rem' }}>
         <div style={styles.activityBlock}>
           {activityInstructions && (
-            <div style={styles.blockContentHtml} dangerouslySetInnerHTML={{ __html: activityInstructions }} />
+            <SafeHtml html={activityInstructions} style={styles.blockContentHtml} />
           )}
           {activityResources && (
-            <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--slogbaa-border)' }} dangerouslySetInnerHTML={{ __html: activityResources }} />
+            <SafeHtml html={activityResources} style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--slogbaa-border)' }} />
           )}
         </div>
       </div>
@@ -257,6 +261,7 @@ export function AdminModuleEditorPage() {
   const { courseId, moduleId } = useParams()
   const location = useLocation()
   const { token, isSuperAdmin } = useOutletContext()
+  const toast = useToast()
   const quizSectionRef = useRef(null)
   const [course, setCourse] = useState(null)
   const [module, setModule] = useState(null)
@@ -397,16 +402,16 @@ export function AdminModuleEditorPage() {
     setModule((m) => (m ? { ...m, title: trimmed } : m))
     try {
       await updateModule(token, courseId, moduleId, { title: trimmed, description: module?.description ?? '', imageUrl: module?.imageUrl ?? undefined })
-    } catch (_) {}
-  }, [module, token, courseId, moduleId])
+    } catch (e) { toast.error(e?.message ?? 'Failed to save title.') }
+  }, [module, token, courseId, moduleId, toast])
   const handleDescriptionBlur = useCallback(async (text) => {
     const trimmed = (text ?? '').trim()
     if (trimmed === (module?.description ?? '')) return
     setModule((m) => (m ? { ...m, description: trimmed } : m))
     try {
       await updateModule(token, courseId, moduleId, { title: module?.title ?? '', description: trimmed, imageUrl: module?.imageUrl ?? undefined })
-    } catch (_) {}
-  }, [module, token, courseId, moduleId])
+    } catch (e) { toast.error(e?.message ?? 'Failed to save description.') }
+  }, [module, token, courseId, moduleId, toast])
 
   const [imageUploading, setImageUploading] = useState(false)
   const moduleImageInputRef = useRef(null)
@@ -419,7 +424,7 @@ export function AdminModuleEditorPage() {
       setModule((m) => (m ? { ...m, imageUrl: url } : m))
       await updateModule(token, courseId, moduleId, { title: module?.title ?? '', description: module?.description ?? '', imageUrl: url })
       await refresh()
-    } catch (_) {}
+    } catch (e) { toast.error(e?.message ?? 'Failed to upload image.') }
     finally {
       setImageUploading(false)
       if (moduleImageInputRef.current) moduleImageInputRef.current.value = ''
@@ -578,9 +583,9 @@ export function AdminModuleEditorPage() {
                 padding: '1.5rem',
                 minHeight: 320,
                 background: 'var(--slogbaa-surface)',
-                border: '2px solid var(--slogbaa-orange)',
+                border: '2px solid var(--slogbaa-blue)',
                 borderRadius: 12,
-                borderLeft: '4px solid var(--slogbaa-orange)',
+                borderLeft: '4px solid var(--slogbaa-blue)',
               }}
             >
               <p style={{
@@ -589,7 +594,7 @@ export function AdminModuleEditorPage() {
                 fontWeight: 700,
                 textTransform: 'uppercase',
                 letterSpacing: '0.05em',
-                color: 'var(--slogbaa-orange)',
+                color: 'var(--slogbaa-blue)',
               }}>
                 Add or edit content blocks below
               </p>
@@ -636,7 +641,7 @@ export function AdminModuleEditorPage() {
                   disabled={!editorReady}
                   style={{
                     padding: '0.5rem 1rem',
-                    background: 'var(--slogbaa-orange)',
+                    background: 'var(--slogbaa-blue)',
                     color: '#fff',
                     border: 'none',
                     borderRadius: 8,

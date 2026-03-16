@@ -17,42 +17,69 @@ const styles = {
   },
   formCard: {
     width: '100%',
-    maxWidth: 400,
-    padding: '2rem',
+    maxWidth: 420,
+    padding: '2.5rem 2rem',
     background: 'var(--slogbaa-surface)',
-    borderRadius: 8,
-    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+    borderRadius: 16,
+    border: '1px solid var(--slogbaa-border)',
+    boxShadow: '0 4px 24px rgba(0,0,0,0.06)',
+  },
+  logoMark: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    background: 'var(--slogbaa-blue)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: '#fff',
+    fontSize: '1.25rem',
+    fontWeight: 800,
+    marginBottom: '1.5rem',
+    letterSpacing: '-0.02em',
   },
   title: {
-    margin: '0 0 0.5rem',
+    margin: '0 0 0.35rem',
     fontSize: '1.5rem',
+    fontWeight: 700,
     color: 'var(--slogbaa-text)',
+    letterSpacing: '-0.01em',
   },
   subtitle: {
-    margin: '0 0 1.5rem',
+    margin: '0 0 1.75rem',
     fontSize: '0.875rem',
     color: 'var(--slogbaa-text-muted)',
+    lineHeight: 1.5,
   },
   registerLink: {
     display: 'block',
-    marginTop: '1rem',
+    marginTop: '1.25rem',
     textAlign: 'center',
     fontSize: '0.875rem',
+    color: 'var(--slogbaa-text-muted)',
+  },
+  registerLinkAccent: {
+    color: 'var(--slogbaa-blue)',
+    fontWeight: 500,
   },
 }
 
 export function LoginPage() {
   return (
-    <div style={styles.page}>
+    <div style={styles.page} className="login-page">
       <TestCredentialsSidebar />
       <main style={styles.main}>
         <div style={styles.formCard}>
-          <h1 style={styles.title}>Sign in</h1>
-          <p style={styles.subtitle}>SLOGBAA Online Learning Platform</p>
+          <div style={styles.logoMark}>S</div>
+          <h1 style={styles.title}>Welcome back</h1>
+          <p style={styles.subtitle}>Sign in to your SLOGBAA learning account</p>
           <LoginForm />
-          <Link to="/auth/register" style={styles.registerLink}>
-            Don’t have an account? Register as trainee
-          </Link>
+          <p style={styles.registerLink}>
+            Don't have an account?{' '}
+            <Link to="/auth/register" style={styles.registerLinkAccent}>
+              Register as trainee
+            </Link>
+          </p>
         </div>
       </main>
     </div>

@@ -1,0 +1,19 @@
+{
+  "name": "SLOGBAA — Online Learning Platform",
+  "short_name": "SLOGBAA",
+  "description": "Empowering active citizens through structured courses, assessments, and certificates.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#20232B",
+  "theme_color": "#20232B",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/vite.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["education"]
+}

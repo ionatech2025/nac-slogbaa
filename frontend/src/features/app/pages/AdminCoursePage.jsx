@@ -1,9 +1,11 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState } from 'react'
 import { useParams, Link, useOutletContext } from 'react-router-dom'
-import { FontAwesomeIcon, icons } from '../../../shared/icons.js'
-import { getAdminCourseDetails, addModule, publishCourse } from '../../../api/admin/courses.js'
+import { FontAwesomeIcon, icons } from '../../../shared/icons.jsx'
+import { useAdminCourseDetail, useAddModule, usePublishCourse } from '../../../lib/hooks/use-admin.js'
 import { getAssetUrl } from '../../../api/client.js'
 import { AddModuleModal } from '../components/admin/AddModuleModal.jsx'
+import { Badge } from '../../../shared/components/Badge.jsx'
+import { useToast } from '../../../shared/hooks/useToast.js'
 
 const styles = {
   page: {
@@ -58,20 +60,6 @@ const styles = {
     fontSize: '0.9375rem',
     color: 'var(--slogbaa-text-muted)',
   },
-  badge: {
-    display: 'inline-block',
-    marginTop: '0.5rem',
-    padding: '0.2rem 0.5rem',
-    borderRadius: 6,
-    fontSize: '0.75rem',
-    fontWeight: 500,
-    background: 'rgba(81, 175, 56, 0.15)',
-    color: 'var(--slogbaa-green, #0a7c42)',
-  },
-  badgeDraft: {
-    background: 'rgba(128,128,128,0.15)',
-    color: 'var(--slogbaa-text-muted)',
-  },
   moduleGrid: {
     display: 'grid',
     gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
@@ -90,8 +78,8 @@ const styles = {
     cursor: 'pointer',
   },
   moduleCardHover: {
-    borderColor: 'var(--slogbaa-orange)',
-    boxShadow: '0 2px 8px rgba(241, 134, 37, 0.12)',
+    borderColor: 'var(--slogbaa-blue)',
+    boxShadow: '0 2px 8px rgba(37, 99, 235, 0.12)',
   },
   moduleCardTitle: {
     margin: '0 0 0.5rem',
@@ -114,16 +102,6 @@ const styles = {
     WebkitBoxOrient: 'vertical',
     overflow: 'hidden',
   },
-  quizBadge: {
-    display: 'inline-block',
-    marginTop: '0.5rem',
-    padding: '0.15rem 0.4rem',
-    borderRadius: 4,
-    fontSize: '0.7rem',
-    fontWeight: 500,
-    background: 'rgba(81, 175, 56, 0.12)',
-    color: 'var(--slogbaa-green, #0a7c42)',
-  },
   addModuleBtn: {
     display: 'inline-flex',
     alignItems: 'center',
@@ -137,16 +115,12 @@ const styles = {
     cursor: 'pointer',
     transition: 'border-color 0.15s, color 0.15s',
   },
-  addModuleBtnHover: {
-    borderColor: 'var(--slogbaa-orange)',
-    color: 'var(--slogbaa-orange)',
-  },
   publishBtn: {
     display: 'inline-flex',
     alignItems: 'center',
     gap: '0.4rem',
     padding: '0.5rem 1rem',
-    background: 'var(--slogbaa-orange)',
+    background: 'var(--slogbaa-blue)',
     color: '#fff',
     border: 'none',
     borderRadius: 8,
@@ -191,19 +165,19 @@ function ModuleCard({ module, courseId, onMouseEnter, onMouseLeave, hover }) {
     >
       <div style={styles.moduleCardImageWrap}>
         {module.imageUrl ? (
-          <img src={getAssetUrl(module.imageUrl)} alt="" style={styles.moduleCardImage} loading="lazy" onError={(e) => { e.target.style.display = 'none' }} />
+          <img src={getAssetUrl(module.imageUrl)} alt={`Module: ${module.title}`} style={styles.moduleCardImage} loading="lazy" onError={(e) => { e.target.style.display = 'none' }} />
         ) : (
-          <span>📦</span>
+          <span aria-hidden="true">&#128230;</span>
         )}
       </div>
       <h3 style={styles.moduleCardTitle}>{module.title}</h3>
       <p style={styles.moduleCardMeta}>
-        Order: {module.moduleOrder ?? 0} · {blockCount} block{blockCount !== 1 ? 's' : ''}
+        Order: {module.moduleOrder ?? 0} &middot; {blockCount} block{blockCount !== 1 ? 's' : ''}
       </p>
       {module.description && (
         <p style={styles.moduleCardDescription}>{module.description}</p>
       )}
-      {module.hasQuiz && <span style={styles.quizBadge}>Has quiz</span>}
+      {module.hasQuiz && <Badge variant="success" style={{ marginTop: '0.5rem' }}>Has quiz</Badge>}
     </Link>
   )
 }
@@ -211,39 +185,32 @@ function ModuleCard({ module, courseId, onMouseEnter, onMouseLeave, hover }) {
 export function AdminCoursePage() {
   const { courseId } = useParams()
   const { token, isSuperAdmin } = useOutletContext()
-  const [course, setCourse] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const { data: course, isLoading: loading, error: queryError, refetch } = useAdminCourseDetail(courseId)
+  const addModuleMutation = useAddModule()
+  const publishMutation = usePublishCourse()
+  const toast = useToast()
   const [modal, setModal] = useState(null)
   const [hoveredModuleId, setHoveredModuleId] = useState(null)
 
-  const refresh = useCallback(async () => {
-    if (!token || !courseId) return
-    setLoading(true)
-    setError(null)
-    try {
-      const data = await getAdminCourseDetails(token, courseId)
-      setCourse(data)
-    } catch (err) {
-      setError(err?.message ?? 'Failed to load course.')
-    } finally {
-      setLoading(false)
-    }
-  }, [token, courseId])
-
-  useEffect(() => {
-    refresh()
-  }, [refresh])
+  const error = queryError?.message ?? null
 
   const handleAddModule = async (data) => {
-    await addModule(token, courseId, data)
-    setModal(null)
-    await refresh()
+    try {
+      await addModuleMutation.mutateAsync({ courseId, ...data })
+      setModal(null)
+      toast.success('Module added.')
+    } catch (e) {
+      toast.error(e?.message ?? 'Failed to add module.')
+    }
   }
 
   const handlePublish = async () => {
-    await publishCourse(token, courseId)
-    await refresh()
+    try {
+      await publishMutation.mutateAsync(courseId)
+      toast.success('Course published.')
+    } catch (e) {
+      toast.error(e?.message ?? 'Failed to publish.')
+    }
   }
 
   if (loading) return <p style={styles.loading}>Loading course…</p>
@@ -257,21 +224,21 @@ export function AdminCoursePage() {
 
       <header style={styles.header}>
         {course.imageUrl ? (
-          <img src={getAssetUrl(course.imageUrl)} alt="" style={styles.courseImage} onError={(e) => { e.target.style.display = 'none' }} />
+          <img src={getAssetUrl(course.imageUrl)} alt={`Course: ${course.title}`} style={styles.courseImage} onError={(e) => { e.target.style.display = 'none' }} />
         ) : (
-          <div style={styles.courseImagePlaceholder}>📚</div>
+          <div style={styles.courseImagePlaceholder} aria-hidden="true">&#128218;</div>
         )}
         <div style={{ flex: 1, minWidth: 0 }}>
           <h1 style={styles.title}>{course.title}</h1>
           {course.description && <p style={styles.description}>{course.description}</p>}
-        <span style={{ ...styles.badge, ...(course.published ? {} : styles.badgeDraft) }}>
-          {course.published ? 'Published' : 'Draft'}
-        </span>
-        {isSuperAdmin && !course.published && (
-          <button type="button" style={styles.publishBtn} onClick={handlePublish}>
-            <FontAwesomeIcon icon={icons.publish} /> Publish
-          </button>
-        )}
+          <Badge variant={course.published ? 'success' : 'default'} style={{ marginTop: '0.5rem' }}>
+            {course.published ? 'Published' : 'Draft'}
+          </Badge>
+          {isSuperAdmin && !course.published && (
+            <button type="button" style={styles.publishBtn} onClick={handlePublish}>
+              <FontAwesomeIcon icon={icons.publish} /> Publish
+            </button>
+          )}
         </div>
       </header>
 

@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react'
-import { FontAwesomeIcon, icons } from '../../../../shared/icons.js'
+import { FontAwesomeIcon, icons } from '../../../../shared/icons.jsx'
 import { Modal } from '../../../../shared/components/Modal.jsx'
 import { LoadingButton } from '../../../../shared/components/LoadingButton.jsx'
 import { uploadFile } from '../../../../api/files.js'
@@ -51,7 +51,7 @@ const styles = {
     alignItems: 'center',
     gap: '0.4rem',
     padding: '0.5rem 1.25rem',
-    background: 'var(--slogbaa-orange)',
+    background: 'var(--slogbaa-blue)',
     color: '#fff',
     border: 'none',
     borderRadius: 8,

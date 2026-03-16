@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, Link, useOutletContext } from 'react-router-dom'
-import { Plus } from 'lucide-react'
-import { FontAwesomeIcon, icons } from '../../../shared/icons.js'
+import { FontAwesomeIcon, icons } from '../../../shared/icons.jsx'
 import { getAdminCourseDetails, addModule, addContentBlock, updateContentBlock, deleteContentBlock, publishCourse } from '../../../api/admin/courses.js'
 import { getAssetUrl } from '../../../api/client.js'
+import { SafeHtml } from '../../../shared/components/SafeHtml.jsx'
 import { BlockTypePickerModal } from '../components/admin/BlockTypePickerModal.jsx'
 import { AddBlockModal } from '../components/admin/AddBlockModal.jsx'
 import { EditBlockModal } from '../components/admin/EditBlockModal.jsx'
@@ -62,7 +62,7 @@ const styles = {
     justifyContent: 'space-between',
     marginBottom: '1rem',
     paddingBottom: '0.5rem',
-    borderBottom: '2px solid var(--slogbaa-orange)',
+    borderBottom: '2px solid var(--slogbaa-blue)',
   },
   moduleTitle: {
     margin: 0,
@@ -80,8 +80,8 @@ const styles = {
     transition: 'border-color 0.15s, background 0.15s',
   },
   blockWrapHover: {
-    borderLeftColor: 'var(--slogbaa-orange)',
-    background: 'rgba(241, 134, 37, 0.04)',
+    borderLeftColor: 'var(--slogbaa-blue)',
+    background: 'rgba(37, 99, 235, 0.04)',
   },
   blockAddBtn: {
     position: 'absolute',
@@ -106,9 +106,9 @@ const styles = {
     opacity: 1,
   },
   blockAddBtnHover: {
-    background: 'var(--slogbaa-orange)',
+    background: 'var(--slogbaa-blue)',
     color: '#fff',
-    borderColor: 'var(--slogbaa-orange)',
+    borderColor: 'var(--slogbaa-blue)',
   },
   blockContent: {
     marginLeft: 52,
@@ -144,7 +144,7 @@ const styles = {
     background: 'var(--slogbaa-surface)',
     border: '1px solid var(--slogbaa-border)',
     borderRadius: 8,
-    borderLeft: '4px solid var(--slogbaa-orange)',
+    borderLeft: '4px solid var(--slogbaa-blue)',
   },
   emptyBlock: {
     color: 'var(--slogbaa-text-muted)',
@@ -164,15 +164,15 @@ const styles = {
     transition: 'border-color 0.15s, color 0.15s',
   },
   addModuleBtnHover: {
-    borderColor: 'var(--slogbaa-orange)',
-    color: 'var(--slogbaa-orange)',
+    borderColor: 'var(--slogbaa-blue)',
+    color: 'var(--slogbaa-blue)',
   },
   publishBtn: {
     display: 'inline-flex',
     alignItems: 'center',
     gap: '0.4rem',
     padding: '0.5rem 1rem',
-    background: 'var(--slogbaa-orange)',
+    background: 'var(--slogbaa-blue)',
     color: '#fff',
     border: 'none',
     borderRadius: 8,
@@ -189,7 +189,7 @@ function ContentBlockPreview({ block }) {
   const { blockType, richText, imageUrl, imageAltText, imageCaption, videoUrl, videoId, activityInstructions, activityResources } = block
 
   if (blockType === 'TEXT' && richText) {
-    return <div style={styles.blockContentHtml} dangerouslySetInnerHTML={{ __html: richText }} />
+    return <SafeHtml html={richText} style={styles.blockContentHtml} />
   }
   if (blockType === 'IMAGE' && imageUrl) {
     return (
@@ -216,9 +216,9 @@ function ContentBlockPreview({ block }) {
   if (blockType === 'ACTIVITY' && (activityInstructions || activityResources)) {
     return (
       <div style={styles.activityBlock}>
-        {activityInstructions && <div style={styles.blockContentHtml} dangerouslySetInnerHTML={{ __html: activityInstructions }} />}
+        {activityInstructions && <SafeHtml html={activityInstructions} style={styles.blockContentHtml} />}
         {activityResources && (
-          <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--slogbaa-border)' }} dangerouslySetInnerHTML={{ __html: activityResources }} />
+          <SafeHtml html={activityResources} style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--slogbaa-border)' }} />
         )}
       </div>
     )
@@ -253,10 +253,10 @@ function AddBlockRow({ onAdd, isSuperAdmin }) {
           title="Add block"
           aria-label="Add block"
         >
-          <Plus size={16} strokeWidth={2.5} />
+          <FontAwesomeIcon icon={icons.enroll} size={16} />
         </button>
       )}
-      <span style={{ marginLeft: isSuperAdmin ? 28 : 0, fontSize: '0.875rem', color: hover && isSuperAdmin ? 'var(--slogbaa-orange)' : 'var(--slogbaa-text-muted)' }}>Add block</span>
+      <span style={{ marginLeft: isSuperAdmin ? 28 : 0, fontSize: '0.875rem', color: hover && isSuperAdmin ? 'var(--slogbaa-blue)' : 'var(--slogbaa-text-muted)' }}>Add block</span>
     </div>
   )
 }

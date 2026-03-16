@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { FontAwesomeIcon, icons } from '../../../../shared/icons.js'
+import { FontAwesomeIcon, icons } from '../../../../shared/icons.jsx'
 import { Modal } from '../../../../shared/components/Modal.jsx'
 
 const BLOCK_TYPES = [
@@ -60,8 +60,8 @@ const styles = {
     transition: 'background 0.15s ease',
   },
   optionItemHover: {
-    background: 'rgba(241, 134, 37, 0.12)',
-    color: 'var(--slogbaa-orange)',
+    background: 'rgba(37, 99, 235, 0.12)',
+    color: 'var(--slogbaa-blue)',
   },
   optionIcon: {
     width: '1.25em',

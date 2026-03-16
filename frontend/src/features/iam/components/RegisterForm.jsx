@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { FontAwesomeIcon, icons } from '../../../shared/icons.js'
+import { FontAwesomeIcon, icons } from '../../../shared/icons.jsx'
 import { useAuth } from '../hooks/useAuth.js'
 import { register as registerApi, login as loginApi } from '../../../api/iam/auth.js'
 import { PHONE_COUNTRY_CODES } from '../../../shared/countryCodes.js'
@@ -33,22 +33,24 @@ const styles = {
   field: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '0.25rem',
+    gap: '0.35rem',
   },
   fullWidth: {
     gridColumn: '1 / -1',
   },
   label: {
-    fontSize: '0.875rem',
-    fontWeight: 500,
+    fontSize: '0.8125rem',
+    fontWeight: 600,
     color: 'var(--slogbaa-text)',
+    letterSpacing: '0.01em',
   },
   input: {
-    padding: '0.5rem 0.75rem',
+    padding: '0.625rem 0.875rem',
     border: '1px solid var(--slogbaa-border)',
-    borderRadius: 6,
-    fontSize: '1rem',
-    background: 'var(--slogbaa-surface)',
+    borderRadius: 10,
+    fontSize: '0.9375rem',
+    background: 'var(--slogbaa-bg)',
+    transition: 'border-color 0.15s, box-shadow 0.15s',
   },
   passwordWrap: {
     position: 'relative',
@@ -73,11 +75,11 @@ const styles = {
     cursor: 'pointer',
   },
   select: {
-    padding: '0.5rem 0.75rem',
+    padding: '0.625rem 0.875rem',
     border: '1px solid var(--slogbaa-border)',
-    borderRadius: 6,
-    fontSize: '1rem',
-    background: 'var(--slogbaa-surface)',
+    borderRadius: 10,
+    fontSize: '0.9375rem',
+    background: 'var(--slogbaa-bg)',
     cursor: 'pointer',
   },
   submit: {
@@ -85,15 +87,16 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'center',
     gap: '0.4rem',
-    marginTop: '0.25rem',
-    padding: '0.625rem 1rem',
-    background: 'var(--slogbaa-orange)',
+    marginTop: '0.5rem',
+    padding: '0.7rem 1.25rem',
+    background: 'var(--slogbaa-blue)',
     color: '#fff',
     border: 'none',
-    borderRadius: 6,
-    fontSize: '1rem',
-    fontWeight: 500,
+    borderRadius: 10,
+    fontSize: '0.9375rem',
+    fontWeight: 600,
     cursor: 'pointer',
+    transition: 'background 0.15s, box-shadow 0.15s',
   },
   error: {
     fontSize: '0.875rem',

@@ -1,5 +1,10 @@
 import { useState, useEffect, useRef } from 'react'
-import { Plus, GripVertical, Trash2, Pencil, Type } from 'lucide-react'
+import { icons } from '../../../../shared/icons.jsx'
+const Plus = icons.enroll
+const GripVertical = icons.grip
+const Trash2 = icons.delete
+const Pencil = icons.edit
+const Type = icons.type
 import { parseTextLines, serializeTextLines } from './TextBlockInlineEditor.jsx'
 
 const TEXT_STYLES = [
@@ -35,8 +40,8 @@ const styles = {
     transition: 'background 0.15s, color 0.15s',
   },
   iconBtnHover: {
-    background: 'rgba(241, 134, 37, 0.15)',
-    color: 'var(--slogbaa-orange)',
+    background: 'rgba(37, 99, 235, 0.15)',
+    color: 'var(--slogbaa-blue)',
   },
   menuWrap: {
     position: 'relative',
@@ -68,7 +73,7 @@ const styles = {
     textAlign: 'left',
     transition: 'background 0.15s',
   },
-  menuItemHover: { background: 'rgba(241, 134, 37, 0.08)' },
+  menuItemHover: { background: 'rgba(37, 99, 235, 0.08)' },
   menuItemDanger: { color: 'var(--slogbaa-error, #c0392b)' },
   menuDivider: {
     height: 1,
@@ -205,7 +210,7 @@ export function BlockOptionsMenu({
                       type="button"
                       style={{
                         ...styles.menuItem,
-                        ...(currentStyle === s.value ? { fontWeight: 600, color: 'var(--slogbaa-orange)' } : {}),
+                        ...(currentStyle === s.value ? { fontWeight: 600, color: 'var(--slogbaa-blue)' } : {}),
                       }}
                       onClick={() => { onStyleChange?.(s.value); setMenuOpen(false) }}
                       role="menuitem"

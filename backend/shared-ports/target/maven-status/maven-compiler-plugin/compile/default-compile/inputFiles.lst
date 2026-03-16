@@ -1,0 +1,9 @@
+/home/darkhorse/nac-slogbaa/backend/shared-ports/src/main/java/com/nac/slogbaa/shared/ports/CertificatePdfGeneratorPort.java
+/home/darkhorse/nac-slogbaa/backend/shared-ports/src/main/java/com/nac/slogbaa/shared/ports/CourseDeletionCheckPort.java
+/home/darkhorse/nac-slogbaa/backend/shared-ports/src/main/java/com/nac/slogbaa/shared/ports/FileStoragePort.java
+/home/darkhorse/nac-slogbaa/backend/shared-ports/src/main/java/com/nac/slogbaa/shared/ports/PasswordResetNotificationPort.java
+/home/darkhorse/nac-slogbaa/backend/shared-ports/src/main/java/com/nac/slogbaa/shared/ports/StaffNotificationPort.java
+/home/darkhorse/nac-slogbaa/backend/shared-ports/src/main/java/com/nac/slogbaa/shared/ports/TraineeCourseQuizScorePort.java
+/home/darkhorse/nac-slogbaa/backend/shared-ports/src/main/java/com/nac/slogbaa/shared/ports/TraineeNotificationPort.java
+/home/darkhorse/nac-slogbaa/backend/shared-ports/src/main/java/com/nac/slogbaa/shared/ports/file/FileStorageException.java
+/home/darkhorse/nac-slogbaa/backend/shared-ports/src/main/java/com/nac/slogbaa/shared/ports/file/FileUploadResult.java

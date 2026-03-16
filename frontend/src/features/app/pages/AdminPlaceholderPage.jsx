@@ -7,7 +7,7 @@ const styles = {
     margin: '0 0 0.5rem',
     fontSize: '1.5rem',
     fontWeight: 600,
-    color: 'var(--slogbaa-orange)',
+    color: 'var(--slogbaa-blue)',
   },
   text: {
     margin: 0,

@@ -85,6 +85,9 @@ const styles = {
 }
 
 export function TestCredentialsSidebar() {
+  // Only render in development mode — never expose credentials in production
+  if (!import.meta.env.DEV) return null
+
   return (
     <aside style={styles.sidebar}>
       <p style={styles.title}>For testers</p>
