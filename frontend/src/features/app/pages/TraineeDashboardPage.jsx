@@ -10,6 +10,7 @@ import { Tabs } from '../../../shared/components/Tabs.jsx'
 import { useToast } from '../../../shared/hooks/useToast.js'
 import { CoursePreviewModal } from '../../learning/components/CoursePreviewModal.jsx'
 import { CertificateCard } from '../components/trainee/CertificateCard.jsx'
+import { StatsSkeleton, CardGridSkeleton } from '../../../shared/components/ContentSkeletons.jsx'
 
 const styles = {
   layout: {
@@ -279,6 +280,7 @@ export function TraineeDashboardPage() {
         <hr style={styles.greetingDivider} aria-hidden />
 
         {/* Motivation stats */}
+        {enrolledLoading && <StatsSkeleton count={4} />}
         {!enrolledLoading && (
           <div style={styles.statsRow}>
             <div style={styles.statCard}>
@@ -365,7 +367,7 @@ export function TraineeDashboardPage() {
               )}
             </div>
             {enrolledLoading ? (
-              <p style={{ margin: '0 0 1rem', color: 'var(--slogbaa-text-muted)', fontSize: '0.9375rem' }}>Loading…</p>
+              <CardGridSkeleton count={3} />
             ) : enrolledCourses.length === 0 ? (
               <p style={{ margin: '0 0 1rem', fontSize: '0.9375rem', color: 'var(--slogbaa-text-muted)' }}>
                 You&apos;re not enrolled in any courses yet. <Link to="/dashboard/courses" style={{ color: 'var(--slogbaa-blue)' }}>Browse courses</Link> to enroll and get started.
@@ -414,7 +416,7 @@ export function TraineeDashboardPage() {
                 <p style={{ margin: '0 0 1rem', color: 'var(--slogbaa-error)', fontSize: '0.9375rem' }}>{coursesError.message || 'Failed to load courses.'}</p>
               )}
               {publishedLoading ? (
-                <p style={{ margin: '0 0 1rem', color: 'var(--slogbaa-text-muted)', fontSize: '0.9375rem' }}>Loading recommended courses…</p>
+                <CardGridSkeleton count={3} />
               ) : recommendedCourses.length === 0 ? (
                 <p style={{ margin: 0, fontSize: '0.9375rem', color: 'var(--slogbaa-text-muted)' }}>
                   No recommended courses right now. <Link to="/dashboard/courses" style={{ color: 'var(--slogbaa-blue)' }}>Browse all courses</Link>.
@@ -457,7 +459,7 @@ export function TraineeDashboardPage() {
               <p style={{ margin: '0 0 1rem', color: 'var(--slogbaa-error)', fontSize: '0.9375rem' }}>{certificateError}</p>
             )}
             {certificatesLoading ? (
-              <p style={{ color: 'var(--slogbaa-text-muted)', fontSize: '0.9375rem' }}>Loading certificates…</p>
+              <CardGridSkeleton count={3} />
             ) : certificates.length === 0 ? (
               <p style={{ color: 'var(--slogbaa-text-muted)', fontSize: '0.9375rem' }}>
                 No certificates yet. Complete courses with passing quiz scores to earn certificates.

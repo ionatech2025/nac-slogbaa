@@ -6,6 +6,7 @@ import { useCourseDetail, useCheckEnrollment, useResumePoint, useRecordProgress 
 import { EditorJsReadOnly } from '../../app/components/admin/EditorJsReadOnly.jsx'
 import { ModuleQuizPanel } from '../../assessment/components/ModuleQuizPanel.jsx'
 import { SafeHtml } from '../../../shared/components/SafeHtml.jsx'
+import { CourseDetailSkeleton } from '../../../shared/components/ContentSkeletons.jsx'
 
 const styles = {
   layout: {
@@ -459,7 +460,7 @@ export function CourseDetailPage() {
     return (
       <div style={styles.layout}>
         <main style={styles.main}>
-          <p style={styles.loading}>Loading course…</p>
+          <CourseDetailSkeleton />
         </main>
       </div>
     )
