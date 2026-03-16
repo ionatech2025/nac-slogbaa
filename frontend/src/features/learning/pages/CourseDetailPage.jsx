@@ -574,9 +574,11 @@ export function CourseDetailPage() {
                     style={{
                       marginBottom: '1.25rem',
                       padding: '1rem 1.25rem',
-                      borderRadius: 12,
-                      background: 'var(--slogbaa-surface)',
-                      border: '1px solid var(--slogbaa-border)',
+                      borderRadius: 14,
+                      background: 'var(--slogbaa-glass-bg-subtle)',
+                      backdropFilter: 'blur(8px)',
+                      WebkitBackdropFilter: 'blur(8px)',
+                      border: '1px solid var(--slogbaa-glass-border-subtle)',
                     }}
                   >
                     <p style={{ margin: 0, fontSize: '0.9375rem', color: 'var(--slogbaa-text-muted)' }}>
@@ -603,7 +605,7 @@ export function CourseDetailPage() {
                     )}
                   </>
                 ) : (
-                  <div style={{ marginTop: '1rem', padding: '1rem 1.25rem', borderRadius: 12, background: 'var(--slogbaa-surface)', border: '1px solid var(--slogbaa-border)' }}>
+                  <div style={{ marginTop: '1rem', padding: '1rem 1.25rem', borderRadius: 14, background: 'var(--slogbaa-glass-bg-subtle)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', border: '1px solid var(--slogbaa-glass-border-subtle)' }}>
                     <p style={{ margin: '0 0 0.75rem', fontSize: '0.9375rem', color: 'var(--slogbaa-text-muted)' }}>
                       Module notes are hidden while the quiz is available. Re-read the notes anytime to refresh.
                     </p>
