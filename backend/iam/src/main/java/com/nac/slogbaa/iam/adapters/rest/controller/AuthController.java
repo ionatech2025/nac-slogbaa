@@ -6,9 +6,12 @@ import com.nac.slogbaa.iam.application.dto.result.AuthenticationResult;
 import com.nac.slogbaa.iam.application.dto.result.RegisterTraineeResult;
 import com.nac.slogbaa.iam.application.port.in.AuthenticateUserUseCase;
 import com.nac.slogbaa.iam.application.port.in.RegisterTraineeUseCase;
+import com.nac.slogbaa.iam.application.port.in.VerifyEmailUseCase;
 import com.nac.slogbaa.iam.adapters.rest.dto.request.LoginRequest;
 import com.nac.slogbaa.iam.adapters.rest.dto.request.RegisterTraineeRequest;
+import com.nac.slogbaa.iam.adapters.rest.dto.request.ResendVerificationRequest;
 import com.nac.slogbaa.iam.adapters.rest.dto.response.AuthResponse;
+import com.nac.slogbaa.iam.adapters.rest.dto.response.MessageResponse;
 import com.nac.slogbaa.iam.adapters.rest.dto.response.RegisterResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -24,11 +27,14 @@ public class AuthController {
 
     private final AuthenticateUserUseCase authenticateUserUseCase;
     private final RegisterTraineeUseCase registerTraineeUseCase;
+    private final VerifyEmailUseCase verifyEmailUseCase;
 
     public AuthController(AuthenticateUserUseCase authenticateUserUseCase,
-                          RegisterTraineeUseCase registerTraineeUseCase) {
+                          RegisterTraineeUseCase registerTraineeUseCase,
+                          VerifyEmailUseCase verifyEmailUseCase) {
         this.authenticateUserUseCase = authenticateUserUseCase;
         this.registerTraineeUseCase = registerTraineeUseCase;
+        this.verifyEmailUseCase = verifyEmailUseCase;
     }
 
     @PostMapping("/login")
@@ -65,5 +71,22 @@ public class AuthController {
         RegisterTraineeResult result = registerTraineeUseCase.register(command);
         RegisterResponse response = new RegisterResponse(result.getTraineeId(), result.getEmail());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @GetMapping("/verify-email")
+    public ResponseEntity<MessageResponse> verifyEmail(@RequestParam("token") String token) {
+        boolean verified = verifyEmailUseCase.verify(token);
+        if (verified) {
+            return ResponseEntity.ok(new MessageResponse("Email verified successfully."));
+        }
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(new MessageResponse("Verification link is invalid or has expired."));
+    }
+
+    @PostMapping("/resend-verification")
+    public ResponseEntity<MessageResponse> resendVerification(@Valid @RequestBody ResendVerificationRequest request) {
+        verifyEmailUseCase.resendVerification(request.getEmail().trim().toLowerCase());
+        return ResponseEntity.ok(new MessageResponse(
+                "If an account exists for this email, a verification link will be sent shortly."));
     }
 }

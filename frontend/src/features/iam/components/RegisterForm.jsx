@@ -1,8 +1,7 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { FontAwesomeIcon, icons } from '../../../shared/icons.jsx'
-import { useAuth } from '../hooks/useAuth.js'
-import { register as registerApi, login as loginApi } from '../../../api/iam/auth.js'
+import { register as registerApi, resendVerification } from '../../../api/iam/auth.js'
 import { PHONE_COUNTRY_CODES } from '../../../shared/countryCodes.js'
 import { LoadingButton } from '../../../shared/components/LoadingButton.jsx'
 
@@ -123,6 +122,45 @@ const styles = {
     fontSize: '0.875rem',
     color: 'var(--slogbaa-error)',
   },
+  successBox: {
+    padding: '1.25rem',
+    background: 'rgba(5, 150, 105, 0.1)',
+    borderRadius: 10,
+    textAlign: 'center',
+  },
+  successText: {
+    fontSize: '0.9375rem',
+    color: 'var(--slogbaa-success, #059669)',
+    margin: '0 0 0.75rem',
+    fontWeight: 500,
+  },
+  successDetail: {
+    fontSize: '0.875rem',
+    color: 'var(--slogbaa-text-muted)',
+    margin: '0 0 1rem',
+  },
+  resendLink: {
+    fontSize: '0.875rem',
+    color: 'var(--slogbaa-blue)',
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    textDecoration: 'underline',
+    padding: 0,
+  },
+  resendMessage: {
+    fontSize: '0.8125rem',
+    color: 'var(--slogbaa-success, #059669)',
+    marginTop: '0.5rem',
+  },
+  loginLink: {
+    display: 'block',
+    marginTop: '1rem',
+    textAlign: 'center',
+    fontSize: '0.875rem',
+    color: 'var(--slogbaa-blue)',
+    textDecoration: 'none',
+  },
 }
 
 export function RegisterForm() {
@@ -144,10 +182,24 @@ export function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
-  const { login: setAuth } = useAuth()
-  const navigate = useNavigate()
+  const [registered, setRegistered] = useState(false)
+  const [resendMsg, setResendMsg] = useState(null)
+  const [resendLoading, setResendLoading] = useState(false)
 
   const update = (name, value) => setForm((prev) => ({ ...prev, [name]: value }))
+
+  const handleResend = async () => {
+    setResendMsg(null)
+    setResendLoading(true)
+    try {
+      const result = await resendVerification(form.email.trim())
+      setResendMsg(result.error ?? result.data?.message ?? 'Verification email sent.')
+    } catch {
+      setResendMsg('Failed to resend. Please try again.')
+    } finally {
+      setResendLoading(false)
+    }
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -169,19 +221,38 @@ export function RegisterForm() {
         setError(result.error)
         return
       }
-      const loginResult = await loginApi(form.email.trim(), form.password)
-      if (loginResult.error) {
-        setError('Account created but sign-in failed. Please sign in manually.')
-        return
-      }
-      const { token, userId, email: userEmail, role, fullName } = loginResult.data
-      setAuth(token, { userId, email: userEmail, role, fullName })
-      navigate('/dashboard', { replace: true })
+      setRegistered(true)
     } catch (err) {
       setError(err?.message ?? 'Network error. Is the backend running?')
     } finally {
       setLoading(false)
     }
+  }
+
+  if (registered) {
+    return (
+      <div style={styles.successBox}>
+        <p style={styles.successText}>
+          <FontAwesomeIcon icon={icons.enrolled} style={{ marginRight: '0.5rem' }} />
+          Account created!
+        </p>
+        <p style={styles.successDetail}>
+          Check your email for a verification link. You must verify your email before signing in.
+        </p>
+        <button
+          type="button"
+          style={styles.resendLink}
+          onClick={handleResend}
+          disabled={resendLoading}
+        >
+          {resendLoading ? 'Sending...' : 'Resend verification email'}
+        </button>
+        {resendMsg && <p style={styles.resendMessage}>{resendMsg}</p>}
+        <Link to="/auth/login" style={styles.loginLink}>
+          Go to Sign in
+        </Link>
+      </div>
+    )
   }
 
   return (

@@ -122,6 +122,7 @@ class CreateStaffServiceTest {
         @Override public void deleteById(UUID id) {}
         @Override public long count() { return 0; }
         @Override public void updatePasswordHash(UUID id, String hash) {}
+        @Override public void setEmailVerified(UUID traineeId, boolean verified) {}
     }
 
     private static class RecordingNotification implements StaffNotificationPort {

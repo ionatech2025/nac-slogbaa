@@ -93,3 +93,31 @@ export async function confirmPasswordReset(token, newPassword) {
   }
   return { data: { message: body.message ?? 'Password has been reset successfully.' } }
 }
+
+/**
+ * Verify email with token. Returns { success: true } or { success: false, error }.
+ * Backend: GET /api/auth/verify-email?token=... -> 200 or 400.
+ */
+export async function verifyEmail(token) {
+  if (!token) return { success: false, error: 'Token is required.' }
+  const res = await client.get(`/api/auth/verify-email?token=${encodeURIComponent(token)}`)
+  const body = await res.json().catch(() => ({}))
+  if (!res.ok) {
+    return { success: false, error: body.message ?? body.detail ?? body.title ?? 'Invalid or expired verification link.' }
+  }
+  return { success: true }
+}
+
+/**
+ * Resend verification email. Returns { data: { message } } or { error }.
+ * Backend: POST /api/auth/resend-verification -> 200 { message } (generic message for security).
+ */
+export async function resendVerification(email) {
+  const res = await client.post('/api/auth/resend-verification', { email: email?.trim().toLowerCase() })
+  const body = await res.json().catch(() => ({}))
+  if (!res.ok) {
+    const message = body.detail ?? body.title ?? `Request failed (${res.status}).`
+    return { error: message }
+  }
+  return { data: { message: body.message ?? 'If an account exists for this email, a verification link will be sent shortly.' } }
+}

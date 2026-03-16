@@ -9,6 +9,7 @@ import com.nac.slogbaa.iam.application.port.out.StaffUserRepositoryPort;
 import com.nac.slogbaa.iam.application.port.out.TraineeRepositoryPort;
 import com.nac.slogbaa.iam.core.aggregate.StaffUser;
 import com.nac.slogbaa.iam.core.aggregate.Trainee;
+import com.nac.slogbaa.iam.core.exception.EmailNotVerifiedException;
 import com.nac.slogbaa.iam.core.exception.InvalidCredentialsException;
 import com.nac.slogbaa.iam.core.valueobject.AuthenticatedIdentity;
 import com.nac.slogbaa.iam.core.valueobject.AuthenticatedRole;
@@ -86,6 +87,9 @@ public final class AuthenticateUserService implements AuthenticateUserUseCase {
         }
         if (!passwordHasher.matches(rawPassword, user.getPasswordHash())) {
             throw new InvalidCredentialsException();
+        }
+        if (!user.isEmailVerified()) {
+            throw new EmailNotVerifiedException();
         }
         AuthenticatedIdentity identity = new AuthenticatedIdentity(
                 user.getId().getValue(),

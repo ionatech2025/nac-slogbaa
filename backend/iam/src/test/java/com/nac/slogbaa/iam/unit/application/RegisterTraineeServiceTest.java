@@ -2,6 +2,7 @@ package com.nac.slogbaa.iam.unit.application;
 
 import com.nac.slogbaa.iam.application.dto.command.RegisterTraineeCommand;
 import com.nac.slogbaa.iam.application.dto.result.RegisterTraineeResult;
+import com.nac.slogbaa.iam.application.port.in.VerifyEmailUseCase;
 import com.nac.slogbaa.iam.application.port.out.PasswordHasherPort;
 import com.nac.slogbaa.iam.application.port.out.StaffUserRepositoryPort;
 import com.nac.slogbaa.iam.application.port.out.TraineeRepositoryPort;
@@ -27,6 +28,7 @@ class RegisterTraineeServiceTest {
     private InMemoryTraineeRepo traineeRepo;
     private StubStaffRepo staffRepo;
     private RecordingNotification notification;
+    private NoOpVerifyEmail verifyEmail;
     private RegisterTraineeService service;
 
     @BeforeEach
@@ -34,11 +36,12 @@ class RegisterTraineeServiceTest {
         traineeRepo = new InMemoryTraineeRepo();
         staffRepo = new StubStaffRepo();
         notification = new RecordingNotification();
+        verifyEmail = new NoOpVerifyEmail();
         PasswordHasherPort hasher = new PasswordHasherPort() {
             @Override public String hash(String raw) { return "hashed:" + raw; }
             @Override public boolean matches(String raw, String hashed) { return hashed.equals("hashed:" + raw); }
         };
-        service = new RegisterTraineeService(traineeRepo, staffRepo, hasher, notification);
+        service = new RegisterTraineeService(traineeRepo, staffRepo, hasher, notification, verifyEmail);
     }
 
     @Test
@@ -88,6 +91,7 @@ class RegisterTraineeServiceTest {
         @Override public void deleteById(UUID id) {}
         @Override public long count() { return saved.size(); }
         @Override public void updatePasswordHash(UUID traineeId, String newPasswordHash) {}
+        @Override public void setEmailVerified(UUID traineeId, boolean verified) {}
     }
 
     private static class StubStaffRepo implements StaffUserRepositoryPort {
@@ -125,5 +129,11 @@ class RegisterTraineeServiceTest {
 
         @Override
         public void sendPasswordChangedByAdmin(String toEmail, String fullName, String newPassword) {}
+    }
+
+    private static class NoOpVerifyEmail implements VerifyEmailUseCase {
+        @Override public void sendVerificationEmail(String email) {}
+        @Override public boolean verify(String token) { return false; }
+        @Override public void resendVerification(String email) {}
     }
 }

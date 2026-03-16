@@ -64,4 +64,12 @@ public class TraineeRepositoryAdapter implements TraineeRepositoryPort {
             jpaRepository.save(entity);
         });
     }
+
+    @Override
+    public void setEmailVerified(UUID traineeId, boolean verified) {
+        jpaRepository.findById(traineeId).ifPresent(entity -> {
+            entity.setEmailVerified(verified);
+            jpaRepository.save(entity);
+        });
+    }
 }

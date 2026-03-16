@@ -3,6 +3,7 @@ package com.nac.slogbaa.iam.adapters.rest.controller;
 import com.nac.slogbaa.iam.core.exception.CannotDeleteLastSuperAdminException;
 import com.nac.slogbaa.iam.core.exception.CannotDeleteSelfException;
 import com.nac.slogbaa.iam.core.exception.DuplicateEmailException;
+import com.nac.slogbaa.iam.core.exception.EmailNotVerifiedException;
 import com.nac.slogbaa.iam.core.exception.InvalidCredentialsException;
 import com.nac.slogbaa.iam.core.exception.InvalidResetTokenException;
 import com.nac.slogbaa.iam.core.exception.InvalidCurrentPasswordException;
@@ -25,6 +26,13 @@ public class AuthExceptionHandler {
     public ProblemDetail handleInvalidCredentials(InvalidCredentialsException e) {
         ProblemDetail detail = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, e.getMessage());
         detail.setTitle("Invalid credentials");
+        return detail;
+    }
+
+    @ExceptionHandler(EmailNotVerifiedException.class)
+    public ProblemDetail handleEmailNotVerified(EmailNotVerifiedException e) {
+        ProblemDetail detail = ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, e.getMessage());
+        detail.setTitle("Email not verified");
         return detail;
     }
 
