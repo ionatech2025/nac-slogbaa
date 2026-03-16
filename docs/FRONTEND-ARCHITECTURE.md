@@ -17,6 +17,9 @@ Complete technical reference for the SLOGBAA Online Learning Platform frontend.
 | Build | Vite | 6.0+ | Dev server, HMR, production bundling |
 | Package Manager | Bun | 1.3+ | Fast dependency resolution (**always use bun, never npm**) |
 | Content Editor | Editor.js | 2.31+ | Rich content editing (admin only, lazy-loaded) |
+| Validation | Zod | 3.x | Schema validation on all auth forms |
+| Error Tracking | @sentry/react | latest | Error monitoring (gated on cookie consent) |
+| Video | YouTube IFrame API | — | Embedded video with speed/captions control |
 
 ### Branding & Design Updates (March 2026)
 
@@ -87,12 +90,18 @@ frontend/
     │       ├── use-certificates.js      # useMyCertificates
     │       ├── use-courses.js           # 8 trainee course hooks (optimistic enrollment)
     │       ├── use-library.js           # usePublishedLibrary
-    │       └── use-trainee.js           # Profile + settings hooks
+    │       ├── use-trainee.js           # Profile + settings hooks
+    │       ├── use-reviews.js           # Course ratings/reviews (create, list, delete)
+    │       ├── use-streaks.js           # Streak, daily goal, activity logging
+    │       ├── use-achievements.js      # XP, badges, achievements
+    │       ├── use-bookmarks.js         # Bookmarks/notes CRUD
+    │       ├── use-discussions.js       # Q&A threads, replies, resolve
+    │       └── use-leaderboard.js       # Top completions leaderboard
     │
     ├── shared/
     │   ├── icons.jsx                    # Lucide icon exports (55 icons) + Icon component
     │   ├── countryCodes.js              # Phone country code data
-    │   ├── components/                  # 23 design system primitives
+    │   ├── components/                  # 30+ design system primitives
     │   │   ├── Avatar.jsx               # User image + initials fallback (5 sizes)
     │   │   ├── Badge.jsx                # Status label (6 variants)
     │   │   ├── Button.jsx               # CTA button (6 variants, 3 sizes)
@@ -116,7 +125,14 @@ frontend/
     │   │   ├── Skeleton.jsx             # Pulse animation placeholder
     │   │   ├── Tabs.jsx                 # WAI-ARIA tabs (arrow key nav)
     │   │   ├── ThemeToggle.jsx          # Dark/light toggle button
-    │   │   └── Toast.jsx                # Notification system (4 types)
+    │   │   ├── Toast.jsx                # Notification system (4 types)
+    │   │   ├── StarRating.jsx           # 5-star rating input/display
+    │   │   ├── VideoPlayer.jsx          # YouTube IFrame API (speed + captions)
+    │   │   ├── BookmarkButton.jsx       # Toggle bookmark + note popover
+    │   │   ├── CookieConsentBanner.jsx  # GDPR cookie consent (localStorage)
+    │   │   ├── PwaInstallBanner.jsx     # PWA beforeinstallprompt banner
+    │   │   ├── CourseDetailSkeleton.jsx # Course detail page skeleton loader
+    │   │   └── LibraryListSkeleton.jsx  # Library page skeleton loader
     │   ├── hooks/
     │   │   ├── useDebounce.js           # Input debouncing (250ms)
     │   │   ├── useLocalStorage.js       # JSON localStorage state
@@ -156,7 +172,12 @@ frontend/
         │   │       ├── CourseCard.jsx    # Progress ring + enrollment
         │   │       ├── EditProfileModal.jsx
         │   │       ├── ProfileViewModal.jsx
-        │   │       └── TraineeNav.jsx   # Avatar + dropdown menu
+        │   │       ├── TraineeNav.jsx   # Avatar + dropdown menu
+        │   │       ├── ReviewSection.jsx    # Course reviews list + submit form
+        │   │       ├── StreakWidget.jsx      # Duolingo-style flame + progress ring
+        │   │       ├── AchievementsWidget.jsx # XP/badges display (Khan Academy-style)
+        │   │       ├── LeaderboardWidget.jsx  # Top completions leaderboard
+        │   │       └── DiscussionPanel.jsx    # Threaded Q&A with replies + resolve
         │   └── pages/
         │       ├── HomePage.jsx         # Public landing (hero, features, CTA)
         │       ├── AdminLayout.jsx      # Admin shell (sidebar, cmd palette, hamburger)
@@ -193,7 +214,8 @@ frontend/
         │       ├── LoginPage.jsx        # Calm card + logo mark
         │       ├── RegisterPage.jsx
         │       ├── ForgotPasswordPage.jsx
-        │       └── ResetPasswordPage.jsx
+        │       ├── ResetPasswordPage.jsx
+        │       └── VerifyEmailPage.jsx    # Email verification landing
         └── learning/
             ├── components/
             │   └── CoursePreviewModal.jsx
@@ -203,7 +225,7 @@ frontend/
                 └── LibraryPage.jsx
 ```
 
-**Total: 111 source files** (83 JSX components + 20 JS modules + 1 CSS + 7 config files)
+**Total: 125+ source files** (95+ JSX components + 22 JS modules + 1 CSS + 7 config files)
 
 ---
 
@@ -273,7 +295,7 @@ ErrorBoundary
 
 ### Server State — TanStack Query v5
 
-6 hook files, 50+ hooks total. All API data flows through query hooks — zero `useState`+`useEffect` fetch patterns.
+12 hook files, 60+ hooks total. All API data flows through query hooks — zero `useState`+`useEffect` fetch patterns.
 
 **Query defaults**: 30s stale, 5min GC, 2 retries (never on 401), refetch on window focus.
 
@@ -324,6 +346,8 @@ Single store (`ui-store.js`) with persist middleware:
 - All images have meaningful `alt` text
 - `prefers-reduced-motion` kills animations + backdrop-filter
 - `LiveRegionProvider` for screen reader announcements
+- Skip-to-content link for keyboard navigation
+- Idle session timeout (30 min) with warning
 - Text selection: calm blue tint
 - Font smoothing: antialiased
 
@@ -332,6 +356,10 @@ Single store (`ui-store.js`) with persist middleware:
 ## Security
 
 - DOMPurify strict allow-list on all rendered HTML
+- Content-Security-Policy meta tag (CSP headers)
+- Zod schema validation on all 4 auth forms
+- GDPR cookie consent banner (localStorage persistence)
+- Sentry error tracking (@sentry/react, gated on cookie consent via `VITE_SENTRY_DSN`)
 - Dev credentials gated behind `import.meta.env.DEV`
 - 401 interceptor → auto-logout → cross-tab sync
 - Safe anchor defaults (`rel="noopener noreferrer"`)
@@ -342,6 +370,7 @@ Single store (`ui-store.js`) with persist middleware:
 ## PWA & Mobile
 
 - `manifest.json`: standalone display, theme color, icons
+- PWA install prompt: `beforeinstallprompt` banner with dismiss/install
 - Apple mobile meta: capable, status-bar-style, title
 - Viewport: `viewport-fit=cover` for notched devices
 - Mobile hamburger menu with slide-out sidebar (<768px)
@@ -353,8 +382,8 @@ Single store (`ui-store.js`) with persist middleware:
 
 ## User Feedback
 
-- 41 toast notifications across all mutations
-- Content-shaped skeletons (cards, tables, stats)
+- 45+ toast notifications across all mutations
+- Content-shaped skeletons (cards, tables, stats, course detail, library list, dashboard)
 - QueryError with retry button
 - EmptyState with icon + context
 - Optimistic UI on enrollment + publish
@@ -378,6 +407,7 @@ bun run preview      # Preview production build
 | Variable | Purpose | Default |
 |----------|---------|---------|
 | `VITE_API_BASE_URL` | Backend API origin | `''` (Vite proxy) |
+| `VITE_SENTRY_DSN` | Sentry error tracking DSN (optional) | `''` (disabled) |
 
 ### Production Configuration
 

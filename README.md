@@ -27,7 +27,7 @@ The platform is a **full-stack monorepo** with cleanly separated `backend/` and 
 
 - **Backend:** Java 21, Spring Boot 4.0.2, Gradle Kotlin DSL, 7-module hexagonal architecture. REST API, Spring Data JPA, PostgreSQL, Flyway migrations, Spring Security with JWT.
 - **Frontend:** React 18, Vite, TanStack Query v5, Zustand v5. Feature-based structure aligned with backend bounded contexts.
-- **Database:** PostgreSQL 16. Schema managed exclusively by Flyway (13 versioned migrations); JPA does not create or alter schema.
+- **Database:** PostgreSQL 16. Schema managed exclusively by Flyway (22 versioned migrations); JPA does not create or alter schema.
 
 Architecture follows **hexagonal (ports & adapters)** with **domain-driven design**: bounded contexts (IAM, Learning, Assessment, Progress), clear application ports, infrastructure adapters, and ArchUnit-enforced boundaries.
 
@@ -35,12 +35,15 @@ Architecture follows **hexagonal (ports & adapters)** with **domain-driven desig
 
 ## Features
 
-- **Identity & Access Management (IAM)** — Trainee registration, staff management, JWT auth with rate limiting, password reset, role-based access (Super Admin / Admin / Trainee).
-- **Learning Management** — Courses with modules and rich content blocks (text, image, video, activity via Editor.js), library resources, publish/unpublish workflow.
-- **Assessment** — Quiz builder, question/option management, timed attempts with scoring, pass/fail enforcement.
-- **Progress & Certification** — Course enrollment, module completion tracking, progress percentage, PDF certificate generation and email delivery.
+- **Identity & Access Management (IAM)** — Trainee registration with email verification, staff management, JWT auth with rate limiting, password reset, role-based access (Super Admin / Admin / Trainee), idle session timeout (30 min).
+- **Learning Management** — Courses with modules and rich content blocks (text, image, video, activity via Editor.js), library resources, publish/unpublish workflow, course categories with filter chips, module time estimates ("~X min" badges), course search/filter/sort with FilterSortBar.
+- **Assessment** — Quiz builder, question/option management, timed attempts with scoring (maxAttempts + timeLimitMinutes server-side enforcement), pass/fail enforcement, answer review (per-question correct/incorrect after submission).
+- **Progress & Certification** — Course enrollment, module completion tracking, progress percentage, PDF certificate generation and email delivery, streak counter with daily goals (Duolingo-style), XP/badges/achievements (8 badge definitions, Khan Academy-style), trainee leaderboard (privacy-safe "First L." names).
+- **Course Engagement** — 5-star ratings/reviews (Udemy-style), bookmarks/notes on content blocks, threaded Q&A discussions with replies and resolve.
+- **Video Player** — YouTube IFrame API integration with playback speed control (0.5x-2x) and captions toggle.
 - **Admin Dashboard** — Staff/trainee overview, course management, enrollment tracking, certificate issuance and revocation.
 - **Public Homepage** — Marketing landing page with hero, features, testimonials, CTA.
+- **Frontend Hardening** — Skeleton loaders (Dashboard, CourseDetail, Library), CSP headers, GDPR cookie consent banner, Sentry error tracking (gated on cookie consent), PWA install prompt, Zod schema validation on all auth forms, skip-to-content link (WCAG 2.2 AA).
 
 ---
 
@@ -50,8 +53,8 @@ Architecture follows **hexagonal (ports & adapters)** with **domain-driven desig
 |-------|-------------|
 | **Backend** | Java 21, Spring Boot 4.0.2, Spring Security 6+, Spring Data JPA, Flyway 10.14, PostgreSQL 16 |
 | **Build** | Gradle 8.14.3 Kotlin DSL (backend), Vite 6 (frontend) |
-| **Frontend** | React 18, React Router 6, TanStack Query 5, Zustand 5, Lucide React, DOMPurify, Editor.js |
-| **Security** | JWT (JJWT 0.12.6) with issuer/audience binding, BCrypt-13, rate limiting, HSTS, CSP headers |
+| **Frontend** | React 18, React Router 6, TanStack Query 5, Zustand 5, Lucide React, DOMPurify, Editor.js, Zod, @sentry/react |
+| **Security** | JWT (JJWT 0.12.6) with issuer/audience binding, BCrypt-13, rate limiting, HSTS, CSP headers, GDPR cookie consent |
 | **Observability** | Spring Boot Actuator, Micrometer + Prometheus, structured JSON logging, MDC tracing |
 | **Runtime** | JRE 21 with virtual threads, Node 20 for frontend build |
 | **Containers** | Docker multi-stage builds, Docker Compose orchestration |
@@ -133,7 +136,7 @@ nac-slogbaa/
 │               ├── application-dev.properties
 │               ├── application-prod.properties
 │               ├── logback-spring.xml
-│               └── db/migration/     # V1–V13 Flyway migrations (canonical)
+│               └── db/migration/     # V1–V22 Flyway migrations (canonical)
 │
 ├── frontend/                         # React SPA (Vite + React 18)
 │   ├── package.json                  # Dependencies + scripts
@@ -362,16 +365,20 @@ The backend implements production-grade security hardening:
 
 ## API Reference
 
-The backend exposes 60+ REST endpoints across 5 bounded contexts. All protected endpoints require a `Bearer` JWT token.
+The backend exposes 80+ REST endpoints across 5 bounded contexts. All protected endpoints require a `Bearer` JWT token.
 
 | Context | Base Path | Endpoints | Auth |
 |---------|-----------|-----------|------|
-| **Auth** | `/api/auth` | login, register, password reset (request/verify/confirm) | Public |
-| **Trainee** | `/api/trainee`, `/api/me` | Profile, settings | TRAINEE |
-| **Courses** | `/api/courses` | Published list, detail, enroll, progress, resume, module completion | TRAINEE |
+| **Auth** | `/api/auth` | login, register, password reset, email verify/resend | Public |
+| **Trainee** | `/api/trainee`, `/api/me` | Profile, settings, streak, daily goal, activity, achievements | TRAINEE |
+| **Courses** | `/api/courses` | Published list, detail, enroll, progress, resume, module completion, categories | TRAINEE |
+| **Reviews** | `/api/courses/{id}/reviews` | Create/list/delete ratings and reviews, rating summary | TRAINEE |
+| **Discussions** | `/api/courses/{id}/discussions` | Threaded Q&A: create/list threads, post replies, resolve | TRAINEE |
+| **Bookmarks** | `/api/me/bookmarks` | Create/list/update/delete bookmarks and notes | TRAINEE |
+| **Leaderboard** | `/api/leaderboard` | Top completions (privacy-safe names) | TRAINEE |
 | **Library** | `/api/library` | Published resources | TRAINEE |
 | **Certificates** | `/api/certificates` | List, download PDF, send email | TRAINEE |
-| **Quizzes** | `/api/courses/{id}/modules/{id}/quiz` | Get quiz, start attempt, submit answers | TRAINEE |
+| **Quizzes** | `/api/courses/{id}/modules/{id}/quiz` | Get quiz, start attempt, submit answers, answer review | TRAINEE |
 | **Admin Dashboard** | `/api/admin/dashboard` | Overview (staff/trainee counts) | ADMIN |
 | **Admin Courses** | `/api/admin/courses` | CRUD courses, modules, content blocks, publish/unpublish | ADMIN/SUPER_ADMIN |
 | **Admin Library** | `/api/admin/library` | CRUD library resources, publish/unpublish | ADMIN/SUPER_ADMIN |

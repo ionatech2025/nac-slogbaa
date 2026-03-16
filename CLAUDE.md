@@ -57,6 +57,15 @@ cd frontend && bun run dev
 - **CORS:** Backend allows the Vercel frontend origin in prod
 - **SMTP:** Gmail SMTP configured on Render (env vars: `SMTP_HOST`, `SMTP_USERNAME`, `SMTP_PASSWORD`)
 
+## Feature Summary (March 2026)
+- **IAM:** Email verification (V14), Zod auth form validation, idle session timeout (30 min)
+- **Learning:** Course categories (V19), module time estimates (V17), search/filter/sort, video player (YouTube IFrame API)
+- **Assessment:** Server-side quiz enforcement (maxAttempts + timeLimitMinutes), answer review
+- **Progress:** Streaks + daily goals (V16), XP/badges/achievements (V20), leaderboard
+- **Engagement:** Course ratings/reviews (V15), bookmarks/notes (V21), Q&A discussions (V22)
+- **Frontend:** Skeleton loaders, CSP headers, GDPR cookie consent, Sentry (@sentry/react), PWA install prompt, skip-to-content (WCAG 2.2 AA)
+- **Migrations:** V14–V22 (9 new): email_verification_tokens, course_review, daily_activity, trainee_streak, module.estimated_minutes, course_category, badge_definition, trainee_badge, trainee_xp, trainee_bookmark, discussion_thread, discussion_reply
+
 ## Key Paths
 - Backend: `backend/` (Spring Boot, Gradle, Java 21)
 - Frontend: `frontend/` (React 18, Vite, bun)

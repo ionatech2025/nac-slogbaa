@@ -1,7 +1,8 @@
 # SLOGBAA — Production Readiness
 
-Updated March 2026. Latest: Render deployment, Vercel frontend, CORS configuration,
-SMTP email, Neon DB migration, glassmorphism UI, CodeQL/security workflow hardening.
+Updated March 2026. Latest: email verification, course ratings/reviews, streaks/XP/badges,
+bookmarks/notes, Q&A discussions, video player, course categories, leaderboard, cookie consent,
+Sentry integration, PWA install prompt, Zod validation, skeleton loaders, CSP headers.
 
 ---
 
@@ -12,7 +13,7 @@ SMTP email, Neon DB migration, glassmorphism UI, CodeQL/security workflow harden
 **Host:** Neon (Singapore, `aws-ap-southeast-1`)
 **Project:** AgriTradeHub (`wispy-term-57694063`) | **Database:** `slogbaa` | **Branch:** `main`
 **Engine:** PostgreSQL 17.8 (Neon serverless) | **SSL:** Required (`sslmode=require`)
-**Migrations:** 13 Flyway scripts (734 lines SQL), auto-applied on startup.
+**Migrations:** 22 Flyway scripts, auto-applied on startup.
 
 Connection configured via environment variables (`DATASOURCE_URL`, `DATASOURCE_USERNAME`, `DATASOURCE_PASSWORD`).
 Dev profile falls back to `localhost:5432` if env vars are not set.
@@ -44,11 +45,11 @@ Dev profile falls back to `localhost:5432` if env vars are not set.
 
 ### Frontend — Production Ready
 
-**Implemented:** Full LMS with IAM, Learning, Assessment, Progress, Admin panels, Trainee dashboard, public homepage.
+**Implemented:** Full LMS with IAM (email verification), Learning (categories, time estimates, search/filter/sort), Assessment (answer review, server-side enforcement), Progress (streaks, XP/badges, leaderboard), Engagement (ratings/reviews, bookmarks/notes, Q&A discussions, video player), Admin panels, Trainee dashboard, public homepage.
 
-**Architecture:** TanStack Query v5 (50+ hooks), Zustand v5 (persisted UI store), Lucide icons, DOMPurify, React.lazy code splitting.
+**Architecture:** TanStack Query v5 (60+ hooks), Zustand v5 (persisted UI store), Lucide icons, DOMPurify, Zod, @sentry/react, React.lazy code splitting.
 
-**Design System:** 25+ shared primitives, WCAG 2.2 AA, dark mode, focus traps, keyboard navigation.
+**Design System:** 30+ shared primitives, WCAG 2.2 AA, dark mode, focus traps, keyboard navigation, skeleton loaders, CSP headers, GDPR cookie consent, PWA install prompt, skip-to-content link, idle session timeout.
 
 ---
 
@@ -160,6 +161,27 @@ app  ──→ ALL modules (entry point, boots everything)
 | Gmail SMTP integration | Done — Email notifications via Gmail app password |
 | CI/CD Render pipeline | Done — `deploy.yml` triggers Render API, polls status, health checks |
 | `render.yaml` blueprint | Done — Infrastructure-as-code for reproducible Render setup |
+| Email verification | Done — V14 migration, full hexagonal stack, verify/resend endpoints |
+| Quiz server-side enforcement | Done — maxAttempts + timeLimitMinutes enforced on backend |
+| Course ratings/reviews | Done — V15, 5-star + text reviews, Udemy-style |
+| Streak counter + daily goals | Done — V16, Duolingo-style flame + SVG progress ring |
+| Module time estimates | Done — V17, "~X min" badges, LinkedIn Learning-style |
+| Course categories | Done — V19, 5 seeded categories, filter chips |
+| XP/badges/achievements | Done — V20, 8 badge definitions, Khan Academy-style |
+| Bookmarks/notes | Done — V21, toggle + note popover on content blocks |
+| Course Q&A discussions | Done — V22, threaded discussions with replies + resolve |
+| Video player | Done — YouTube IFrame API, speed control (0.5x-2x), captions toggle |
+| Skeleton loaders | Done — Dashboard, CourseDetail, Library pages |
+| Course search/filter/sort | Done — FilterSortBar component |
+| CSP headers | Done — Content-Security-Policy meta tag |
+| GDPR cookie consent | Done — Banner with localStorage persistence |
+| Sentry integration | Done — @sentry/react, gated on cookie consent |
+| PWA install prompt | Done — beforeinstallprompt banner |
+| Zod schema validation | Done — All 4 auth forms validated with Zod |
+| Quiz answer review | Done — Per-question correct/incorrect after submission |
+| Trainee leaderboard | Done — Top completions, privacy-safe "First L." names |
+| Skip-to-content link | Done — WCAG 2.2 AA keyboard navigation |
+| Idle session timeout | Done — 30-minute inactivity auto-logout |
 
 ### Tests (completed)
 
@@ -265,6 +287,7 @@ SUPPORT_EMAIL=<set-in-env>
 | Variable | Production | Preview | Development |
 |----------|-----------|---------|-------------|
 | `VITE_API_BASE_URL` | `https://slogbaa-backend.onrender.com` | `https://slogbaa-backend.onrender.com` | `http://localhost:8080` |
+| `VITE_SENTRY_DSN` | `<set-in-env>` | `<set-in-env>` | (optional) |
 
 ### Pre-Deployment Steps
 
@@ -333,12 +356,13 @@ git config core.hooksPath .githooks
 | Backend tests | Ready | High (98 tests, 0 failures) |
 | Backend build system | Ready | High (Gradle 8.14.3 Kotlin DSL) |
 | Frontend code | Ready | High |
-| Frontend security | Ready | High |
-| Frontend accessibility | Ready | High (WCAG 2.2 AA) |
-| Frontend performance | Ready | High (77 KB gzip initial) |
-| Frontend design system | Ready | High (25+ primitives) |
+| Frontend security | Ready | High (CSP, Sentry, Zod, cookie consent) |
+| Frontend accessibility | Ready | High (WCAG 2.2 AA, skip-to-content, idle timeout) |
+| Frontend performance | Ready | High (skeleton loaders, lazy loading) |
+| Frontend design system | Ready | High (30+ primitives) |
+| Engagement features | Ready | High (reviews, streaks, badges, bookmarks, Q&A) |
 | Docker/deployment | Ready | High |
-| BFF API alignment | Ready | High (60+ endpoints matched) |
+| BFF API alignment | Ready | High (80+ endpoints matched) |
 
 ### Scale-Out Prerequisites
 

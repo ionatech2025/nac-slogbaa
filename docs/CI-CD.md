@@ -228,6 +228,7 @@ Push to dev/main
 | `RENDER_API_KEY` | deploy.yml | Render API key for triggering deploys |
 | `GITGUARDIAN_API_KEY` | security.yml (ggshield) | GitGuardian API (optional) |
 | `NVD_API_KEY` | security.yml (OWASP DC) | NVD database API key (optional, faster scans) |
+| `VITE_SENTRY_DSN` | vercel.yml | Sentry DSN for frontend error tracking (optional) |
 
 ### Repository Variables
 
