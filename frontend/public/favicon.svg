@@ -4,18 +4,20 @@
       <stop offset="0%" stop-color="#2563eb"/>
       <stop offset="100%" stop-color="#1d4ed8"/>
     </linearGradient>
-    <linearGradient id="accent" x1="160" y1="128" x2="352" y2="384" gradientUnits="userSpaceOnUse">
+    <linearGradient id="accent" x1="180" y1="160" x2="332" y2="352" gradientUnits="userSpaceOnUse">
       <stop offset="0%" stop-color="#ffffff"/>
       <stop offset="100%" stop-color="#dbeafe"/>
     </linearGradient>
   </defs>
+  <!-- Full bleed background for maskable safe zone -->
+  <rect width="512" height="512" fill="#2563eb"/>
   <!-- Rounded square badge -->
   <rect width="512" height="512" rx="112" fill="url(#bg)"/>
-  <!-- Open book / knowledge wings -->
-  <path d="M256 120c-48 0-96 16-128 44v8c32-24 80-36 128-36s96 12 128 36v-8c-32-28-80-44-128-44z" fill="rgba(255,255,255,0.25)"/>
-  <!-- Stylised S learning path -->
-  <path d="M310 168c-40-16-88-8-112 24s-16 72 16 96 72 28 96 8" stroke="url(#accent)" stroke-width="36" stroke-linecap="round" fill="none"/>
-  <path d="M202 344c40 16 88 8 112-24s16-72-16-96" stroke="url(#accent)" stroke-width="36" stroke-linecap="round" fill="none"/>
-  <!-- Rising arrow tip on S end — growth / progress -->
-  <path d="M310 168l-4-32 28 20" stroke="#ffffff" stroke-width="24" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <!-- Open book / knowledge wings — inset for maskable safe zone -->
+  <path d="M256 148c-40 0-80 13-108 37v7c28-20 68-30 108-30s80 10 108 30v-7c-28-24-68-37-108-37z" fill="rgba(255,255,255,0.25)"/>
+  <!-- Stylised S learning path — centered in 80% safe zone -->
+  <path d="M300 192c-36-14-78-7-100 21s-14 64 14 85 64 25 85 7" stroke="url(#accent)" stroke-width="34" stroke-linecap="round" fill="none"/>
+  <path d="M212 320c36 14 78 7 100-21s14-64-14-85" stroke="url(#accent)" stroke-width="34" stroke-linecap="round" fill="none"/>
+  <!-- Rising arrow tip — growth / progress -->
+  <path d="M300 192l-3-28 24 17" stroke="#ffffff" stroke-width="22" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
 </svg>

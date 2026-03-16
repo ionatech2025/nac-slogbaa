@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { FontAwesomeIcon, icons } from '../../../../shared/icons.jsx'
 import { useAuth } from '../../../iam/hooks/useAuth.js'
 import { Avatar } from '../../../../shared/components/Avatar.jsx'
+import { Logo } from '../../../../shared/components/Logo.jsx'
 
 const styles = {
   nav: {
@@ -15,12 +16,6 @@ const styles = {
     top: 0,
     zIndex: 100,
     boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
-  },
-  logo: {
-    margin: 0,
-    fontSize: '1.25rem',
-    fontWeight: 600,
-    color: '#fff',
   },
   userTrigger: {
     display: 'flex',
@@ -125,7 +120,7 @@ export function TraineeNav({ onOpenProfile }) {
 
   return (
     <nav style={styles.nav}>
-      <h1 style={styles.logo}>SLOGBAA Learning</h1>
+      <Logo variant="full" size={30} color="white" subtitle="Learning" />
       <div ref={ref} style={{ position: 'relative' }}>
         <button
           type="button"
@@ -136,7 +131,7 @@ export function TraineeNav({ onOpenProfile }) {
         >
           <Avatar name={displayName} size="sm" />
           <span>{displayName}</span>
-          <span style={{ marginLeft: 4 }}>{open ? '▲' : '▼'}</span>
+          <span style={{ marginLeft: 4 }}>{open ? '\u25B2' : '\u25BC'}</span>
         </button>
         {open && (
           <div style={styles.dropdown} role="menu">

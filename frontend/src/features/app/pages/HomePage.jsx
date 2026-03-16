@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { FontAwesomeIcon, icons } from '../../../shared/icons.jsx'
+import { Logo } from '../../../shared/components/Logo.jsx'
 
 const s = {
   page: { minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--slogbaa-bg)' },
@@ -112,7 +113,7 @@ export function HomePage() {
     <div style={s.page}>
       {/* Navigation */}
       <nav style={s.nav}>
-        <h1 style={s.logo}>SLOGBAA</h1>
+        <Logo variant="full" size={34} color="white" />
         <div style={s.navLinks}>
           <Link to="/auth/login" style={{ ...s.navLink, color: 'rgba(255,255,255,0.85)' }}>
             Sign in
@@ -228,7 +229,10 @@ export function HomePage() {
       {/* Footer */}
       <footer style={s.footer}>
         <p style={{ margin: 0 }}>
-          Putting Communities Before Self &middot; Network for Active Citizens (NAC) &middot; SLOGBAA Online Learning Platform
+          <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+            <Logo variant="icon" size={20} />
+            <span>Putting Communities Before Self &middot; Network for Active Citizens (NAC) &middot; SLOGBAA Online Learning Platform</span>
+          </span>
         </p>
       </footer>
     </div>
