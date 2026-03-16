@@ -25,6 +25,12 @@ export const queryKeys = {
     mine: () => [...queryKeys.certificates.all, 'mine'],
   },
 
+  // === Leaderboard ===
+  leaderboard: {
+    all: ['leaderboard'],
+    top: (limit) => [...queryKeys.leaderboard.all, 'top', limit],
+  },
+
   // === Trainee profile ===
   trainee: {
     all: ['trainee'],

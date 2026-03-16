@@ -10,6 +10,7 @@ import com.nac.slogbaa.shared.ports.TraineeCourseQuizScorePort;
 import com.nac.slogbaa.shared.ports.TraineeNotificationPort;
 import com.nac.slogbaa.progress.application.port.in.EnrollTraineeUseCase;
 import com.nac.slogbaa.progress.application.port.in.GetEnrolledCoursesUseCase;
+import com.nac.slogbaa.progress.application.port.in.GetLeaderboardUseCase;
 import com.nac.slogbaa.progress.application.port.in.GetResumePointUseCase;
 import com.nac.slogbaa.progress.application.port.in.IssueCertificateUseCase;
 import com.nac.slogbaa.progress.application.port.in.ListCertificatesUseCase;
@@ -20,6 +21,7 @@ import com.nac.slogbaa.progress.application.port.out.CertificateRepositoryPort;
 import com.nac.slogbaa.progress.application.port.out.ModuleCompletionPort;
 import com.nac.slogbaa.progress.application.port.out.TraineeProgressRepositoryPort;
 import com.nac.slogbaa.progress.application.service.EnrollTraineeService;
+import com.nac.slogbaa.progress.application.service.GetLeaderboardService;
 import com.nac.slogbaa.progress.application.service.IssueCertificateService;
 import com.nac.slogbaa.progress.application.service.ListCertificatesService;
 import com.nac.slogbaa.progress.application.service.RevokeCertificateService;
@@ -95,5 +97,12 @@ public class ProgressConfiguration {
     public RevokeCertificateUseCase revokeCertificateUseCase(
             CertificateRepositoryPort certificateRepository) {
         return new RevokeCertificateService(certificateRepository);
+    }
+
+    @Bean
+    public GetLeaderboardUseCase getLeaderboardUseCase(
+            TraineeProgressRepositoryPort traineeProgressRepository,
+            GetTraineeByIdUseCase getTraineeByIdUseCase) {
+        return new GetLeaderboardService(traineeProgressRepository, getTraineeByIdUseCase);
     }
 }

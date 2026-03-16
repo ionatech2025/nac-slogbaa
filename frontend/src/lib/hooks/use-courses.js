@@ -11,6 +11,7 @@ import {
   recordProgress,
   recordModuleCompletion,
 } from '../../api/learning/courses.js'
+import { getLeaderboard } from '../../api/leaderboard.js'
 
 export function usePublishedCourses() {
   const { token } = useAuth()
@@ -104,5 +105,15 @@ export function useRecordModuleCompletion() {
       qc.invalidateQueries({ queryKey: queryKeys.courses.enrolled() })
       qc.invalidateQueries({ queryKey: queryKeys.courses.detail(courseId) })
     },
+  })
+}
+
+export function useLeaderboard(limit = 10) {
+  const { token } = useAuth()
+  return useQuery({
+    queryKey: queryKeys.leaderboard.top(limit),
+    queryFn: () => getLeaderboard(token, limit),
+    enabled: !!token,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   })
 }

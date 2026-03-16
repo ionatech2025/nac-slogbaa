@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { FontAwesomeIcon, Icon, icons } from '../../../shared/icons.jsx'
 import { useAuth } from '../../iam/hooks/useAuth.js'
@@ -11,6 +11,8 @@ import { useToast } from '../../../shared/hooks/useToast.js'
 import { CoursePreviewModal } from '../../learning/components/CoursePreviewModal.jsx'
 import { CertificateCard } from '../components/trainee/CertificateCard.jsx'
 import { StatsSkeleton, CardGridSkeleton } from '../../../shared/components/ContentSkeletons.jsx'
+import { LeaderboardWidget } from '../../../shared/components/LeaderboardWidget.jsx'
+import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle.js'
 
 const styles = {
   layout: {
@@ -219,23 +221,24 @@ export function TraineeDashboardPage() {
   const { data: certificates = [], isLoading: certificatesLoading } = useMyCertificates({ enabled: activeTab === 'certificates' })
   const enrollMutation = useEnrollInCourse()
 
+  useDocumentTitle('Dashboard')
   const displayName = user?.fullName || user?.email || 'Trainee'
-  const enrolledIds = new Set(enrolledCourses.map((c) => c.id))
-  const recommendedCourses = publishedCourses.filter((c) => !enrolledIds.has(c.id))
+  const enrolledIds = useMemo(() => new Set(enrolledCourses.map((c) => c.id)), [enrolledCourses])
+  const recommendedCourses = useMemo(() => publishedCourses.filter((c) => !enrolledIds.has(c.id)), [publishedCourses, enrolledIds])
 
   const toast = useToast()
 
-  const handleEnroll = async (course) => {
+  const handleEnroll = useCallback((course) => {
     setPreviewCourse(null)
     enrollMutation.mutate(course.id, {
       onSuccess: () => toast.success(`Enrolled in "${course.title}"!`),
       onError: (err) => toast.error(err?.message ?? 'Enrollment failed.'),
     })
-  }
+  }, [enrollMutation, toast])
 
-  const handlePreview = (course) => setPreviewCourse(course)
+  const handlePreview = useCallback((course) => setPreviewCourse(course), [])
 
-  const handlePreviewCertificate = async (cert) => {
+  const handlePreviewCertificate = useCallback(async (cert) => {
     if (!token || certificateActionId) return
     setCertificateActionId(cert.id)
     setCertificateError(null)
@@ -249,9 +252,9 @@ export function TraineeDashboardPage() {
     } finally {
       setCertificateActionId(null)
     }
-  }
+  }, [token, certificateActionId])
 
-  const handleDownloadCertificate = async (cert, alsoSendEmail = false) => {
+  const handleDownloadCertificate = useCallback(async (cert, alsoSendEmail = false) => {
     if (!token || certificateActionId) return
     setCertificateActionId(cert.id)
     setCertificateError(null)
@@ -271,7 +274,7 @@ export function TraineeDashboardPage() {
     } finally {
       setCertificateActionId(null)
     }
-  }
+  }, [token, certificateActionId])
 
   return (
     <div style={styles.layout}>
@@ -331,6 +334,10 @@ export function TraineeDashboardPage() {
             </div>
           )
         })()}
+
+        <div style={{ marginBottom: '1.75rem' }}>
+          <LeaderboardWidget limit={10} />
+        </div>
 
         <Tabs
           tabs={[
