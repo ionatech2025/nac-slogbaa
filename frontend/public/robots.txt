@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://slogbaa.nac.org/sitemap.xml

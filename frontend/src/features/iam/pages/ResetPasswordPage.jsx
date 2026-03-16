@@ -12,16 +12,13 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'center',
     padding: '2rem',
-    background: 'var(--slogbaa-bg)',
   },
   card: {
     width: '100%',
     maxWidth: 400,
     padding: '2.5rem 2rem',
-    background: 'var(--slogbaa-surface)',
-    borderRadius: 16,
-    border: '1px solid var(--slogbaa-border)',
-    boxShadow: '0 4px 24px rgba(0,0,0,0.06)',
+    position: 'relative',
+    zIndex: 1,
   },
   logoWrap: {
     marginBottom: '1.75rem',
@@ -59,9 +56,19 @@ const styles = {
   input: {
     padding: '0.5rem 0.75rem',
     border: '1px solid var(--slogbaa-border)',
-    borderRadius: 6,
+    borderRadius: 10,
     fontSize: '1rem',
-    background: 'var(--slogbaa-surface)',
+    background: 'var(--slogbaa-bg)',
+  },
+  leadingIcon: {
+    position: 'absolute',
+    left: '0.75rem',
+    top: '50%',
+    transform: 'translateY(-50%)',
+    color: 'var(--slogbaa-text-muted)',
+    pointerEvents: 'none',
+    fontSize: '0.9375rem',
+    zIndex: 1,
   },
   passwordWrap: {
     position: 'relative',
@@ -95,14 +102,10 @@ const styles = {
     background: 'var(--slogbaa-blue)',
     color: '#fff',
     border: 'none',
-    borderRadius: 6,
+    borderRadius: 10,
     fontSize: '1rem',
     fontWeight: 500,
     cursor: 'pointer',
-  },
-  submitDisabled: {
-    opacity: 0.7,
-    cursor: 'not-allowed',
   },
   error: {
     fontSize: '0.875rem',
@@ -113,7 +116,7 @@ const styles = {
     color: 'var(--slogbaa-success, #059669)',
     padding: '0.75rem',
     background: 'rgba(5, 150, 105, 0.1)',
-    borderRadius: 6,
+    borderRadius: 10,
   },
   loginLink: {
     display: 'block',
@@ -132,7 +135,7 @@ export function ResetPasswordPage() {
   const token = searchParams.get('token')
   const navigate = useNavigate()
 
-  const [status, setStatus] = useState('idle') // idle | verifying | valid | invalid | success | error
+  const [status, setStatus] = useState('idle')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -181,8 +184,8 @@ export function ResetPasswordPage() {
   }
 
   return (
-    <div style={styles.page}>
-      <div style={styles.card}>
+    <div style={styles.page} className="auth-bg">
+      <div style={styles.card} className="glass-card-elevated glass-enter">
         <div style={styles.logoWrap}>
           <Logo variant="full" size={40} color="blue" />
         </div>
@@ -190,7 +193,7 @@ export function ResetPasswordPage() {
         <p style={styles.subtitle}>Set a new password for your SLOGBAA account.</p>
 
         {status === 'verifying' && (
-          <p style={styles.loading}>Verifying reset link…</p>
+          <p style={styles.loading}>Verifying reset link...</p>
         )}
 
         {status === 'invalid' && (
@@ -214,13 +217,14 @@ export function ResetPasswordPage() {
                 New password
               </label>
               <div style={styles.passwordWrap}>
+                <FontAwesomeIcon icon={icons.lock} style={styles.leadingIcon} />
                 <input
                   id="reset-new-password"
                   type={showPassword ? 'text' : 'password'}
                   autoComplete="new-password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  style={{ ...styles.input, ...styles.passwordInput }}
+                  style={{ ...styles.input, ...styles.passwordInput, paddingLeft: '2.5rem' }}
                   placeholder="At least 6 characters"
                   minLength={6}
                 />
@@ -239,15 +243,18 @@ export function ResetPasswordPage() {
               <label style={styles.label} htmlFor="reset-confirm-password">
                 Confirm password
               </label>
-              <input
-                id="reset-confirm-password"
-                type={showPassword ? 'text' : 'password'}
-                autoComplete="new-password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                style={styles.input}
-                placeholder="Repeat new password"
-              />
+              <div style={{ position: 'relative', display: 'flex', alignItems: 'stretch' }}>
+                <FontAwesomeIcon icon={icons.lock} style={styles.leadingIcon} />
+                <input
+                  id="reset-confirm-password"
+                  type={showPassword ? 'text' : 'password'}
+                  autoComplete="new-password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  style={{ ...styles.input, paddingLeft: '2.5rem', width: '100%' }}
+                  placeholder="Repeat new password"
+                />
+              </div>
             </div>
             {error && <p style={styles.error}>{error}</p>}
             <LoadingButton type="submit" loading={loading} style={styles.submit}>
@@ -259,7 +266,7 @@ export function ResetPasswordPage() {
 
         {status === 'success' && (
           <>
-            <p style={styles.success}>Password has been reset successfully. Redirecting to sign in…</p>
+            <p style={styles.success}>Password has been reset successfully. Redirecting to sign in...</p>
             <Link to="/auth/login" style={styles.loginLink}>
               Sign in now
             </Link>

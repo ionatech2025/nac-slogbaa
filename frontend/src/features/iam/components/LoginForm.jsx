@@ -30,6 +30,20 @@ const styles = {
     background: 'var(--slogbaa-bg)',
     transition: 'border-color 0.15s, box-shadow 0.15s',
   },
+  iconWrap: {
+    position: 'relative',
+    display: 'flex',
+    alignItems: 'stretch',
+  },
+  leadingIcon: {
+    position: 'absolute',
+    left: '0.75rem',
+    top: '50%',
+    transform: 'translateY(-50%)',
+    color: 'var(--slogbaa-text-muted)',
+    pointerEvents: 'none',
+    fontSize: '0.9375rem',
+  },
   passwordWrap: {
     position: 'relative',
     display: 'flex',
@@ -126,28 +140,32 @@ export function LoginForm() {
         <label style={styles.label} htmlFor="login-email">
           Email
         </label>
-        <input
-          id="login-email"
-          type="email"
-          autoComplete="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          style={styles.input}
-          placeholder="e.g. jane.akello@example.com"
-        />
+        <div style={styles.iconWrap}>
+          <FontAwesomeIcon icon={icons.envelope} style={styles.leadingIcon} />
+          <input
+            id="login-email"
+            type="email"
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            style={{ ...styles.input, paddingLeft: '2.5rem' }}
+            placeholder="e.g. jane.akello@example.com"
+          />
+        </div>
       </div>
       <div style={styles.field}>
         <label style={styles.label} htmlFor="login-password">
           Password
         </label>
         <div style={styles.passwordWrap}>
+          <FontAwesomeIcon icon={icons.lock} style={styles.leadingIcon} />
           <input
             id="login-password"
             type={showPassword ? 'text' : 'password'}
             autoComplete="current-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            style={{ ...styles.input, ...styles.passwordInput }}
+            style={{ ...styles.input, ...styles.passwordInput, paddingLeft: '2.5rem' }}
             placeholder="••••••••"
           />
           <button

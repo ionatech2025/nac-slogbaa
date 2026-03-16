@@ -55,6 +55,21 @@ const styles = {
     transition: 'border-color 0.15s, box-shadow 0.15s',
     boxSizing: 'border-box',
   },
+  iconWrap: {
+    position: 'relative',
+    display: 'flex',
+    alignItems: 'stretch',
+  },
+  leadingIcon: {
+    position: 'absolute',
+    left: '0.75rem',
+    top: '50%',
+    transform: 'translateY(-50%)',
+    color: 'var(--slogbaa-text-muted)',
+    pointerEvents: 'none',
+    fontSize: '0.9375rem',
+    zIndex: 1,
+  },
   passwordWrap: {
     position: 'relative',
     display: 'flex',
@@ -174,51 +189,61 @@ export function RegisterForm() {
       <div style={styles.row}>
         <div style={styles.field}>
           <label style={styles.label} htmlFor="reg-firstName">First name *</label>
-          <input
-            id="reg-firstName"
-            type="text"
-            autoComplete="given-name"
-            value={form.firstName}
-            onChange={(e) => update('firstName', e.target.value)}
-            style={styles.input}
-            placeholder="Jane"
-          />
+          <div style={styles.iconWrap}>
+            <FontAwesomeIcon icon={icons.viewProfile} style={styles.leadingIcon} />
+            <input
+              id="reg-firstName"
+              type="text"
+              autoComplete="given-name"
+              value={form.firstName}
+              onChange={(e) => update('firstName', e.target.value)}
+              style={{ ...styles.input, paddingLeft: '2.5rem' }}
+              placeholder="Jane"
+            />
+          </div>
         </div>
         <div style={styles.field}>
           <label style={styles.label} htmlFor="reg-lastName">Last name *</label>
-          <input
-            id="reg-lastName"
-            type="text"
-            autoComplete="family-name"
-            value={form.lastName}
-            onChange={(e) => update('lastName', e.target.value)}
-            style={styles.input}
-            placeholder="Akello"
-          />
+          <div style={styles.iconWrap}>
+            <FontAwesomeIcon icon={icons.viewProfile} style={styles.leadingIcon} />
+            <input
+              id="reg-lastName"
+              type="text"
+              autoComplete="family-name"
+              value={form.lastName}
+              onChange={(e) => update('lastName', e.target.value)}
+              style={{ ...styles.input, paddingLeft: '2.5rem' }}
+              placeholder="Akello"
+            />
+          </div>
         </div>
       </div>
       <div style={styles.field}>
         <label style={styles.label} htmlFor="reg-email">Email *</label>
-        <input
-          id="reg-email"
-          type="email"
-          autoComplete="email"
-          value={form.email}
-          onChange={(e) => update('email', e.target.value)}
-          style={styles.input}
-          placeholder="jane.akello@example.com"
-        />
+        <div style={styles.iconWrap}>
+          <FontAwesomeIcon icon={icons.envelope} style={styles.leadingIcon} />
+          <input
+            id="reg-email"
+            type="email"
+            autoComplete="email"
+            value={form.email}
+            onChange={(e) => update('email', e.target.value)}
+            style={{ ...styles.input, paddingLeft: '2.5rem' }}
+            placeholder="jane.akello@example.com"
+          />
+        </div>
       </div>
       <div style={styles.field}>
         <label style={styles.label} htmlFor="reg-password">Password *</label>
         <div style={styles.passwordWrap}>
+          <FontAwesomeIcon icon={icons.lock} style={styles.leadingIcon} />
           <input
             id="reg-password"
             type={showPassword ? 'text' : 'password'}
             autoComplete="new-password"
             value={form.password}
             onChange={(e) => update('password', e.target.value)}
-            style={{ ...styles.input, ...styles.passwordInput }}
+            style={{ ...styles.input, ...styles.passwordInput, paddingLeft: '2.5rem' }}
             placeholder="At least 6 characters"
           />
           <button
@@ -248,15 +273,18 @@ export function RegisterForm() {
         </div>
         <div style={styles.field}>
           <label style={styles.label} htmlFor="reg-phone-number">Phone number</label>
-          <input
-            id="reg-phone-number"
-            type="tel"
-            autoComplete="tel-national"
-            value={form.phoneNationalNumber}
-            onChange={(e) => update('phoneNationalNumber', e.target.value.replace(/\D/g, '').slice(0, 15))}
-            style={styles.input}
-            placeholder="e.g. 712345678"
-          />
+          <div style={styles.iconWrap}>
+            <FontAwesomeIcon icon={icons.phone} style={styles.leadingIcon} />
+            <input
+              id="reg-phone-number"
+              type="tel"
+              autoComplete="tel-national"
+              value={form.phoneNationalNumber}
+              onChange={(e) => update('phoneNationalNumber', e.target.value.replace(/\D/g, '').slice(0, 15))}
+              style={{ ...styles.input, paddingLeft: '2.5rem' }}
+              placeholder="e.g. 712345678"
+            />
+          </div>
         </div>
       </div>
       <div style={styles.row}>
@@ -290,64 +318,79 @@ export function RegisterForm() {
       <div style={styles.row}>
         <div style={styles.field}>
           <label style={styles.label} htmlFor="reg-district">District *</label>
-          <input
-            id="reg-district"
-            type="text"
-            autoComplete="address-level2"
-            value={form.districtName}
-            onChange={(e) => update('districtName', e.target.value)}
-            style={styles.input}
-            placeholder="e.g. Kampala"
-          />
+          <div style={styles.iconWrap}>
+            <FontAwesomeIcon icon={icons.mapPin} style={styles.leadingIcon} />
+            <input
+              id="reg-district"
+              type="text"
+              autoComplete="address-level2"
+              value={form.districtName}
+              onChange={(e) => update('districtName', e.target.value)}
+              style={{ ...styles.input, paddingLeft: '2.5rem' }}
+              placeholder="e.g. Kampala"
+            />
+          </div>
         </div>
         <div style={styles.field}>
           <label style={styles.label} htmlFor="reg-region">Region</label>
-          <input
-            id="reg-region"
-            type="text"
-            value={form.region}
-            onChange={(e) => update('region', e.target.value)}
-            style={styles.input}
-            placeholder="e.g. Central"
-          />
+          <div style={styles.iconWrap}>
+            <FontAwesomeIcon icon={icons.globe} style={styles.leadingIcon} />
+            <input
+              id="reg-region"
+              type="text"
+              value={form.region}
+              onChange={(e) => update('region', e.target.value)}
+              style={{ ...styles.input, paddingLeft: '2.5rem' }}
+              placeholder="e.g. Central"
+            />
+          </div>
         </div>
       </div>
       <div style={{ ...styles.field, ...styles.fullWidth }}>
         <label style={styles.label} htmlFor="reg-street">Street address</label>
-        <input
-          id="reg-street"
-          type="text"
-          autoComplete="street-address"
-          value={form.street}
-          onChange={(e) => update('street', e.target.value)}
-          style={styles.input}
-          placeholder="Plot 10 Main St"
-        />
+        <div style={styles.iconWrap}>
+          <FontAwesomeIcon icon={icons.building} style={styles.leadingIcon} />
+          <input
+            id="reg-street"
+            type="text"
+            autoComplete="street-address"
+            value={form.street}
+            onChange={(e) => update('street', e.target.value)}
+            style={{ ...styles.input, paddingLeft: '2.5rem' }}
+            placeholder="Plot 10 Main St"
+          />
+        </div>
       </div>
       <div style={styles.row}>
         <div style={styles.field}>
           <label style={styles.label} htmlFor="reg-city">City</label>
-          <input
-            id="reg-city"
-            type="text"
-            autoComplete="address-level1"
-            value={form.city}
-            onChange={(e) => update('city', e.target.value)}
-            style={styles.input}
-            placeholder="Kampala"
-          />
+          <div style={styles.iconWrap}>
+            <FontAwesomeIcon icon={icons.mapPin} style={styles.leadingIcon} />
+            <input
+              id="reg-city"
+              type="text"
+              autoComplete="address-level1"
+              value={form.city}
+              onChange={(e) => update('city', e.target.value)}
+              style={{ ...styles.input, paddingLeft: '2.5rem' }}
+              placeholder="Kampala"
+            />
+          </div>
         </div>
         <div style={styles.field}>
           <label style={styles.label} htmlFor="reg-postal">Postal code</label>
-          <input
-            id="reg-postal"
-            type="text"
-            autoComplete="postal-code"
-            value={form.postalCode}
-            onChange={(e) => update('postalCode', e.target.value)}
-            style={styles.input}
-            placeholder="256"
-          />
+          <div style={styles.iconWrap}>
+            <FontAwesomeIcon icon={icons.hash} style={styles.leadingIcon} />
+            <input
+              id="reg-postal"
+              type="text"
+              autoComplete="postal-code"
+              value={form.postalCode}
+              onChange={(e) => update('postalCode', e.target.value)}
+              style={{ ...styles.input, paddingLeft: '2.5rem' }}
+              placeholder="256"
+            />
+          </div>
         </div>
       </div>
       {error && <p style={styles.error}>{error}</p>}

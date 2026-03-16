@@ -18,6 +18,7 @@ import {
   SquarePlus, AlignLeft, ImageIcon, Video, ClipboardList,
   Search, Sun, Moon, Mail, UserX, Users, Loader2,
   GripVertical, Save, Type,
+  Phone, MapPin, Building2, Hash, Globe, Lock, ShieldCheck,
 } from 'lucide-react'
 
 /**
@@ -89,4 +90,11 @@ export const icons = {
   grip: GripVertical,
   save: Save,
   type: Type,
+  phone: Phone,
+  mapPin: MapPin,
+  building: Building2,
+  hash: Hash,
+  globe: Globe,
+  lock: Lock,
+  shield: ShieldCheck,
 }

@@ -10,12 +10,15 @@ const darkStyles = {
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: '0.75rem 1.5rem',
-    background: 'var(--slogbaa-dark)',
+    background: 'rgba(15, 23, 42, 0.75)',
+    backdropFilter: 'blur(16px) saturate(170%)',
+    WebkitBackdropFilter: 'blur(16px) saturate(170%)',
     color: '#fff',
     position: 'sticky',
     top: 0,
     zIndex: 100,
-    boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
+    borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
+    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
   },
   logo: { textDecoration: 'none', display: 'inline-flex', alignItems: 'center' },
   roleBadge: {
@@ -44,10 +47,12 @@ const darkStyles = {
 const lightStyles = {
   nav: {
     ...darkStyles.nav,
-    background: '#ffffff',
+    background: 'var(--slogbaa-glass-bg)',
+    backdropFilter: 'var(--slogbaa-glass-blur)',
+    WebkitBackdropFilter: 'var(--slogbaa-glass-blur)',
     color: 'var(--slogbaa-text)',
-    borderBottom: '1px solid var(--slogbaa-border)',
-    boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+    borderBottom: '1px solid var(--slogbaa-glass-border)',
+    boxShadow: 'var(--slogbaa-glass-shadow)',
   },
   logo: { ...darkStyles.logo },
   roleBadge: {

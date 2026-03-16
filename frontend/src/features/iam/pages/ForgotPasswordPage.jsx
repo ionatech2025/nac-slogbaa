@@ -12,16 +12,13 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'center',
     padding: '2rem',
-    background: 'var(--slogbaa-bg)',
   },
   card: {
     width: '100%',
     maxWidth: 400,
     padding: '2.5rem 2rem',
-    background: 'var(--slogbaa-surface)',
-    borderRadius: 16,
-    border: '1px solid var(--slogbaa-border)',
-    boxShadow: '0 4px 24px rgba(0,0,0,0.06)',
+    position: 'relative',
+    zIndex: 1,
   },
   logoWrap: {
     marginBottom: '1.75rem',
@@ -54,9 +51,23 @@ const styles = {
   input: {
     padding: '0.5rem 0.75rem',
     border: '1px solid var(--slogbaa-border)',
-    borderRadius: 6,
+    borderRadius: 10,
     fontSize: '1rem',
-    background: 'var(--slogbaa-surface)',
+    background: 'var(--slogbaa-bg)',
+  },
+  iconWrap: {
+    position: 'relative',
+    display: 'flex',
+    alignItems: 'stretch',
+  },
+  leadingIcon: {
+    position: 'absolute',
+    left: '0.75rem',
+    top: '50%',
+    transform: 'translateY(-50%)',
+    color: 'var(--slogbaa-text-muted)',
+    pointerEvents: 'none',
+    fontSize: '0.9375rem',
   },
   submit: {
     display: 'inline-flex',
@@ -68,14 +79,10 @@ const styles = {
     background: 'var(--slogbaa-blue)',
     color: '#fff',
     border: 'none',
-    borderRadius: 6,
+    borderRadius: 10,
     fontSize: '1rem',
     fontWeight: 500,
     cursor: 'pointer',
-  },
-  submitDisabled: {
-    opacity: 0.7,
-    cursor: 'not-allowed',
   },
   error: {
     fontSize: '0.875rem',
@@ -86,7 +93,7 @@ const styles = {
     color: 'var(--slogbaa-success, #059669)',
     padding: '0.75rem',
     background: 'rgba(5, 150, 105, 0.1)',
-    borderRadius: 6,
+    borderRadius: 10,
   },
   links: {
     display: 'flex',
@@ -128,8 +135,8 @@ export function ForgotPasswordPage() {
   }
 
   return (
-    <div style={styles.page}>
-      <div style={styles.card}>
+    <div style={styles.page} className="auth-bg">
+      <div style={styles.card} className="glass-card-elevated glass-enter">
         <div style={styles.logoWrap}>
           <Logo variant="full" size={40} color="blue" />
         </div>
@@ -150,15 +157,18 @@ export function ForgotPasswordPage() {
               <label style={styles.label} htmlFor="forgot-email">
                 Email
               </label>
-              <input
-                id="forgot-email"
-                type="email"
-                autoComplete="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                style={styles.input}
-                placeholder="e.g. jane.akello@example.com"
-              />
+              <div style={styles.iconWrap}>
+                <FontAwesomeIcon icon={icons.envelope} style={styles.leadingIcon} />
+                <input
+                  id="forgot-email"
+                  type="email"
+                  autoComplete="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  style={{ ...styles.input, paddingLeft: '2.5rem', width: '100%' }}
+                  placeholder="e.g. jane.akello@example.com"
+                />
+              </div>
             </div>
             {error && <p style={styles.error}>{error}</p>}
             <LoadingButton type="submit" loading={loading} style={styles.submit}>

@@ -132,7 +132,9 @@ export function TraineeLayout() {
           style={{
             position: 'fixed',
             inset: 0,
-            background: 'rgba(0,0,0,0.45)',
+            background: 'rgba(15, 23, 42, 0.4)',
+            backdropFilter: 'blur(12px) saturate(150%)',
+            WebkitBackdropFilter: 'blur(12px) saturate(150%)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -142,11 +144,14 @@ export function TraineeLayout() {
         >
           <div
             style={{
-              background: 'var(--slogbaa-surface)',
+              background: 'var(--slogbaa-glass-bg)',
+              backdropFilter: 'var(--slogbaa-glass-blur)',
+              WebkitBackdropFilter: 'var(--slogbaa-glass-blur)',
               padding: '1.5rem',
-              borderRadius: 12,
+              borderRadius: 20,
               maxWidth: 400,
-              border: '1px solid var(--slogbaa-border)',
+              border: '1px solid var(--slogbaa-glass-border)',
+              boxShadow: 'var(--slogbaa-glass-shadow-lg)',
             }}
           >
             <p style={{ margin: '0 0 0.5rem', fontSize: '0.875rem', fontWeight: 600, color: 'var(--slogbaa-text)' }}>

@@ -43,7 +43,7 @@ const baseStyles = {
 }
 
 const darkSidebarStyles = {
-  sidebar: { width: 260, flexShrink: 0, height: '100%', background: 'var(--slogbaa-dark)', borderRight: '1px solid var(--slogbaa-border)', display: 'flex', flexDirection: 'column', padding: '1.25rem 0', boxShadow: '1px 0 8px rgba(0,0,0,0.08)', overflowY: 'auto', overflowX: 'hidden' },
+  sidebar: { width: 260, flexShrink: 0, height: '100%', background: 'rgba(15, 23, 42, 0.85)', backdropFilter: 'blur(20px) saturate(160%)', WebkitBackdropFilter: 'blur(20px) saturate(160%)', borderRight: '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column', padding: '1.25rem 0', boxShadow: '1px 0 12px rgba(0,0,0,0.08)', overflowY: 'auto', overflowX: 'hidden' },
   sidebarLabel: { margin: '0 1rem 0.6rem', fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--slogbaa-text-muted)', borderBottom: '1px solid var(--slogbaa-border)', paddingBottom: '0.5rem' },
   navLink: { display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.7rem 1rem', minHeight: 44, marginBottom: 2, fontSize: '0.9375rem', color: 'rgba(255,255,255,0.75)', textDecoration: 'none', borderRadius: 8, transition: 'background 0.15s, color 0.15s' },
   navLinkActive: { background: 'var(--slogbaa-blue)', color: '#fff', fontWeight: 600 },
@@ -51,7 +51,7 @@ const darkSidebarStyles = {
 }
 
 const lightSidebarStyles = {
-  sidebar: { ...darkSidebarStyles.sidebar, background: '#ffffff', borderRight: '1px solid var(--slogbaa-border)', boxShadow: '1px 0 4px rgba(0,0,0,0.04)' },
+  sidebar: { ...darkSidebarStyles.sidebar, background: 'var(--slogbaa-glass-bg)', backdropFilter: 'var(--slogbaa-glass-blur)', WebkitBackdropFilter: 'var(--slogbaa-glass-blur)', borderRight: '1px solid var(--slogbaa-glass-border)', boxShadow: 'var(--slogbaa-glass-shadow)' },
   sidebarLabel: { ...darkSidebarStyles.sidebarLabel, color: 'var(--slogbaa-text-muted)' },
   navLink: { ...darkSidebarStyles.navLink, color: 'var(--slogbaa-text)' },
   navLinkActive: { background: 'var(--slogbaa-blue)', color: '#fff', fontWeight: 600 },

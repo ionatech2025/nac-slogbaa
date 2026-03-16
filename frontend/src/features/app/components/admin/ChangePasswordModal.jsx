@@ -70,6 +70,16 @@ const styles = {
     fontSize: '0.875rem',
     color: 'var(--slogbaa-success, #0a7c42)',
   },
+  leadingIcon: {
+    position: 'absolute',
+    left: '0.75rem',
+    top: '50%',
+    transform: 'translateY(-50%)',
+    color: 'var(--slogbaa-text-muted)',
+    pointerEvents: 'none',
+    fontSize: '0.9375rem',
+    zIndex: 1,
+  },
   passwordWrap: {
     position: 'relative',
     display: 'flex',
@@ -138,12 +148,13 @@ export function ChangePasswordModal({ onClose, onSubmit }) {
         <div style={styles.field}>
           <label style={styles.label} htmlFor="current-password">Current password</label>
           <div style={styles.passwordWrap}>
+            <FontAwesomeIcon icon={icons.lock} style={styles.leadingIcon} />
             <input
               id="current-password"
               type={showCurrent ? 'text' : 'password'}
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
-              style={{ ...styles.input, ...styles.passwordInput }}
+              style={{ ...styles.input, ...styles.passwordInput, paddingLeft: '2.5rem' }}
               autoComplete="current-password"
             />
             <button
@@ -160,12 +171,13 @@ export function ChangePasswordModal({ onClose, onSubmit }) {
         <div style={styles.field}>
           <label style={styles.label} htmlFor="new-password">New password</label>
           <div style={styles.passwordWrap}>
+            <FontAwesomeIcon icon={icons.lock} style={styles.leadingIcon} />
             <input
               id="new-password"
               type={showNew ? 'text' : 'password'}
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              style={{ ...styles.input, ...styles.passwordInput }}
+              style={{ ...styles.input, ...styles.passwordInput, paddingLeft: '2.5rem' }}
               autoComplete="new-password"
             />
             <button
@@ -182,12 +194,13 @@ export function ChangePasswordModal({ onClose, onSubmit }) {
         <div style={styles.field}>
           <label style={styles.label} htmlFor="confirm-password">Confirm new password</label>
           <div style={styles.passwordWrap}>
+            <FontAwesomeIcon icon={icons.lock} style={styles.leadingIcon} />
             <input
               id="confirm-password"
               type={showConfirm ? 'text' : 'password'}
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              style={{ ...styles.input, ...styles.passwordInput }}
+              style={{ ...styles.input, ...styles.passwordInput, paddingLeft: '2.5rem' }}
               autoComplete="new-password"
             />
             <button

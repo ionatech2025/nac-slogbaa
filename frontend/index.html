@@ -15,8 +15,8 @@
     <!-- Favicon — SVG for modern browsers -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 
-    <!-- Apple touch icon for iOS home screen -->
-    <link rel="apple-touch-icon" sizes="180x180" href="/favicon.svg" />
+    <!-- Apple touch icon for iOS home screen (must be PNG — Safari ignores SVG) -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
 
     <!-- PWA manifest -->
     <link rel="manifest" href="/manifest.json" />
@@ -41,7 +41,9 @@
     <meta name="twitter:description" content="Empowering active citizens through structured courses, assessments, and certificates." />
     <meta name="twitter:image" content="/favicon.svg" />
 
-    <meta name="theme-color" content="#2563eb" />
+    <meta name="theme-color" content="#2563eb" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)" />
+    <meta name="color-scheme" content="light dark" />
     <title>SLOGBAA — Online Learning Platform</title>
   </head>
   <body>

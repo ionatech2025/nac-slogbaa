@@ -3,12 +3,14 @@
  * Inspired by Shadcn/Radix card pattern.
  */
 const baseStyle = {
-  background: 'var(--slogbaa-surface)',
-  borderRadius: 14,
-  border: '1px solid var(--slogbaa-border)',
-  boxShadow: '0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)',
+  background: 'var(--slogbaa-glass-bg)',
+  backdropFilter: 'var(--slogbaa-glass-blur)',
+  WebkitBackdropFilter: 'var(--slogbaa-glass-blur)',
+  borderRadius: 18,
+  border: '1px solid var(--slogbaa-glass-border)',
+  boxShadow: 'var(--slogbaa-glass-shadow)',
   overflow: 'hidden',
-  transition: 'box-shadow 0.15s ease, border-color 0.15s ease',
+  transition: 'box-shadow 0.3s ease, border-color 0.3s ease, transform 0.3s ease',
 }
 
 const paddings = {

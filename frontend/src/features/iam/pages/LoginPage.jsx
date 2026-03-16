@@ -7,6 +7,8 @@ const styles = {
   page: {
     display: 'flex',
     minHeight: '100vh',
+    position: 'relative',
+    zIndex: 1,
   },
   main: {
     flex: 1,
@@ -14,16 +16,13 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'center',
     padding: '2rem',
-    background: 'var(--slogbaa-bg)',
   },
   formCard: {
     width: '100%',
     maxWidth: 420,
     padding: '2.5rem 2rem',
-    background: 'var(--slogbaa-surface)',
-    borderRadius: 16,
-    border: '1px solid var(--slogbaa-border)',
-    boxShadow: '0 4px 24px rgba(0,0,0,0.06)',
+    position: 'relative',
+    zIndex: 1,
   },
   logoWrap: {
     marginBottom: '1.75rem',
@@ -56,10 +55,10 @@ const styles = {
 
 export function LoginPage() {
   return (
-    <div style={styles.page} className="login-page">
+    <div style={styles.page} className="login-page auth-bg">
       <TestCredentialsSidebar />
       <main style={styles.main}>
-        <div style={styles.formCard}>
+        <div style={styles.formCard} className="glass-card-elevated glass-enter">
           <div style={styles.logoWrap}>
             <Logo variant="full" size={44} color="blue" />
           </div>
