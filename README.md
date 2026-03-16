@@ -170,12 +170,24 @@ nac-slogbaa/
 
 ---
 
+## Live Deployment
+
+| Service | Platform | URL |
+|---------|----------|-----|
+| Backend API | Render (Singapore) | `https://slogbaa-backend.onrender.com` |
+| Frontend | Vercel | `https://frontend-seven-red-wsusnzc0va.vercel.app` |
+| Database | Neon (Singapore) | Serverless PostgreSQL |
+
+Deployments are automated via GitHub Actions: pushing to `dev` or `main` triggers CI, Docker image builds, and backend deployment to Render. The Vercel frontend auto-deploys on push.
+
+---
+
 ## Getting Started
 
 ### 1. Clone the repository
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/ionatech2025/nac-slogbaa.git
 cd nac-slogbaa
 ```
 
@@ -211,8 +223,8 @@ Flyway runs on first start, applying all migrations and seed data.
 
 ```bash
 cd frontend
-npm install
-npm run dev                  # Start on http://localhost:5173
+bun install
+bun run dev                  # Start on http://localhost:5173
 ```
 
 Vite proxies `/api` and `/uploads` to `http://localhost:8080`.
@@ -221,7 +233,7 @@ Vite proxies `/api` and `/uploads` to `http://localhost:8080`.
 
 ```bash
 cd frontend
-npm run build                # Output in dist/
+bun run build                # Output in dist/
 ```
 
 ---
@@ -239,7 +251,7 @@ Backend configuration lives in `backend/app/src/main/resources/`. Profiles: `dev
 | `DATASOURCE_URL` | JDBC URL, e.g. `jdbc:postgresql://host:5432/slogbaa` |
 | `DATASOURCE_USERNAME` | Database user |
 | `DATASOURCE_PASSWORD` | Database password |
-| `CORS_ALLOWED_ORIGINS` | HTTPS origins, e.g. `https://app.slogbaa.org` |
+| `CORS_ALLOWED_ORIGINS` | HTTPS origins, e.g. `https://frontend-seven-red-wsusnzc0va.vercel.app` |
 | `PASSWORD_RESET_BASE_URL` | Frontend URL for reset links |
 
 ### Optional Environment Variables
@@ -248,7 +260,15 @@ Backend configuration lives in `backend/app/src/main/resources/`. Profiles: `dev
 |----------|-------------|
 | `SMTP_HOST`, `SMTP_PORT` | Mail server (default: Gmail SMTP) |
 | `SMTP_USERNAME`, `SMTP_PASSWORD` | Mail credentials |
+| `SUPPORT_EMAIL` | Support/from email address |
 | `FILE_UPLOAD_DIR` | Upload directory (default: `uploads`) |
+
+### Deployment-Specific Variables
+
+| Variable | Where | Purpose |
+|----------|-------|---------|
+| `RENDER_API_KEY` | GitHub Secrets | Render API key for deploy trigger |
+| `VITE_API_BASE_URL` | `vercel.json` build env | Backend URL for frontend API calls |
 
 See `.env.example` at the project root for a complete template.
 
@@ -287,7 +307,7 @@ cd backend
 
 ```bash
 cd frontend
-npm run build                # Verify production build succeeds
+bun run build                # Verify production build succeeds
 ```
 
 ---

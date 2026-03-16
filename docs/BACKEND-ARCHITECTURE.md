@@ -244,9 +244,26 @@ Backend: `ConcurrentMapCacheManager` (in-memory). For multi-instance: swap to Re
 
 ---
 
-## Docker
+## Deployment
 
-### Backend Dockerfile
+### Production (Render)
+
+| Property | Value |
+|----------|-------|
+| Platform | Render (Singapore region) |
+| Runtime | Docker (`backend/Dockerfile`) |
+| Service URL | `https://slogbaa-backend.onrender.com` |
+| Health check | `/actuator/health/readiness` |
+| Deploy trigger | Render API via GitHub Actions (`deploy.yml`) |
+| Blueprint | `render.yaml` (infrastructure-as-code) |
+
+**CORS origins (prod):** `https://frontend-seven-red-wsusnzc0va.vercel.app`, `https://slogbaa-backend.onrender.com`
+
+**SMTP (prod):** Gmail SMTP with app password, configured via Render env vars (`SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`).
+
+### Docker
+
+#### Backend Dockerfile
 
 Multi-stage build:
 1. **Build stage:** `eclipse-temurin:21-jdk-alpine` — runs `./gradlew :app:bootJar`
@@ -254,13 +271,13 @@ Multi-stage build:
 
 Layer caching: Gradle wrapper + build scripts copied first; source copied second.
 
-### Frontend Dockerfile
+#### Frontend Dockerfile
 
 Multi-stage build:
 1. **Build stage:** `node:20-alpine` — `npm ci && npm run build`
 2. **Runtime stage:** `nginx:1.27-alpine` — SPA routing, API proxy to backend, gzip, cache headers, security headers
 
-### Docker Compose
+#### Docker Compose (local)
 
 3 services:
 - `postgres` — PostgreSQL 16 with health checks and persistent volume

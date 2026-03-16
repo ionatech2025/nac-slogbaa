@@ -12,11 +12,21 @@ Complete technical reference for the SLOGBAA Online Learning Platform frontend.
 | Routing | React Router | 6.28+ | Client-side routing with lazy loading |
 | Server State | TanStack Query | 5.90+ | Caching, deduplication, background refetch, optimistic mutations |
 | Client State | Zustand | 5.0+ | UI preferences with localStorage persist |
-| Icons | Lucide React | 0.575+ | Tree-shakeable SVG icons (21 KB) |
+| Icons | Lucide React | 0.575+ | Tree-shakeable SVG icons (55 icons, ~23 KB) |
 | Sanitization | DOMPurify | 3.3+ | XSS prevention on all rendered HTML |
 | Build | Vite | 6.0+ | Dev server, HMR, production bundling |
-| Package Manager | Bun | 1.3+ | Fast dependency resolution |
+| Package Manager | Bun | 1.3+ | Fast dependency resolution (**always use bun, never npm**) |
 | Content Editor | Editor.js | 2.31+ | Rich content editing (admin only, lazy-loaded) |
+
+### Branding & Design Updates (March 2026)
+
+| Feature | Details |
+|---------|---------|
+| **Logo System** | `Logo.jsx` — 3 variants (`icon`, `full`, `wordmark`), 4 color modes, `useId()` for unique SVG IDs, `aria-label` on standalone icons |
+| **Favicon** | SVG favicon with maskable safe zone, replaces Vite placeholder. Applied to PWA manifest, apple-touch-icon, OG/Twitter meta tags |
+| **Hero Background** | Multi-layer generative pattern: radial spotlight + dot grid (data URI) + flow-line SVG overlay + network nodes. `clamp()` responsive padding, `backdrop-filter` glassmorphism |
+| **Glassmorphism** | CSS custom properties for glass (`--slogbaa-glass-*`) in light/dark themes. Applied to nav, cards, stats, steps, testimonials via `.glass-nav`, `.glass-hover` classes |
+| **Input Icons** | Leading icons on all form inputs (email: Mail, password: Lock, name: User, phone: Phone, district/city: MapPin, region: Globe, street: Building2, postal: Hash). `Input.jsx` upgraded with `icon` prop |
 
 ---
 
@@ -25,7 +35,8 @@ Complete technical reference for the SLOGBAA Online Learning Platform frontend.
 ```
 frontend/
 ├── public/
-│   └── manifest.json                    # PWA web app manifest
+│   ├── favicon.svg                      # Branded SVG favicon (maskable safe zone)
+│   └── manifest.json                    # PWA web app manifest (branded icons)
 ├── index.html                           # Entry HTML + meta tags + PWA config
 ├── package.json                         # Dependencies + scripts
 ├── vite.config.js                       # Vite: proxy, chunk splitting
@@ -79,7 +90,7 @@ frontend/
     │       └── use-trainee.js           # Profile + settings hooks
     │
     ├── shared/
-    │   ├── icons.jsx                    # Lucide icon exports (48 icons) + Icon component
+    │   ├── icons.jsx                    # Lucide icon exports (55 icons) + Icon component
     │   ├── countryCodes.js              # Phone country code data
     │   ├── components/                  # 23 design system primitives
     │   │   ├── Avatar.jsx               # User image + initials fallback (5 sizes)
@@ -92,7 +103,8 @@ frontend/
     │   │   ├── EmptyState.jsx           # No-data visual with icon
     │   │   ├── ErrorBoundary.jsx        # Global React error catch + recovery UI
     │   │   ├── FilterSortBar.jsx        # Search + filter dropdowns + sort
-    │   │   ├── Input.jsx                # Form input (error state, aria)
+    │   │   ├── Input.jsx                # Form input (error state, aria, leading icon support)
+    │   │   ├── Logo.jsx                 # Brand logo (3 variants, 4 colors, useId SVG)
     │   │   ├── LiveRegion.jsx           # aria-live announcements
     │   │   ├── LoadingButton.jsx        # Async button with spinner + shimmer
     │   │   ├── Modal.jsx                # Dialog (focus trap, blur overlay)
@@ -366,3 +378,15 @@ bun run preview      # Preview production build
 | Variable | Purpose | Default |
 |----------|---------|---------|
 | `VITE_API_BASE_URL` | Backend API origin | `''` (Vite proxy) |
+
+### Production Configuration
+
+| File | Purpose |
+|------|---------|
+| `frontend/.env.development` | Local dev: `VITE_API_BASE_URL=http://localhost:8080` |
+| `frontend/.env.production` | Local prod builds: `VITE_API_BASE_URL=https://slogbaa-backend.onrender.com` |
+| `frontend/vercel.json` | Vercel builds: `VITE_API_BASE_URL` set in `build.env` |
+
+**Vercel deployment:** The `vercel.json` file sets `VITE_API_BASE_URL=https://slogbaa-backend.onrender.com` as a build environment variable, so the frontend knows the backend API origin at build time.
+
+**CORS:** The Render backend allows `https://frontend-seven-red-wsusnzc0va.vercel.app` as a CORS origin with credentials support for JWT Bearer auth.

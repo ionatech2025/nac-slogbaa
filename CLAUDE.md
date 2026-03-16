@@ -30,8 +30,38 @@ SLOGBAA is the Network for Active Citizens (NAC) online learning platform. It co
 - A git pre-commit hook scans for leaked secrets before every commit.
 - If the hook blocks a commit, investigate and remove the secret — do NOT bypass with `--no-verify`.
 
+## Test Accounts (Neon DB)
+- **SUPER_ADMIN:** `alien@dev.com` / `alien123.com`
+- **SUPER_ADMIN:** `superadmin@slogbaa.nac.go.ug` / `password`
+- **ADMIN:** `admin@slogbaa.nac.go.ug` / `password`
+- **TRAINEE:** `jane.akello@example.com` / `password`
+- **TRAINEE:** `john.ocen@example.com` / `password`
+- **TRAINEE:** `mary.nabukenya@example.com` / `password`
+
+## Running Locally
+```bash
+# Backend (loads .env for Neon DB connection)
+cd backend && source ../.env && export DATASOURCE_URL DATASOURCE_USERNAME DATASOURCE_PASSWORD JWT_SECRET CORS_ALLOWED_ORIGINS PASSWORD_RESET_BASE_URL SPRING_PROFILES_ACTIVE && ./gradlew :app:bootRun
+
+# Frontend
+cd frontend && bun run dev
+```
+
+## Deployment
+- **Backend:** Render (Singapore, Docker) — `https://slogbaa-backend.onrender.com`
+  - Service ID: `srv-d6s383ma2pns73811a20`
+  - Deployed via GitHub Actions (`deploy.yml`) using Render API
+  - Blueprint: `render.yaml`
+- **Frontend:** Vercel — `https://frontend-seven-red-wsusnzc0va.vercel.app`
+  - `VITE_API_BASE_URL` set in `frontend/vercel.json` build env
+- **CORS:** Backend allows the Vercel frontend origin in prod
+- **SMTP:** Gmail SMTP configured on Render (env vars: `SMTP_HOST`, `SMTP_USERNAME`, `SMTP_PASSWORD`)
+
 ## Key Paths
 - Backend: `backend/` (Spring Boot, Gradle, Java 21)
 - Frontend: `frontend/` (React 18, Vite, bun)
 - Migrations: `backend/app/src/main/resources/db/migration/`
 - CI/CD: `.github/workflows/`
+- Render blueprint: `render.yaml`
+- Pre-commit hook: `.githooks/pre-commit`
+- Environment: `.env` (secrets), `.env.example` (template)
