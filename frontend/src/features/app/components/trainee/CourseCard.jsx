@@ -1,9 +1,8 @@
 import { Link } from 'react-router-dom'
 import { FontAwesomeIcon, icons } from '../../../../shared/icons.jsx'
 import { getAssetUrl } from '../../../../api/client.js'
-import defaultCourseImg from '../../../../assets/images/courses/course1.jpg'
 
-const DEFAULT_IMG = defaultCourseImg
+const DEFAULT_IMG = 'https://placehold.co/400x200/e0e0e0/6b6b6b?text=Course'
 
 function ProgressRing({ percent = 0, size = 44, strokeWidth = 3.5 }) {
   const radius = (size - strokeWidth) / 2
@@ -50,6 +49,7 @@ const styles = {
     height: 160,
     background: 'var(--slogbaa-border)',
     overflow: 'hidden',
+    position: 'relative',
   },
   imageWrapHorizontal: {
     width: 'clamp(200px, 30%, 280px)',
@@ -218,6 +218,7 @@ export function CourseCard({ course, enrolled, completionPercentage, onEnroll, o
 
   const imageBadges = []
   if (enrolled) imageBadges.push({ label: 'ENROLLED', light: false })
+  if (course.categoryName) imageBadges.push({ label: course.categoryName, light: true })
   if (course.badges?.length) {
     course.badges.forEach((b) => imageBadges.push({ label: b, light: true }))
   }
@@ -238,9 +239,10 @@ export function CourseCard({ course, enrolled, completionPercentage, onEnroll, o
     ...styles.description,
     ...(isHorizontal ? styles.descriptionHorizontal : {}),
   }
-  const showMetaRow = isHorizontal && (course.modules || course.duration || course.audience || course.language || course.level)
+  const showMetaRow = isHorizontal && (course.modules || course.duration || course.audience || course.language || course.level || course.totalEstimatedMinutes)
   const metaItems = showMetaRow && [
     course.modules && `${course.modules} modules`,
+    course.totalEstimatedMinutes && `~${course.totalEstimatedMinutes} min`,
     course.duration,
     course.audience,
     course.language,
@@ -254,13 +256,12 @@ export function CourseCard({ course, enrolled, completionPercentage, onEnroll, o
           src={imgSrc}
           alt={`Course: ${course.title}`}
           style={imageStyle}
-          loading="lazy"
           onError={(e) => {
             e.target.onerror = null
             e.target.src = DEFAULT_IMG
           }}
         />
-        {isHorizontal && imageBadges.length > 0 && (
+        {imageBadges.length > 0 && (
           <div style={styles.imageBadgeWrap}>
             {imageBadges.map((b) => (
               <span
@@ -287,7 +288,9 @@ export function CourseCard({ course, enrolled, completionPercentage, onEnroll, o
         {showMetaRow && metaItems?.length > 0 ? (
           <div style={styles.metaRow}>{metaItems.join(' · ')}</div>
         ) : (
-          course.meta && <p style={styles.meta}>{course.meta}</p>
+          <p style={styles.meta}>
+            {[course.meta, course.totalEstimatedMinutes && `~${course.totalEstimatedMinutes} min`].filter(Boolean).join(' · ')}
+          </p>
         )}
         {enrolled && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem', ...(isHorizontal ? { marginTop: 'auto' } : {}) }}>

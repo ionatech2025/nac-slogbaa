@@ -11,5 +11,8 @@ public record CourseDetailsResponse(
         String description,
         String imageUrl,
         boolean published,
+        Integer totalEstimatedMinutes,
+        String categoryName,
+        String categorySlug,
         List<ModuleSummaryResponse> modules
 ) {}

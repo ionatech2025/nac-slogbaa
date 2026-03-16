@@ -65,6 +65,8 @@ public class CourseDetailsQueryAdapter implements CourseDetailsQueryPort, Course
         return jpaCourseRepository.findAll().stream()
                 .map(c -> {
                     int moduleCount = jpaModuleRepository.findByCourseIdOrderByModuleOrder(c.getId()).size();
+                    String categoryName = c.getCategory() != null ? c.getCategory().getName() : null;
+                    String categorySlug = c.getCategory() != null ? c.getCategory().getSlug() : null;
                     return new AdminCourseSummary(
                             c.getId(),
                             c.getTitle(),
@@ -72,7 +74,9 @@ public class CourseDetailsQueryAdapter implements CourseDetailsQueryPort, Course
                             c.getImageUrl(),
                             c.isPublished(),
                             moduleCount,
-                            c.getCreatedAt()
+                            c.getCreatedAt(),
+                            categoryName,
+                            categorySlug
                     );
                 })
                 .toList();
@@ -88,7 +92,7 @@ public class CourseDetailsQueryAdapter implements CourseDetailsQueryPort, Course
     @Override
     public Optional<CourseSummary> getSummaryByCourseId(UUID courseId) {
         return findCourseDetailsById(courseId)
-                .map(d -> new CourseSummary(d.getId(), d.getTitle(), d.getDescription(), d.getImageUrl(), d.getModules().size()));
+                .map(d -> new CourseSummary(d.getId(), d.getTitle(), d.getDescription(), d.getImageUrl(), d.getModules().size(), d.getTotalEstimatedMinutes(), d.getCategoryName(), d.getCategorySlug()));
     }
 
     private CourseWithModules toCourseWithModules(CourseEntity course) {
@@ -104,12 +108,22 @@ public class CourseDetailsQueryAdapter implements CourseDetailsQueryPort, Course
         List<ModuleSummary> modules = domain.getModules().stream()
                 .map(this::toModuleSummary)
                 .toList();
+        Integer totalEstimatedMinutes = modules.stream()
+                .map(ModuleSummary::getEstimatedMinutes)
+                .filter(java.util.Objects::nonNull)
+                .reduce(0, Integer::sum);
+        if (totalEstimatedMinutes == 0 && modules.stream().noneMatch(m -> m.getEstimatedMinutes() != null)) {
+            totalEstimatedMinutes = null;
+        }
         return new CourseDetails(
                 domain.getId().getValue(),
                 domain.getTitle(),
                 domain.getDescription(),
                 domain.getImageUrl(),
                 domain.isPublished(),
+                totalEstimatedMinutes,
+                domain.getCategoryName(),
+                domain.getCategorySlug(),
                 modules
         );
     }
@@ -125,6 +139,7 @@ public class CourseDetailsQueryAdapter implements CourseDetailsQueryPort, Course
                 m.getImageUrl(),
                 m.getModuleOrder().getPosition(),
                 m.isHasQuiz(),
+                m.getEstimatedMinutes(),
                 blocks
         );
     }

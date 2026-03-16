@@ -35,6 +35,9 @@ public class ModuleEntity {
     @Column(name = "has_quiz", nullable = false)
     private boolean hasQuiz = false;
 
+    @Column(name = "estimated_minutes")
+    private Integer estimatedMinutes;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -67,6 +70,8 @@ public class ModuleEntity {
     public void setModuleOrder(int moduleOrder) { this.moduleOrder = moduleOrder; }
     public boolean isHasQuiz() { return hasQuiz; }
     public void setHasQuiz(boolean hasQuiz) { this.hasQuiz = hasQuiz; }
+    public Integer getEstimatedMinutes() { return estimatedMinutes; }
+    public void setEstimatedMinutes(Integer estimatedMinutes) { this.estimatedMinutes = estimatedMinutes; }
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }

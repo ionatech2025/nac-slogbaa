@@ -31,7 +31,10 @@ public final class GetPublishedCoursesService implements GetPublishedCoursesUseC
                 c.getTitle(),
                 c.getDescription(),
                 c.getImageUrl(),
-                c.getModuleCount()
+                c.getModuleCount(),
+                c.getTotalEstimatedMinutes(),
+                c.getCategoryName(),
+                c.getCategorySlug()
         );
     }
 }

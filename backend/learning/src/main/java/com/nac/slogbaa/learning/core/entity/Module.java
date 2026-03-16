@@ -17,16 +17,18 @@ public final class Module {
     private final String imageUrl;
     private final ModuleOrder moduleOrder;
     private final boolean hasQuiz;
+    private final Integer estimatedMinutes;
     private final List<ContentBlock> contentBlocks;
 
     public Module(ModuleId id, String title, String description, String imageUrl, ModuleOrder moduleOrder,
-                  boolean hasQuiz, List<ContentBlock> contentBlocks) {
+                  boolean hasQuiz, Integer estimatedMinutes, List<ContentBlock> contentBlocks) {
         this.id = Objects.requireNonNull(id);
         this.title = Objects.requireNonNull(title);
         this.description = description;
         this.imageUrl = imageUrl;
         this.moduleOrder = Objects.requireNonNull(moduleOrder);
         this.hasQuiz = hasQuiz;
+        this.estimatedMinutes = estimatedMinutes;
         this.contentBlocks = contentBlocks != null ? List.copyOf(contentBlocks) : List.of();
     }
 
@@ -36,5 +38,6 @@ public final class Module {
     public String getImageUrl() { return imageUrl; }
     public ModuleOrder getModuleOrder() { return moduleOrder; }
     public boolean isHasQuiz() { return hasQuiz; }
+    public Integer getEstimatedMinutes() { return estimatedMinutes; }
     public List<ContentBlock> getContentBlocks() { return Collections.unmodifiableList(contentBlocks); }
 }

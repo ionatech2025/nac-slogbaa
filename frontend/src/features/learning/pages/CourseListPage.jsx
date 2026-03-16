@@ -2,11 +2,11 @@ import { useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { FontAwesomeIcon, icons } from '../../../shared/icons.jsx'
 import { usePublishedCourses, useEnrolledCourses, useEnrollInCourse } from '../../../lib/hooks/use-courses.js'
+import { useCategories } from '../../../lib/hooks/use-categories.js'
 import { CourseCard } from '../../app/components/trainee/CourseCard.jsx'
 import { CoursePreviewModal } from '../components/CoursePreviewModal.jsx'
 import { useToast } from '../../../shared/hooks/useToast.js'
 import { QueryError } from '../../../shared/components/QueryError.jsx'
-import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle.js'
 import { CardGridSkeleton } from '../../../shared/components/ContentSkeletons.jsx'
 import { FilterSortBar } from '../../../shared/components/FilterSortBar.jsx'
 import { EmptyState } from '../../../shared/components/EmptyState.jsx'
@@ -119,32 +119,42 @@ const SORT_OPTIONS = [
   { value: 'moduleCount:asc', label: 'Fewest modules' },
 ]
 
-const FILTERS = [
-  { key: 'status', label: 'Status', options: STATUS_FILTER_OPTIONS },
-]
-
 export function CourseListPage() {
   const { data: courses = [], isLoading: coursesLoading, error: coursesError, refetch } = usePublishedCourses()
   const { data: enrolled = [], isLoading: enrolledLoading } = useEnrolledCourses()
+  const { data: categories = [] } = useCategories()
   const enrollMutation = useEnrollInCourse()
   const [courseView, setCourseView] = useState('vertical')
   const [previewCourse, setPreviewCourse] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
-  const [filterValues, setFilterValues] = useState({ status: 'all' })
+  const [filterValues, setFilterValues] = useState({ status: 'all', category: 'all' })
   const [sortValue, setSortValue] = useState('title:asc')
 
-  useDocumentTitle('Browse Courses')
   const loading = coursesLoading || enrolledLoading
   const error = coursesError?.message ?? (enrollMutation.error?.message || null)
 
   const enrolledIds = useMemo(() => new Set(enrolled.map((c) => c.id)), [enrolled])
+
+  const CATEGORY_FILTER_OPTIONS = useMemo(() => [
+    { value: 'all', label: 'All categories' },
+    ...categories.map((c) => ({ value: c.slug, label: c.name })),
+  ], [categories])
+
+  const FILTERS = useMemo(() => [
+    { key: 'status', label: 'Status', options: STATUS_FILTER_OPTIONS },
+    ...(categories.length > 0 ? [{ key: 'category', label: 'Category', options: CATEGORY_FILTER_OPTIONS }] : []),
+  ], [categories, CATEGORY_FILTER_OPTIONS])
 
   const filterConfig = useMemo(() => ({
     status: {
       getValue: (item) => enrolledIds.has(item.id) ? 'enrolled' : 'available',
       options: STATUS_FILTER_OPTIONS,
     },
-  }), [enrolledIds])
+    category: {
+      getValue: (item) => item.categorySlug || 'uncategorized',
+      options: CATEGORY_FILTER_OPTIONS,
+    },
+  }), [enrolledIds, CATEGORY_FILTER_OPTIONS])
 
   const filteredCourses = useMemo(
     () =>
@@ -292,6 +302,8 @@ export function CourseListPage() {
                     description: course.description || 'No description.',
                     imageUrl: course.imageUrl,
                     meta: `${course.moduleCount} module${course.moduleCount !== 1 ? 's' : ''}`,
+                    totalEstimatedMinutes: course.totalEstimatedMinutes,
+                    categoryName: course.categoryName,
                   }}
                   onEnroll={enrolledIds.has(course.id) ? undefined : handleEnroll}
                   onPreview={handlePreview}

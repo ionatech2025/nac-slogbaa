@@ -10,5 +10,7 @@ public record AdminCourseSummaryResponse(
         String imageUrl,
         boolean published,
         int moduleCount,
-        String createdAt
+        String createdAt,
+        String categoryName,
+        String categorySlug
 ) {}

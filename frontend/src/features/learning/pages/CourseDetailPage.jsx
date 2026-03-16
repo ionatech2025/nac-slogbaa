@@ -1,15 +1,12 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { getAssetUrl } from '../../../api/client.js'
-import defaultCourseImg from '../../../assets/images/courses/course1.jpg'
 import { useAuth } from '../../iam/hooks/useAuth.js'
 import { useCourseDetail, useCheckEnrollment, useResumePoint, useRecordProgress } from '../../../lib/hooks/use-courses.js'
 import { EditorJsReadOnly } from '../../app/components/admin/EditorJsReadOnly.jsx'
 import { ModuleQuizPanel } from '../../assessment/components/ModuleQuizPanel.jsx'
 import { SafeHtml } from '../../../shared/components/SafeHtml.jsx'
 import { CourseDetailSkeleton } from '../../../shared/components/ContentSkeletons.jsx'
-import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle.js'
-import { ReviewSection } from '../components/ReviewSection.jsx'
 
 const styles = {
   layout: {
@@ -375,7 +372,6 @@ export function CourseDetailPage() {
   const { data: enrolled = false, isLoading: enrolledLoading } = useCheckEnrollment(courseId)
   const { data: resumePoint } = useResumePoint(courseId, { enabled: enrolled && !moduleId && !resumeCheckedRef.current })
 
-  useDocumentTitle(course?.title ?? 'Course')
   const loading = courseLoading || enrolledLoading
   const error = courseError?.message ?? null
 
@@ -520,12 +516,11 @@ export function CourseDetailPage() {
       <main style={styles.main}>
         <div style={styles.topBar}>
           <header style={styles.header}>
-          <img
-            src={course.imageUrl ? getAssetUrl(course.imageUrl) : defaultCourseImg}
-            alt={`Course: ${course.title}`}
-            style={styles.courseImage}
-            onError={(e) => { e.target.onerror = null; e.target.src = defaultCourseImg }}
-          />
+          {course.imageUrl ? (
+            <img src={getAssetUrl(course.imageUrl)} alt={`Course: ${course.title}`} style={styles.courseImage} onError={(e) => { e.target.style.display = 'none' }} />
+          ) : (
+            <div style={styles.courseImagePlaceholder}>📚</div>
+          )}
           <div style={{ flex: 1, minWidth: 0 }}>
             <h1 style={styles.title}>{course.title}</h1>
             <p style={styles.description}>{course.description || ''}</p>
@@ -551,6 +546,7 @@ export function CourseDetailPage() {
                     )}
                     <span>
                       <span style={styles.moduleTitle}>{m.title}</span>
+                      {m.estimatedMinutes != null && <span style={styles.moduleMeta}> · ~{m.estimatedMinutes} min</span>}
                       {m.hasQuiz && <span style={styles.moduleMeta}> · Quiz</span>}
                     </span>
                   </Link>
@@ -654,7 +650,6 @@ export function CourseDetailPage() {
             )}
           </article>
         </div>
-        <ReviewSection courseId={courseId} />
       </main>
     </div>
   )

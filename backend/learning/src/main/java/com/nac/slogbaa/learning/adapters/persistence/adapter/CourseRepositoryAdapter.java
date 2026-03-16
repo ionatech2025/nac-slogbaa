@@ -9,6 +9,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 
 import com.nac.slogbaa.learning.adapters.persistence.entity.CourseEntity;
+import com.nac.slogbaa.learning.adapters.persistence.entity.ModuleEntity;
 import com.nac.slogbaa.learning.adapters.persistence.mapper.CourseEntityMapper;
 import com.nac.slogbaa.learning.adapters.persistence.repository.JpaCourseRepository;
 import com.nac.slogbaa.learning.adapters.persistence.repository.JpaModuleRepository;
@@ -52,7 +53,12 @@ public class CourseRepositoryAdapter implements CourseRepositoryPort, CoursePubl
     }
 
     private Course toDomainWithModuleCount(CourseEntity entity) {
-        int moduleCount = jpaModuleRepository.findByCourseIdOrderByModuleOrder(entity.getId()).size();
-        return mapper.toDomain(entity, moduleCount);
+        List<ModuleEntity> modules = jpaModuleRepository.findByCourseIdOrderByModuleOrder(entity.getId());
+        int moduleCount = modules.size();
+        boolean anyEstimate = modules.stream().anyMatch(m -> m.getEstimatedMinutes() != null);
+        Integer totalEstimatedMinutes = anyEstimate
+                ? modules.stream().map(ModuleEntity::getEstimatedMinutes).filter(java.util.Objects::nonNull).reduce(0, Integer::sum)
+                : null;
+        return mapper.toDomain(entity, moduleCount, totalEstimatedMinutes);
     }
 }
