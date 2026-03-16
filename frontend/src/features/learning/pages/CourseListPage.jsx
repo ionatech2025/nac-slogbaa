@@ -66,10 +66,12 @@ const styles = {
   viewToggle: {
     display: 'flex',
     gap: 0,
-    border: '1px solid var(--slogbaa-border)',
-    borderRadius: 8,
+    border: '1px solid var(--slogbaa-glass-border)',
+    borderRadius: 10,
     overflow: 'hidden',
-    background: 'var(--slogbaa-surface)',
+    background: 'var(--slogbaa-glass-bg-subtle)',
+    backdropFilter: 'blur(8px)',
+    WebkitBackdropFilter: 'blur(8px)',
   },
   viewToggleBtn: {
     display: 'inline-flex',
