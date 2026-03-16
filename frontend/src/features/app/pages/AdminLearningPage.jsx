@@ -4,6 +4,7 @@ import { FontAwesomeIcon, icons } from '../../../shared/icons.jsx'
 import { createCourse, updateCourse } from '../../../api/admin/courses.js'
 import { useAdminCourses, usePublishCourse, useUnpublishCourse } from '../../../lib/hooks/use-admin.js'
 import { getAssetUrl } from '../../../api/client.js'
+import defaultCourseImg from '../../../assets/images/courses/course1.jpg'
 import { CreateCourseModal } from '../components/admin/CreateCourseModal.jsx'
 import { EditCourseModal } from '../components/admin/EditCourseModal.jsx'
 import { Badge } from '../../../shared/components/Badge.jsx'
@@ -11,6 +12,7 @@ import { FilterSortBar } from '../../../shared/components/FilterSortBar.jsx'
 import { useToast } from '../../../shared/hooks/useToast.js'
 import { useDebounce } from '../../../shared/hooks/useDebounce.js'
 import { filterAndSortItems } from '../../../shared/utils/filterSort.js'
+import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle.js'
 
 const COURSE_FILTERS = [
   {
@@ -180,6 +182,7 @@ const styles = {
 }
 
 export function AdminLearningPage() {
+  useDocumentTitle('Learning')
   const { token, isSuperAdmin } = useOutletContext()
   const navigate = useNavigate()
   const { data: courses = [], isLoading: loading, error: queryError, refetch: refreshCourses } = useAdminCourses()
@@ -346,11 +349,13 @@ export function AdminLearningPage() {
                 >
                   <td style={styles.td}>
                     <div style={styles.thumbWrap}>
-                      {course.imageUrl ? (
-                        <img src={getAssetUrl(course.imageUrl)} alt={`Course: ${course.title}`} style={styles.thumb} onError={(e) => { e.target.style.display = 'none' }} />
-                      ) : (
-                        <div style={{ ...styles.thumb, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.25rem', color: 'var(--slogbaa-text-muted)' }}>📚</div>
-                      )}
+                      <img
+                        src={course.imageUrl ? getAssetUrl(course.imageUrl) : defaultCourseImg}
+                        alt={`Course: ${course.title}`}
+                        style={styles.thumb}
+                        loading="lazy"
+                        onError={(e) => { e.target.onerror = null; e.target.src = defaultCourseImg }}
+                      />
                       <div>
                         <strong>{course.title}</strong>
                         {course.description && (

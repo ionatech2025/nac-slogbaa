@@ -29,11 +29,14 @@ export async function getTraineeProfile(token, traineeId) {
  * Returns array of { id, title, description, imageUrl, moduleCount, completionPercentage }. Returns [] on error.
  */
 export async function getTraineeEnrolledCourses(token, traineeId) {
-  if (!token || !traineeId) return []
+  if (!token || !traineeId) throw new Error('Token and trainee ID are required.')
   const client = apiClient(token)
   const res = await client.get(`/api/admin/progress/trainees/${traineeId}/enrolled-courses`)
-  if (!res.ok) return []
-  return res.json().catch(() => [])
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}))
+    throw new Error(body.detail ?? body.message ?? `Request failed (${res.status})`)
+  }
+  return res.json()
 }
 
 /**

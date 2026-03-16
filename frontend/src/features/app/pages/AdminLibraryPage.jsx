@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { FontAwesomeIcon, icons } from '../../../shared/icons.jsx'
-import { updateLibraryResource } from '../../../api/admin/library.js'
-import { useAdminLibrary, useCreateLibraryResource, usePublishLibraryResource, useUnpublishLibraryResource } from '../../../lib/hooks/use-admin.js'
+import { useAdminLibrary, useCreateLibraryResource, useUpdateLibraryResource, usePublishLibraryResource, useUnpublishLibraryResource } from '../../../lib/hooks/use-admin.js'
 import { uploadFile } from '../../../api/files.js'
 import { Modal } from '../../../shared/components/Modal.jsx'
 import { useToast } from '../../../shared/hooks/useToast.js'
+import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle.js'
 
 const RESOURCE_TYPES = [
   { value: 'DOCUMENT', label: 'Document' },
@@ -119,9 +119,11 @@ const styles = {
 }
 
 export function AdminLibraryPage() {
+  useDocumentTitle('Library')
   const { token, isSuperAdmin } = useOutletContext()
   const { data: resources = [], isLoading: loading, error: queryError } = useAdminLibrary()
   const createMutation = useCreateLibraryResource()
+  const updateMutation = useUpdateLibraryResource()
   const publishMutation = usePublishLibraryResource()
   const unpublishMutation = useUnpublishLibraryResource()
   const [error, setError] = useState(queryError?.message ?? null)
@@ -186,10 +188,11 @@ export function AdminLibraryPage() {
 
   const handleEditSubmit = async (e) => {
     e.preventDefault()
-    if (!token || !editResource || !form.title?.trim() || !form.fileUrl?.trim()) return
+    if (!editResource || !form.title?.trim() || !form.fileUrl?.trim()) return
     setSavingEditId(editResource.id)
     try {
-      await updateLibraryResource(token, editResource.id, {
+      await updateMutation.mutateAsync({
+        resourceId: editResource.id,
         title: form.title.trim(),
         description: form.description?.trim() || undefined,
         resourceType: form.resourceType,
@@ -197,9 +200,9 @@ export function AdminLibraryPage() {
         fileType: form.fileType?.trim() || undefined,
       })
       closeEditModal()
-      load()
+      toast.success('Resource updated.')
     } catch (e) {
-      setError(e?.message ?? 'Failed to update.')
+      toast.error(e?.message ?? 'Failed to update.')
     } finally {
       setSavingEditId(null)
     }
@@ -347,7 +350,7 @@ export function AdminLibraryPage() {
                     const result = await uploadFile(token, file, 'library')
                     setForm((f) => ({ ...f, fileUrl: result.url, fileType: result.contentType?.split('/')?.pop()?.toUpperCase() || f.fileType }))
                   } catch (err) {
-                    setCertError?.(err?.message) || setError?.(err?.message ?? 'Upload failed.')
+                    setError(err?.message ?? 'Upload failed.')
                   }
                 }}
                 style={styles.input}

@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { Link, useOutletContext } from 'react-router-dom'
 import { FontAwesomeIcon, icons } from '../../../shared/icons.jsx'
 import { ConfirmModal } from '../../../shared/components/ConfirmModal.jsx'
+import { useAdminCertificates } from '../../../lib/hooks/use-admin.js'
+import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle.js'
 
 const styles = {
   pageTitle: {
@@ -151,6 +153,8 @@ const styles = {
 
 export function AdminOverviewPage() {
   const { staff, trainees, courseCount = 0, overviewLoading, overviewError, handleDeleteStaff, handleDeleteTrainee, isSuperAdmin, token, currentUserId, currentUserEmail } = useOutletContext()
+  const { data: certificates = [], isLoading: certsLoading } = useAdminCertificates()
+  useDocumentTitle('Overview')
   const [deleteError, setDeleteError] = useState(null)
   const [deletingId, setDeletingId] = useState(null)
   const [confirmTarget, setConfirmTarget] = useState(null) // { type: 'staff', item } | { type: 'trainee', item }
@@ -243,8 +247,10 @@ export function AdminOverviewPage() {
             <p style={styles.statValue}>{courseCount}</p>
             <p style={styles.statLabel}>Courses</p>
           </div>
-          <div style={styles.statCard}>
-            <p style={styles.statValueMuted}>0</p>
+          <div style={{ ...styles.statCard, ...styles.statCardHighlight }}>
+            <p style={certsLoading ? styles.statValueMuted : styles.statValue}>
+              {certsLoading ? '—' : certificates.filter((c) => !c.revoked).length}
+            </p>
             <p style={styles.statLabel}>Certificates</p>
           </div>
         </div>

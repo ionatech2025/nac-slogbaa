@@ -82,10 +82,15 @@ export function Tabs({ tabs, activeTab, onChange, style }) {
   )
 }
 
-export function TabPanel({ id, value, activeTab, children }) {
+export function TabPanel({ id, value, activeTab, children, tabIndex: tabIdx }) {
   if (value !== activeTab) return null
   return (
-    <div role="tabpanel" id={`${id}-panel-${value}`} tabIndex={0}>
+    <div
+      role="tabpanel"
+      id={`${id}-panel-${value}`}
+      aria-labelledby={tabIdx != null ? `${id}-tab-${tabIdx}` : undefined}
+      tabIndex={0}
+    >
       {children}
     </div>
   )

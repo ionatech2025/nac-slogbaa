@@ -6,6 +6,7 @@ import { CourseCard } from '../../app/components/trainee/CourseCard.jsx'
 import { CoursePreviewModal } from '../components/CoursePreviewModal.jsx'
 import { useToast } from '../../../shared/hooks/useToast.js'
 import { QueryError } from '../../../shared/components/QueryError.jsx'
+import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle.js'
 import { CardGridSkeleton } from '../../../shared/components/ContentSkeletons.jsx'
 import { FilterSortBar } from '../../../shared/components/FilterSortBar.jsx'
 import { EmptyState } from '../../../shared/components/EmptyState.jsx'
@@ -132,6 +133,7 @@ export function CourseListPage() {
   const [filterValues, setFilterValues] = useState({ status: 'all' })
   const [sortValue, setSortValue] = useState('title:asc')
 
+  useDocumentTitle('Browse Courses')
   const loading = coursesLoading || enrolledLoading
   const error = coursesError?.message ?? (enrollMutation.error?.message || null)
 

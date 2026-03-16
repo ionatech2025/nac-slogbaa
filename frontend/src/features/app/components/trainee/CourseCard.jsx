@@ -1,8 +1,9 @@
 import { Link } from 'react-router-dom'
 import { FontAwesomeIcon, icons } from '../../../../shared/icons.jsx'
 import { getAssetUrl } from '../../../../api/client.js'
+import defaultCourseImg from '../../../../assets/images/courses/course1.jpg'
 
-const DEFAULT_IMG = 'https://placehold.co/400x200/e0e0e0/6b6b6b?text=Course'
+const DEFAULT_IMG = defaultCourseImg
 
 function ProgressRing({ percent = 0, size = 44, strokeWidth = 3.5 }) {
   const radius = (size - strokeWidth) / 2
@@ -253,6 +254,7 @@ export function CourseCard({ course, enrolled, completionPercentage, onEnroll, o
           src={imgSrc}
           alt={`Course: ${course.title}`}
           style={imageStyle}
+          loading="lazy"
           onError={(e) => {
             e.target.onerror = null
             e.target.src = DEFAULT_IMG

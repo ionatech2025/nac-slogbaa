@@ -39,6 +39,9 @@ function normalizeToken(token) {
  * Uses credentials: 'include' when a token is present so cross-origin requests send the header.
  * Usage: apiClient(token).get('/some/protected-path')
  */
+/** Default request timeout (30 seconds). */
+const DEFAULT_TIMEOUT_MS = 30_000
+
 export function apiClient(token = null) {
   const rawToken = normalizeToken(token)
   const authHeaders = rawToken ? { Authorization: `Bearer ${rawToken}` } : {}
@@ -46,22 +49,40 @@ export function apiClient(token = null) {
 
   const request = (path, method, options = {}, body = undefined) => {
     const url = buildUrl(path)
+    const timeoutMs = options.timeout ?? DEFAULT_TIMEOUT_MS
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs)
+
+    // Allow caller to pass their own signal (e.g. from TanStack Query) by chaining
+    if (options.signal) {
+      options.signal.addEventListener('abort', () => controller.abort())
+    }
+
     const headers = {
       ...(method !== 'GET' && method !== 'DELETE' ? { 'Content-Type': 'application/json' } : {}),
       ...authHeaders,
       ...(options.headers || {}),
     }
     const opts = {
-      ...options,
       method,
       credentials,
       headers,
+      signal: controller.signal,
       ...(body != null && method !== 'GET' && method !== 'DELETE' ? { body: JSON.stringify(body) } : {}),
     }
-    return fetch(url, opts).then((res) => {
-      if (res.status === 401) throw new AuthError()
-      return res
-    })
+    return fetch(url, opts)
+      .then((res) => {
+        clearTimeout(timeoutId)
+        if (res.status === 401) throw new AuthError()
+        return res
+      })
+      .catch((err) => {
+        clearTimeout(timeoutId)
+        if (err.name === 'AbortError') {
+          throw new Error('Request timed out. Please check your connection and try again.')
+        }
+        throw err
+      })
   }
 
   return {

@@ -6,8 +6,10 @@ import { useAdminCourses, useAdminCourseDetail, useDeleteCourse, useDeleteModule
 import { getAdminCourseDetails } from '../../../api/admin/courses.js'
 import { getCourseEnrollments, canDeleteCourse, canDeleteModule } from '../../../api/admin/courseManagement.js'
 import { getAssetUrl } from '../../../api/client.js'
+import defaultCourseImg from '../../../assets/images/courses/course1.jpg'
 import { useAuth } from '../../iam/hooks/useAuth.js'
 import { useToast } from '../../../shared/hooks/useToast.js'
+import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle.js'
 
 const styles = {
   page: {
@@ -263,6 +265,7 @@ const styles = {
 }
 
 export function AdminCourseManagementPage() {
+  useDocumentTitle('Course Management')
   const { token, isSuperAdmin } = useOutletContext()
   const { token: authToken } = useAuth()
   const { data: courses = [], isLoading: loading, error: queryError } = useAdminCourses()
@@ -300,7 +303,7 @@ export function AdminCourseManagementPage() {
       )
       setCanDeleteModuleMap((prev) => ({ ...prev, [courseId]: canModule }))
     } catch {
-      setDetails((prev) => ({ ...prev, [courseId]: null }))
+      setDetails((prev) => ({ ...prev, [courseId]: { _error: true } }))
       setEnrollments((prev) => ({ ...prev, [courseId]: [] }))
     }
   }
@@ -476,11 +479,13 @@ export function AdminCourseManagementPage() {
                 aria-expanded={isOpen}
               >
                 <div style={styles.courseLeft}>
-                  {course.imageUrl ? (
-                    <img src={getAssetUrl(course.imageUrl)} alt={`Course: ${course.title}`} style={styles.courseThumb} />
-                  ) : (
-                    <div style={{ ...styles.courseThumb, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.25rem' }}>📚</div>
-                  )}
+                  <img
+                    src={course.imageUrl ? getAssetUrl(course.imageUrl) : defaultCourseImg}
+                    alt={`Course: ${course.title}`}
+                    style={styles.courseThumb}
+                    loading="lazy"
+                    onError={(e) => { e.target.onerror = null; e.target.src = defaultCourseImg }}
+                  />
                   <div>
                     <h2 style={styles.courseTitle}>{course.title}</h2>
                     <p style={styles.courseMeta}>
@@ -527,6 +532,20 @@ export function AdminCourseManagementPage() {
                 <div style={styles.expandContent}>
                   {detail == null ? (
                     <p style={{ margin: 0, fontSize: '0.9375rem', color: 'var(--slogbaa-text-muted)' }}>Loading…</p>
+                  ) : detail._error ? (
+                    <p style={{ margin: 0, fontSize: '0.9375rem', color: 'var(--slogbaa-error)' }}>
+                      Failed to load course details.{' '}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setDetails((prev) => { const n = { ...prev }; delete n[course.id]; return n })
+                          loadExpanded(course.id)
+                        }}
+                        style={{ background: 'none', border: 'none', color: 'var(--slogbaa-blue)', cursor: 'pointer', textDecoration: 'underline', fontSize: 'inherit', padding: 0 }}
+                      >
+                        Retry
+                      </button>
+                    </p>
                   ) : (
                     <>
                       {detail?.modules?.length > 0 && (

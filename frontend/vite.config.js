@@ -15,11 +15,7 @@ export default defineConfig({
             handler: 'CacheFirst',
             options: { cacheName: 'images', expiration: { maxEntries: 60, maxAgeSeconds: 30 * 24 * 60 * 60 } },
           },
-          {
-            urlPattern: /^https:\/\/.*\/api\//i,
-            handler: 'NetworkFirst',
-            options: { cacheName: 'api', expiration: { maxEntries: 50, maxAgeSeconds: 5 * 60 } },
-          },
+          // API caching intentionally omitted — authenticated endpoints must not be cached by service worker
         ],
       },
       manifest: false, // use static manifest.json in public/

@@ -2,15 +2,15 @@ import { apiClient } from '../client.js'
 
 /**
  * Fetch admin dashboard overview (counts and lists of staff and trainees).
- * Requires auth token. Returns { data } or { error }.
+ * Requires auth token. Returns { data }. Throws on failure.
  */
 export async function getDashboardOverview(token) {
+  if (!token) throw new Error('Your session is missing. Please log in again.')
   const client = apiClient(token)
   const res = await client.get('/api/admin/dashboard/overview')
   const body = await res.json().catch(() => ({}))
   if (!res.ok) {
-    const message = body.detail ?? body.message ?? `Request failed (${res.status})`
-    return { error: message, status: res.status }
+    throw new Error(body.detail ?? body.message ?? `Request failed (${res.status})`)
   }
   return {
     data: {
@@ -23,13 +23,15 @@ export async function getDashboardOverview(token) {
 }
 
 /**
- * Fetch course count for admin dashboard. Returns number or 0 on error.
+ * Fetch course count for admin dashboard. Returns number. Throws on failure.
  */
 export async function getCourseCount(token) {
-  if (!token) return 0
+  if (!token) throw new Error('Your session is missing. Please log in again.')
   const client = apiClient(token)
   const res = await client.get('/api/admin/courses/count')
-  if (!res.ok) return 0
   const body = await res.json().catch(() => ({}))
+  if (!res.ok) {
+    throw new Error(body.detail ?? body.message ?? `Request failed (${res.status})`)
+  }
   return typeof body?.count === 'number' ? body.count : 0
 }

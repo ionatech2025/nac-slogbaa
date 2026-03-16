@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { RegisterForm } from '../components/RegisterForm.jsx'
 import { Logo } from '../../../shared/components/Logo.jsx'
+import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle.js'
 
 const styles = {
   page: {
@@ -47,6 +48,7 @@ const styles = {
 }
 
 export function RegisterPage() {
+  useDocumentTitle('Register')
   return (
     <div style={styles.page} className="auth-bg">
       <div style={styles.card} className="glass-card-elevated glass-enter">

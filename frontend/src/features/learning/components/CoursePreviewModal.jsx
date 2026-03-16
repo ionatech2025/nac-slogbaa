@@ -4,6 +4,7 @@ import { FontAwesomeIcon, icons } from '../../../shared/icons.jsx'
 import { useAuth } from '../../iam/hooks/useAuth.js'
 import { getCourseDetails } from '../../../api/learning/courses.js'
 import { getAssetUrl } from '../../../api/client.js'
+import defaultCourseImg from '../../../assets/images/courses/course1.jpg'
 
 function findFirstVideoBlock(course) {
   for (const module of course?.modules ?? []) {
@@ -126,11 +127,12 @@ export function CoursePreviewModal({ course, onClose, onEnroll }) {
       {error && <div style={styles.error}>{error}</div>}
       {!loading && !error && details && (
         <>
-          {details.imageUrl ? (
-            <img src={getAssetUrl(details.imageUrl)} alt={`Course: ${details.title ?? ''}`} style={styles.image} onError={(e) => { e.target.style.display = 'none' }} />
-          ) : (
-            <div style={styles.imagePlaceholder}>📚</div>
-          )}
+          <img
+            src={details.imageUrl ? getAssetUrl(details.imageUrl) : defaultCourseImg}
+            alt={`Course: ${details.title ?? ''}`}
+            style={styles.image}
+            onError={(e) => { e.target.onerror = null; e.target.src = defaultCourseImg }}
+          />
           {details.description && (
             <p style={styles.description}>{details.description}</p>
           )}

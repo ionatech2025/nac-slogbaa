@@ -14,7 +14,7 @@ const styles = {
     position: 'fixed',
     bottom: 20,
     right: 20,
-    zIndex: 9998,
+    zIndex: 2500,
     display: 'flex',
     flexDirection: 'column',
     gap: '0.5rem',
@@ -67,7 +67,7 @@ export function ToastContainer() {
   if (toasts.length === 0) return null
 
   return (
-    <div style={styles.container} aria-live="polite">
+    <div style={styles.container} aria-live="polite" aria-atomic="true">
       {toasts.map((t) => {
         const ts = typeStyles[t.type] || typeStyles.info
         return (

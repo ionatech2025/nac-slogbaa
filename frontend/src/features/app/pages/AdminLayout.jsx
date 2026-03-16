@@ -21,7 +21,6 @@ const MODULES_SUPER_ADMIN = [
   { path: 'coursemanagement', label: 'Course Management', icon: icons.course },
   { path: 'library', label: 'Library', icon: icons.library },
   { path: 'assessment', label: 'Assessment', icon: icons.assessment },
-  { path: 'reports', label: 'Reports & Analytics', icon: icons.reports },
 ]
 
 const MODULES_ADMIN = [
@@ -29,7 +28,6 @@ const MODULES_ADMIN = [
   { path: 'learning', label: 'Learning', icon: icons.learning },
   { path: 'library', label: 'Library', icon: icons.library },
   { path: 'assessment', label: 'Assessment', icon: icons.assessment },
-  { path: 'reports', label: 'Reports & Analytics', icon: icons.reports },
 ]
 
 const baseStyles = {
@@ -80,7 +78,7 @@ export function AdminLayout() {
 
   const staff = overviewData?.data?.staff ?? []
   const trainees = overviewData?.data?.trainees ?? []
-  const overviewError = overviewQueryError?.message ?? overviewData?.error ?? null
+  const overviewError = overviewQueryError?.message ?? null
 
   // Ctrl+K / Cmd+K command palette + G-prefix keyboard shortcuts
   useEffect(() => {
@@ -103,7 +101,7 @@ export function AdminLayout() {
       if (gPressed) {
         gPressed = false
         clearTimeout(gTimer)
-        const routes = { o: '/admin/overview', l: '/admin/learning', b: '/admin/library', a: '/admin/assessment', c: '/admin/coursemanagement', r: '/admin/reports' }
+        const routes = { o: '/admin/overview', l: '/admin/learning', b: '/admin/library', a: '/admin/assessment', c: '/admin/coursemanagement' }
         if (routes[e.key]) { e.preventDefault(); navigate(routes[e.key]) }
       }
     }
@@ -289,7 +287,6 @@ export function AdminLayout() {
             { label: 'Go to Library', group: 'Navigation', onSelect: () => navigate('/admin/library') },
             { label: 'Go to Assessment', group: 'Navigation', onSelect: () => navigate('/admin/assessment') },
             { label: 'Go to Course Management', group: 'Navigation', onSelect: () => navigate('/admin/coursemanagement') },
-            { label: 'Go to Reports', group: 'Navigation', onSelect: () => navigate('/admin/reports') },
             ...(isSuperAdmin ? [
               { label: 'Create Staff', group: 'Actions', onSelect: () => setModal('createStaff') },
               { label: 'Update Courses', group: 'Actions', onSelect: () => setModal('updateCourses') },

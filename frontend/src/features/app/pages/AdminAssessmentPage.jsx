@@ -6,6 +6,7 @@ import { ConfirmModal } from '../../../shared/components/ConfirmModal.jsx'
 import { Tabs } from '../../../shared/components/Tabs.jsx'
 import { Badge } from '../../../shared/components/Badge.jsx'
 import { useToast } from '../../../shared/hooks/useToast.js'
+import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle.js'
 
 const TAB_QUIZZES = 'quizzes'
 const TAB_CERTIFICATES = 'certificates'
@@ -147,6 +148,7 @@ const styles = {
 }
 
 export function AdminAssessmentPage() {
+  useDocumentTitle('Assessment')
   const { isSuperAdmin } = useOutletContext()
   const [activeTab, setActiveTab] = useState(TAB_QUIZZES)
   const [revokeModal, setRevokeModal] = useState(null)

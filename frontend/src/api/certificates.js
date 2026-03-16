@@ -22,7 +22,7 @@ export async function getMyCertificates(token) {
  */
 export async function downloadCertificate(token, certificateId) {
   assertToken(token)
-  const res = await apiClient(token).get(`/api/certificates/${certificateId}/download`, { responseType: 'blob' })
+  const res = await apiClient(token).get(`/api/certificates/${certificateId}/download`, { timeout: 60_000 })
   if (!res.ok) throw new Error('Failed to download certificate.')
   return res.blob()
 }

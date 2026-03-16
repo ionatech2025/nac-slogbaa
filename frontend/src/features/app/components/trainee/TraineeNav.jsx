@@ -128,8 +128,6 @@ export function TraineeNav({ onOpenProfile }) {
     setOpen(false)
     if (action === 'profile') {
       onOpenProfile?.()
-    } else if (action === 'grades') {
-      alert('Coming soon.')
     } else if (action === 'sign-out') {
       logout()
     }
@@ -160,16 +158,6 @@ export function TraineeNav({ onOpenProfile }) {
             >
               <FontAwesomeIcon icon={icons.editProfile} style={styles.dropdownItemIcon} />
               Profile
-            </button>
-            <button
-              type="button"
-              style={{ ...styles.dropdownItem, opacity: 0.5, cursor: 'not-allowed' }}
-              disabled
-              role="menuitem"
-              title="Grades will be available soon"
-            >
-              <FontAwesomeIcon icon={icons.grades} style={styles.dropdownItemIcon} />
-              Grades (coming soon)
             </button>
             <button
               type="button"

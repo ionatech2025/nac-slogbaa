@@ -291,6 +291,9 @@ export function HomePage() {
               <span style={s.statLabel}>Certificates Issued</span>
             </div>
           </div>
+          <p style={{ margin: '1.5rem auto 0', fontSize: '0.6875rem', opacity: 0.5, maxWidth: 400 }}>
+            * Platform growth targets. Figures updated periodically.
+          </p>
         </div>
       </section>
 

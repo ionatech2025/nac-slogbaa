@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { LoginForm } from '../components/LoginForm.jsx'
 import { TestCredentialsSidebar } from '../components/TestCredentialsSidebar.jsx'
 import { Logo } from '../../../shared/components/Logo.jsx'
+import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle.js'
 
 const styles = {
   page: {
@@ -54,6 +55,7 @@ const styles = {
 }
 
 export function LoginPage() {
+  useDocumentTitle('Sign In')
   return (
     <div style={styles.page} className="login-page auth-bg">
       <TestCredentialsSidebar />
