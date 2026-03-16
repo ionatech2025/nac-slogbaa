@@ -27,7 +27,7 @@ const styles = {
   },
   row: {
     display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
     gap: '1rem',
   },
   field: {
@@ -45,12 +45,15 @@ const styles = {
     letterSpacing: '0.01em',
   },
   input: {
+    width: '100%',
+    minWidth: 0,
     padding: '0.625rem 0.875rem',
     border: '1px solid var(--slogbaa-border)',
     borderRadius: 10,
     fontSize: '0.9375rem',
     background: 'var(--slogbaa-bg)',
     transition: 'border-color 0.15s, box-shadow 0.15s',
+    boxSizing: 'border-box',
   },
   passwordWrap: {
     position: 'relative',
@@ -75,12 +78,15 @@ const styles = {
     cursor: 'pointer',
   },
   select: {
+    width: '100%',
+    minWidth: 0,
     padding: '0.625rem 0.875rem',
     border: '1px solid var(--slogbaa-border)',
     borderRadius: 10,
     fontSize: '0.9375rem',
     background: 'var(--slogbaa-bg)',
     cursor: 'pointer',
+    boxSizing: 'border-box',
   },
   submit: {
     display: 'inline-flex',

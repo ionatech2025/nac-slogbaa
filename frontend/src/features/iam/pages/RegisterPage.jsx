@@ -8,17 +8,15 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: '2rem',
-    background: 'var(--slogbaa-bg)',
+    padding: '1.5rem 1rem',
   },
   card: {
     width: '100%',
-    maxWidth: 480,
-    padding: '2.5rem 2rem',
-    background: 'var(--slogbaa-surface)',
-    borderRadius: 16,
-    border: '1px solid var(--slogbaa-border)',
-    boxShadow: '0 4px 24px rgba(0,0,0,0.06)',
+    maxWidth: 520,
+    padding: 'clamp(1.5rem, 4vw, 2.5rem) clamp(1.25rem, 3vw, 2rem)',
+    position: 'relative',
+    zIndex: 1,
+    overflow: 'hidden',
   },
   logoWrap: {
     marginBottom: '1.75rem',
@@ -50,8 +48,8 @@ const styles = {
 
 export function RegisterPage() {
   return (
-    <div style={styles.page}>
-      <div style={styles.card}>
+    <div style={styles.page} className="auth-bg">
+      <div style={styles.card} className="glass-card-elevated glass-enter">
         <div style={styles.logoWrap}>
           <Logo variant="full" size={44} color="blue" />
         </div>
