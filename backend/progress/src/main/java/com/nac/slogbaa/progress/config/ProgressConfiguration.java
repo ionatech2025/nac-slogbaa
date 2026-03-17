@@ -16,6 +16,7 @@ import com.nac.slogbaa.progress.application.port.in.GetCourseReviewsUseCase;
 import com.nac.slogbaa.progress.application.port.in.GetDiscussionThreadsUseCase;
 import com.nac.slogbaa.progress.application.port.in.GetEnrolledCoursesUseCase;
 import com.nac.slogbaa.progress.application.port.in.GetLeaderboardUseCase;
+import com.nac.slogbaa.progress.application.port.in.GetTraineeAchievementsUseCase;
 import com.nac.slogbaa.progress.application.port.in.GetResumePointUseCase;
 import com.nac.slogbaa.progress.application.port.in.GetStreakUseCase;
 import com.nac.slogbaa.progress.application.port.in.IssueCertificateUseCase;
@@ -42,6 +43,7 @@ import com.nac.slogbaa.progress.application.service.GetCourseReviewsService;
 import com.nac.slogbaa.progress.application.service.GetDiscussionThreadsService;
 import com.nac.slogbaa.progress.application.service.CheckAndAwardBadgesService;
 import com.nac.slogbaa.progress.application.service.GetLeaderboardService;
+import com.nac.slogbaa.progress.application.service.GetTraineeAchievementsService;
 import com.nac.slogbaa.progress.application.service.GetStreakService;
 import com.nac.slogbaa.progress.application.service.IssueCertificateService;
 import com.nac.slogbaa.progress.application.service.ListCertificatesService;
@@ -161,6 +163,13 @@ public class ProgressConfiguration {
     }
 
     @Bean
+    public GetTraineeAchievementsUseCase getTraineeAchievementsUseCase(
+            BadgePort badgePort,
+            XpPort xpPort) {
+        return new GetTraineeAchievementsService(badgePort, xpPort);
+    }
+
+    @Bean
     public SubmitCourseReviewUseCase submitCourseReviewUseCase(
             CourseReviewPort courseReviewPort,
             TraineeProgressRepositoryPort traineeProgressRepository,
@@ -202,5 +211,12 @@ public class ProgressConfiguration {
     @Bean
     public ResolveThreadUseCase resolveThreadUseCase(DiscussionPort discussionPort) {
         return new ResolveThreadService(discussionPort);
+    }
+
+    @Bean
+    public GetTraineeAchievementsUseCase getTraineeAchievementsUseCase(
+            BadgePort badgePort,
+            XpPort xpPort) {
+        return new GetTraineeAchievementsService(badgePort, xpPort);
     }
 }
