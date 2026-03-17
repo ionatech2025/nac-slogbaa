@@ -24,14 +24,22 @@ Pull Request / Push to main
   │   ├── SBOM ────── Syft (supply chain transparency)
   │   └── sec-pass ── gate (TruffleHog failure = hard block)
   │
-  ├── codeql.yml ──── SAST (GitHub native)
-  │   ├── JavaScript/TypeScript analysis
-  │   └── Java/Kotlin analysis
+  ├── codeql.yml ──── SAST (GitHub native, hardened)
+  │   ├── JavaScript/TypeScript analysis (build-mode: none)
+  │   ├── Java/Kotlin analysis (build-mode: manual)
+  │   ├── Fork PR detection (skips SARIF upload on forks)
+  │   └── SARIF artifact fallback when code scanning not enabled
   │
-  ├── deploy.yml ──── Docker build + push + deploy
-  │   ├── Build Docker images (backend + frontend)
-  │   ├── Push to ghcr.io
-  │   └── Deploy to staging/production
+  ├── deploy.yml ──── Backend: Docker build + push + Render deploy
+  │   ├── Build Docker images → ghcr.io
+  │   ├── Deploy backend to Render (push to main/dev)
+  │   └── PR build check (no deploy)
+  │
+  ├── vercel.yml ──── Frontend: Vercel deployment
+  │   ├── Build & validate (bun, bundle size check)
+  │   ├── Preview deploy (PRs + dev branch, comment URL on PR)
+  │   ├── Production deploy (main branch only)
+  │   └── Post-deploy health check (HTTP 200 + SPA routing)
   │
   └── dast.yml ────── Post-deploy scanning
       ├── OWASP ZAP baseline (frontend)
@@ -61,6 +69,31 @@ Weekly scheduled:
 | **DAST** | OWASP ZAP baseline | Runtime XSS, CSRF, headers, cookies | After staging deploy |
 | **DAST** | OWASP ZAP API | API endpoint security (auth, injection) | After staging deploy |
 | **Dependencies** | Dependabot | Automated version update PRs | Weekly (grouped) |
+| **Pre-commit** | `.githooks/pre-commit` | Leaked secrets in staged files (11 patterns + 10 file types) | Every local commit |
+
+### Pre-commit Hook (Local)
+
+The `.githooks/pre-commit` hook provides local defense before code reaches CI:
+
+- **Forbidden files:** `.env`, `.env.local`, `.pem`, `.key`, `.p12`, `.jks`, `credentials.json`
+- **Secret patterns:** `npg_*` (Neon), `AKIA*` (AWS), `eyJ*` (JWT), `sk-*`/`sk_live_*` (API keys), `gh[pousr]_*` (GitHub), connection strings with passwords, private keys
+- **Install:** `git config core.hooksPath .githooks` (auto-configured)
+- **Bypass:** `git commit --no-verify` (emergencies only, NOT recommended)
+
+### CodeQL Workflow Hardening
+
+- `build-mode: none` for JS/TS, `build-mode: manual` for Java/Kotlin
+- Fork PR detection — SARIF upload skipped (no `security-events: write` on forks)
+- `continue-on-error: true` — graceful degradation when code scanning not enabled
+- SARIF artifact fallback — results saved as build artifacts for manual review
+- Diagnostic step with setup instructions when upload fails
+
+### Security Workflow Hardening
+
+- `preflight` job checks SARIF upload eligibility (fork detection)
+- All 5 SARIF upload steps gated on `needs.preflight.outputs.can-upload-sarif`
+- Each upload has artifact fallback on failure
+- Security gate includes diagnostic guidance
 
 ---
 
@@ -103,16 +136,60 @@ Weekly scheduled:
 
 ### 4. Deploy (`deploy.yml`)
 
-**Triggers**: Push to `main` (auto), `workflow_dispatch` (manual with env choice).
+**Triggers**: Push to `dev`/`main` (auto), PRs to `dev`/`main` (build check only), `workflow_dispatch` (manual with env choice).
 
-| Step | Tool | Cache |
-|------|------|-------|
+| Trigger | Action |
+|---------|--------|
+| Push to `dev` | Build images → push to GHCR → deploy backend to Render (staging) |
+| Push to `main` | Build images → push to GHCR → deploy backend to Render (production) |
+| PR to `dev`/`main` | Build Docker images only (validates build, no push/deploy) |
+| Manual dispatch | Choose staging or production environment |
+
+| Step | Tool | Details |
+|------|------|---------|
 | Docker build (backend) | `docker/build-push-action@v6` | GHA layer cache |
 | Docker build (frontend) | `docker/build-push-action@v6` | GHA layer cache |
-| Push | `ghcr.io` | — |
-| Deploy | Environment-gated | Required reviewers for production |
+| Push images | `ghcr.io` | Skipped on PRs |
+| Deploy backend | Render API | `POST /v1/services/{id}/deploys` |
+| Health check | curl | `GET /actuator/health/readiness` |
 
-### 5. DAST (`dast.yml`)
+#### Render Deployment Flow
+
+```
+Push to dev/main
+  → build-images job
+    → Build + push Docker images to ghcr.io
+  → deploy-backend job (only on push, not PRs)
+    → Trigger deploy via Render API
+    → Poll status every 15s (up to 15 min timeout)
+    → Health check: GET /actuator/health/readiness (6 attempts)
+    → Fail workflow if deploy or health check fails
+  → pr-check job (only on PRs)
+    → Verify Docker build succeeds without deploying
+```
+
+### 5. Frontend Deploy (`vercel.yml`)
+
+**Triggers**: Push to `main`/`dev` (frontend changes), PRs (frontend changes), `workflow_dispatch`.
+
+| Environment | Trigger | Vercel Mode | URL |
+|-------------|---------|-------------|-----|
+| **Preview** | PRs, dev push, manual | `vercel deploy --prebuilt` | Unique per commit |
+| **Production** | main push, manual | `vercel deploy --prebuilt --prod` | Production domain |
+
+| Step | Details |
+|------|---------|
+| Build & Validate | Bun install, `bun run build`, bundle size check (warn > 120 KB) |
+| Deploy Preview | Vercel CLI deploy, PR comment with preview URL (updates existing comment) |
+| Deploy Production | Vercel CLI deploy with `--prod` flag |
+| Health Check | HTTP 200 on root + SPA routing verification (`/auth/login`) |
+
+**Required GitHub Secrets:**
+- `VERCEL_TOKEN` — Account token from Vercel Settings > Tokens
+- `VERCEL_ORG_ID` — From `.vercel/project.json` after `vercel link`
+- `VERCEL_PROJECT_ID` — From `.vercel/project.json` after `vercel link`
+
+### 6. DAST (`dast.yml`)
 
 **Triggers**: After Deploy workflow completes, or manual `workflow_dispatch`.
 
@@ -130,9 +207,13 @@ Weekly scheduled:
 | `.github/workflows/ci.yml` | Build + test pipeline |
 | `.github/workflows/security.yml` | SAST + SCA + secrets + container + SBOM |
 | `.github/workflows/codeql.yml` | GitHub CodeQL SAST |
-| `.github/workflows/deploy.yml` | Docker build + deploy |
+| `.github/workflows/deploy.yml` | Backend: Docker build + Render deploy |
+| `.github/workflows/vercel.yml` | Frontend: Vercel deploy (preview + production) |
+| `render.yaml` | Render infrastructure blueprint |
+| `frontend/vercel.json` | Vercel build config, SPA rewrites, API base URL |
 | `.github/workflows/dast.yml` | OWASP ZAP post-deploy |
 | `.github/dependabot.yml` | Automated dependency updates |
+| `.githooks/pre-commit` | Local secret leak prevention hook |
 | `.github/owasp-suppressions.xml` | Known false positive suppressions |
 | `.github/zap-rules.tsv` | ZAP alert suppressions |
 | `docs/THREAT-MODEL.md` | STRIDE threat analysis + risk register |
@@ -144,8 +225,10 @@ Weekly scheduled:
 | Secret | Used By | Purpose |
 |--------|---------|---------|
 | `GITHUB_TOKEN` | All workflows | Auto-provided by GitHub |
+| `RENDER_API_KEY` | deploy.yml | Render API key for triggering deploys |
 | `GITGUARDIAN_API_KEY` | security.yml (ggshield) | GitGuardian API (optional) |
 | `NVD_API_KEY` | security.yml (OWASP DC) | NVD database API key (optional, faster scans) |
+| `VITE_SENTRY_DSN` | vercel.yml | Sentry DSN for frontend error tracking (optional) |
 
 ### Repository Variables
 

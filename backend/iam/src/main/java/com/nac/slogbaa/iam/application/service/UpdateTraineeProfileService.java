@@ -52,7 +52,8 @@ public final class UpdateTraineeProfileService implements UpdateTraineeProfileUs
                 profile,
                 existing.isActive(),
                 existing.getRegistrationDate(),
-                existing.isEmailVerified()
+                existing.isEmailVerified(),
+                existing.getProfileImageUrl()
         );
         traineeRepository.save(updated);
     }

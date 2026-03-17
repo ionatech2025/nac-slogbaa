@@ -10,7 +10,8 @@ import org.springframework.core.io.ByteArrayResource;
 import org.springframework.stereotype.Service;
 
 /**
- * Service for sending emails. Used when trainees register or staff are created by a super admin.
+ * SMTP-based email service (default). When {@code app.email.provider=resend},
+ * {@link ResendEmailService} is activated as {@code @Primary} and takes precedence.
  */
 @Service
 @Slf4j
@@ -21,14 +22,15 @@ public class EmailService {
     @Value("${spring.mail.username:}")
     private String from;
 
-    public EmailService(JavaMailSender mailSender) {
-        this.mailSender = mailSender;
+    public EmailService(org.springframework.beans.factory.ObjectProvider<JavaMailSender> mailSenderProvider) {
+        this.mailSender = mailSenderProvider.getIfAvailable();
     }
 
     /**
      * Send an HTML email.
      */
     public void sendHtmlEmail(String to, String subject, String htmlContent) {
+        requireMailSender();
         String sender = resolveSender();
         try {
             MimeMessage message = mailSender.createMimeMessage();
@@ -49,6 +51,7 @@ public class EmailService {
      * Send a simple plain-text email. Used when a trainee registers or a new staff is created by a super admin.
      */
     public void sendSimpleEmail(String to, String subject, String body) {
+        requireMailSender();
         String sender = resolveSender();
         try {
             MimeMessage message = mailSender.createMimeMessage();
@@ -69,6 +72,7 @@ public class EmailService {
      * Send an email with an attachment.
      */
     public void sendEmailWithAttachment(String to, String subject, String body, byte[] attachment, String fileName) {
+        requireMailSender();
         String sender = resolveSender();
         try {
             MimeMessage message = mailSender.createMimeMessage();
@@ -83,6 +87,12 @@ public class EmailService {
         } catch (MessagingException e) {
             log.error("Failed to send email with attachment to {} with subject '{}': {}", to, subject, e.getMessage());
             throw new EmailSendException("Failed to send email with attachment", e);
+        }
+    }
+
+    private void requireMailSender() {
+        if (mailSender == null) {
+            throw new EmailSendException("SMTP mail sender is not configured. Set spring.mail.host or use Resend (app.email.provider=resend).", null);
         }
     }
 

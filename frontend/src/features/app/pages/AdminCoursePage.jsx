@@ -1,10 +1,12 @@
-import { useState } from 'react'
+import { useState, memo } from 'react'
 import { useParams, Link, useOutletContext } from 'react-router-dom'
 import { FontAwesomeIcon, icons } from '../../../shared/icons.jsx'
 import { useAdminCourseDetail, useAddModule, usePublishCourse } from '../../../lib/hooks/use-admin.js'
 import { getAssetUrl } from '../../../api/client.js'
 import { AddModuleModal } from '../components/admin/AddModuleModal.jsx'
 import { Badge } from '../../../shared/components/Badge.jsx'
+import { Breadcrumbs } from '../../../shared/components/Breadcrumbs.jsx'
+import { CardGridSkeleton } from '../../../shared/components/ContentSkeletons.jsx'
 import { useToast } from '../../../shared/hooks/useToast.js'
 
 const styles = {
@@ -151,7 +153,7 @@ const styles = {
   },
 }
 
-function ModuleCard({ module, courseId, onMouseEnter, onMouseLeave, hover }) {
+const ModuleCard = memo(function ModuleCard({ module, courseId, onMouseEnter, onMouseLeave, hover }) {
   const blockCount = module.contentBlocks?.length ?? 0
   return (
     <Link
@@ -180,7 +182,7 @@ function ModuleCard({ module, courseId, onMouseEnter, onMouseLeave, hover }) {
       {module.hasQuiz && <Badge variant="success" style={{ marginTop: '0.5rem' }}>Has quiz</Badge>}
     </Link>
   )
-}
+})
 
 export function AdminCoursePage() {
   const { courseId } = useParams()
@@ -213,14 +215,16 @@ export function AdminCoursePage() {
     }
   }
 
-  if (loading) return <p style={styles.loading}>Loading course…</p>
+  if (loading) return <div style={styles.page}><CardGridSkeleton count={4} /></div>
   if (error || !course) return <p style={styles.error}>{error || 'Course not found.'}</p>
 
   return (
     <div style={styles.page}>
-      <Link to="/admin/learning" style={styles.backLink}>
-        ← Back to Learning
-      </Link>
+      <Breadcrumbs items={[
+        { label: 'Admin', to: '/admin' },
+        { label: 'Learning', to: '/admin/learning' },
+        { label: course.title || '...' },
+      ]} />
 
       <header style={styles.header}>
         {course.imageUrl ? (

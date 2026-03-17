@@ -23,12 +23,16 @@ public class EntityToDomainMapper {
         List<Module> modules = moduleEntities.stream()
                 .map(m -> toModule(m, blocksByModule.apply(m)))
                 .toList();
+        String categoryName = course.getCategory() != null ? course.getCategory().getName() : null;
+        String categorySlug = course.getCategory() != null ? course.getCategory().getSlug() : null;
         return new CourseWithModules(
                 new CourseId(course.getId()),
                 course.getTitle(),
                 course.getDescription(),
                 course.getImageUrl(),
                 course.isPublished(),
+                categoryName,
+                categorySlug,
                 modules
         );
     }
@@ -44,6 +48,7 @@ public class EntityToDomainMapper {
                 entity.getImageUrl(),
                 new ModuleOrder(entity.getModuleOrder()),
                 entity.isHasQuiz(),
+                entity.getEstimatedMinutes(),
                 blocks
         );
     }

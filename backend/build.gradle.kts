@@ -19,6 +19,11 @@ subprojects {
         toolchain { languageVersion = JavaLanguageVersion.of(21) }
     }
 
+    // Spring Framework 7 / Boot 4 requires -parameters for @PathVariable, @RequestParam, etc.
+    tasks.withType<JavaCompile> {
+        options.compilerArgs.add("-parameters")
+    }
+
     repositories { mavenCentral() }
 
     the<io.spring.gradle.dependencymanagement.dsl.DependencyManagementExtension>().apply {

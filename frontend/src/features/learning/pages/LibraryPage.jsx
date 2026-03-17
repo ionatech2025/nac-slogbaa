@@ -1,5 +1,7 @@
 import { FontAwesomeIcon, icons } from '../../../shared/icons.jsx'
 import { usePublishedLibrary } from '../../../lib/hooks/use-library.js'
+import { LibraryListSkeleton } from '../../../shared/components/ContentSkeletons.jsx'
+import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle.js'
 
 const RESOURCE_TYPE_LABELS = {
   DOCUMENT: 'Document',
@@ -98,6 +100,7 @@ const styles = {
 }
 
 export function LibraryPage() {
+  useDocumentTitle('Library')
   const { data: resources = [], isLoading, error } = usePublishedLibrary()
 
   return (
@@ -111,7 +114,7 @@ export function LibraryPage() {
         </header>
 
         {error && <p style={styles.error}>{error.message || 'Failed to load library.'}</p>}
-        {isLoading && <p style={styles.loading}>Loading…</p>}
+        {isLoading && <LibraryListSkeleton count={4} />}
         {!isLoading && !error && resources.length === 0 && (
           <p style={styles.empty}>No library resources published yet.</p>
         )}

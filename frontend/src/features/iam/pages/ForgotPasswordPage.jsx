@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { FontAwesomeIcon, icons } from '../../../shared/icons.jsx'
 import { requestPasswordReset } from '../../../api/iam/auth.js'
 import { LoadingButton } from '../../../shared/components/LoadingButton.jsx'
+import { forgotPasswordSchema } from '../validation/schemas.js'
 import { Logo } from '../../../shared/components/Logo.jsx'
 
 const styles = {
@@ -115,8 +116,9 @@ export function ForgotPasswordPage() {
     e.preventDefault()
     setError(null)
     setSuccess(null)
-    if (!email.trim()) {
-      setError('Please enter your email address.')
+    const parsed = forgotPasswordSchema.safeParse({ email })
+    if (!parsed.success) {
+      setError(parsed.error.issues[0].message)
       return
     }
     setLoading(true)

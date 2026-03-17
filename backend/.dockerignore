@@ -1,5 +1,18 @@
+# Build outputs
+build/
+**/build/
 target/
 **/target/
+*.jar
+
+# Gradle
+.gradle/
+
+# Environment / secrets
+*.env
+.env*
+
+# VCS / IDE
 .git
 .gitignore
 *.md

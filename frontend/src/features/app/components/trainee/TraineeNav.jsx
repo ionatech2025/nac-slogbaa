@@ -1,8 +1,10 @@
 import { useState, useRef, useEffect } from 'react'
-import { FontAwesomeIcon, icons } from '../../../../shared/icons.jsx'
+import { useNavigate } from 'react-router-dom'
+import { FontAwesomeIcon, Icon, icons } from '../../../../shared/icons.jsx'
 import { useAuth } from '../../../iam/hooks/useAuth.js'
 import { Avatar } from '../../../../shared/components/Avatar.jsx'
 import { Logo } from '../../../../shared/components/Logo.jsx'
+import { NotificationBell } from '../NotificationBell.jsx'
 
 const styles = {
   nav: {
@@ -87,6 +89,31 @@ const styles = {
     marginTop: '0.25rem',
     paddingTop: '0.5rem',
   },
+  searchButton: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem',
+    padding: '0.5rem 0.75rem',
+    minHeight: 44,
+    minWidth: 44,
+    background: 'transparent',
+    border: '1px solid rgba(255,255,255,0.2)',
+    borderRadius: 10,
+    color: '#fff',
+    cursor: 'pointer',
+    fontSize: '0.8125rem',
+    transition: 'background 0.15s, border-color 0.15s',
+  },
+  searchKbd: {
+    fontSize: '0.625rem',
+    fontWeight: 600,
+    padding: '0.1rem 0.35rem',
+    borderRadius: 3,
+    border: '1px solid rgba(255,255,255,0.25)',
+    color: 'rgba(255,255,255,0.7)',
+    fontFamily: 'ui-monospace, monospace',
+    lineHeight: 1.4,
+  },
 }
 
 function getInitials(user) {
@@ -99,8 +126,9 @@ function getInitials(user) {
   return '?'
 }
 
-export function TraineeNav({ onOpenProfile }) {
+export function TraineeNav({ onOpenProfile, onOpenSearch }) {
   const { user, logout } = useAuth()
+  const navigate = useNavigate()
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
 
@@ -128,8 +156,10 @@ export function TraineeNav({ onOpenProfile }) {
     setOpen(false)
     if (action === 'profile') {
       onOpenProfile?.()
-    } else if (action === 'grades') {
-      alert('Coming soon.')
+    } else if (action === 'settings') {
+      navigate('/dashboard/settings')
+    } else if (action === 'help') {
+      navigate('/dashboard/help')
     } else if (action === 'sign-out') {
       logout()
     }
@@ -138,50 +168,80 @@ export function TraineeNav({ onOpenProfile }) {
   return (
     <nav style={styles.nav}>
       <Logo variant="full" size={30} color="white" subtitle="Learning" />
-      <div ref={ref} style={{ position: 'relative' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
         <button
           type="button"
-          style={styles.userTrigger}
-          onClick={() => setOpen((o) => !o)}
-          aria-expanded={open}
-          aria-haspopup="true"
+          style={styles.searchButton}
+          onClick={onOpenSearch}
+          aria-label="Search (Ctrl+K)"
+          title="Search (Ctrl+K)"
         >
-          <Avatar name={displayName} size="sm" />
-          <span>{displayName}</span>
-          <span style={{ marginLeft: 4 }}>{open ? '\u25B2' : '\u25BC'}</span>
+          <Icon icon={icons.search} size={18} />
+          <kbd style={styles.searchKbd}>{navigator?.platform?.includes('Mac') ? '\u2318K' : 'Ctrl K'}</kbd>
         </button>
-        {open && (
-          <div style={styles.dropdown} role="menu">
-            <button
-              type="button"
-              style={styles.dropdownItem}
-              onClick={() => handleAction('profile')}
-              role="menuitem"
-            >
-              <FontAwesomeIcon icon={icons.editProfile} style={styles.dropdownItemIcon} />
-              Profile
-            </button>
-            <button
-              type="button"
-              style={{ ...styles.dropdownItem, opacity: 0.5, cursor: 'not-allowed' }}
-              disabled
-              role="menuitem"
-              title="Grades will be available soon"
-            >
-              <FontAwesomeIcon icon={icons.grades} style={styles.dropdownItemIcon} />
-              Grades (coming soon)
-            </button>
-            <button
-              type="button"
-              style={{ ...styles.dropdownItem, ...styles.dropdownItemDanger }}
-              onClick={() => handleAction('sign-out')}
-              role="menuitem"
-            >
-              <FontAwesomeIcon icon={icons.signOut} style={styles.dropdownItemIcon} />
-              Sign out
-            </button>
-          </div>
-        )}
+        <button
+          type="button"
+          style={styles.searchButton}
+          onClick={() => navigate('/dashboard/bookmarks')}
+          aria-label="My Bookmarks"
+          title="My Bookmarks"
+        >
+          <Icon icon={icons.bookmark} size={18} />
+        </button>
+        <NotificationBell />
+        <div ref={ref} style={{ position: 'relative' }}>
+          <button
+            type="button"
+            style={styles.userTrigger}
+            onClick={() => setOpen((o) => !o)}
+            aria-expanded={open}
+            aria-haspopup="true"
+          >
+            <Avatar name={displayName} size="sm" />
+            <span>{displayName}</span>
+            <span style={{ marginLeft: 4 }}>{open ? '\u25B2' : '\u25BC'}</span>
+          </button>
+          {open && (
+            <div style={styles.dropdown} role="menu">
+              <button
+                type="button"
+                style={styles.dropdownItem}
+                onClick={() => handleAction('profile')}
+                role="menuitem"
+              >
+                <FontAwesomeIcon icon={icons.editProfile} style={styles.dropdownItemIcon} />
+                Profile
+              </button>
+              <button
+                type="button"
+                style={styles.dropdownItem}
+                onClick={() => handleAction('settings')}
+                role="menuitem"
+              >
+                <FontAwesomeIcon icon={icons.settings} style={styles.dropdownItemIcon} />
+                Settings
+              </button>
+              <button
+                type="button"
+                style={styles.dropdownItem}
+                onClick={() => handleAction('help')}
+                role="menuitem"
+              >
+                <FontAwesomeIcon icon={icons.helpCircle} style={styles.dropdownItemIcon} />
+                Help
+              </button>
+              <button
+                type="button"
+                style={{ ...styles.dropdownItem, ...styles.dropdownItemDanger }}
+                onClick={() => handleAction('sign-out')}
+                role="menuitem"
+              >
+                <FontAwesomeIcon icon={icons.signOut} style={styles.dropdownItemIcon} />
+                Sign out
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </nav>
   )

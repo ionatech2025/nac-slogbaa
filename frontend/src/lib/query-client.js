@@ -11,10 +11,22 @@ export class AuthError extends Error {
 /**
  * Global logout handler — set by AuthProvider so the query client can
  * trigger logout on 401 without importing React context.
+ * Guard prevents re-entrant calls (multiple 401s racing to call logout).
  */
 let globalLogout = null
+let logoutInProgress = false
 export function setGlobalLogout(fn) {
   globalLogout = fn
+  if (!fn) logoutInProgress = false
+}
+
+function safeGlobalLogout() {
+  if (logoutInProgress || !globalLogout) return
+  logoutInProgress = true
+  try { globalLogout() } finally {
+    // Reset after a tick so future 401s (new session) can still trigger logout
+    queueMicrotask(() => { logoutInProgress = false })
+  }
 }
 
 export const queryClient = new QueryClient({
@@ -31,9 +43,7 @@ export const queryClient = new QueryClient({
     mutations: {
       retry: false,
       onError: (error) => {
-        if (error instanceof AuthError && globalLogout) {
-          globalLogout()
-        }
+        if (error instanceof AuthError) safeGlobalLogout()
       },
     },
   },
@@ -41,7 +51,5 @@ export const queryClient = new QueryClient({
 
 // Global query error handler — triggers logout on AuthError
 queryClient.getQueryCache().config.onError = (error) => {
-  if (error instanceof AuthError && globalLogout) {
-    globalLogout()
-  }
+  if (error instanceof AuthError) safeGlobalLogout()
 }

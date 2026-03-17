@@ -1,7 +1,9 @@
-import { Link } from 'react-router-dom'
+import { Link, Navigate } from 'react-router-dom'
 import { LoginForm } from '../components/LoginForm.jsx'
 import { TestCredentialsSidebar } from '../components/TestCredentialsSidebar.jsx'
 import { Logo } from '../../../shared/components/Logo.jsx'
+import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle.js'
+import { useAuth } from '../hooks/useAuth.js'
 
 const styles = {
   page: {
@@ -54,6 +56,16 @@ const styles = {
 }
 
 export function LoginPage() {
+  useDocumentTitle('Sign In')
+  const { isAuthenticated, user } = useAuth()
+
+  // Redirect already-authenticated users to their dashboard
+  if (isAuthenticated && user) {
+    const role = String(user.role ?? '').toUpperCase()
+    const target = role === 'SUPER_ADMIN' || role === 'ADMIN' ? '/admin' : '/dashboard'
+    return <Navigate to={target} replace />
+  }
+
   return (
     <div style={styles.page} className="login-page auth-bg">
       <TestCredentialsSidebar />

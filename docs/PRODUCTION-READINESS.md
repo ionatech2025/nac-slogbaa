@@ -1,10 +1,22 @@
 # SLOGBAA — Production Readiness
 
-Updated March 2026 after full backend security hardening, Gradle migration, and test expansion.
+Updated March 2026. Latest: email verification, course ratings/reviews, streaks/XP/badges,
+bookmarks/notes, Q&A discussions, video player, course categories, leaderboard, cookie consent,
+Sentry integration, PWA install prompt, Zod validation, skeleton loaders, CSP headers.
 
 ---
 
 ## Current State
+
+### Database — Neon Serverless PostgreSQL
+
+**Host:** Neon (Singapore, `aws-ap-southeast-1`)
+**Project:** AgriTradeHub (`wispy-term-57694063`) | **Database:** `slogbaa` | **Branch:** `main`
+**Engine:** PostgreSQL 17.8 (Neon serverless) | **SSL:** Required (`sslmode=require`)
+**Migrations:** 22 Flyway scripts, auto-applied on startup.
+
+Connection configured via environment variables (`DATASOURCE_URL`, `DATASOURCE_USERNAME`, `DATASOURCE_PASSWORD`).
+Dev profile falls back to `localhost:5432` if env vars are not set.
 
 ### Backend — Production Ready
 
@@ -33,11 +45,11 @@ Updated March 2026 after full backend security hardening, Gradle migration, and 
 
 ### Frontend — Production Ready
 
-**Implemented:** Full LMS with IAM, Learning, Assessment, Progress, Admin panels, Trainee dashboard, public homepage.
+**Implemented:** Full LMS with IAM (email verification), Learning (categories, time estimates, search/filter/sort), Assessment (answer review, server-side enforcement), Progress (streaks, XP/badges, leaderboard), Engagement (ratings/reviews, bookmarks/notes, Q&A discussions, video player), Admin panels, Trainee dashboard, public homepage.
 
-**Architecture:** TanStack Query v5 (50+ hooks), Zustand v5 (persisted UI store), Lucide icons, DOMPurify, React.lazy code splitting.
+**Architecture:** TanStack Query v5 (60+ hooks), Zustand v5 (persisted UI store), Lucide icons, DOMPurify, Zod, @sentry/react, React.lazy code splitting.
 
-**Design System:** 25+ shared primitives, WCAG 2.2 AA, dark mode, focus traps, keyboard navigation.
+**Design System:** 30+ shared primitives, WCAG 2.2 AA, dark mode, focus traps, keyboard navigation, skeleton loaders, CSP headers, GDPR cookie consent, PWA install prompt, skip-to-content link, idle session timeout.
 
 ---
 
@@ -138,7 +150,38 @@ app  ──→ ALL modules (entry point, boots everything)
 | Docker (frontend) | Done — nginx, SPA routing, API proxy |
 | Docker Compose | Done — 3 services, health checks, env var enforcement |
 | Duplicate migrations | Done — Removed, single canonical directory |
-| .env.example | Done — Template with placeholder secrets |
+| .env.example | Done — Template with all env vars, placeholder secrets |
+| Neon DB integration | Done — Serverless PostgreSQL, Singapore region, SSL required |
+| Pre-commit secret scanning | Done — `.githooks/pre-commit`, 11 secret patterns, 10 forbidden file types |
+| CodeQL workflow hardening | Done — Fork-PR safety, SARIF fallback artifacts, diagnostic steps |
+| Security workflow hardening | Done — Preflight job, fork-safe SARIF uploads, graceful degradation |
+| Render backend deployment | Done — Docker on Render (Singapore), Render API deploy via GitHub Actions |
+| Vercel frontend deployment | Done — Auto-deploy on push, `VITE_API_BASE_URL` in `vercel.json` |
+| CORS production config | Done — Vercel frontend origin allowed, HTTPS-only enforcement |
+| Gmail SMTP integration | Done — Email notifications via Gmail app password |
+| CI/CD Render pipeline | Done — `deploy.yml` triggers Render API, polls status, health checks |
+| `render.yaml` blueprint | Done — Infrastructure-as-code for reproducible Render setup |
+| Email verification | Done — V14 migration, full hexagonal stack, verify/resend endpoints |
+| Quiz server-side enforcement | Done — maxAttempts + timeLimitMinutes enforced on backend |
+| Course ratings/reviews | Done — V15, 5-star + text reviews, Udemy-style |
+| Streak counter + daily goals | Done — V16, Duolingo-style flame + SVG progress ring |
+| Module time estimates | Done — V17, "~X min" badges, LinkedIn Learning-style |
+| Course categories | Done — V19, 5 seeded categories, filter chips |
+| XP/badges/achievements | Done — V20, 8 badge definitions, Khan Academy-style |
+| Bookmarks/notes | Done — V21, toggle + note popover on content blocks |
+| Course Q&A discussions | Done — V22, threaded discussions with replies + resolve |
+| Video player | Done — YouTube IFrame API, speed control (0.5x-2x), captions toggle |
+| Skeleton loaders | Done — Dashboard, CourseDetail, Library pages |
+| Course search/filter/sort | Done — FilterSortBar component |
+| CSP headers | Done — Content-Security-Policy meta tag |
+| GDPR cookie consent | Done — Banner with localStorage persistence |
+| Sentry integration | Done — @sentry/react, gated on cookie consent |
+| PWA install prompt | Done — beforeinstallprompt banner |
+| Zod schema validation | Done — All 4 auth forms validated with Zod |
+| Quiz answer review | Done — Per-question correct/incorrect after submission |
+| Trainee leaderboard | Done — Top completions, privacy-safe "First L." names |
+| Skip-to-content link | Done — WCAG 2.2 AA keyboard navigation |
+| Idle session timeout | Done — 30-minute inactivity auto-logout |
 
 ### Tests (completed)
 
@@ -153,53 +196,153 @@ app  ──→ ALL modules (entry point, boots everything)
 
 ---
 
+## Deployment Architecture
+
+### Production URLs
+
+| Service | Platform | URL |
+|---------|----------|-----|
+| Backend API | Render (Singapore, free plan) | `https://slogbaa-backend.onrender.com` |
+| Frontend | Vercel | `https://frontend-seven-red-wsusnzc0va.vercel.app` |
+| Database | Neon (Singapore) | Serverless PostgreSQL (`sslmode=require`) |
+
+### Deployment Flow
+
+```
+Push to dev/main
+  → GitHub Actions CI (ci.yml): build + test
+  → GitHub Actions Deploy (deploy.yml):
+      Backend: Docker build → GHCR → Render API deploy → health check
+  → Vercel: auto-deploys frontend on push
+```
+
+### Render Backend Service
+
+| Property | Value |
+|----------|-------|
+| Service ID | `srv-d6s383ma2pns73811a20` |
+| Runtime | Docker (multi-stage, `backend/Dockerfile`) |
+| Region | Singapore (matches Neon DB) |
+| Health check | `/actuator/health/readiness` |
+| Auto-deploy | Off (triggered by GitHub Actions via Render API) |
+| Blueprint | `render.yaml` (infrastructure-as-code) |
+
+### Vercel Frontend
+
+| Property | Value |
+|----------|-------|
+| Framework | Vite |
+| Build command | `bun run build` |
+| Output | `dist/` |
+| API base URL | Set via `vercel.json` → `VITE_API_BASE_URL=https://slogbaa-backend.onrender.com` |
+| SPA routing | Rewrites all non-API paths to `/index.html` |
+
+### CORS Configuration
+
+Backend CORS (`app.cors.allowed-origins`) in production:
+- `https://frontend-seven-red-wsusnzc0va.vercel.app` (Vercel frontend)
+- `https://slogbaa-backend.onrender.com` (self, for health checks)
+
+CORS enforces HTTPS-only origins in the `prod` profile. Credentials are allowed for JWT Bearer auth.
+
 ## Deployment Checklist
 
-### Environment Variables (Required)
+### Render Environment Variables (Production)
 
 ```bash
-# Backend
+# Profile
 SPRING_PROFILES_ACTIVE=prod
+PORT=8080
+
+# Database (Neon Serverless PostgreSQL)
+DATASOURCE_URL=jdbc:postgresql://<neon-host>.ap-southeast-1.aws.neon.tech/slogbaa?sslmode=require
+DATASOURCE_USERNAME=<set-in-env>
+DATASOURCE_PASSWORD=<set-in-env>
+
+# Security
 JWT_SECRET=<generate: openssl rand -base64 48>
-DATASOURCE_URL=jdbc:postgresql://<host>:5432/slogbaa
-DATASOURCE_USERNAME=<db-user>
-DATASOURCE_PASSWORD=<db-password>
-CORS_ALLOWED_ORIGINS=https://your-domain.com
-PASSWORD_RESET_BASE_URL=https://your-domain.com
+CORS_ALLOWED_ORIGINS=https://frontend-seven-red-wsusnzc0va.vercel.app,https://slogbaa-backend.onrender.com
+PASSWORD_RESET_BASE_URL=https://frontend-seven-red-wsusnzc0va.vercel.app
 
-# Database (Docker Compose)
-POSTGRES_PASSWORD=<db-password>
-
-# Frontend
-VITE_API_BASE_URL=  # empty for same-origin (nginx proxy)
+# Mail (Gmail SMTP)
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USERNAME=<set-in-env>
+SMTP_PASSWORD=<set-in-env>
+SUPPORT_EMAIL=<set-in-env>
 ```
+
+### GitHub Secrets (Required for CI/CD)
+
+| Secret | Purpose | Set On |
+|--------|---------|--------|
+| `RENDER_API_KEY` | Render API key for backend deploys | 2026-03-16 |
+| `VERCEL_TOKEN` | Vercel API token for frontend deploys | 2026-03-16 |
+| `VERCEL_ORG_ID` | Vercel organization/team ID (`team_P28KoAOd4pWgJ9U1YKfh9R07`) | 2026-03-16 |
+| `VERCEL_PROJECT_ID` | Vercel project ID (`prj_6Bke5FBGJ33zWQO6YIroJh7LgZ7S`) | 2026-03-16 |
+| `GITHUB_TOKEN` | Auto-provided by GitHub | auto |
+
+### Vercel Environment Variables (Frontend)
+
+| Variable | Production | Preview | Development |
+|----------|-----------|---------|-------------|
+| `VITE_API_BASE_URL` | `https://slogbaa-backend.onrender.com` | `https://slogbaa-backend.onrender.com` | `http://localhost:8080` |
+| `VITE_SENTRY_DSN` | `<set-in-env>` | `<set-in-env>` | (optional) |
 
 ### Pre-Deployment Steps
 
 1. Copy `.env.example` to `.env` and fill in all values
 2. Generate JWT secret: `openssl rand -base64 48`
-3. Verify `CORS_ALLOWED_ORIGINS` uses HTTPS
-4. Configure SMTP credentials if email is needed
-5. Run `docker compose up -d --build`
-6. Verify health: `curl http://localhost:8080/actuator/health`
-7. Verify frontend: `http://localhost:3000`
+3. Set Neon database credentials (`DATASOURCE_URL`, `DATASOURCE_USERNAME`, `DATASOURCE_PASSWORD`)
+4. Set `CORS_ALLOWED_ORIGINS` to your frontend URL (HTTPS required in prod)
+5. Configure SMTP credentials for email notifications
+6. Set `RENDER_API_KEY` as a GitHub repo secret
+7. Push to `dev` to trigger auto-deploy via GitHub Actions
+8. Verify health: `curl https://slogbaa-backend.onrender.com/actuator/health/readiness`
+9. Verify frontend: `https://frontend-seven-red-wsusnzc0va.vercel.app`
 
 ### Build Commands
 
 ```bash
 # Backend
 cd backend
-./gradlew build              # Compile + test (98 tests)
-./gradlew :app:bootJar       # Build fat JAR only
-./gradlew :app:bootRun       # Run locally
+source ../.env                    # Load env vars (Neon DB credentials)
+./gradlew build                   # Compile + test (98 tests)
+./gradlew :app:bootJar            # Build fat JAR only
+./gradlew :app:bootRun            # Run locally (connects to Neon)
 
-# Frontend
+# Frontend (always use bun)
 cd frontend
-npm install && npm run build  # Production build to dist/
+bun install && bun run build      # Production build to dist/
+bun run dev                       # Development server
 
 # Docker
-docker compose up -d --build  # Full stack
+docker compose up -d --build      # Full stack
 ```
+
+### Secret Leak Prevention
+
+A pre-commit hook (`.githooks/pre-commit`) automatically scans every commit for:
+- Forbidden files: `.env`, `.env.local`, `.pem`, `.key`, `.p12`, `.jks`, `credentials.json`
+- Secret patterns: Neon tokens (`npg_*`), connection strings, AWS keys, JWT tokens, private keys, GitHub tokens
+
+```bash
+# Hook is auto-installed via:
+git config core.hooksPath .githooks
+
+# If hook blocks a commit, fix the issue — do NOT bypass with --no-verify
+```
+
+### Test Accounts
+
+| Email | Password | Role |
+|-------|----------|------|
+| `alien@dev.com` | `alien123.com` | SUPER_ADMIN |
+| `superadmin@slogbaa.nac.go.ug` | `password` | SUPER_ADMIN |
+| `admin@slogbaa.nac.go.ug` | `password` | ADMIN |
+| `jane.akello@example.com` | `password` | TRAINEE |
+| `john.ocen@example.com` | `password` | TRAINEE |
+| `mary.nabukenya@example.com` | `password` | TRAINEE |
 
 ---
 
@@ -213,12 +356,13 @@ docker compose up -d --build  # Full stack
 | Backend tests | Ready | High (98 tests, 0 failures) |
 | Backend build system | Ready | High (Gradle 8.14.3 Kotlin DSL) |
 | Frontend code | Ready | High |
-| Frontend security | Ready | High |
-| Frontend accessibility | Ready | High (WCAG 2.2 AA) |
-| Frontend performance | Ready | High (77 KB gzip initial) |
-| Frontend design system | Ready | High (25+ primitives) |
+| Frontend security | Ready | High (CSP, Sentry, Zod, cookie consent) |
+| Frontend accessibility | Ready | High (WCAG 2.2 AA, skip-to-content, idle timeout) |
+| Frontend performance | Ready | High (skeleton loaders, lazy loading) |
+| Frontend design system | Ready | High (30+ primitives) |
+| Engagement features | Ready | High (reviews, streaks, badges, bookmarks, Q&A) |
 | Docker/deployment | Ready | High |
-| BFF API alignment | Ready | High (60+ endpoints matched) |
+| BFF API alignment | Ready | High (80+ endpoints matched) |
 
 ### Scale-Out Prerequisites
 

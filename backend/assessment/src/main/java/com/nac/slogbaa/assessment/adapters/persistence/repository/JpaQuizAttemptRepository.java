@@ -14,6 +14,8 @@ public interface JpaQuizAttemptRepository extends JpaRepository<QuizAttemptEntit
 
     List<QuizAttemptEntity> findByTraineeAssessmentIdOrderByAttemptNumberDesc(UUID traineeAssessmentId);
 
+    long countByTraineeAssessmentId(UUID traineeAssessmentId);
+
     @Query(value = """
         SELECT qa.id AS id, qa.attempt_number AS attemptNumber, qa.points_earned AS pointsEarned,
                qa.total_points AS totalPoints, qa.is_passed AS passed, qa.completed_at AS completedAt,

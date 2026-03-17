@@ -2,6 +2,7 @@ dependencies {
     implementation(project(":shared-ports"))
     implementation(project(":iam"))
     implementation(project(":learning"))
+    implementation(project(":progress"))
 
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-web")

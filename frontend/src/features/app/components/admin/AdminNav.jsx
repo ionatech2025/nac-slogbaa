@@ -34,11 +34,12 @@ const darkStyles = {
     display: 'inline-flex',
     alignItems: 'center',
     gap: '0.4rem',
-    padding: '0.4rem 0.75rem',
+    padding: '0.5rem 0.75rem',
+    minHeight: 44,
     background: 'transparent',
     color: '#fff',
     border: '1px solid rgba(255,255,255,0.4)',
-    borderRadius: 6,
+    borderRadius: 8,
     fontSize: '0.875rem',
     cursor: 'pointer',
   },
@@ -65,6 +66,7 @@ const lightStyles = {
     ...darkStyles.signOut,
     color: 'var(--slogbaa-text)',
     border: '1px solid var(--slogbaa-border)',
+    borderRadius: 8,
   },
 }
 
@@ -88,7 +90,7 @@ export function AdminNav() {
             subtitle="Admin"
           />
         </Link>
-        <span style={styles.roleBadge}>{user?.role === 'SUPER_ADMIN' ? 'Super Admin' : 'Admin'}</span>
+        <span style={styles.roleBadge}>{String(user?.role ?? '').toUpperCase() === 'SUPER_ADMIN' ? 'Super Admin' : 'Admin'}</span>
       </div>
       <div style={rightStyle}>
         <span style={styles.userLabel}>{user?.fullName || user?.email || 'Staff'}</span>

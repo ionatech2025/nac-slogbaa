@@ -4,10 +4,12 @@ import com.nac.slogbaa.iam.core.valueobject.AuthenticatedIdentity;
 import com.nac.slogbaa.progress.application.dto.EnrolledCourseResult;
 import com.nac.slogbaa.progress.application.port.in.EnrollTraineeUseCase;
 import com.nac.slogbaa.progress.application.port.in.GetEnrolledCoursesUseCase;
+import com.nac.slogbaa.progress.application.port.in.UnenrollTraineeUseCase;
 import com.nac.slogbaa.progress.application.port.out.TraineeProgressRepositoryPort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -32,6 +34,7 @@ import java.util.UUID;
 public class EnrollmentController {
 
     private final EnrollTraineeUseCase enrollTraineeUseCase;
+    private final UnenrollTraineeUseCase unenrollTraineeUseCase;
     private final GetEnrolledCoursesUseCase getEnrolledCoursesUseCase;
     private final RecordProgressUseCase recordProgressUseCase;
     private final RecordModuleCompletionUseCase recordModuleCompletionUseCase;
@@ -39,12 +42,14 @@ public class EnrollmentController {
     private final TraineeProgressRepositoryPort traineeProgressRepository;
 
     public EnrollmentController(EnrollTraineeUseCase enrollTraineeUseCase,
+                               UnenrollTraineeUseCase unenrollTraineeUseCase,
                                GetEnrolledCoursesUseCase getEnrolledCoursesUseCase,
                                RecordProgressUseCase recordProgressUseCase,
                                RecordModuleCompletionUseCase recordModuleCompletionUseCase,
                                GetResumePointUseCase getResumePointUseCase,
                                TraineeProgressRepositoryPort traineeProgressRepository) {
         this.enrollTraineeUseCase = enrollTraineeUseCase;
+        this.unenrollTraineeUseCase = unenrollTraineeUseCase;
         this.getEnrolledCoursesUseCase = getEnrolledCoursesUseCase;
         this.recordProgressUseCase = recordProgressUseCase;
         this.recordModuleCompletionUseCase = recordModuleCompletionUseCase;
@@ -84,6 +89,15 @@ public class EnrollmentController {
             @AuthenticationPrincipal AuthenticatedIdentity identity,
             @PathVariable UUID courseId) {
         enrollTraineeUseCase.enroll(identity.getUserId(), courseId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/{courseId}/enroll")
+    @PreAuthorize("hasRole('TRAINEE')")
+    public ResponseEntity<Void> unenroll(
+            @AuthenticationPrincipal AuthenticatedIdentity identity,
+            @PathVariable UUID courseId) {
+        unenrollTraineeUseCase.unenroll(identity.getUserId(), courseId);
         return ResponseEntity.noContent().build();
     }
 

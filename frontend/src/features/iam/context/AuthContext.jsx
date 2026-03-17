@@ -1,5 +1,8 @@
 import { createContext, useContext, useState, useCallback, useEffect } from 'react'
 import { setGlobalLogout, queryClient } from '../../../lib/query-client.js'
+import { isTokenExpired } from '../../../lib/jwt.js'
+import { useIdleTimeout } from '../../../shared/hooks/useIdleTimeout.js'
+import { useUIStore } from '../../../stores/ui-store.js'
 
 const STORAGE_KEY = 'slogbaa_auth'
 const AUTH_CHANNEL = 'slogbaa_auth_sync'
@@ -22,7 +25,13 @@ function readStored() {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return null
     const data = JSON.parse(raw)
-    if (data?.token && data?.user?.userId) return data
+    if (data?.token && data?.user?.userId) {
+      if (isTokenExpired(data.token)) {
+        localStorage.removeItem(STORAGE_KEY)
+        return null
+      }
+      return data
+    }
   } catch {
     // Corrupted or missing — start fresh
   }
@@ -47,6 +56,7 @@ export function AuthProvider({ children }) {
   const [state, setState] = useState(() => readStored())
 
   const login = useCallback((token, user) => {
+    if (isTokenExpired(token)) return
     const auth = { token, user }
     setState(auth)
     writeStorage(token, user)
@@ -60,9 +70,19 @@ export function AuthProvider({ children }) {
   }, [])
 
   const logout = useCallback(() => {
+    // 1. Cancel all in-flight queries to prevent 401 cascades
+    queryClient.cancelQueries()
+    // 2. Invalidate all queries so stale data is never served post-logout
+    queryClient.invalidateQueries()
+    // 3. Clear auth state — route guards will redirect to /auth/login on next render
     setState(null)
     writeStorage(null, null)
-    queryClient.clear()
+    // 4. Clear transient UI state (toasts, palette) to prevent leaking across sessions
+    useUIStore.setState({ toasts: [], paletteOpen: false })
+    // 5. Defer cache clearing so React processes the auth state change first;
+    //    route guards redirect before components try to read cleared cache data
+    queueMicrotask(() => queryClient.clear())
+    // 6. Sync to other tabs
     try {
       const bc = new BroadcastChannel(AUTH_CHANNEL)
       bc.postMessage({ type: 'logout' })
@@ -86,13 +106,16 @@ export function AuthProvider({ children }) {
       bc.onmessage = (event) => {
         const msg = event.data
         if (msg?.type === 'logout') {
+          queryClient.cancelQueries()
+          queryClient.invalidateQueries()
           setState(null)
           writeStorage(null, null)
-          queryClient.clear()
+          useUIStore.setState({ toasts: [], paletteOpen: false })
+          queueMicrotask(() => queryClient.clear())
         } else if (msg?.type === 'login' && msg.token && msg.user) {
           setState({ token: msg.token, user: msg.user })
           writeStorage(msg.token, msg.user)
-          queryClient.clear()
+          queueMicrotask(() => queryClient.clear())
         }
       }
     } catch {
@@ -102,6 +125,23 @@ export function AuthProvider({ children }) {
       try { bc?.close() } catch { /* cleanup */ }
     }
   }, [])
+
+  // Auto-logout after 30 minutes of inactivity (only when authenticated)
+  const idleLogout = useCallback(() => {
+    if (state?.token) logout()
+  }, [state?.token, logout])
+  useIdleTimeout(idleLogout, 30 * 60 * 1000)
+
+  // Periodic token expiry check (every 60 seconds)
+  useEffect(() => {
+    if (!state?.token) return
+    const interval = setInterval(() => {
+      if (isTokenExpired(state.token)) {
+        logout()
+      }
+    }, 60_000)
+    return () => clearInterval(interval)
+  }, [state?.token, logout])
 
   const value = {
     token: state?.token ?? null,

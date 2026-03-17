@@ -25,6 +25,56 @@ export const queryKeys = {
     mine: () => [...queryKeys.certificates.all, 'mine'],
   },
 
+  // === Reviews ===
+  reviews: {
+    all: ['reviews'],
+    byCourse: (courseId) => [...queryKeys.reviews.all, 'course', courseId],
+    rating: (courseId) => [...queryKeys.reviews.all, 'rating', courseId],
+  },
+
+  // === Discussions ===
+  discussions: {
+    all: ['discussions'],
+    byCourse: (courseId) => [...queryKeys.discussions.all, 'course', courseId],
+    byCourseAndModule: (courseId, moduleId) => [...queryKeys.discussions.all, 'course', courseId, 'module', moduleId],
+    thread: (courseId, threadId) => [...queryKeys.discussions.all, 'course', courseId, 'thread', threadId],
+  },
+
+  // === Leaderboard ===
+  leaderboard: {
+    all: ['leaderboard'],
+    top: (limit) => [...queryKeys.leaderboard.all, 'top', limit],
+  },
+
+  // === Streak ===
+  streak: {
+    all: ['streak'],
+    current: () => [...queryKeys.streak.all, 'current'],
+  },
+
+  // === Bookmarks ===
+  bookmarks: {
+    all: ['bookmarks'],
+    list: (courseId) => [...queryKeys.bookmarks.all, 'list', courseId],
+  },
+
+  // === Achievements ===
+  achievements: {
+    all: () => ['achievements'],
+  },
+
+  // === Notifications ===
+  notifications: {
+    all: ['notifications'],
+    list: (page) => ['notifications', 'list', page],
+    unreadCount: () => ['notifications', 'unread-count'],
+  },
+
+  // === Categories ===
+  categories: {
+    all: () => ['categories'],
+  },
+
   // === Trainee profile ===
   trainee: {
     all: ['trainee'],

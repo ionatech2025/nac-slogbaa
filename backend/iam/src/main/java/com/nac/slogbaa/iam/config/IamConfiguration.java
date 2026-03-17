@@ -16,10 +16,13 @@ import com.nac.slogbaa.iam.application.port.in.RegisterTraineeUseCase;
 import com.nac.slogbaa.iam.application.port.in.SetStaffActiveUseCase;
 import com.nac.slogbaa.iam.application.port.in.SetStaffPasswordByAdminUseCase;
 import com.nac.slogbaa.iam.application.port.in.SetTraineePasswordByAdminUseCase;
+import com.nac.slogbaa.iam.application.port.in.SoftDeleteAccountUseCase;
 import com.nac.slogbaa.iam.application.port.in.UpdateStaffProfileByAdminUseCase;
 import com.nac.slogbaa.iam.application.port.in.PasswordResetUseCase;
 import com.nac.slogbaa.iam.application.port.in.UpdateTraineeProfileUseCase;
+import com.nac.slogbaa.iam.application.port.in.VerifyEmailUseCase;
 import com.nac.slogbaa.iam.application.port.out.AuthTokenPort;
+import com.nac.slogbaa.iam.application.port.out.EmailVerificationTokenRepositoryPort;
 import com.nac.slogbaa.iam.application.port.out.PasswordHasherPort;
 import com.nac.slogbaa.iam.application.port.out.StaffUserRepositoryPort;
 import com.nac.slogbaa.iam.application.port.out.PasswordResetTokenRepositoryPort;
@@ -38,7 +41,10 @@ import com.nac.slogbaa.iam.application.service.SetStaffPasswordByAdminService;
 import com.nac.slogbaa.iam.application.service.SetTraineePasswordByAdminService;
 import com.nac.slogbaa.iam.application.service.UpdateStaffProfileByAdminService;
 import com.nac.slogbaa.iam.application.service.RegisterTraineeService;
+import com.nac.slogbaa.iam.application.service.SoftDeleteAccountService;
 import com.nac.slogbaa.iam.application.service.UpdateTraineeProfileService;
+import com.nac.slogbaa.iam.application.service.VerifyEmailService;
+import com.nac.slogbaa.shared.ports.EmailVerificationNotificationPort;
 import com.nac.slogbaa.shared.ports.PasswordResetNotificationPort;
 import com.nac.slogbaa.shared.ports.StaffNotificationPort;
 import com.nac.slogbaa.shared.ports.TraineeNotificationPort;
@@ -72,16 +78,31 @@ public class IamConfiguration {
     }
 
     @Bean
+    public VerifyEmailUseCase verifyEmailUseCase(
+            TraineeRepositoryPort traineeRepository,
+            EmailVerificationTokenRepositoryPort tokenRepository,
+            EmailVerificationNotificationPort notificationPort) {
+        return new VerifyEmailService(
+                traineeRepository,
+                tokenRepository,
+                notificationPort,
+                passwordResetBaseUrl
+        );
+    }
+
+    @Bean
     public RegisterTraineeUseCase registerTraineeUseCase(
             TraineeRepositoryPort traineeRepository,
             StaffUserRepositoryPort staffUserRepository,
             PasswordHasherPort passwordHasher,
-            TraineeNotificationPort traineeNotificationPort) {
+            TraineeNotificationPort traineeNotificationPort,
+            VerifyEmailUseCase verifyEmailUseCase) {
         return new RegisterTraineeService(
                 traineeRepository,
                 staffUserRepository,
                 passwordHasher,
-                traineeNotificationPort
+                traineeNotificationPort,
+                verifyEmailUseCase
         );
     }
 
@@ -181,5 +202,10 @@ public class IamConfiguration {
                 notificationPort,
                 passwordResetBaseUrl
         );
+    }
+
+    @Bean
+    public SoftDeleteAccountUseCase softDeleteAccountUseCase(TraineeRepositoryPort traineeRepository) {
+        return new SoftDeleteAccountService(traineeRepository);
     }
 }

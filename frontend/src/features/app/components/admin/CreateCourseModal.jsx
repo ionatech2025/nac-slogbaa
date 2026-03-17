@@ -4,6 +4,7 @@ import { Modal } from '../../../../shared/components/Modal.jsx'
 import { LoadingButton } from '../../../../shared/components/LoadingButton.jsx'
 import { uploadFile } from '../../../../api/files.js'
 import { getAssetUrl } from '../../../../api/client.js'
+import { useCategories } from '../../../../lib/hooks/use-categories.js'
 
 const styles = {
   form: { display: 'flex', flexDirection: 'column', gap: '1.25rem' },
@@ -85,6 +86,8 @@ export function CreateCourseModal({ token, onClose, onSubmit }) {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [imageUrl, setImageUrl] = useState(null)
+  const [categoryId, setCategoryId] = useState('')
+  const { data: categories = [] } = useCategories()
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
@@ -115,7 +118,7 @@ export function CreateCourseModal({ token, onClose, onSubmit }) {
     }
     setLoading(true)
     try {
-      await onSubmit?.({ title: title.trim(), description: description.trim() || undefined, imageUrl: imageUrl || undefined })
+      await onSubmit?.({ title: title.trim(), description: description.trim() || undefined, imageUrl: imageUrl || undefined, categoryId: categoryId || undefined })
       onClose?.()
     } catch (err) {
       setError(err?.message ?? 'Failed to create course.')
@@ -172,6 +175,22 @@ export function CreateCourseModal({ token, onClose, onSubmit }) {
             placeholder="Brief description"
           />
         </div>
+        {categories.length > 0 && (
+          <div style={styles.field}>
+            <label style={styles.label} htmlFor="course-category">Category (optional)</label>
+            <select
+              id="course-category"
+              value={categoryId}
+              onChange={(e) => setCategoryId(e.target.value)}
+              style={styles.input}
+            >
+              <option value="">No category</option>
+              {categories.map((c) => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
+          </div>
+        )}
         {error && <p style={styles.error}>{error}</p>}
         <div style={styles.actions}>
           <button type="button" style={styles.btnSecondary} onClick={onClose}>Cancel</button>

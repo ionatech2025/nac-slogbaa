@@ -18,9 +18,16 @@ public final class Trainee {
     private final boolean isActive;
     private final Instant registrationDate;
     private final boolean emailVerified;
+    private final String profileImageUrl;
 
     public Trainee(TraineeId id, Email email, String passwordHash, Profile profile,
                    boolean isActive, Instant registrationDate, boolean emailVerified) {
+        this(id, email, passwordHash, profile, isActive, registrationDate, emailVerified, null);
+    }
+
+    public Trainee(TraineeId id, Email email, String passwordHash, Profile profile,
+                   boolean isActive, Instant registrationDate, boolean emailVerified,
+                   String profileImageUrl) {
         this.id = Objects.requireNonNull(id);
         this.email = Objects.requireNonNull(email);
         this.passwordHash = Objects.requireNonNull(passwordHash);
@@ -28,6 +35,7 @@ public final class Trainee {
         this.isActive = isActive;
         this.registrationDate = registrationDate != null ? registrationDate : Instant.now();
         this.emailVerified = emailVerified;
+        this.profileImageUrl = profileImageUrl;
     }
 
     public TraineeId getId() {
@@ -56,5 +64,9 @@ public final class Trainee {
 
     public boolean isEmailVerified() {
         return emailVerified;
+    }
+
+    public String getProfileImageUrl() {
+        return profileImageUrl;
     }
 }

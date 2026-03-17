@@ -3,6 +3,7 @@ package com.nac.slogbaa.iam.adapters.rest.controller;
 import com.nac.slogbaa.iam.core.exception.CannotDeleteLastSuperAdminException;
 import com.nac.slogbaa.iam.core.exception.CannotDeleteSelfException;
 import com.nac.slogbaa.iam.core.exception.DuplicateEmailException;
+import com.nac.slogbaa.iam.core.exception.EmailNotVerifiedException;
 import com.nac.slogbaa.iam.core.exception.InvalidCredentialsException;
 import com.nac.slogbaa.iam.core.exception.InvalidResetTokenException;
 import com.nac.slogbaa.iam.core.exception.InvalidCurrentPasswordException;
@@ -10,6 +11,8 @@ import com.nac.slogbaa.iam.core.exception.StaffCannotSelfRegisterException;
 import com.nac.slogbaa.iam.core.exception.StaffNotFoundException;
 import com.nac.slogbaa.iam.core.exception.StaffRoleLimitReachedException;
 import com.nac.slogbaa.iam.core.exception.TraineeNotFoundException;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -17,14 +20,23 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 /**
  * Maps core IAM exceptions to HTTP responses. Controllers use core APIs only; this adapter maps failures.
+ * Highest precedence so these specific handlers run before the global catch-all.
  */
 @RestControllerAdvice
+@Order(Ordered.HIGHEST_PRECEDENCE)
 public class AuthExceptionHandler {
 
     @ExceptionHandler(InvalidCredentialsException.class)
     public ProblemDetail handleInvalidCredentials(InvalidCredentialsException e) {
         ProblemDetail detail = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, e.getMessage());
         detail.setTitle("Invalid credentials");
+        return detail;
+    }
+
+    @ExceptionHandler(EmailNotVerifiedException.class)
+    public ProblemDetail handleEmailNotVerified(EmailNotVerifiedException e) {
+        ProblemDetail detail = ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, e.getMessage());
+        detail.setTitle("Email not verified");
         return detail;
     }
 

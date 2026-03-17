@@ -1,7 +1,9 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Modal } from '../../../../shared/components/Modal.jsx'
 import { LoadingButton } from '../../../../shared/components/LoadingButton.jsx'
 import { PHONE_COUNTRY_CODES } from '../../../../shared/countryCodes.js'
+import { getAssetUrl } from '../../../../api/client.js'
+import { useUploadAvatar } from '../../../../lib/hooks/use-trainee.js'
 
 const CATEGORY_OPTIONS = [
   { value: 'LEADER', label: 'Leader' },
@@ -13,6 +15,9 @@ const GENDER_OPTIONS = [
   { value: 'MALE', label: 'Male' },
   { value: 'FEMALE', label: 'Female' },
 ]
+
+const MAX_FILE_SIZE = 2 * 1024 * 1024 // 2 MB
+const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp']
 
 const styles = {
   form: {
@@ -87,6 +92,69 @@ const styles = {
     fontSize: '0.875rem',
     color: 'var(--slogbaa-error)',
   },
+  avatarSection: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '1rem',
+    paddingBottom: '1rem',
+    borderBottom: '1px solid var(--slogbaa-border)',
+  },
+  avatarImage: {
+    width: 80,
+    height: 80,
+    borderRadius: '50%',
+    objectFit: 'cover',
+    background: 'var(--slogbaa-border)',
+    flexShrink: 0,
+  },
+  avatarPlaceholder: {
+    width: 80,
+    height: 80,
+    borderRadius: '50%',
+    background: 'var(--slogbaa-blue)',
+    color: '#fff',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '1.75rem',
+    fontWeight: 600,
+    flexShrink: 0,
+  },
+  avatarControls: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.35rem',
+  },
+  changePhotoBtn: {
+    padding: '0.4rem 1rem',
+    background: 'var(--slogbaa-surface)',
+    color: 'var(--slogbaa-blue)',
+    border: '1px solid var(--slogbaa-blue)',
+    borderRadius: 6,
+    fontSize: '0.8125rem',
+    fontWeight: 500,
+    cursor: 'pointer',
+    whiteSpace: 'nowrap',
+  },
+  avatarHint: {
+    margin: 0,
+    fontSize: '0.75rem',
+    color: 'var(--slogbaa-text-muted)',
+  },
+  avatarUploading: {
+    fontSize: '0.8125rem',
+    color: 'var(--slogbaa-text-muted)',
+    fontStyle: 'italic',
+  },
+}
+
+function getInitials(profile) {
+  if (profile?.firstName && profile?.lastName) {
+    return (profile.firstName[0] + profile.lastName[0]).toUpperCase()
+  }
+  if (profile?.firstName) return profile.firstName.slice(0, 2).toUpperCase()
+  if (profile?.email) return profile.email.slice(0, 2).toUpperCase()
+  return '?'
 }
 
 function toForm(profile) {
@@ -109,6 +177,10 @@ function toForm(profile) {
 export function EditProfileModal({ profile, certificateEmailOptIn = false, onClose, onSave, saving = false, error: externalError }) {
   const [form, setForm] = useState({ ...toForm(profile), certificateEmailOptIn })
   const [error, setError] = useState(externalError ?? null)
+  const [avatarPreview, setAvatarPreview] = useState(null)
+  const [avatarError, setAvatarError] = useState(null)
+  const fileInputRef = useRef(null)
+  const uploadAvatar = useUploadAvatar()
 
   useEffect(() => {
     setForm((prev) => ({ ...toForm(profile), certificateEmailOptIn: certificateEmailOptIn ?? prev.certificateEmailOptIn }))
@@ -121,6 +193,48 @@ export function EditProfileModal({ profile, certificateEmailOptIn = false, onClo
   const update = (name, value) => {
     setForm((prev) => ({ ...prev, [name]: value }))
     setError(null)
+  }
+
+  const currentAvatarUrl = avatarPreview
+    ? avatarPreview
+    : profile?.profileImageUrl
+      ? getAssetUrl(profile.profileImageUrl)
+      : null
+
+  const handleFileSelect = (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setAvatarError(null)
+
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      setAvatarError('Please select a JPEG, PNG, or WebP image.')
+      return
+    }
+    if (file.size > MAX_FILE_SIZE) {
+      setAvatarError('Image must be under 2 MB.')
+      return
+    }
+
+    // Show local preview immediately
+    const previewUrl = URL.createObjectURL(file)
+    setAvatarPreview(previewUrl)
+
+    // Upload
+    uploadAvatar.mutate(file, {
+      onError: (err) => {
+        setAvatarError(err.message || 'Upload failed.')
+        setAvatarPreview(null)
+        URL.revokeObjectURL(previewUrl)
+      },
+      onSuccess: () => {
+        // Preview stays; the profile query is invalidated by the hook
+        URL.revokeObjectURL(previewUrl)
+      },
+    })
+
+    // Reset file input so the same file can be re-selected
+    e.target.value = ''
   }
 
   const handleSubmit = (e) => {
@@ -153,6 +267,41 @@ export function EditProfileModal({ profile, certificateEmailOptIn = false, onClo
   return (
     <Modal title="Edit Profile" onClose={onClose}>
       <form onSubmit={handleSubmit} style={styles.form}>
+        {/* Avatar upload section */}
+        <div style={styles.avatarSection}>
+          {currentAvatarUrl ? (
+            <img
+              src={currentAvatarUrl}
+              alt={`Avatar: ${profile?.firstName ?? ''} ${profile?.lastName ?? ''}`}
+              style={styles.avatarImage}
+            />
+          ) : (
+            <div style={styles.avatarPlaceholder}>{getInitials(profile)}</div>
+          )}
+          <div style={styles.avatarControls}>
+            {uploadAvatar.isPending ? (
+              <span style={styles.avatarUploading}>Uploading...</span>
+            ) : (
+              <button
+                type="button"
+                style={styles.changePhotoBtn}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                Change Photo
+              </button>
+            )}
+            <p style={styles.avatarHint}>JPEG, PNG, or WebP. Max 2 MB.</p>
+            {avatarError && <p style={styles.error}>{avatarError}</p>}
+          </div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            style={{ display: 'none' }}
+            onChange={handleFileSelect}
+          />
+        </div>
+
         <div style={styles.row}>
           <div style={styles.field}>
             <label style={styles.label} htmlFor="edit-firstName">First name *</label>

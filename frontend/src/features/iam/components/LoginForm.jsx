@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { FontAwesomeIcon, icons } from '../../../shared/icons.jsx'
 import { useAuth } from '../hooks/useAuth.js'
-import { login as loginApi } from '../../../api/iam/auth.js'
+import { login as loginApi, resendVerification } from '../../../api/iam/auth.js'
 import { LoadingButton } from '../../../shared/components/LoadingButton.jsx'
+import { loginSchema } from '../validation/schemas.js'
 
 const styles = {
   form: {
@@ -23,12 +24,15 @@ const styles = {
     letterSpacing: '0.01em',
   },
   input: {
+    width: '100%',
+    minWidth: 0,
     padding: '0.625rem 0.875rem',
     border: '1px solid var(--slogbaa-border)',
     borderRadius: 10,
     fontSize: '0.9375rem',
     background: 'var(--slogbaa-bg)',
     transition: 'border-color 0.15s, box-shadow 0.15s',
+    boxSizing: 'border-box',
   },
   iconWrap: {
     position: 'relative',
@@ -43,6 +47,7 @@ const styles = {
     color: 'var(--slogbaa-text-muted)',
     pointerEvents: 'none',
     fontSize: '0.9375rem',
+    zIndex: 1,
   },
   passwordWrap: {
     position: 'relative',
@@ -60,7 +65,9 @@ const styles = {
     bottom: 0,
     display: 'flex',
     alignItems: 'center',
+    justifyContent: 'center',
     padding: '0 0.75rem',
+    minWidth: 44,
     border: 'none',
     background: 'none',
     color: 'var(--slogbaa-text-muted)',
@@ -71,8 +78,10 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'center',
     gap: '0.4rem',
+    width: '100%',
     marginTop: '0.5rem',
     padding: '0.7rem 1.25rem',
+    minHeight: 44,
     background: 'var(--slogbaa-blue)',
     color: '#fff',
     border: 'none',
@@ -96,6 +105,36 @@ const styles = {
     textDecoration: 'none',
     alignSelf: 'flex-end',
   },
+  verifyWrap: {
+    padding: '0.75rem',
+    background: 'rgba(234, 88, 12, 0.08)',
+    borderRadius: 10,
+    fontSize: '0.875rem',
+  },
+  verifyText: {
+    margin: '0 0 0.5rem',
+    color: 'var(--slogbaa-text)',
+  },
+  resendBtn: {
+    fontSize: '0.875rem',
+    color: 'var(--slogbaa-blue)',
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    textDecoration: 'underline',
+    padding: 0,
+  },
+  resendMsg: {
+    fontSize: '0.8125rem',
+    color: 'var(--slogbaa-success, #059669)',
+    marginTop: '0.375rem',
+  },
+  slowHint: {
+    fontSize: '0.8125rem',
+    color: 'var(--slogbaa-text-muted)',
+    textAlign: 'center',
+    margin: 0,
+  },
 }
 
 export function LoginForm() {
@@ -103,22 +142,53 @@ export function LoginForm() {
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState(null)
+  const [emailNotVerified, setEmailNotVerified] = useState(false)
+  const [resendMsg, setResendMsg] = useState(null)
+  const [resendLoading, setResendLoading] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [slowHint, setSlowHint] = useState(false)
+  const slowTimerRef = useRef(null)
   const { login: setAuth } = useAuth()
   const navigate = useNavigate()
+
+  useEffect(() => {
+    return () => clearTimeout(slowTimerRef.current)
+  }, [])
+
+  const handleResendVerification = async () => {
+    setResendMsg(null)
+    setResendLoading(true)
+    try {
+      const result = await resendVerification(email.trim())
+      setResendMsg(result.error ?? result.data?.message ?? 'Verification email sent.')
+    } catch {
+      setResendMsg('Failed to resend. Please try again.')
+    } finally {
+      setResendLoading(false)
+    }
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError(null)
-    if (!email.trim() || !password) {
-      setError('Please enter email and password.')
+    setEmailNotVerified(false)
+    setResendMsg(null)
+    const parsed = loginSchema.safeParse({ email, password })
+    if (!parsed.success) {
+      setError(parsed.error.issues[0].message)
       return
     }
     setLoading(true)
+    setSlowHint(false)
+    slowTimerRef.current = setTimeout(() => setSlowHint(true), 5000)
     try {
       const result = await loginApi(email.trim(), password)
       if (result.error) {
-        setError(result.error)
+        if (result.error.toLowerCase().includes('verify your email')) {
+          setEmailNotVerified(true)
+        } else {
+          setError(result.error)
+        }
         return
       }
       const { token, userId, email: userEmail, role, fullName } = result.data
@@ -130,7 +200,9 @@ export function LoginForm() {
     } catch (err) {
       setError(err?.message ?? 'Network error. Is the backend running?')
     } finally {
+      clearTimeout(slowTimerRef.current)
       setLoading(false)
+      setSlowHint(false)
     }
   }
 
@@ -183,10 +255,31 @@ export function LoginForm() {
         </Link>
       </div>
       {error && <p style={styles.error}>{error}</p>}
+      {emailNotVerified && (
+        <div style={styles.verifyWrap}>
+          <p style={styles.verifyText}>
+            Please verify your email address before signing in. Check your inbox for a verification link.
+          </p>
+          <button
+            type="button"
+            style={styles.resendBtn}
+            onClick={handleResendVerification}
+            disabled={resendLoading}
+          >
+            {resendLoading ? 'Sending...' : 'Resend verification email'}
+          </button>
+          {resendMsg && <p style={styles.resendMsg}>{resendMsg}</p>}
+        </div>
+      )}
       <LoadingButton type="submit" loading={loading} style={styles.submit}>
         <FontAwesomeIcon icon={icons.signIn} />
         Sign in
       </LoadingButton>
+      {loading && slowHint && (
+        <p style={styles.slowHint}>
+          Server is waking up — this may take up to a minute on first visit...
+        </p>
+      )}
     </form>
   )
 }

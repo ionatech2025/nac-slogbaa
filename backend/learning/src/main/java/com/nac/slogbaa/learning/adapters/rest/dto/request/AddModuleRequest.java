@@ -21,7 +21,10 @@ public record AddModuleRequest(
         @Min(0)
         Integer moduleOrder,
 
-        Boolean hasQuiz
+        Boolean hasQuiz,
+
+        @Min(0)
+        Integer estimatedMinutes
 ) {
     public AddModuleRequest {
         if (moduleOrder == null) moduleOrder = 0;

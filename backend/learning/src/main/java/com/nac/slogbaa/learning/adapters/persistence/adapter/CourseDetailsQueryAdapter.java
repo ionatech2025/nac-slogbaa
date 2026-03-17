@@ -62,9 +62,23 @@ public class CourseDetailsQueryAdapter implements CourseDetailsQueryPort, Course
     @Cacheable("adminCourses")
     @Override
     public List<AdminCourseSummary> findAllCourses() {
-        return jpaCourseRepository.findAll().stream()
+        List<CourseEntity> courses = jpaCourseRepository.findAll();
+        if (courses.isEmpty()) {
+            return List.of();
+        }
+
+        // Batch fetch module counts in a single query instead of N queries
+        List<UUID> courseIds = courses.stream().map(CourseEntity::getId).toList();
+        java.util.Map<UUID, Integer> moduleCounts = new java.util.HashMap<>();
+        for (Object[] row : jpaModuleRepository.findModuleStatsByCourseIds(courseIds)) {
+            moduleCounts.put((UUID) row[0], ((Number) row[1]).intValue());
+        }
+
+        return courses.stream()
                 .map(c -> {
-                    int moduleCount = jpaModuleRepository.findByCourseIdOrderByModuleOrder(c.getId()).size();
+                    int moduleCount = moduleCounts.getOrDefault(c.getId(), 0);
+                    String categoryName = c.getCategory() != null ? c.getCategory().getName() : null;
+                    String categorySlug = c.getCategory() != null ? c.getCategory().getSlug() : null;
                     return new AdminCourseSummary(
                             c.getId(),
                             c.getTitle(),
@@ -72,7 +86,9 @@ public class CourseDetailsQueryAdapter implements CourseDetailsQueryPort, Course
                             c.getImageUrl(),
                             c.isPublished(),
                             moduleCount,
-                            c.getCreatedAt()
+                            c.getCreatedAt(),
+                            categoryName,
+                            categorySlug
                     );
                 })
                 .toList();
@@ -87,8 +103,21 @@ public class CourseDetailsQueryAdapter implements CourseDetailsQueryPort, Course
 
     @Override
     public Optional<CourseSummary> getSummaryByCourseId(UUID courseId) {
-        return findCourseDetailsById(courseId)
-                .map(d -> new CourseSummary(d.getId(), d.getTitle(), d.getDescription(), d.getImageUrl(), d.getModules().size()));
+        return jpaCourseRepository.findById(courseId)
+                .filter(CourseEntity::isPublished)
+                .map(entity -> {
+                    CourseDetails d = toCourseDetails(toCourseWithModules(entity));
+                    UUID prereqId = entity.getPrerequisiteCourseId();
+                    String prereqName = null;
+                    if (prereqId != null) {
+                        prereqName = jpaCourseRepository.findById(prereqId)
+                                .map(CourseEntity::getTitle)
+                                .orElse(null);
+                    }
+                    return new CourseSummary(d.getId(), d.getTitle(), d.getDescription(), d.getImageUrl(),
+                            d.getModules().size(), d.getTotalEstimatedMinutes(), d.getCategoryName(), d.getCategorySlug(),
+                            prereqId, prereqName);
+                });
     }
 
     private CourseWithModules toCourseWithModules(CourseEntity course) {
@@ -104,12 +133,22 @@ public class CourseDetailsQueryAdapter implements CourseDetailsQueryPort, Course
         List<ModuleSummary> modules = domain.getModules().stream()
                 .map(this::toModuleSummary)
                 .toList();
+        Integer totalEstimatedMinutes = modules.stream()
+                .map(ModuleSummary::getEstimatedMinutes)
+                .filter(java.util.Objects::nonNull)
+                .reduce(0, Integer::sum);
+        if (totalEstimatedMinutes == 0 && modules.stream().noneMatch(m -> m.getEstimatedMinutes() != null)) {
+            totalEstimatedMinutes = null;
+        }
         return new CourseDetails(
                 domain.getId().getValue(),
                 domain.getTitle(),
                 domain.getDescription(),
                 domain.getImageUrl(),
                 domain.isPublished(),
+                totalEstimatedMinutes,
+                domain.getCategoryName(),
+                domain.getCategorySlug(),
                 modules
         );
     }
@@ -125,6 +164,7 @@ public class CourseDetailsQueryAdapter implements CourseDetailsQueryPort, Course
                 m.getImageUrl(),
                 m.getModuleOrder().getPosition(),
                 m.isHasQuiz(),
+                m.getEstimatedMinutes(),
                 blocks
         );
     }

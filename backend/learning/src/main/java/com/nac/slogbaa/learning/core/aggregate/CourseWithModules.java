@@ -17,15 +17,19 @@ public final class CourseWithModules {
     private final String description;
     private final String imageUrl;
     private final boolean published;
+    private final String categoryName;
+    private final String categorySlug;
     private final List<Module> modules;
 
     public CourseWithModules(CourseId id, String title, String description, String imageUrl, boolean published,
-                             List<Module> modules) {
+                             String categoryName, String categorySlug, List<Module> modules) {
         this.id = Objects.requireNonNull(id);
         this.title = Objects.requireNonNull(title);
         this.description = description;
         this.imageUrl = imageUrl;
         this.published = published;
+        this.categoryName = categoryName;
+        this.categorySlug = categorySlug;
         this.modules = modules != null ? List.copyOf(modules) : List.of();
     }
 
@@ -34,5 +38,7 @@ public final class CourseWithModules {
     public String getDescription() { return description; }
     public String getImageUrl() { return imageUrl; }
     public boolean isPublished() { return published; }
+    public String getCategoryName() { return categoryName; }
+    public String getCategorySlug() { return categorySlug; }
     public List<Module> getModules() { return Collections.unmodifiableList(modules); }
 }

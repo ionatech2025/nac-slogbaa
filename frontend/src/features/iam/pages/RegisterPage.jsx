@@ -1,6 +1,8 @@
-import { Link } from 'react-router-dom'
+import { Link, Navigate } from 'react-router-dom'
 import { RegisterForm } from '../components/RegisterForm.jsx'
 import { Logo } from '../../../shared/components/Logo.jsx'
+import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle.js'
+import { useAuth } from '../hooks/useAuth.js'
 
 const styles = {
   page: {
@@ -47,6 +49,15 @@ const styles = {
 }
 
 export function RegisterPage() {
+  useDocumentTitle('Register')
+  const { isAuthenticated, user } = useAuth()
+
+  if (isAuthenticated && user) {
+    const role = String(user.role ?? '').toUpperCase()
+    const target = role === 'SUPER_ADMIN' || role === 'ADMIN' ? '/admin' : '/dashboard'
+    return <Navigate to={target} replace />
+  }
+
   return (
     <div style={styles.page} className="auth-bg">
       <div style={styles.card} className="glass-card-elevated glass-enter">

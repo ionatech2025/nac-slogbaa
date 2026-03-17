@@ -126,7 +126,9 @@ public class AdminCourseController {
                         s.getImageUrl(),
                         s.isPublished(),
                         s.getModuleCount(),
-                        s.getCreatedAt() != null ? s.getCreatedAt().toString() : null
+                        s.getCreatedAt() != null ? s.getCreatedAt().toString() : null,
+                        s.getCategoryName(),
+                        s.getCategorySlug()
                 ))
                 .toList();
         return ResponseEntity.ok(list);
@@ -149,7 +151,8 @@ public class AdminCourseController {
                 request.title(),
                 request.description(),
                 request.imageUrl(),
-                identity.getUserId()
+                identity.getUserId(),
+                request.categoryId()
         );
         CourseId courseId = createCourseUseCase.execute(command);
         return ResponseEntity
@@ -166,7 +169,8 @@ public class AdminCourseController {
                 id,
                 request.title(),
                 request.description(),
-                request.imageUrl()
+                request.imageUrl(),
+                request.categoryId()
         );
         updateCourseUseCase.execute(command);
         return ResponseEntity.noContent().build();
@@ -183,7 +187,8 @@ public class AdminCourseController {
                 request.description(),
                 request.imageUrl(),
                 request.moduleOrder(),
-                request.hasQuiz()
+                request.hasQuiz(),
+                request.estimatedMinutes()
         );
         ModuleId moduleId = addModuleToCourseUseCase.execute(command);
         return ResponseEntity
@@ -201,7 +206,8 @@ public class AdminCourseController {
                 moduleId,
                 request.title(),
                 request.description(),
-                request.imageUrl()
+                request.imageUrl(),
+                request.estimatedMinutes()
         );
         updateModuleUseCase.execute(command);
         return ResponseEntity.noContent().build();
@@ -309,6 +315,9 @@ public class AdminCourseController {
                 d.getDescription(),
                 d.getImageUrl(),
                 d.isPublished(),
+                d.getTotalEstimatedMinutes(),
+                d.getCategoryName(),
+                d.getCategorySlug(),
                 modules
         );
     }
@@ -324,6 +333,7 @@ public class AdminCourseController {
                 m.getImageUrl(),
                 m.getModuleOrder(),
                 m.isHasQuiz(),
+                m.getEstimatedMinutes(),
                 blocks
         );
     }

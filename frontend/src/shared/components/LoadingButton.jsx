@@ -65,10 +65,14 @@ export function LoadingButton({
         className={className}
         aria-busy={loading}
         aria-disabled={isDisabled}
+        aria-label={loading ? 'Processing…' : undefined}
         {...rest}
       >
         {loading ? (
-          <icons.loader size={20} className="loading-button-spin" style={{ flexShrink: 0 }} />
+          <>
+            <icons.loader size={20} className="loading-button-spin" style={{ flexShrink: 0 }} />
+            <span className="sr-only">Processing, please wait…</span>
+          </>
         ) : (
           children
         )}

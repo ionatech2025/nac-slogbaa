@@ -1,4 +1,5 @@
 import { FontAwesomeIcon, icons } from '../../../../shared/icons.jsx'
+import certBg from '../../../../assets/images/certificates/cert1.jpg'
 
 const styles = {
   card: {
@@ -10,7 +11,9 @@ const styles = {
   },
   header: {
     height: 140,
-    background: 'linear-gradient(135deg, var(--slogbaa-blue) 0%, #1a4d7a 100%)',
+    backgroundImage: `linear-gradient(135deg, rgba(37,99,235,0.85) 0%, rgba(26,77,122,0.85) 100%), url(${certBg})`,
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',

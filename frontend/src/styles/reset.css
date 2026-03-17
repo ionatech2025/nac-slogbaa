@@ -1,0 +1,92 @@
+/* === Base Reset & Typography === */
+
+* {
+  box-sizing: border-box;
+}
+
+/* Smooth theme transitions — color and background animate on switch */
+html[data-theme] body,
+html[data-theme] body * {
+  transition: background-color 0.2s ease, color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+html {
+  scroll-behavior: smooth;
+  /* 2026: color-scheme — tells browser to render native controls (scrollbars, inputs) in matching mode */
+  color-scheme: light dark;
+  /* 2026: text-size-adjust — prevents mobile browsers from inflating font sizes */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  background: var(--slogbaa-bg);
+  color: var(--slogbaa-text);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* 2026: font-synthesis — prevent faux bold/italic on system fonts */
+  font-synthesis: none;
+  /* 2026: text-rendering — optimize legibility for body text */
+  text-rendering: optimizeLegibility;
+}
+
+/* Calm text selection color */
+::selection {
+  background: rgba(37, 99, 235, 0.15);
+  color: var(--slogbaa-text);
+}
+
+a {
+  color: var(--slogbaa-blue);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* Calm micro-interactions: subtle hover lift on interactive cards */
+button {
+  transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease;
+}
+button:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+input, button {
+  font: inherit;
+}
+
+/* Ensure all form fields use theme colors — calm 2026 rounded style */
+input,
+textarea,
+select {
+  background-color: var(--slogbaa-bg);
+  color: var(--slogbaa-text);
+  border-color: var(--slogbaa-border);
+  border-radius: 10px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--slogbaa-blue);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  outline: none;
+}
+/* Override browser autofill and ensure dark mode visibility */
+[data-theme='dark'] input,
+[data-theme='dark'] textarea,
+[data-theme='dark'] select {
+  background-color: var(--slogbaa-surface) !important;
+  color: var(--slogbaa-text) !important;
+}
+/* Placeholder text in dark mode */
+[data-theme='dark'] input::placeholder,
+[data-theme='dark'] textarea::placeholder {
+  color: var(--slogbaa-text-muted);
+}

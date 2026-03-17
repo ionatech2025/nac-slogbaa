@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { Icon, icons } from '../../../shared/icons.jsx'
 import { getQuizForModule, startQuizAttempt, submitQuizAttempt } from '../../../api/assessment/quizzes.js'
 import { recordModuleCompletion } from '../../../api/learning/courses.js'
 
@@ -100,13 +101,51 @@ const styles = {
     color: kind === 'pass' ? 'var(--slogbaa-green)' : 'var(--slogbaa-error)',
     border: `1px solid ${kind === 'pass' ? 'rgba(52, 211, 153, 0.35)' : 'rgba(248, 113, 113, 0.35)'}`,
   }),
+  // Review section styles
+  reviewSection: {
+    marginTop: '1rem',
+    paddingTop: '1rem',
+    borderTop: '1px solid var(--slogbaa-border)',
+  },
+  reviewToggle: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem',
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    padding: '0.25rem 0',
+    fontSize: '0.9375rem',
+    fontWeight: 600,
+    color: 'var(--slogbaa-blue)',
+  },
+  reviewCard: (correct) => ({
+    margin: '0.75rem 0 0',
+    padding: '0.75rem 1rem',
+    borderRadius: 12,
+    border: `1px solid ${correct ? 'rgba(52, 211, 153, 0.35)' : 'rgba(248, 113, 113, 0.35)'}`,
+    background: correct ? 'rgba(52, 211, 153, 0.04)' : 'rgba(248, 113, 113, 0.04)',
+  }),
+  reviewQText: {
+    margin: '0 0 0.5rem',
+    fontWeight: 600,
+    fontSize: '0.9375rem',
+    color: 'var(--slogbaa-text)',
+  },
+  reviewAnswer: {
+    display: 'flex',
+    alignItems: 'flex-start',
+    gap: '0.4rem',
+    fontSize: '0.875rem',
+    marginBottom: '0.25rem',
+  },
 }
 
 function normalizeType(t) {
   return String(t || '').toUpperCase()
 }
 
-export function ModuleQuizPanel({ token, courseId, moduleId, visible, showPanel = true, notesReadThrough = true, notesVisible = true, onStartQuiz, onRereadNotes }) {
+export function ModuleQuizPanel({ token, courseId, moduleId, visible, showPanel = true, notesReadThrough = true, notesVisible = true, onStartQuiz, onRereadNotes, onModuleCompleted }) {
   const [loading, setLoading] = useState(false)
   const [quiz, setQuiz] = useState(null)
   const [attempt, setAttempt] = useState(null)
@@ -114,6 +153,7 @@ export function ModuleQuizPanel({ token, courseId, moduleId, visible, showPanel 
   const [submitting, setSubmitting] = useState(false)
   const [result, setResult] = useState(null)
   const [error, setError] = useState(null)
+  const [reviewExpanded, setReviewExpanded] = useState(true)
   const canStartQuiz = notesReadThrough && !loading && quiz
 
   useEffect(() => {
@@ -183,6 +223,7 @@ export function ModuleQuizPanel({ token, courseId, moduleId, visible, showPanel 
       setResult(r)
       if (r?.passed) {
         await recordModuleCompletion(token, courseId, moduleId, true)
+        onModuleCompleted?.()
       }
     } catch (e) {
       setError(e?.message ?? 'Failed to submit attempt.')
@@ -320,6 +361,57 @@ export function ModuleQuizPanel({ token, courseId, moduleId, visible, showPanel 
               {submitting ? 'Submitting…' : 'Submit answers'}
             </button>
           </div>
+
+          {result && result.answers && result.answers.length > 0 && (
+            <div style={styles.reviewSection}>
+              <button
+                type="button"
+                onClick={() => setReviewExpanded((v) => !v)}
+                style={styles.reviewToggle}
+                aria-expanded={reviewExpanded}
+              >
+                <Icon icon={icons.enrolled} size="1em" />
+                {reviewExpanded ? 'Hide Review' : 'Review Your Answers'}
+              </button>
+
+              {reviewExpanded && (
+                <div>
+                  {result.answers.map((a, idx) => (
+                    <div key={a.questionId || idx} style={styles.reviewCard(a.correct)}>
+                      <p style={styles.reviewQText}>
+                        {idx + 1}. {a.questionText}
+                      </p>
+                      <div style={styles.reviewAnswer}>
+                        <Icon
+                          icon={a.correct ? icons.enrolled : icons.close}
+                          size="1em"
+                          style={{ color: a.correct ? 'var(--slogbaa-green)' : 'var(--slogbaa-error)', marginTop: 2, flexShrink: 0 }}
+                        />
+                        <span style={{ color: a.correct ? 'var(--slogbaa-green)' : 'var(--slogbaa-error)' }}>
+                          Your answer: {a.selectedOptionText || '(none)'}
+                        </span>
+                      </div>
+                      {!a.correct && a.correctOptionText && (
+                        <div style={styles.reviewAnswer}>
+                          <Icon
+                            icon={icons.enrolled}
+                            size="1em"
+                            style={{ color: 'var(--slogbaa-green)', marginTop: 2, flexShrink: 0 }}
+                          />
+                          <span style={{ color: 'var(--slogbaa-green)' }}>
+                            Correct answer: {a.correctOptionText}
+                          </span>
+                        </div>
+                      )}
+                      <div style={{ fontSize: '0.8125rem', color: 'var(--slogbaa-text-muted)', marginTop: '0.25rem' }}>
+                        {a.pointsAwarded}/{a.totalPoints} point{a.totalPoints !== 1 ? 's' : ''}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
     </section>

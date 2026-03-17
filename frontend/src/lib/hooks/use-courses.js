@@ -8,9 +8,11 @@ import {
   checkEnrollment,
   getResumePoint,
   enrollInCourse,
+  unenrollFromCourse,
   recordProgress,
   recordModuleCompletion,
 } from '../../api/learning/courses.js'
+import { getLeaderboard } from '../../api/leaderboard.js'
 
 export function usePublishedCourses() {
   const { token } = useAuth()
@@ -18,6 +20,7 @@ export function usePublishedCourses() {
     queryKey: queryKeys.courses.published(),
     queryFn: () => getPublishedCourses(token),
     enabled: !!token,
+    staleTime: 5 * 60_000, // 5 min — course catalog changes infrequently
   })
 }
 
@@ -27,16 +30,41 @@ export function useEnrolledCourses() {
     queryKey: queryKeys.courses.enrolled(),
     queryFn: () => getEnrolledCourses(token),
     enabled: !!token,
+    staleTime: 2 * 60_000, // 2 min — enrollment status changes on user action
   })
 }
 
 export function useCourseDetail(courseId) {
   const { token } = useAuth()
+  const qc = useQueryClient()
   return useQuery({
     queryKey: queryKeys.courses.detail(courseId),
     queryFn: () => getCourseDetails(token, courseId),
     enabled: !!token && !!courseId,
+    staleTime: 5 * 60_000, // 5 min — course content changes infrequently
+    // Use cached course summary from list as placeholder while detail loads
+    placeholderData: () => {
+      const courses = qc.getQueryData(queryKeys.courses.published())
+      return courses?.find?.((c) => c.id === courseId)
+    },
   })
+}
+
+/**
+ * Prefetch course detail on hover — call this when user hovers a course card.
+ * Silently fetches and caches the detail data for instant navigation.
+ */
+export function usePrefetchCourseDetail() {
+  const { token } = useAuth()
+  const qc = useQueryClient()
+  return (courseId) => {
+    if (!token || !courseId) return
+    qc.prefetchQuery({
+      queryKey: queryKeys.courses.detail(courseId),
+      queryFn: () => getCourseDetails(token, courseId),
+      staleTime: 5 * 60_000,
+    })
+  }
 }
 
 export function useCheckEnrollment(courseId) {
@@ -85,6 +113,19 @@ export function useEnrollInCourse() {
   })
 }
 
+export function useUnenroll() {
+  const { token } = useAuth()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (courseId) => unenrollFromCourse(token, courseId),
+    onSuccess: (_data, courseId) => {
+      qc.invalidateQueries({ queryKey: queryKeys.courses.enrolled() })
+      qc.invalidateQueries({ queryKey: queryKeys.courses.published() })
+      qc.invalidateQueries({ queryKey: queryKeys.courses.enrollment(courseId) })
+    },
+  })
+}
+
 export function useRecordProgress() {
   const { token } = useAuth()
   return useMutation({
@@ -104,5 +145,15 @@ export function useRecordModuleCompletion() {
       qc.invalidateQueries({ queryKey: queryKeys.courses.enrolled() })
       qc.invalidateQueries({ queryKey: queryKeys.courses.detail(courseId) })
     },
+  })
+}
+
+export function useLeaderboard(limit = 10) {
+  const { token } = useAuth()
+  return useQuery({
+    queryKey: queryKeys.leaderboard.top(limit),
+    queryFn: () => getLeaderboard(token, limit),
+    enabled: !!token,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   })
 }

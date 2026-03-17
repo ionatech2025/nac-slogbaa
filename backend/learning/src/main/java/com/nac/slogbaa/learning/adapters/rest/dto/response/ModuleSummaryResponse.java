@@ -12,5 +12,6 @@ public record ModuleSummaryResponse(
         String imageUrl,
         int moduleOrder,
         boolean hasQuiz,
+        Integer estimatedMinutes,
         List<ContentBlockSummaryResponse> contentBlocks
 ) {}

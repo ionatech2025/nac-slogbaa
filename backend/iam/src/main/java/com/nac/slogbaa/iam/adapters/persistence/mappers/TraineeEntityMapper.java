@@ -31,7 +31,8 @@ public class TraineeEntityMapper {
                 profile,
                 e.isActive(),
                 e.getRegistrationDate(),
-                e.isEmailVerified()
+                e.isEmailVerified(),
+                e.getProfileImageUrl()
         );
     }
 
@@ -60,6 +61,7 @@ public class TraineeEntityMapper {
         e.setActive(domain.isActive());
         e.setRegistrationDate(domain.getRegistrationDate());
         e.setEmailVerified(domain.isEmailVerified());
+        e.setProfileImageUrl(domain.getProfileImageUrl());
         e.setCreatedAt(domain.getRegistrationDate());
         e.setUpdatedAt(domain.getRegistrationDate());
         return e;

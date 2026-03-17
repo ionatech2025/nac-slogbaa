@@ -10,6 +10,7 @@ import com.nac.slogbaa.iam.application.service.AuthenticateUserService;
 import com.nac.slogbaa.iam.core.aggregate.StaffUser;
 import com.nac.slogbaa.iam.core.aggregate.Trainee;
 import com.nac.slogbaa.iam.core.entity.Profile;
+import com.nac.slogbaa.iam.core.exception.EmailNotVerifiedException;
 import com.nac.slogbaa.iam.core.exception.InvalidCredentialsException;
 import com.nac.slogbaa.iam.core.valueobject.*;
 
@@ -43,7 +44,7 @@ class AuthenticateUserServiceTest {
     @Test
     void authenticateTraineeSuccess() {
         UUID id = UUID.randomUUID();
-        Trainee trainee = createTrainee(id, "trainee@test.com", "hashed-pw", true);
+        Trainee trainee = createTrainee(id, "trainee@test.com", "hashed-pw", true, true);
         traineeRepo.setResult(trainee);
         passwordHasher.setMatches(true);
 
@@ -58,7 +59,7 @@ class AuthenticateUserServiceTest {
 
     @Test
     void authenticateInactiveTraineeThrows() {
-        Trainee trainee = createTrainee(UUID.randomUUID(), "inactive@test.com", "hashed-pw", false);
+        Trainee trainee = createTrainee(UUID.randomUUID(), "inactive@test.com", "hashed-pw", false, true);
         traineeRepo.setResult(trainee);
 
         assertThrows(InvalidCredentialsException.class, () ->
@@ -66,8 +67,18 @@ class AuthenticateUserServiceTest {
     }
 
     @Test
+    void authenticateUnverifiedEmailThrows() {
+        Trainee trainee = createTrainee(UUID.randomUUID(), "unverified@test.com", "hashed-pw", true, false);
+        traineeRepo.setResult(trainee);
+        passwordHasher.setMatches(true);
+
+        assertThrows(EmailNotVerifiedException.class, () ->
+                service.authenticate(new AuthenticationCommand("unverified@test.com", "password")));
+    }
+
+    @Test
     void authenticateWrongPasswordThrows() {
-        Trainee trainee = createTrainee(UUID.randomUUID(), "user@test.com", "hashed-pw", true);
+        Trainee trainee = createTrainee(UUID.randomUUID(), "user@test.com", "hashed-pw", true, true);
         traineeRepo.setResult(trainee);
         passwordHasher.setMatches(false);
 
@@ -81,7 +92,7 @@ class AuthenticateUserServiceTest {
                 service.authenticate(new AuthenticationCommand("nobody@test.com", "password")));
     }
 
-    private Trainee createTrainee(UUID id, String email, String passwordHash, boolean active) {
+    private Trainee createTrainee(UUID id, String email, String passwordHash, boolean active, boolean emailVerified) {
         return new Trainee(
                 new TraineeId(id),
                 new Email(email),
@@ -97,7 +108,7 @@ class AuthenticateUserServiceTest {
                 ),
                 active,
                 Instant.now(),
-                false
+                emailVerified
         );
     }
 
@@ -118,6 +129,9 @@ class AuthenticateUserServiceTest {
         @Override public void deleteById(UUID id) {}
         @Override public long count() { return 0; }
         @Override public void updatePasswordHash(UUID traineeId, String newPasswordHash) {}
+        @Override public void setEmailVerified(UUID traineeId, boolean verified) {}
+        @Override public void softDelete(UUID traineeId, String reason) {}
+        @Override public void updateProfileImage(UUID traineeId, String profileImageUrl) {}
     }
 
     private static class StubStaffRepository implements StaffUserRepositoryPort {

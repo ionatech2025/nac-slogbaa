@@ -1,6 +1,8 @@
 package com.nac.slogbaa.progress.application.service;
 
 import com.nac.slogbaa.learning.application.port.out.CourseDetailsQueryPort;
+import com.nac.slogbaa.progress.application.port.in.CheckAndAwardBadgesUseCase;
+import com.nac.slogbaa.progress.application.port.in.CreateNotificationUseCase;
 import com.nac.slogbaa.progress.application.port.in.IssueCertificateUseCase;
 import com.nac.slogbaa.progress.application.port.in.RecordModuleCompletionUseCase;
 import com.nac.slogbaa.progress.application.port.out.ModuleCompletionPort;
@@ -19,15 +21,21 @@ public final class RecordModuleCompletionService implements RecordModuleCompleti
     private final ModuleCompletionPort moduleCompletionPort;
     private final CourseDetailsQueryPort courseDetailsQueryPort;
     private final IssueCertificateUseCase issueCertificateUseCase;
+    private final CheckAndAwardBadgesUseCase checkAndAwardBadgesUseCase;
+    private final CreateNotificationUseCase createNotificationUseCase;
 
     public RecordModuleCompletionService(TraineeProgressRepositoryPort traineeProgressRepository,
                                          ModuleCompletionPort moduleCompletionPort,
                                          CourseDetailsQueryPort courseDetailsQueryPort,
-                                         IssueCertificateUseCase issueCertificateUseCase) {
+                                         IssueCertificateUseCase issueCertificateUseCase,
+                                         CheckAndAwardBadgesUseCase checkAndAwardBadgesUseCase,
+                                         CreateNotificationUseCase createNotificationUseCase) {
         this.traineeProgressRepository = traineeProgressRepository;
         this.moduleCompletionPort = moduleCompletionPort;
         this.courseDetailsQueryPort = courseDetailsQueryPort;
         this.issueCertificateUseCase = issueCertificateUseCase;
+        this.checkAndAwardBadgesUseCase = checkAndAwardBadgesUseCase;
+        this.createNotificationUseCase = createNotificationUseCase;
     }
 
     @Override
@@ -57,6 +65,27 @@ public final class RecordModuleCompletionService implements RecordModuleCompleti
             try {
                 issueCertificateUseCase.issueIfEligible(traineeId, courseId);
             } catch (Exception ignored) {
+            }
+            try {
+                checkAndAwardBadgesUseCase.checkAndAward(traineeId, "FIRST_COMPLETION");
+                checkAndAwardBadgesUseCase.checkAndAward(traineeId, "COURSES_COMPLETED_3");
+                checkAndAwardBadgesUseCase.checkAndAward(traineeId, "COURSES_COMPLETED_5");
+            } catch (Exception ignored) {
+                // Badge checks must never break the main completion flow
+            }
+            try {
+                String courseTitle = courseDetailsQueryPort.findCourseDetailsById(courseId)
+                        .map(c -> c.getTitle())
+                        .orElse("a course");
+                createNotificationUseCase.create(
+                        traineeId,
+                        "COURSE_COMPLETED",
+                        "Course Completed!",
+                        "Congratulations! You completed '" + courseTitle + "'",
+                        "/dashboard/courses/" + courseId
+                );
+            } catch (Exception ignored) {
+                // Notification must never break the main completion flow
             }
         }
     }

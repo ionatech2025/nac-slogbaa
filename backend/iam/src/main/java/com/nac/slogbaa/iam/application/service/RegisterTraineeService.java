@@ -3,6 +3,7 @@ package com.nac.slogbaa.iam.application.service;
 import com.nac.slogbaa.iam.application.dto.command.RegisterTraineeCommand;
 import com.nac.slogbaa.iam.application.dto.result.RegisterTraineeResult;
 import com.nac.slogbaa.iam.application.port.in.RegisterTraineeUseCase;
+import com.nac.slogbaa.iam.application.port.in.VerifyEmailUseCase;
 import com.nac.slogbaa.iam.application.port.out.PasswordHasherPort;
 import com.nac.slogbaa.iam.application.port.out.StaffUserRepositoryPort;
 import com.nac.slogbaa.iam.application.port.out.TraineeRepositoryPort;
@@ -32,15 +33,18 @@ public final class RegisterTraineeService implements RegisterTraineeUseCase {
     private final StaffUserRepositoryPort staffUserRepository;
     private final PasswordHasherPort passwordHasher;
     private final TraineeNotificationPort traineeNotificationPort;
+    private final VerifyEmailUseCase verifyEmailUseCase;
 
     public RegisterTraineeService(TraineeRepositoryPort traineeRepository,
                                   StaffUserRepositoryPort staffUserRepository,
                                   PasswordHasherPort passwordHasher,
-                                  TraineeNotificationPort traineeNotificationPort) {
+                                  TraineeNotificationPort traineeNotificationPort,
+                                  VerifyEmailUseCase verifyEmailUseCase) {
         this.traineeRepository = traineeRepository;
         this.staffUserRepository = staffUserRepository;
         this.passwordHasher = passwordHasher;
         this.traineeNotificationPort = traineeNotificationPort;
+        this.verifyEmailUseCase = verifyEmailUseCase;
     }
 
     @Override
@@ -83,6 +87,7 @@ public final class RegisterTraineeService implements RegisterTraineeUseCase {
         traineeRepository.save(trainee);
 
         traineeNotificationPort.sendTraineeWelcomeEmail(email.getValue(), fullName.getFullName());
+        verifyEmailUseCase.sendVerificationEmail(email.getValue());
 
         return new RegisterTraineeResult(id.getValue(), email.getValue());
     }

@@ -6,6 +6,8 @@ import com.nac.slogbaa.learning.core.exception.CourseNotFoundException;
 import com.nac.slogbaa.learning.core.exception.LibraryResourceNotFoundException;
 import com.nac.slogbaa.learning.core.exception.ModuleHasCompletionsException;
 import com.nac.slogbaa.learning.core.exception.ModuleNotFoundException;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
  * Maps learning domain exceptions to HTTP responses (e.g. 404 for not found).
  */
 @RestControllerAdvice
+@Order(Ordered.HIGHEST_PRECEDENCE)
 public class LearningExceptionHandler {
 
     @ExceptionHandler(CourseNotFoundException.class)
