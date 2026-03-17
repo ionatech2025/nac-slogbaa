@@ -5,7 +5,9 @@ import com.nac.slogbaa.iam.adapters.persistence.repository.JpaPasswordResetToken
 import com.nac.slogbaa.iam.application.port.out.PasswordResetTokenRepositoryPort;
 import com.nac.slogbaa.iam.core.entity.PasswordResetToken;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.Optional;
 
 @Component
@@ -35,5 +37,11 @@ public class PasswordResetTokenRepositoryAdapter implements PasswordResetTokenRe
     @Override
     public void deleteByToken(String token) {
         jpaRepository.findByToken(token).ifPresent(jpaRepository::delete);
+    }
+
+    @Override
+    @Transactional
+    public int deleteExpired() {
+        return jpaRepository.deleteExpiredBefore(Instant.now());
     }
 }

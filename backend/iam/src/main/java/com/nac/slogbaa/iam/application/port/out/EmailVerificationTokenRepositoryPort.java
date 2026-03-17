@@ -17,5 +17,8 @@ public interface EmailVerificationTokenRepositoryPort {
 
     void deleteByUserEmail(String userEmail);
 
-    void deleteExpired();
+    /**
+     * Delete all tokens with expiry date before now. Returns the number of rows deleted.
+     */
+    int deleteExpired();
 }
