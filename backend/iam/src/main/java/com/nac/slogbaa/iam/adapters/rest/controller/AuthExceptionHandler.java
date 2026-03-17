@@ -11,6 +11,8 @@ import com.nac.slogbaa.iam.core.exception.StaffCannotSelfRegisterException;
 import com.nac.slogbaa.iam.core.exception.StaffNotFoundException;
 import com.nac.slogbaa.iam.core.exception.StaffRoleLimitReachedException;
 import com.nac.slogbaa.iam.core.exception.TraineeNotFoundException;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -18,8 +20,10 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 /**
  * Maps core IAM exceptions to HTTP responses. Controllers use core APIs only; this adapter maps failures.
+ * Highest precedence so these specific handlers run before the global catch-all.
  */
 @RestControllerAdvice
+@Order(Ordered.HIGHEST_PRECEDENCE)
 public class AuthExceptionHandler {
 
     @ExceptionHandler(InvalidCredentialsException.class)
