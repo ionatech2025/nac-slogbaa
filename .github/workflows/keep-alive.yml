@@ -1,0 +1,120 @@
+# =============================================================================
+# SLOGBAA Keep-Alive — Render Backend
+# Prevents Render free-tier cold starts by pinging the health endpoint every
+# 10 minutes. GitHub Actions cron can drift ±5 min, so 10 min keeps us safely
+# under the 15-minute inactivity sleep threshold.
+# =============================================================================
+
+name: Keep Alive
+
+on:
+  schedule:
+    # Every 10 minutes, 24/7
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'Reason for manual ping'
+        required: false
+        type: string
+
+concurrency:
+  group: keep-alive
+  cancel-in-progress: true
+
+env:
+  BACKEND_URL: https://slogbaa-backend.onrender.com
+  HEALTH_ENDPOINT: /actuator/health/readiness
+  MAX_RETRIES: 3
+  RETRY_DELAY: 15
+
+jobs:
+  ping:
+    name: Ping backend
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Health check with retry
+        id: health
+        run: |
+          url="${BACKEND_URL}${HEALTH_ENDPOINT}"
+          attempt=0
+          status=0
+          response_time=0
+
+          while [ $attempt -lt $MAX_RETRIES ]; do
+            attempt=$((attempt + 1))
+            echo "::group::Attempt $attempt/$MAX_RETRIES"
+
+            result=$(curl -s -o /dev/null -w "%{http_code} %{time_total}" \
+              --max-time 90 "$url" 2>&1) || true
+
+            status=$(echo "$result" | awk '{print $1}')
+            response_time=$(echo "$result" | awk '{print $2}')
+
+            echo "Status: $status"
+            echo "Response time: ${response_time}s"
+            echo "::endgroup::"
+
+            if [ "$status" = "200" ]; then
+              echo "status=$status" >> "$GITHUB_OUTPUT"
+              echo "response_time=$response_time" >> "$GITHUB_OUTPUT"
+              echo "attempts=$attempt" >> "$GITHUB_OUTPUT"
+
+              # Flag cold start (response > 10s typically means the container was sleeping)
+              cold_start="false"
+              if [ "$(echo "$response_time > 10" | bc -l)" = "1" ]; then
+                cold_start="true"
+              fi
+              echo "cold_start=$cold_start" >> "$GITHUB_OUTPUT"
+              break
+            fi
+
+            if [ $attempt -lt $MAX_RETRIES ]; then
+              echo "Retrying in ${RETRY_DELAY}s..."
+              sleep "$RETRY_DELAY"
+            fi
+          done
+
+          if [ "$status" != "200" ]; then
+            echo "status=$status" >> "$GITHUB_OUTPUT"
+            echo "response_time=$response_time" >> "$GITHUB_OUTPUT"
+            echo "attempts=$attempt" >> "$GITHUB_OUTPUT"
+            echo "cold_start=false" >> "$GITHUB_OUTPUT"
+            echo "::error::Backend unreachable after $MAX_RETRIES attempts (last status: $status)"
+            exit 1
+          fi
+
+      - name: Job summary
+        if: always()
+        run: |
+          status="${{ steps.health.outputs.status }}"
+          time="${{ steps.health.outputs.response_time }}"
+          attempts="${{ steps.health.outputs.attempts }}"
+          cold="${{ steps.health.outputs.cold_start }}"
+          trigger="${{ github.event_name }}"
+          reason="${{ inputs.reason }}"
+
+          if [ "$status" = "200" ]; then
+            icon="✅"
+          else
+            icon="❌"
+          fi
+
+          cold_label=""
+          if [ "$cold" = "true" ]; then
+            cold_label=" ⚠️ Cold start detected"
+          fi
+
+          cat >> "$GITHUB_STEP_SUMMARY" <<EOF
+          ## ${icon} Keep-Alive Ping
+
+          | Metric | Value |
+          |--------|-------|
+          | **Status** | \`${status}\` |
+          | **Response time** | ${time}s${cold_label} |
+          | **Attempts** | ${attempts}/${{ env.MAX_RETRIES }} |
+          | **Trigger** | ${trigger} |
+          | **Timestamp** | $(date -u '+%Y-%m-%d %H:%M:%S UTC') |
+          $([ -n "$reason" ] && echo "| **Reason** | ${reason} |")
+          EOF
