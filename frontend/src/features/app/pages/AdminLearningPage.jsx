@@ -135,6 +135,12 @@ const styles = {
     cursor: 'pointer',
     marginRight: '0.5rem',
   },
+  actionWrap: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.35rem',
+    flexWrap: 'nowrap',
+  },
   actionIconBtn: {
     display: 'inline-flex',
     alignItems: 'center',
@@ -149,7 +155,7 @@ const styles = {
     border: 'none',
     borderRadius: 8,
     cursor: 'pointer',
-    marginRight: '0.35rem',
+    flexShrink: 0,
   },
   badge: {
     display: 'inline-block',
@@ -375,39 +381,41 @@ export function AdminLearningPage() {
                   <td style={styles.td}>{course.moduleCount}</td>
                   {isSuperAdmin && (
                     <td style={styles.td} onClick={(e) => e.stopPropagation()}>
-                      <button
-                        type="button"
-                        style={styles.actionIconBtn}
-                        onClick={() => {
-                          setModalContext({ course })
-                          setModal('editCourse')
-                        }}
-                        title="Edit course"
-                        aria-label="Edit course"
-                      >
-                        <FontAwesomeIcon icon={icons.edit} />
-                      </button>
-                      {!course.published ? (
+                      <div style={styles.actionWrap}>
                         <button
                           type="button"
                           style={styles.actionIconBtn}
-                          onClick={(e) => handlePublish(e, course.id)}
-                          title="Publish"
-                          aria-label="Publish course"
+                          onClick={() => {
+                            setModalContext({ course })
+                            setModal('editCourse')
+                          }}
+                          title="Edit course"
+                          aria-label="Edit course"
                         >
-                          <FontAwesomeIcon icon={icons.publish} />
+                          <FontAwesomeIcon icon={icons.edit} />
                         </button>
-                      ) : (
-                        <button
-                          type="button"
-                          style={styles.actionIconBtn}
-                          onClick={(e) => handleUnpublish(e, course.id)}
-                          title="Unpublish"
-                          aria-label="Unpublish course"
-                        >
-                          <FontAwesomeIcon icon={icons.unpublish} />
-                        </button>
-                      )}
+                        {!course.published ? (
+                          <button
+                            type="button"
+                            style={styles.actionIconBtn}
+                            onClick={(e) => handlePublish(e, course.id)}
+                            title="Publish"
+                            aria-label="Publish course"
+                          >
+                            <FontAwesomeIcon icon={icons.publish} />
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            style={styles.actionIconBtn}
+                            onClick={(e) => handleUnpublish(e, course.id)}
+                            title="Unpublish"
+                            aria-label="Unpublish course"
+                          >
+                            <FontAwesomeIcon icon={icons.unpublish} />
+                          </button>
+                        )}
+                      </div>
                     </td>
                   )}
                 </tr>
