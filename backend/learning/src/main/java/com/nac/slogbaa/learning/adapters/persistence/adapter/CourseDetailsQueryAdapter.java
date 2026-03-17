@@ -19,9 +19,14 @@ import com.nac.slogbaa.learning.adapters.persistence.repository.JpaContentBlockR
 import com.nac.slogbaa.learning.adapters.persistence.repository.JpaCourseRepository;
 import com.nac.slogbaa.learning.adapters.persistence.repository.JpaModuleRepository;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -69,7 +74,7 @@ public class CourseDetailsQueryAdapter implements CourseDetailsQueryPort, Course
 
         // Batch fetch module counts in a single query instead of N queries
         List<UUID> courseIds = courses.stream().map(CourseEntity::getId).toList();
-        java.util.Map<UUID, Integer> moduleCounts = new java.util.HashMap<>();
+        Map<UUID, Integer> moduleCounts = new HashMap<>();
         for (Object[] row : jpaModuleRepository.findModuleStatsByCourseIds(courseIds)) {
             moduleCounts.put((UUID) row[0], ((Number) row[1]).intValue());
         }
@@ -95,10 +100,52 @@ public class CourseDetailsQueryAdapter implements CourseDetailsQueryPort, Course
     }
 
     @Override
+    public Page<AdminCourseSummary> findAllCourses(Pageable pageable) {
+        Page<CourseEntity> page = jpaCourseRepository.findAll(pageable);
+        List<CourseEntity> courses = page.getContent();
+        if (courses.isEmpty()) {
+            return new PageImpl<>(List.of(), pageable, 0);
+        }
+
+        List<UUID> courseIds = courses.stream().map(CourseEntity::getId).toList();
+        Map<UUID, Integer> moduleCounts = new HashMap<>();
+        for (Object[] row : jpaModuleRepository.findModuleStatsByCourseIds(courseIds)) {
+            moduleCounts.put((UUID) row[0], ((Number) row[1]).intValue());
+        }
+
+        List<AdminCourseSummary> summaries = courses.stream()
+                .map(c -> new AdminCourseSummary(
+                        c.getId(),
+                        c.getTitle(),
+                        c.getDescription(),
+                        c.getImageUrl(),
+                        c.isPublished(),
+                        moduleCounts.getOrDefault(c.getId(), 0),
+                        c.getCreatedAt(),
+                        c.getCategory() != null ? c.getCategory().getName() : null,
+                        c.getCategory() != null ? c.getCategory().getSlug() : null
+                ))
+                .toList();
+
+        return new PageImpl<>(summaries, pageable, page.getTotalElements());
+    }
+
+    @Override
+    public long countAllCourses() {
+        return jpaCourseRepository.count();
+    }
+
+    @Override
     public Optional<CourseDetails> findCourseDetailsByIdForAdmin(UUID courseId) {
         return jpaCourseRepository.findById(courseId)
                 .map(this::toCourseWithModules)
                 .map(this::toCourseDetails);
+    }
+
+    @Override
+    public Optional<UUID> findCategoryIdByCourseId(UUID courseId) {
+        return jpaCourseRepository.findById(courseId)
+                .map(c -> c.getCategory() != null ? c.getCategory().getId() : null);
     }
 
     @Override

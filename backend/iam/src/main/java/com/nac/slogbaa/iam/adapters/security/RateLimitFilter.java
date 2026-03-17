@@ -38,6 +38,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
     private final int authMaxRequests;
     private final int uploadMaxRequests;
+    private final int adminMutationMaxRequests;
     private final long windowSeconds;
 
     // Key: "clientIp:endpoint-group", Value: window state
@@ -46,9 +47,11 @@ public class RateLimitFilter extends OncePerRequestFilter {
     public RateLimitFilter(
             @Value("${app.rate-limit.auth.max-requests:20}") int authMaxRequests,
             @Value("${app.rate-limit.upload.max-requests:30}") int uploadMaxRequests,
+            @Value("${app.rate-limit.admin-mutation.max-requests:30}") int adminMutationMaxRequests,
             @Value("${app.rate-limit.window-seconds:60}") long windowSeconds) {
         this.authMaxRequests = authMaxRequests;
         this.uploadMaxRequests = uploadMaxRequests;
+        this.adminMutationMaxRequests = adminMutationMaxRequests;
         this.windowSeconds = windowSeconds;
     }
 
@@ -57,6 +60,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
                                     @NonNull HttpServletResponse response,
                                     @NonNull FilterChain filterChain) throws ServletException, IOException {
         String path = request.getRequestURI();
+        String method = request.getMethod();
         String clientIp = resolveClientIp(request);
 
         int maxRequests;
@@ -68,6 +72,9 @@ public class RateLimitFilter extends OncePerRequestFilter {
         } else if (path.startsWith("/api/files/upload")) {
             group = "upload";
             maxRequests = uploadMaxRequests;
+        } else if (path.startsWith("/api/admin/") && isMutationMethod(method)) {
+            group = "admin-mutation";
+            maxRequests = adminMutationMaxRequests;
         } else {
             // No rate limiting for other endpoints
             filterChain.doFilter(request, response);
@@ -108,6 +115,11 @@ public class RateLimitFilter extends OncePerRequestFilter {
         if (count == 1 && windows.size() > 10000) {
             cleanupExpiredWindows();
         }
+    }
+
+    private boolean isMutationMethod(String method) {
+        return "POST".equals(method) || "PUT".equals(method) ||
+               "PATCH".equals(method) || "DELETE".equals(method);
     }
 
     private String resolveClientIp(HttpServletRequest request) {
