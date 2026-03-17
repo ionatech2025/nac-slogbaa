@@ -1,0 +1,6 @@
+com\nac\slogbaa\shared\ports\StaffNotificationPort.class
+com\nac\slogbaa\shared\ports\TraineeNotificationPort.class
+com\nac\slogbaa\shared\ports\FileStoragePort.class
+com\nac\slogbaa\shared\ports\file\FileStorageException.class
+com\nac\slogbaa\shared\ports\file\FileUploadResult.class
+com\nac\slogbaa\shared\ports\PasswordResetNotificationPort.class

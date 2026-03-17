@@ -1,0 +1,5 @@
+com\nac\slogbaa\iam\unit\core\EmailTest.class
+com\nac\slogbaa\iam\integration\TraineeRepositoryAdapterTest.class
+com\nac\slogbaa\iam\integration\AuthControllerTest.class
+com\nac\slogbaa\iam\unit\core\TraineeTest.class
+com\nac\slogbaa\iam\unit\application\RegisterTraineeServiceTest.class
