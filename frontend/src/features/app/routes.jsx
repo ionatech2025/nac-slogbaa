@@ -6,6 +6,7 @@ import { NotFoundPage } from '../../shared/components/NotFoundPage.jsx'
 // Eager: critical path (homepage, auth shell, trainee guard/layout)
 import { HomePage } from './pages/HomePage.jsx'
 import { RequireTrainee } from './components/RequireTrainee.jsx'
+import { RequireAdmin } from './components/RequireAdmin.jsx'
 import { TraineeLayout } from './layouts/TraineeLayout.jsx'
 
 // Lazy: IAM pages
@@ -58,18 +59,20 @@ export function AppRoutes() {
           <Route path="help" element={<Lazy><HelpPage /></Lazy>} />
         </Route>
       </Route>
-      <Route path="/admin" element={<Lazy><AdminLayout /></Lazy>}>
-        <Route index element={<Navigate to="overview" replace />} />
-        <Route path="overview" element={<Lazy><AdminOverviewPage /></Lazy>} />
-        <Route path="users/:userType/:userId" element={<Lazy><AdminUserDetailPage /></Lazy>} />
-        <Route path="homepage" element={<Lazy><AdminHomePage /></Lazy>} />
-        <Route path="learning" element={<Lazy><AdminLearningPage /></Lazy>} />
-        <Route path="learning/:courseId" element={<Lazy><AdminCoursePage /></Lazy>} />
-        <Route path="coursemanagement" element={<Lazy><AdminCourseManagementPage /></Lazy>} />
-        <Route path="learning/:courseId/modules/:moduleId" element={<Lazy><AdminModuleEditorPage /></Lazy>} />
-        <Route path="library" element={<Lazy><AdminLibraryPage /></Lazy>} />
-        <Route path="assessment" element={<Lazy><AdminAssessmentPage /></Lazy>} />
-        <Route path="reports" element={<Lazy><AdminPlaceholderPage title="Reports & Analytics" /></Lazy>} />
+      <Route path="/admin" element={<RequireAdmin />}>
+        <Route element={<Lazy><AdminLayout /></Lazy>}>
+          <Route index element={<Navigate to="overview" replace />} />
+          <Route path="overview" element={<Lazy><AdminOverviewPage /></Lazy>} />
+          <Route path="users/:userType/:userId" element={<Lazy><AdminUserDetailPage /></Lazy>} />
+          <Route path="homepage" element={<Lazy><AdminHomePage /></Lazy>} />
+          <Route path="learning" element={<Lazy><AdminLearningPage /></Lazy>} />
+          <Route path="learning/:courseId" element={<Lazy><AdminCoursePage /></Lazy>} />
+          <Route path="coursemanagement" element={<Lazy><AdminCourseManagementPage /></Lazy>} />
+          <Route path="learning/:courseId/modules/:moduleId" element={<Lazy><AdminModuleEditorPage /></Lazy>} />
+          <Route path="library" element={<Lazy><AdminLibraryPage /></Lazy>} />
+          <Route path="assessment" element={<Lazy><AdminAssessmentPage /></Lazy>} />
+          <Route path="reports" element={<Lazy><AdminPlaceholderPage title="Reports & Analytics" /></Lazy>} />
+        </Route>
       </Route>
       <Route path="*" element={<NotFoundPage />} />
     </Routes>

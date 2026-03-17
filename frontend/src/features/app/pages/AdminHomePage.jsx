@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { Link, useOutletContext } from 'react-router-dom'
+import { Link, useOutletContext, useNavigate } from 'react-router-dom'
 import { Icon, icons } from '../../../shared/icons.jsx'
 import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle.js'
 import { Badge } from '../../../shared/components/Badge.jsx'
@@ -435,7 +435,8 @@ function renderPieLabel({ cx, cy, midAngle, innerRadius, outerRadius, value, nam
 
 // ── Sub-components ──
 
-function KpiCard({ icon, accent, value, label, sub, loading, delay = 0, suffix = '', isText = false }) {
+function KpiCard({ icon, accent, value, label, sub, loading, delay = 0, suffix = '', isText = false, to }) {
+  const navigate = useNavigate()
   if (loading) {
     return (
       <div style={s.kpiCard}>
@@ -445,8 +446,19 @@ function KpiCard({ icon, accent, value, label, sub, loading, delay = 0, suffix =
       </div>
     )
   }
+  const clickable = !!to
+  const handleClick = clickable ? () => navigate(to) : undefined
+  const handleKeyDown = clickable
+    ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate(to) } }
+    : undefined
   return (
-    <div style={s.kpiCard} className={`glass-hover glass-enter${delay ? ` glass-enter-delay-${delay}` : ''}`}>
+    <div
+      style={{ ...s.kpiCard, ...(clickable ? { cursor: 'pointer' } : {}) }}
+      className={`glass-hover glass-enter${delay ? ` glass-enter-delay-${delay}` : ''}${clickable ? ' kpi-clickable' : ''}`}
+      onClick={handleClick}
+      onKeyDown={handleKeyDown}
+      {...(clickable ? { role: 'link', tabIndex: 0, 'aria-label': `View ${label} details` } : {})}
+    >
       <div style={{ ...s.kpiIconWrap, background: accent.bg, color: accent.color }}>
         <Icon icon={icon} size={20} />
       </div>
@@ -505,6 +517,7 @@ export function AdminHomePage() {
     overviewLoading,
     displayName,
   } = useOutletContext()
+  const navigate = useNavigate()
 
   useDocumentTitle('Admin Home')
 
@@ -654,6 +667,7 @@ export function AdminHomePage() {
           value={trainees.length}
           label="Trainees"
           loading={overviewLoading}
+          to="/admin/overview#trainees"
         />
         <KpiCard
           icon={icons.shield}
@@ -662,6 +676,7 @@ export function AdminHomePage() {
           label="Staff"
           loading={overviewLoading}
           delay={1}
+          to="/admin/overview#staff"
         />
         <KpiCard
           icon={icons.course}
@@ -671,6 +686,7 @@ export function AdminHomePage() {
           sub={coursesLoading ? '...' : `${publishedCount} published / ${draftCount} draft`}
           loading={overviewLoading}
           delay={2}
+          to="/admin/learning"
         />
         <KpiCard
           icon={icons.certificate}
@@ -679,6 +695,7 @@ export function AdminHomePage() {
           label="Certificates"
           loading={certsLoading}
           delay={3}
+          to="/admin/assessment?tab=certificates"
         />
         <KpiCard
           icon={icons.grades}
@@ -689,6 +706,7 @@ export function AdminHomePage() {
           sub={attemptsLoading ? '' : `${attempts.length} attempt${attempts.length !== 1 ? 's' : ''}`}
           loading={attemptsLoading}
           delay={4}
+          to="/admin/assessment?tab=attempts"
         />
         <KpiCard
           icon={icons.library}
@@ -697,6 +715,7 @@ export function AdminHomePage() {
           label="Resources"
           loading={libraryLoading}
           delay={4}
+          to="/admin/library"
         />
       </div>
 
@@ -811,13 +830,29 @@ export function AdminHomePage() {
       {/* ── Platform Insights ── */}
       <p style={s.sectionLabel}>Platform Insights</p>
       <div style={s.insightsGrid}>
-        <div style={s.insightTile}>
+        <div
+          style={{ ...s.insightTile, cursor: 'pointer' }}
+          className="kpi-clickable"
+          role="link"
+          tabIndex={0}
+          aria-label="View quiz score details"
+          onClick={() => navigate('/admin/assessment')}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate('/admin/assessment') } }}
+        >
           <p style={s.insightValue}>
             {attemptsLoading ? '—' : <AnimatedCounter value={avgScore} suffix="%" duration={900} />}
           </p>
           <p style={s.insightLabel}>Avg Quiz Score</p>
         </div>
-        <div style={s.insightTile}>
+        <div
+          style={{ ...s.insightTile, cursor: 'pointer' }}
+          className="kpi-clickable"
+          role="link"
+          tabIndex={0}
+          aria-label="View quiz attempts"
+          onClick={() => navigate('/admin/assessment')}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate('/admin/assessment') } }}
+        >
           <p style={s.insightValue}>
             {attemptsLoading ? '—' : <AnimatedCounter value={attempts.length} duration={900} />}
           </p>

@@ -1,8 +1,22 @@
 import { Link } from 'react-router-dom'
-import { FontAwesomeIcon, icons } from '../../../../shared/icons.jsx'
+import { FontAwesomeIcon, Icon, icons } from '../../../../shared/icons.jsx'
 import { useAuth } from '../../../iam/hooks/useAuth.js'
 import { useTheme } from '../../../../contexts/ThemeContext.jsx'
 import { Logo } from '../../../../shared/components/Logo.jsx'
+
+const themeToggleBase = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  width: 44,
+  height: 44,
+  background: 'transparent',
+  border: '1px solid',
+  borderRadius: 8,
+  cursor: 'pointer',
+  padding: 0,
+  flexShrink: 0,
+}
 
 const darkStyles = {
   nav: {
@@ -72,7 +86,7 @@ const lightStyles = {
 
 export function AdminNav() {
   const { user, logout } = useAuth()
-  const { theme } = useTheme()
+  const { theme, toggleTheme } = useTheme()
   const isLight = theme === 'light'
   const styles = isLight ? lightStyles : darkStyles
 
@@ -94,6 +108,18 @@ export function AdminNav() {
       </div>
       <div style={rightStyle}>
         <span style={styles.userLabel}>{user?.fullName || user?.email || 'Staff'}</span>
+        <button
+          type="button"
+          style={{
+            ...themeToggleBase,
+            borderColor: isLight ? 'var(--slogbaa-border)' : 'rgba(255,255,255,0.4)',
+            color: isLight ? 'var(--slogbaa-text)' : '#fff',
+          }}
+          onClick={toggleTheme}
+          aria-label={`Switch to ${isLight ? 'dark' : 'light'} mode`}
+        >
+          <Icon icon={isLight ? icons.moon : icons.sun} size={18} />
+        </button>
         <button type="button" style={styles.signOut} onClick={logout}>
           <FontAwesomeIcon icon={icons.signOut} />
           Sign out

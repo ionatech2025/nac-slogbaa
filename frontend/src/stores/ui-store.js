@@ -34,11 +34,14 @@ export const useUIStore = create(
       toasts: [],
       addToast: (toast) => {
         const id = Date.now() + Math.random()
-        const t = { id, duration: 4000, type: 'info', ...toast }
-        set((s) => ({ toasts: [...s.toasts, t] }))
-        if (t.duration > 0) {
-          setTimeout(() => get().removeToast(id), t.duration)
+        // Support onUndo convenience shorthand
+        let action = toast.action
+        if (!action && typeof toast.onUndo === 'function') {
+          action = { label: 'Undo', onClick: toast.onUndo }
         }
+        const t = { id, duration: 4000, type: 'info', ...toast, action }
+        set((s) => ({ toasts: [...s.toasts, t] }))
+        // Auto-dismiss is handled by the Toast component for pause/resume support
         return id
       },
       removeToast: (id) => set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) })),

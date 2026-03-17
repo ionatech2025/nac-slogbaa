@@ -55,6 +55,8 @@
 
 /* Glass card utility — frosted panel that floats over the mesh */
 .glass-card {
+  position: relative;
+  overflow: hidden;
   background: var(--slogbaa-glass-bg);
   backdrop-filter: var(--slogbaa-glass-blur);
   -webkit-backdrop-filter: var(--slogbaa-glass-blur);
@@ -62,6 +64,24 @@
   border-radius: 20px;
   box-shadow: var(--slogbaa-glass-shadow), var(--slogbaa-glass-highlight);
   transition: box-shadow 0.3s ease, transform 0.3s ease, border-color 0.3s ease;
+}
+
+.glass-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.08'/%3E%3C/svg%3E");
+  background-size: 128px 128px;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Ensure glass-card children sit above the noise */
+.glass-card > * {
+  position: relative;
+  z-index: 1;
 }
 
 .glass-card-elevated {
@@ -95,6 +115,20 @@
 .glass-hover:hover {
   transform: translateY(-2px);
   box-shadow: var(--slogbaa-glass-shadow-lg);
+}
+
+/* Clickable KPI cards — subtle scale + shadow on hover/focus */
+.kpi-clickable {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.kpi-clickable:hover,
+.kpi-clickable:focus-visible {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: var(--slogbaa-glass-shadow-lg);
+}
+.kpi-clickable:focus-visible {
+  outline: 2px solid var(--slogbaa-blue);
+  outline-offset: 2px;
 }
 
 /* Glass nav — transparent top bar with blur (safe-area for notch/dynamic island) */
