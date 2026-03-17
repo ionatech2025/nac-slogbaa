@@ -37,11 +37,27 @@ public class FileUploadController {
             "courses", "modules", "library", "profiles", "certificates"
     );
 
-    // JPEG: FF D8 FF, PNG: 89 50 4E 47, GIF: 47 49 46, WebP: RIFF....WEBP
+    // JPEG: FF D8 FF, PNG: 89 50 4E 47, GIF: 47 49 46, WebP: RIFF....WEBP, PDF: %PDF, ZIP/DOCX/XLSX/PPTX: PK
     private static final byte[] JPEG_MAGIC = {(byte) 0xFF, (byte) 0xD8, (byte) 0xFF};
     private static final byte[] PNG_MAGIC = {(byte) 0x89, 0x50, 0x4E, 0x47};
     private static final byte[] GIF_MAGIC = {0x47, 0x49, 0x46};
     private static final byte[] RIFF_MAGIC = {0x52, 0x49, 0x46, 0x46}; // WebP starts with RIFF
+    private static final byte[] PDF_MAGIC = {0x25, 0x50, 0x44, 0x46}; // %PDF
+    private static final byte[] PK_MAGIC = {0x50, 0x4B, 0x03, 0x04};  // PK (ZIP, DOCX, XLSX, PPTX)
+
+    /** Document MIME types allowed for the 'library' subdirectory. */
+    private static final Set<String> ALLOWED_DOCUMENT_TYPES = Set.of(
+            "application/pdf",
+            "application/msword",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "application/vnd.ms-excel",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "application/vnd.ms-powerpoint",
+            "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+            "text/plain",
+            "text/csv",
+            "application/zip"
+    );
 
     private final FileStoragePort fileStoragePort;
     private final long maxSizeBytes;
@@ -71,26 +87,38 @@ public class FileUploadController {
             return badRequest("Invalid subdirectory. Allowed: " + ALLOWED_SUBDIRS);
         }
 
-        if (file.getSize() > maxSizeBytes) {
-            return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
-                    .body(Map.of("error", "File too large. Max size: " + (maxSizeBytes / 1024) + " KB"));
+        String contentType = file.getContentType();
+        String safeSubdir = subdir.trim().toLowerCase();
+        boolean isLibrary = "library".equals(safeSubdir);
+        Set<String> allowedTypes = isLibrary
+                ? combinedTypes()
+                : allowedImageTypes;
+
+        if (contentType == null || !allowedTypes.contains(contentType)) {
+            return badRequest("Invalid file type. Allowed: " + allowedTypes);
         }
 
-        String contentType = file.getContentType();
-        if (contentType == null || !allowedImageTypes.contains(contentType)) {
-            return badRequest("Invalid file type. Allowed: " + allowedImageTypes);
+        // Library documents can be up to 20 MB
+        long effectiveMaxSize = isLibrary ? Math.max(maxSizeBytes, 20 * 1024 * 1024) : maxSizeBytes;
+        if (file.getSize() > effectiveMaxSize) {
+            return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
+                    .body(Map.of("error", "File too large. Max size: " + (effectiveMaxSize / 1024) + " KB"));
         }
 
         try {
             byte[] content = file.getBytes();
 
-            // Magic-byte content sniffing — reject MIME-spoofed files
-            if (!matchesMagicBytes(content, contentType)) {
+            // Magic-byte content sniffing — reject MIME-spoofed files (images only; docs skip this)
+            if (allowedImageTypes.contains(contentType) && !matchesMagicBytes(content, contentType)) {
                 log.warn("Upload rejected: MIME type {} does not match file magic bytes", contentType);
                 return badRequest("File content does not match declared type");
             }
+            // Basic magic-byte check for documents
+            if (ALLOWED_DOCUMENT_TYPES.contains(contentType) && !matchesDocumentMagic(content, contentType)) {
+                log.warn("Upload rejected: document MIME type {} does not match file magic bytes", contentType);
+                return badRequest("File content does not match declared type");
+            }
 
-            String safeSubdir = subdir.trim().toLowerCase();
             FileUploadResult result = fileStoragePort.store(
                     content,
                     file.getOriginalFilename() != null ? file.getOriginalFilename() : "file",
@@ -133,6 +161,26 @@ public class FileUploadController {
             if (data[i] != prefix[i]) return false;
         }
         return true;
+    }
+
+    private Set<String> combinedTypes() {
+        var combined = new java.util.HashSet<>(allowedImageTypes);
+        combined.addAll(ALLOWED_DOCUMENT_TYPES);
+        return combined;
+    }
+
+    private boolean matchesDocumentMagic(byte[] content, String contentType) {
+        if (content.length < 4) return false;
+        return switch (contentType) {
+            case "application/pdf" -> startsWith(content, PDF_MAGIC);
+            case "application/zip",
+                 "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                 "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+                    -> startsWith(content, PK_MAGIC);
+            // Legacy Office formats (.doc, .xls, .ppt) and text files skip magic check
+            default -> true;
+        };
     }
 
     private ResponseEntity<Map<String, Object>> badRequest(String message) {
