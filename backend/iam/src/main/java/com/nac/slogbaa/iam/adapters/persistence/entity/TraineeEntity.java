@@ -77,6 +77,15 @@ public class TraineeEntity {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
+    @Column(name = "deleted_at")
+    private Instant deletedAt;
+
+    @Column(name = "deletion_reason", length = 500)
+    private String deletionReason;
+
+    @Column(name = "profile_image_url", length = 500)
+    private String profileImageUrl;
+
     public enum GenderEnum {
         MALE,
         FEMALE
@@ -141,4 +150,10 @@ public class TraineeEntity {
     public void setPhoneCountryCode(String phoneCountryCode) { this.phoneCountryCode = phoneCountryCode; }
     public String getPhoneNationalNumber() { return phoneNationalNumber; }
     public void setPhoneNationalNumber(String phoneNationalNumber) { this.phoneNationalNumber = phoneNationalNumber; }
+    public Instant getDeletedAt() { return deletedAt; }
+    public void setDeletedAt(Instant deletedAt) { this.deletedAt = deletedAt; }
+    public String getDeletionReason() { return deletionReason; }
+    public void setDeletionReason(String deletionReason) { this.deletionReason = deletionReason; }
+    public String getProfileImageUrl() { return profileImageUrl; }
+    public void setProfileImageUrl(String profileImageUrl) { this.profileImageUrl = profileImageUrl; }
 }

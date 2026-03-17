@@ -7,6 +7,7 @@ import com.nac.slogbaa.iam.core.aggregate.Trainee;
 import com.nac.slogbaa.iam.core.valueobject.Email;
 import org.springframework.stereotype.Component;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -69,6 +70,24 @@ public class TraineeRepositoryAdapter implements TraineeRepositoryPort {
     public void setEmailVerified(UUID traineeId, boolean verified) {
         jpaRepository.findById(traineeId).ifPresent(entity -> {
             entity.setEmailVerified(verified);
+            jpaRepository.save(entity);
+        });
+    }
+
+    @Override
+    public void softDelete(UUID traineeId, String reason) {
+        jpaRepository.findById(traineeId).ifPresent(entity -> {
+            entity.setActive(false);
+            entity.setDeletedAt(Instant.now());
+            entity.setDeletionReason(reason);
+            jpaRepository.save(entity);
+        });
+    }
+
+    @Override
+    public void updateProfileImage(UUID traineeId, String profileImageUrl) {
+        jpaRepository.findById(traineeId).ifPresent(entity -> {
+            entity.setProfileImageUrl(profileImageUrl);
             jpaRepository.save(entity);
         });
     }

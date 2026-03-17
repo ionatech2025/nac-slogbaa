@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useOutletContext } from 'react-router-dom'
 import { FontAwesomeIcon, Icon, icons } from '../../../shared/icons.jsx'
 import { useAuth } from '../../iam/hooks/useAuth.js'
 import { useEnrolledCourses, usePublishedCourses, useEnrollInCourse } from '../../../lib/hooks/use-courses.js'
@@ -15,6 +15,7 @@ import { LeaderboardWidget } from '../../../shared/components/LeaderboardWidget.
 import { StreakWidget } from '../../../shared/components/StreakWidget.jsx'
 import { AchievementsWidget } from '../../../shared/components/AchievementsWidget.jsx'
 import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle.js'
+import { OnboardingChecklist } from '../components/OnboardingChecklist.jsx'
 
 const styles = {
   layout: {
@@ -210,6 +211,7 @@ const styles = {
 
 export function TraineeDashboardPage() {
   const { user, token } = useAuth()
+  const { profileData, onEditProfile } = useOutletContext() || {}
   const [activeTab, setActiveTab] = useState('courses')
   const [courseView, setCourseView] = useState('vertical')
   const [recommendedCourseView, setRecommendedCourseView] = useState('vertical')
@@ -281,6 +283,12 @@ export function TraineeDashboardPage() {
   return (
     <div style={styles.layout}>
       <main style={styles.main}>
+        <OnboardingChecklist
+          profile={profileData}
+          enrolledCourses={enrolledCourses}
+          onEditProfile={onEditProfile}
+        />
+
         <h1 style={styles.greeting}>Welcome Back, {displayName}!</h1>
         <hr style={styles.greetingDivider} aria-hidden />
 

@@ -20,6 +20,9 @@ import {
   GripVertical, Save, Type,
   Phone, MapPin, Building2, Hash, Globe, Lock, ShieldCheck,
   Flame, Target, MessageSquare, CheckCircle,
+  Bookmark, Star, Bell, BellDot, Settings, HelpCircle,
+  Wifi, WifiOff, PartyPopper, Upload, UserMinus, Trash,
+  ChevronDown, ChevronRight, ExternalLink, ArrowRight,
 } from 'lucide-react'
 
 /**
@@ -102,4 +105,20 @@ export const icons = {
   target: Target,
   messageSquare: MessageSquare,
   checkCircle: CheckCircle,
+  bookmark: Bookmark,
+  star: Star,
+  bell: Bell,
+  bellDot: BellDot,
+  settings: Settings,
+  helpCircle: HelpCircle,
+  wifi: Wifi,
+  wifiOff: WifiOff,
+  partyPopper: PartyPopper,
+  upload: Upload,
+  userMinus: UserMinus,
+  trash: Trash,
+  chevronDown: ChevronDown,
+  chevronRight: ChevronRight,
+  externalLink: ExternalLink,
+  arrowRight: ArrowRight,
 }

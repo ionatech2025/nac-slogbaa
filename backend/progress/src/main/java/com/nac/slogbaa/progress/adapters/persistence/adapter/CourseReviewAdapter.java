@@ -3,6 +3,8 @@ package com.nac.slogbaa.progress.adapters.persistence.adapter;
 import com.nac.slogbaa.progress.adapters.persistence.entity.CourseReviewEntity;
 import com.nac.slogbaa.progress.adapters.persistence.repository.JpaCourseReviewRepository;
 import com.nac.slogbaa.progress.application.port.out.CourseReviewPort;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -29,6 +31,11 @@ public class CourseReviewAdapter implements CourseReviewPort {
     }
 
     @Override
+    public Page<CourseReviewEntity> findByCourseId(UUID courseId, Pageable pageable) {
+        return jpaRepository.findByCourseIdOrderByCreatedAtDesc(courseId, pageable);
+    }
+
+    @Override
     public Optional<CourseReviewEntity> findByTraineeAndCourse(UUID traineeId, UUID courseId) {
         return jpaRepository.findByTraineeIdAndCourseId(traineeId, courseId);
     }
@@ -46,5 +53,10 @@ public class CourseReviewAdapter implements CourseReviewPort {
     @Override
     public void delete(CourseReviewEntity entity) {
         jpaRepository.delete(entity);
+    }
+
+    @Override
+    public List<CourseReviewEntity> findByTraineeId(UUID traineeId) {
+        return jpaRepository.findByTraineeIdOrderByCreatedAtDesc(traineeId);
     }
 }

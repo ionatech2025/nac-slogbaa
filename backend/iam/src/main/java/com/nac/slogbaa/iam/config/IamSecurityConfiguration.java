@@ -70,13 +70,14 @@ public class IamSecurityConfiguration {
         config.setAllowedOrigins(origins);
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "X-Request-ID"));
-        config.setExposedHeaders(List.of("Authorization", "X-Request-ID"));
+        config.setExposedHeaders(List.of("Authorization", "X-Request-ID", "Content-Disposition"));
         config.setAllowCredentials(true);
         // Short max-age in dev for faster iteration; longer in prod
         config.setMaxAge(isProd ? 3600L : 600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/api/**", config);
+        source.registerCorsConfiguration("/api/v1/**", config);
         return source;
     }
 
@@ -88,7 +89,7 @@ public class IamSecurityConfiguration {
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/api/auth/**", "/api/v1/auth/**").permitAll()
                 .requestMatchers("/actuator/health", "/actuator/health/**", "/actuator/info").permitAll()
                 .requestMatchers("/actuator/prometheus").hasAnyRole("ADMIN", "SUPER_ADMIN")
                 .requestMatchers("/actuator/**").hasRole("SUPER_ADMIN")

@@ -91,8 +91,21 @@ public class CourseDetailsQueryAdapter implements CourseDetailsQueryPort, Course
 
     @Override
     public Optional<CourseSummary> getSummaryByCourseId(UUID courseId) {
-        return findCourseDetailsById(courseId)
-                .map(d -> new CourseSummary(d.getId(), d.getTitle(), d.getDescription(), d.getImageUrl(), d.getModules().size(), d.getTotalEstimatedMinutes(), d.getCategoryName(), d.getCategorySlug()));
+        return jpaCourseRepository.findById(courseId)
+                .filter(CourseEntity::isPublished)
+                .map(entity -> {
+                    CourseDetails d = toCourseDetails(toCourseWithModules(entity));
+                    UUID prereqId = entity.getPrerequisiteCourseId();
+                    String prereqName = null;
+                    if (prereqId != null) {
+                        prereqName = jpaCourseRepository.findById(prereqId)
+                                .map(CourseEntity::getTitle)
+                                .orElse(null);
+                    }
+                    return new CourseSummary(d.getId(), d.getTitle(), d.getDescription(), d.getImageUrl(),
+                            d.getModules().size(), d.getTotalEstimatedMinutes(), d.getCategoryName(), d.getCategorySlug(),
+                            prereqId, prereqName);
+                });
     }
 
     private CourseWithModules toCourseWithModules(CourseEntity course) {

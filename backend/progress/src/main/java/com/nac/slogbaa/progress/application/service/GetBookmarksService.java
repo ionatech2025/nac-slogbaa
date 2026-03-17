@@ -9,6 +9,9 @@ import com.nac.slogbaa.progress.application.port.out.BookmarkPort;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 /**
  * Application service: retrieve bookmarks for a trainee, optionally filtered by courseId.
  */
@@ -32,6 +35,17 @@ public final class GetBookmarksService implements GetBookmarksUseCase {
             entities = bookmarkPort.findByTrainee(traineeId);
         }
         return entities.stream().map(this::toResult).toList();
+    }
+
+    @Override
+    public Page<BookmarkResult> getBookmarks(UUID traineeId, UUID courseId, Pageable pageable) {
+        Page<TraineeBookmarkEntity> page;
+        if (courseId != null) {
+            page = bookmarkPort.findByTraineeAndCourse(traineeId, courseId, pageable);
+        } else {
+            page = bookmarkPort.findByTrainee(traineeId, pageable);
+        }
+        return page.map(this::toResult);
     }
 
     @Override

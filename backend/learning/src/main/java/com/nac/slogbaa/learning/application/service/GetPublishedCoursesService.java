@@ -7,6 +7,9 @@ import com.nac.slogbaa.learning.core.aggregate.Course;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 /**
  * Application service: list published courses.
  */
@@ -25,6 +28,12 @@ public final class GetPublishedCoursesService implements GetPublishedCoursesUseC
                 .toList();
     }
 
+    @Override
+    public Page<CourseSummary> getPublishedCourses(Pageable pageable) {
+        return courseRepository.findPublishedCourses(pageable)
+                .map(this::toSummary);
+    }
+
     private CourseSummary toSummary(Course c) {
         return new CourseSummary(
                 c.getId().getValue(),
@@ -34,7 +43,9 @@ public final class GetPublishedCoursesService implements GetPublishedCoursesUseC
                 c.getModuleCount(),
                 c.getTotalEstimatedMinutes(),
                 c.getCategoryName(),
-                c.getCategorySlug()
+                c.getCategorySlug(),
+                c.getPrerequisiteCourseId(),
+                c.getPrerequisiteCourseName()
         );
     }
 }

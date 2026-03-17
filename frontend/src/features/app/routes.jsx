@@ -17,6 +17,8 @@ const TraineeDashboardPage = lazy(() => import('./pages/TraineeDashboardPage.jsx
 const CourseListPage = lazy(() => import('../learning/pages/CourseListPage.jsx').then((m) => ({ default: m.CourseListPage })))
 const CourseDetailPage = lazy(() => import('../learning/pages/CourseDetailPage.jsx').then((m) => ({ default: m.CourseDetailPage })))
 const LibraryPage = lazy(() => import('../learning/pages/LibraryPage.jsx').then((m) => ({ default: m.LibraryPage })))
+const SettingsPage = lazy(() => import('./pages/SettingsPage.jsx').then((m) => ({ default: m.SettingsPage })))
+const HelpPage = lazy(() => import('./pages/HelpPage.jsx').then((m) => ({ default: m.HelpPage })))
 
 // Lazy: Admin pages
 const AdminLayout = lazy(() => import('./pages/AdminLayout.jsx').then((m) => ({ default: m.AdminLayout })))
@@ -48,6 +50,8 @@ export function AppRoutes() {
           <Route path="courses/:courseId" element={<Lazy><CourseDetailPage /></Lazy>} />
           <Route path="courses/:courseId/modules/:moduleId" element={<Lazy><CourseDetailPage /></Lazy>} />
           <Route path="library" element={<Lazy><LibraryPage /></Lazy>} />
+          <Route path="settings" element={<Lazy><SettingsPage /></Lazy>} />
+          <Route path="help" element={<Lazy><HelpPage /></Lazy>} />
         </Route>
       </Route>
       <Route path="/admin" element={<Lazy><AdminLayout /></Lazy>}>

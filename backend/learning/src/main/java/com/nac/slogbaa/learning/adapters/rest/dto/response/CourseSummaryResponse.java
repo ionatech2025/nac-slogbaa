@@ -11,5 +11,7 @@ public record CourseSummaryResponse(
         int moduleCount,
         Integer totalEstimatedMinutes,
         String categoryName,
-        String categorySlug
+        String categorySlug,
+        String prerequisiteCourseId,
+        String prerequisiteCourseName
 ) {}

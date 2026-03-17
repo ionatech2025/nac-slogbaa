@@ -8,6 +8,10 @@ import com.nac.slogbaa.progress.application.port.in.CreateDiscussionThreadUseCas
 import com.nac.slogbaa.progress.application.port.in.GetDiscussionThreadsUseCase;
 import com.nac.slogbaa.progress.application.port.in.ReplyToThreadUseCase;
 import com.nac.slogbaa.progress.application.port.in.ResolveThreadUseCase;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -41,9 +45,16 @@ public class DiscussionController {
 
     @GetMapping
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<List<ThreadResult>> getThreads(
+    public ResponseEntity<?> getThreads(
             @PathVariable UUID courseId,
-            @RequestParam(required = false) UUID moduleId) {
+            @RequestParam(required = false) UUID moduleId,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false, defaultValue = "20") Integer size) {
+        if (page != null) {
+            Pageable pageable = PageRequest.of(page, Math.min(size, 100), Sort.by("createdAt").descending());
+            Page<ThreadResult> result = getThreadsUseCase.getThreads(courseId, moduleId, pageable);
+            return ResponseEntity.ok(result);
+        }
         return ResponseEntity.ok(getThreadsUseCase.getThreads(courseId, moduleId));
     }
 

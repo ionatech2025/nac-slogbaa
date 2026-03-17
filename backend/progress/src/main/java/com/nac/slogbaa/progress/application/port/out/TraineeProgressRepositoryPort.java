@@ -33,4 +33,17 @@ public interface TraineeProgressRepositoryPort {
      * Ordered by count descending, limited to the given size.
      */
     List<Map.Entry<UUID, Long>> findTopTraineesByCompletions(int limit);
+
+    /**
+     * If a WITHDRAWN enrollment exists for the given trainee + course, reactivate it
+     * by setting status back to IN_PROGRESS.
+     *
+     * @return true if a withdrawn record was found and reactivated, false otherwise
+     */
+    boolean reactivateIfWithdrawn(UUID traineeId, UUID courseId);
+
+    /**
+     * @return true if the trainee has completed the given course (status = COMPLETED)
+     */
+    boolean hasCompletedCourse(UUID traineeId, UUID courseId);
 }

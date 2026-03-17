@@ -11,6 +11,9 @@ import com.nac.slogbaa.progress.application.port.out.CourseReviewPort;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 /**
  * Application service: retrieve course reviews and rating summary.
  * Uses GetTraineeByIdUseCase to resolve trainee display names.
@@ -31,6 +34,12 @@ public final class GetCourseReviewsService implements GetCourseReviewsUseCase {
         return courseReviewPort.findByCourseId(courseId).stream()
                 .map(this::toResult)
                 .toList();
+    }
+
+    @Override
+    public Page<CourseReviewResult> getReviews(UUID courseId, Pageable pageable) {
+        return courseReviewPort.findByCourseId(courseId, pageable)
+                .map(this::toResult);
     }
 
     @Override

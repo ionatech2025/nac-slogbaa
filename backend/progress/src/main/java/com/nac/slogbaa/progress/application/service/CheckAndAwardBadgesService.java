@@ -1,6 +1,7 @@
 package com.nac.slogbaa.progress.application.service;
 
 import com.nac.slogbaa.progress.application.port.in.CheckAndAwardBadgesUseCase;
+import com.nac.slogbaa.progress.application.port.in.CreateNotificationUseCase;
 import com.nac.slogbaa.progress.application.port.out.BadgePort;
 import com.nac.slogbaa.progress.application.port.out.StreakPort;
 import com.nac.slogbaa.progress.application.port.out.TraineeProgressRepositoryPort;
@@ -19,15 +20,18 @@ public final class CheckAndAwardBadgesService implements CheckAndAwardBadgesUseC
     private final XpPort xpPort;
     private final TraineeProgressRepositoryPort traineeProgressRepository;
     private final StreakPort streakPort;
+    private final CreateNotificationUseCase createNotificationUseCase;
 
     public CheckAndAwardBadgesService(BadgePort badgePort,
                                        XpPort xpPort,
                                        TraineeProgressRepositoryPort traineeProgressRepository,
-                                       StreakPort streakPort) {
+                                       StreakPort streakPort,
+                                       CreateNotificationUseCase createNotificationUseCase) {
         this.badgePort = badgePort;
         this.xpPort = xpPort;
         this.traineeProgressRepository = traineeProgressRepository;
         this.streakPort = streakPort;
+        this.createNotificationUseCase = createNotificationUseCase;
     }
 
     @Override
@@ -39,9 +43,22 @@ public final class CheckAndAwardBadgesService implements CheckAndAwardBadgesUseC
             if (badgePort.hasTraineeBadge(traineeId, def.id())) continue;
 
             if (isTriggerConditionMet(traineeId, triggerType)) {
-                badgePort.awardBadge(traineeId, def.id());
-                if (def.xpReward() > 0) {
-                    xpPort.addXp(traineeId, def.xpReward());
+                boolean awarded = badgePort.awardBadge(traineeId, def.id());
+                if (awarded) {
+                    if (def.xpReward() > 0) {
+                        xpPort.addXp(traineeId, def.xpReward());
+                    }
+                    try {
+                        createNotificationUseCase.create(
+                                traineeId,
+                                "BADGE_AWARDED",
+                                "Badge Earned!",
+                                "You earned the '" + def.name() + "' badge!",
+                                "/dashboard"
+                        );
+                    } catch (Exception ignored) {
+                        // Notification must never break the badge flow
+                    }
                 }
             }
         }

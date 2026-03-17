@@ -59,6 +59,21 @@ export async function enrollInCourse(token, courseId) {
 }
 
 /**
+ * Unenroll (withdraw) trainee from a course (DELETE /api/courses/:courseId/enroll).
+ * Requires auth token. Throws on error.
+ */
+export async function unenrollFromCourse(token, courseId) {
+  if (!token || !courseId) throw new Error('Session or course missing.')
+  const client = apiClient(token)
+  const res = await client.delete(`/api/courses/${courseId}/enroll`)
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}))
+    const message = body.detail ?? body.message ?? `Request failed (${res.status})`
+    throw new Error(message)
+  }
+}
+
+/**
  * Record progress when trainee views course content (POST /api/courses/:courseId/progress).
  * Body: { moduleId, contentBlockId }. No-op if not enrolled. Fire-and-forget.
  */

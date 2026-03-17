@@ -3,6 +3,8 @@ package com.nac.slogbaa.progress.adapters.persistence.adapter;
 import com.nac.slogbaa.progress.adapters.persistence.entity.TraineeBookmarkEntity;
 import com.nac.slogbaa.progress.adapters.persistence.repository.JpaTraineeBookmarkRepository;
 import com.nac.slogbaa.progress.application.port.out.BookmarkPort;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -31,6 +33,16 @@ public class BookmarkAdapter implements BookmarkPort {
     @Override
     public List<TraineeBookmarkEntity> findByTraineeAndCourse(UUID traineeId, UUID courseId) {
         return jpaRepository.findByTraineeIdAndCourseIdOrderByCreatedAtDesc(traineeId, courseId);
+    }
+
+    @Override
+    public Page<TraineeBookmarkEntity> findByTrainee(UUID traineeId, Pageable pageable) {
+        return jpaRepository.findByTraineeIdOrderByCreatedAtDesc(traineeId, pageable);
+    }
+
+    @Override
+    public Page<TraineeBookmarkEntity> findByTraineeAndCourse(UUID traineeId, UUID courseId, Pageable pageable) {
+        return jpaRepository.findByTraineeIdAndCourseIdOrderByCreatedAtDesc(traineeId, courseId, pageable);
     }
 
     @Override

@@ -134,6 +134,10 @@ export function CourseListPage() {
   const error = coursesError?.message ?? (enrollMutation.error?.message || null)
 
   const enrolledIds = useMemo(() => new Set(enrolled.map((c) => c.id)), [enrolled])
+  const completedIds = useMemo(
+    () => new Set(enrolled.filter((c) => c.completionPercentage >= 100).map((c) => c.id)),
+    [enrolled]
+  )
 
   const CATEGORY_FILTER_OPTIONS = useMemo(() => [
     { value: 'all', label: 'All categories' },
@@ -293,34 +297,47 @@ export function CourseListPage() {
               </div>
             )}
             <div style={isHorizontal ? styles.cardList : styles.cardGrid}>
-              {filteredCourses.map((course) => (
-                <CourseCard
-                  key={course.id}
-                  course={{
-                    id: course.id,
-                    title: course.title,
-                    description: course.description || 'No description.',
-                    imageUrl: course.imageUrl,
-                    meta: `${course.moduleCount} module${course.moduleCount !== 1 ? 's' : ''}`,
-                    totalEstimatedMinutes: course.totalEstimatedMinutes,
-                    categoryName: course.categoryName,
-                  }}
-                  onEnroll={enrolledIds.has(course.id) ? undefined : handleEnroll}
-                  onPreview={handlePreview}
-                  variant={courseView}
-                  enrolling={enrollMutation.isPending && enrollMutation.variables === course.id}
-                />
-              ))}
+              {filteredCourses.map((course) => {
+                const hasPrereq = !!course.prerequisiteCourseId
+                const prereqMet = !hasPrereq || completedIds.has(course.prerequisiteCourseId)
+                return (
+                  <CourseCard
+                    key={course.id}
+                    course={{
+                      id: course.id,
+                      title: course.title,
+                      description: course.description || 'No description.',
+                      imageUrl: course.imageUrl,
+                      meta: `${course.moduleCount} module${course.moduleCount !== 1 ? 's' : ''}`,
+                      totalEstimatedMinutes: course.totalEstimatedMinutes,
+                      categoryName: course.categoryName,
+                      prerequisiteCourseId: course.prerequisiteCourseId,
+                      prerequisiteCourseName: course.prerequisiteCourseName,
+                    }}
+                    onEnroll={enrolledIds.has(course.id) || !prereqMet ? undefined : handleEnroll}
+                    onPreview={handlePreview}
+                    variant={courseView}
+                    enrolling={enrollMutation.isPending && enrollMutation.variables === course.id}
+                    prerequisiteMet={prereqMet}
+                  />
+                )
+              })}
             </div>
           </>
         )}
-        {previewCourse && (
-          <CoursePreviewModal
-            course={previewCourse}
-            onClose={() => setPreviewCourse(null)}
-            onEnroll={(c) => handleEnroll(c)}
-          />
-        )}
+        {previewCourse && (() => {
+          const hasPrereq = !!previewCourse.prerequisiteCourseId
+          const prereqMet = !hasPrereq || completedIds.has(previewCourse.prerequisiteCourseId)
+          const isEnrolled = enrolledIds.has(previewCourse.id)
+          return (
+            <CoursePreviewModal
+              course={previewCourse}
+              onClose={() => setPreviewCourse(null)}
+              onEnroll={isEnrolled || !prereqMet ? undefined : (c) => handleEnroll(c)}
+              prerequisiteMet={prereqMet}
+            />
+          )
+        })()}
       </main>
     </div>
   )

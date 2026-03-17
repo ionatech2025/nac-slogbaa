@@ -15,8 +15,14 @@ public final class CourseSummary {
     private final Integer totalEstimatedMinutes;
     private final String categoryName;
     private final String categorySlug;
+    private final UUID prerequisiteCourseId;
+    private final String prerequisiteCourseName;
 
     public CourseSummary(UUID id, String title, String description, String imageUrl, int moduleCount, Integer totalEstimatedMinutes, String categoryName, String categorySlug) {
+        this(id, title, description, imageUrl, moduleCount, totalEstimatedMinutes, categoryName, categorySlug, null, null);
+    }
+
+    public CourseSummary(UUID id, String title, String description, String imageUrl, int moduleCount, Integer totalEstimatedMinutes, String categoryName, String categorySlug, UUID prerequisiteCourseId, String prerequisiteCourseName) {
         this.id = Objects.requireNonNull(id);
         this.title = Objects.requireNonNull(title);
         this.description = description;
@@ -25,6 +31,8 @@ public final class CourseSummary {
         this.totalEstimatedMinutes = totalEstimatedMinutes;
         this.categoryName = categoryName;
         this.categorySlug = categorySlug;
+        this.prerequisiteCourseId = prerequisiteCourseId;
+        this.prerequisiteCourseName = prerequisiteCourseName;
     }
 
     public UUID getId() { return id; }
@@ -35,4 +43,6 @@ public final class CourseSummary {
     public Integer getTotalEstimatedMinutes() { return totalEstimatedMinutes; }
     public String getCategoryName() { return categoryName; }
     public String getCategorySlug() { return categorySlug; }
+    public UUID getPrerequisiteCourseId() { return prerequisiteCourseId; }
+    public String getPrerequisiteCourseName() { return prerequisiteCourseName; }
 }

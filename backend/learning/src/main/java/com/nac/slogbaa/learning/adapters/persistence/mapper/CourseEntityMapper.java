@@ -13,6 +13,10 @@ public class CourseEntityMapper {
     }
 
     public Course toDomain(CourseEntity entity, int moduleCount, Integer totalEstimatedMinutes) {
+        return toDomain(entity, moduleCount, totalEstimatedMinutes, null);
+    }
+
+    public Course toDomain(CourseEntity entity, int moduleCount, Integer totalEstimatedMinutes, String prerequisiteCourseName) {
         if (entity == null) return null;
         String categoryName = entity.getCategory() != null ? entity.getCategory().getName() : null;
         String categorySlug = entity.getCategory() != null ? entity.getCategory().getSlug() : null;
@@ -25,7 +29,9 @@ public class CourseEntityMapper {
                 moduleCount,
                 totalEstimatedMinutes,
                 categoryName,
-                categorySlug
+                categorySlug,
+                entity.getPrerequisiteCourseId(),
+                prerequisiteCourseName
         );
     }
 }

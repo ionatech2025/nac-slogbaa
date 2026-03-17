@@ -130,6 +130,8 @@ class AuthenticateUserServiceTest {
         @Override public long count() { return 0; }
         @Override public void updatePasswordHash(UUID traineeId, String newPasswordHash) {}
         @Override public void setEmailVerified(UUID traineeId, boolean verified) {}
+        @Override public void softDelete(UUID traineeId, String reason) {}
+        @Override public void updateProfileImage(UUID traineeId, String profileImageUrl) {}
     }
 
     private static class StubStaffRepository implements StaffUserRepositoryPort {

@@ -31,6 +31,9 @@ public class CourseEntity {
     @JoinColumn(name = "category_id")
     private CourseCategoryEntity category;
 
+    @Column(name = "prerequisite_course_id")
+    private UUID prerequisiteCourseId;
+
     @Column(name = "created_by", nullable = false, updatable = false)
     private UUID createdBy;
 
@@ -64,6 +67,8 @@ public class CourseEntity {
     public void setPublished(boolean published) { this.published = published; }
     public CourseCategoryEntity getCategory() { return category; }
     public void setCategory(CourseCategoryEntity category) { this.category = category; }
+    public UUID getPrerequisiteCourseId() { return prerequisiteCourseId; }
+    public void setPrerequisiteCourseId(UUID prerequisiteCourseId) { this.prerequisiteCourseId = prerequisiteCourseId; }
     public UUID getCreatedBy() { return createdBy; }
     public void setCreatedBy(UUID createdBy) { this.createdBy = createdBy; }
     public Instant getCreatedAt() { return createdAt; }

@@ -16,6 +16,7 @@ import com.nac.slogbaa.iam.application.port.in.RegisterTraineeUseCase;
 import com.nac.slogbaa.iam.application.port.in.SetStaffActiveUseCase;
 import com.nac.slogbaa.iam.application.port.in.SetStaffPasswordByAdminUseCase;
 import com.nac.slogbaa.iam.application.port.in.SetTraineePasswordByAdminUseCase;
+import com.nac.slogbaa.iam.application.port.in.SoftDeleteAccountUseCase;
 import com.nac.slogbaa.iam.application.port.in.UpdateStaffProfileByAdminUseCase;
 import com.nac.slogbaa.iam.application.port.in.PasswordResetUseCase;
 import com.nac.slogbaa.iam.application.port.in.UpdateTraineeProfileUseCase;
@@ -40,6 +41,7 @@ import com.nac.slogbaa.iam.application.service.SetStaffPasswordByAdminService;
 import com.nac.slogbaa.iam.application.service.SetTraineePasswordByAdminService;
 import com.nac.slogbaa.iam.application.service.UpdateStaffProfileByAdminService;
 import com.nac.slogbaa.iam.application.service.RegisterTraineeService;
+import com.nac.slogbaa.iam.application.service.SoftDeleteAccountService;
 import com.nac.slogbaa.iam.application.service.UpdateTraineeProfileService;
 import com.nac.slogbaa.iam.application.service.VerifyEmailService;
 import com.nac.slogbaa.shared.ports.EmailVerificationNotificationPort;
@@ -200,5 +202,10 @@ public class IamConfiguration {
                 notificationPort,
                 passwordResetBaseUrl
         );
+    }
+
+    @Bean
+    public SoftDeleteAccountUseCase softDeleteAccountUseCase(TraineeRepositoryPort traineeRepository) {
+        return new SoftDeleteAccountService(traineeRepository);
     }
 }

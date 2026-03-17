@@ -7,6 +7,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 /**
  * Port for discussion thread and reply persistence.
  */
@@ -19,6 +22,10 @@ public interface DiscussionPort {
     List<DiscussionThreadEntity> findThreadsByCourse(UUID courseId);
 
     List<DiscussionThreadEntity> findThreadsByCourseAndModule(UUID courseId, UUID moduleId);
+
+    Page<DiscussionThreadEntity> findThreadsByCourse(UUID courseId, Pageable pageable);
+
+    Page<DiscussionThreadEntity> findThreadsByCourseAndModule(UUID courseId, UUID moduleId, Pageable pageable);
 
     Optional<DiscussionThreadEntity> findThreadById(UUID threadId);
 

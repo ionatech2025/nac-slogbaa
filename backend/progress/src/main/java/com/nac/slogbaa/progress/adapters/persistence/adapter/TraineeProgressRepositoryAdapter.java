@@ -28,12 +28,12 @@ public class TraineeProgressRepositoryAdapter implements TraineeProgressReposito
 
     @Override
     public boolean existsByTraineeIdAndCourseId(UUID traineeId, UUID courseId) {
-        return jpaRepository.existsByTraineeIdAndCourseId(traineeId, courseId);
+        return jpaRepository.existsActiveByTraineeIdAndCourseId(traineeId, courseId);
     }
 
     @Override
     public List<TraineeProgress> findByTraineeId(UUID traineeId) {
-        return jpaRepository.findByTraineeIdOrderByEnrollmentDateDesc(traineeId).stream()
+        return jpaRepository.findActiveByTraineeIdOrderByEnrollmentDateDesc(traineeId).stream()
                 .map(this::toDomain)
                 .toList();
     }
@@ -77,6 +77,23 @@ public class TraineeProgressRepositoryAdapter implements TraineeProgressReposito
             result.add(Map.entry(traineeId, count));
         }
         return result;
+    }
+
+    @Override
+    public boolean hasCompletedCourse(UUID traineeId, UUID courseId) {
+        return jpaRepository.existsCompletedByTraineeIdAndCourseId(traineeId, courseId);
+    }
+
+    @Override
+    public boolean reactivateIfWithdrawn(UUID traineeId, UUID courseId) {
+        Optional<TraineeProgressEntity> opt = jpaRepository.findOneByTraineeIdAndCourseId(traineeId, courseId);
+        if (opt.isPresent() && "WITHDRAWN".equals(opt.get().getStatus())) {
+            TraineeProgressEntity entity = opt.get();
+            entity.setStatus("IN_PROGRESS");
+            jpaRepository.save(entity);
+            return true;
+        }
+        return false;
     }
 
     private TraineeProgressEntity toEntity(TraineeProgress domain) {

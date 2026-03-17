@@ -5,7 +5,9 @@ import com.nac.slogbaa.iam.application.dto.result.TraineeDetails;
 import com.nac.slogbaa.iam.application.port.in.GetStaffByIdUseCase;
 import com.nac.slogbaa.iam.application.port.in.GetTraineeByIdUseCase;
 import com.nac.slogbaa.progress.adapters.persistence.entity.DiscussionReplyEntity;
+import com.nac.slogbaa.progress.adapters.persistence.entity.DiscussionThreadEntity;
 import com.nac.slogbaa.progress.application.dto.ReplyResult;
+import com.nac.slogbaa.progress.application.port.in.CreateNotificationUseCase;
 import com.nac.slogbaa.progress.application.port.in.ReplyToThreadUseCase;
 import com.nac.slogbaa.progress.application.port.out.DiscussionPort;
 
@@ -19,13 +21,16 @@ public final class ReplyToThreadService implements ReplyToThreadUseCase {
     private final DiscussionPort discussionPort;
     private final GetTraineeByIdUseCase getTraineeByIdUseCase;
     private final GetStaffByIdUseCase getStaffByIdUseCase;
+    private final CreateNotificationUseCase createNotificationUseCase;
 
     public ReplyToThreadService(DiscussionPort discussionPort,
                                 GetTraineeByIdUseCase getTraineeByIdUseCase,
-                                GetStaffByIdUseCase getStaffByIdUseCase) {
+                                GetStaffByIdUseCase getStaffByIdUseCase,
+                                CreateNotificationUseCase createNotificationUseCase) {
         this.discussionPort = discussionPort;
         this.getTraineeByIdUseCase = getTraineeByIdUseCase;
         this.getStaffByIdUseCase = getStaffByIdUseCase;
+        this.createNotificationUseCase = createNotificationUseCase;
     }
 
     @Override
@@ -35,7 +40,7 @@ public final class ReplyToThreadService implements ReplyToThreadUseCase {
         }
 
         // Verify thread exists
-        discussionPort.findThreadById(threadId)
+        DiscussionThreadEntity thread = discussionPort.findThreadById(threadId)
                 .orElseThrow(() -> new IllegalArgumentException("Thread not found"));
 
         DiscussionReplyEntity entity = new DiscussionReplyEntity();
@@ -48,6 +53,25 @@ public final class ReplyToThreadService implements ReplyToThreadUseCase {
         discussionPort.incrementReplyCount(threadId);
 
         String displayName = resolveDisplayName(authorId, authorType);
+
+        // Notify thread author if they're a trainee and not the person replying
+        try {
+            if ("TRAINEE".equals(thread.getAuthorType()) && !thread.getAuthorId().equals(authorId)) {
+                String threadTitle = thread.getTitle();
+                if (threadTitle != null && threadTitle.length() > 60) {
+                    threadTitle = threadTitle.substring(0, 57) + "...";
+                }
+                createNotificationUseCase.create(
+                        thread.getAuthorId(),
+                        "DISCUSSION_REPLY",
+                        "New Reply",
+                        "Someone replied to your thread '" + threadTitle + "'",
+                        "/dashboard/courses/" + thread.getCourseId()
+                );
+            }
+        } catch (Exception ignored) {
+            // Notification must never break the reply flow
+        }
 
         return new ReplyResult(
                 saved.getId(),

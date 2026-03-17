@@ -6,6 +6,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 /**
  * Port for trainee bookmark persistence.
  */
@@ -16,6 +19,10 @@ public interface BookmarkPort {
     List<TraineeBookmarkEntity> findByTrainee(UUID traineeId);
 
     List<TraineeBookmarkEntity> findByTraineeAndCourse(UUID traineeId, UUID courseId);
+
+    Page<TraineeBookmarkEntity> findByTrainee(UUID traineeId, Pageable pageable);
+
+    Page<TraineeBookmarkEntity> findByTraineeAndCourse(UUID traineeId, UUID courseId, Pageable pageable);
 
     Optional<TraineeBookmarkEntity> findByTraineeAndBlock(UUID traineeId, UUID courseId, UUID moduleId, UUID contentBlockId);
 

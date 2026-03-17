@@ -102,7 +102,7 @@ const styles = {
   },
 }
 
-export function CoursePreviewModal({ course, onClose, onEnroll }) {
+export function CoursePreviewModal({ course, onClose, onEnroll, prerequisiteMet = true }) {
   const { token } = useAuth()
   const [details, setDetails] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -164,10 +164,37 @@ export function CoursePreviewModal({ course, onClose, onEnroll }) {
               </div>
             </>
           )}
+          {course?.prerequisiteCourseId && (
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              fontSize: '0.875rem',
+              padding: '0.5rem 0.75rem',
+              borderRadius: 8,
+              marginBottom: '1rem',
+              ...(prerequisiteMet
+                ? { background: 'rgba(56, 161, 105, 0.1)', color: 'var(--slogbaa-green)', border: '1px solid rgba(56, 161, 105, 0.25)' }
+                : { background: 'rgba(237, 137, 54, 0.1)', color: 'var(--slogbaa-warning, #dd6b20)', border: '1px solid rgba(237, 137, 54, 0.25)' }),
+            }}>
+              <FontAwesomeIcon icon={prerequisiteMet ? icons.checkCircle : icons.lock} style={{ width: '1em' }} />
+              <span>
+                {prerequisiteMet
+                  ? 'Prerequisite met'
+                  : `Requires: ${course.prerequisiteCourseName ?? 'a prerequisite course'}`}
+              </span>
+            </div>
+          )}
           {onEnroll && (
             <button type="button" style={styles.enrollBtn} onClick={() => onEnroll(course)}>
               <FontAwesomeIcon icon={icons.enroll} />
               Enroll now →
+            </button>
+          )}
+          {!onEnroll && course?.prerequisiteCourseId && !prerequisiteMet && (
+            <button type="button" disabled style={{ ...styles.enrollBtn, opacity: 0.5, cursor: 'not-allowed', background: 'var(--slogbaa-text-muted)' }}>
+              <FontAwesomeIcon icon={icons.lock} />
+              Locked
             </button>
           )}
         </>

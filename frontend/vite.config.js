@@ -10,12 +10,78 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
         runtimeCaching: [
+          // API responses — NetworkFirst so fresh data wins, but stale content
+          // is served when offline (better than nothing).
+          {
+            urlPattern: /\/api\/.*/i,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'api-cache',
+              networkTimeoutSeconds: 10,
+              expiration: { maxEntries: 200, maxAgeSeconds: 24 * 60 * 60 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+          // Static assets (JS / CSS / fonts) — CacheFirst with 30-day expiry
+          {
+            urlPattern: /\.(?:js|css|woff2?)$/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'static-assets',
+              expiration: { maxEntries: 100, maxAgeSeconds: 30 * 24 * 60 * 60 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+          // Images — CacheFirst with 30-day expiry
           {
             urlPattern: /^https:\/\/.*\.(?:png|jpg|jpeg|svg|gif|webp)$/i,
             handler: 'CacheFirst',
-            options: { cacheName: 'images', expiration: { maxEntries: 60, maxAgeSeconds: 30 * 24 * 60 * 60 } },
+            options: {
+              cacheName: 'images',
+              expiration: { maxEntries: 60, maxAgeSeconds: 30 * 24 * 60 * 60 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
           },
-          // API caching intentionally omitted — authenticated endpoints must not be cached by service worker
+          // Uploaded content — CacheFirst with 7-day expiry
+          {
+            urlPattern: /\/uploads\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'uploads-cache',
+              expiration: { maxEntries: 100, maxAgeSeconds: 7 * 24 * 60 * 60 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+          // Google Fonts stylesheets — StaleWhileRevalidate
+          {
+            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
+            handler: 'StaleWhileRevalidate',
+            options: {
+              cacheName: 'google-fonts-stylesheets',
+              expiration: { maxEntries: 10, maxAgeSeconds: 30 * 24 * 60 * 60 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+          // Google Fonts webfont files — CacheFirst (they are immutable)
+          {
+            urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'google-fonts-webfonts',
+              expiration: { maxEntries: 30, maxAgeSeconds: 365 * 24 * 60 * 60 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+          // Other external resources (CDNs, analytics, etc.) — StaleWhileRevalidate
+          {
+            urlPattern: /^https:\/\/(?!fonts\.googleapis\.com|fonts\.gstatic\.com).+/i,
+            handler: 'StaleWhileRevalidate',
+            options: {
+              cacheName: 'external-resources',
+              expiration: { maxEntries: 50, maxAgeSeconds: 7 * 24 * 60 * 60 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
         ],
       },
       manifest: false, // use static manifest.json in public/

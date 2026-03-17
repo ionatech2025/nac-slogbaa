@@ -12,12 +12,13 @@ import com.nac.slogbaa.learning.adapters.rest.dto.response.ContentBlockSummaryRe
 import com.nac.slogbaa.learning.adapters.rest.dto.response.CourseDetailsResponse;
 import com.nac.slogbaa.learning.adapters.rest.dto.response.CourseSummaryResponse;
 import com.nac.slogbaa.learning.adapters.rest.dto.response.ModuleSummaryResponse;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
@@ -44,7 +45,15 @@ public class CourseController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('TRAINEE','ADMIN','SUPER_ADMIN')")
-    public ResponseEntity<List<CourseSummaryResponse>> getPublishedCourses() {
+    public ResponseEntity<?> getPublishedCourses(
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false, defaultValue = "20") Integer size) {
+        if (page != null) {
+            Pageable pageable = PageRequest.of(page, Math.min(size, 100), Sort.by("title").ascending());
+            Page<CourseSummaryResponse> result = getPublishedCoursesUseCase.getPublishedCourses(pageable)
+                    .map(this::toSummaryResponse);
+            return ResponseEntity.ok(result);
+        }
         List<CourseSummary> summaries = getPublishedCoursesUseCase.getPublishedCourses();
         List<CourseSummaryResponse> response = summaries.stream()
                 .map(this::toSummaryResponse)
@@ -77,7 +86,9 @@ public class CourseController {
                 s.getModuleCount(),
                 s.getTotalEstimatedMinutes(),
                 s.getCategoryName(),
-                s.getCategorySlug()
+                s.getCategorySlug(),
+                s.getPrerequisiteCourseId() != null ? s.getPrerequisiteCourseId().toString() : null,
+                s.getPrerequisiteCourseName()
         );
     }
 

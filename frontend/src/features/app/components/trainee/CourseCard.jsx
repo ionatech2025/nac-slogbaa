@@ -187,6 +187,25 @@ const styles = {
   badgeIcon: {
     marginRight: '0.35rem',
   },
+  prerequisite: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.4rem',
+    fontSize: '0.8125rem',
+    padding: '0.4rem 0.65rem',
+    borderRadius: 6,
+    marginBottom: '0.75rem',
+  },
+  prerequisiteLocked: {
+    background: 'rgba(237, 137, 54, 0.1)',
+    color: 'var(--slogbaa-warning, #dd6b20)',
+    border: '1px solid rgba(237, 137, 54, 0.25)',
+  },
+  prerequisiteMet: {
+    background: 'rgba(56, 161, 105, 0.1)',
+    color: 'var(--slogbaa-green)',
+    border: '1px solid rgba(56, 161, 105, 0.25)',
+  },
   progressWrap: {
     marginBottom: '0.75rem',
   },
@@ -212,12 +231,13 @@ const styles = {
   },
 }
 
-export function CourseCard({ course, enrolled, completionPercentage, onEnroll, onPreview, variant = 'vertical', viewHref, enrolling }) {
+export function CourseCard({ course, enrolled, completionPercentage, onEnroll, onPreview, variant = 'vertical', viewHref, enrolling, prerequisiteMet = true }) {
   const imgSrc = getAssetUrl(course.imageUrl) || DEFAULT_IMG
   const isHorizontal = variant === 'horizontal'
 
   const imageBadges = []
   if (enrolled) imageBadges.push({ label: 'ENROLLED', light: false })
+  if (!enrolled && course.prerequisiteCourseId && !prerequisiteMet) imageBadges.push({ label: 'LOCKED', light: false })
   if (course.categoryName) imageBadges.push({ label: course.categoryName, light: true })
   if (course.badges?.length) {
     course.badges.forEach((b) => imageBadges.push({ label: b, light: true }))
@@ -292,6 +312,19 @@ export function CourseCard({ course, enrolled, completionPercentage, onEnroll, o
             {[course.meta, course.totalEstimatedMinutes && `~${course.totalEstimatedMinutes} min`].filter(Boolean).join(' · ')}
           </p>
         )}
+        {course.prerequisiteCourseId && !enrolled && (
+          <div style={{
+            ...styles.prerequisite,
+            ...(prerequisiteMet ? styles.prerequisiteMet : styles.prerequisiteLocked),
+          }}>
+            <FontAwesomeIcon icon={prerequisiteMet ? icons.checkCircle : icons.lock} style={{ width: '0.9em' }} />
+            <span>
+              {prerequisiteMet
+                ? 'Prerequisite met'
+                : `Complete "${course.prerequisiteCourseName}" first`}
+            </span>
+          </div>
+        )}
         {enrolled && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem', ...(isHorizontal ? { marginTop: 'auto' } : {}) }}>
             <ProgressRing percent={completionPercentage ?? 0} />
@@ -305,7 +338,7 @@ export function CourseCard({ course, enrolled, completionPercentage, onEnroll, o
             </div>
           </div>
         )}
-        {!enrolled && (onEnroll || onPreview) && (
+        {!enrolled && (onEnroll || onPreview || (course.prerequisiteCourseId && !prerequisiteMet)) && (
           <div style={{ ...styles.buttonRow, ...(isHorizontal ? { marginTop: 'auto' } : {}) }}>
             {onPreview && (
               <button
@@ -334,6 +367,22 @@ export function CourseCard({ course, enrolled, completionPercentage, onEnroll, o
               >
                 <FontAwesomeIcon icon={icons.enroll} />
                 {enrolling ? 'Enrolling…' : 'ENROLL NOW →'}
+              </button>
+            )}
+            {!onEnroll && course.prerequisiteCourseId && !prerequisiteMet && (
+              <button
+                type="button"
+                disabled
+                style={{
+                  ...styles.button,
+                  ...(isHorizontal ? styles.buttonHorizontal : { flex: 1 }),
+                  opacity: 0.5,
+                  cursor: 'not-allowed',
+                  background: 'var(--slogbaa-text-muted)',
+                }}
+              >
+                <FontAwesomeIcon icon={icons.lock} />
+                Locked
               </button>
             )}
           </div>

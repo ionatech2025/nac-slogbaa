@@ -145,7 +145,7 @@ function normalizeType(t) {
   return String(t || '').toUpperCase()
 }
 
-export function ModuleQuizPanel({ token, courseId, moduleId, visible, showPanel = true, notesReadThrough = true, notesVisible = true, onStartQuiz, onRereadNotes }) {
+export function ModuleQuizPanel({ token, courseId, moduleId, visible, showPanel = true, notesReadThrough = true, notesVisible = true, onStartQuiz, onRereadNotes, onModuleCompleted }) {
   const [loading, setLoading] = useState(false)
   const [quiz, setQuiz] = useState(null)
   const [attempt, setAttempt] = useState(null)
@@ -223,6 +223,7 @@ export function ModuleQuizPanel({ token, courseId, moduleId, visible, showPanel 
       setResult(r)
       if (r?.passed) {
         await recordModuleCompletion(token, courseId, moduleId, true)
+        onModuleCompleted?.()
       }
     } catch (e) {
       setError(e?.message ?? 'Failed to submit attempt.')

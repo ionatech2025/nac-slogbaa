@@ -123,6 +123,8 @@ class CreateStaffServiceTest {
         @Override public long count() { return 0; }
         @Override public void updatePasswordHash(UUID id, String hash) {}
         @Override public void setEmailVerified(UUID traineeId, boolean verified) {}
+        @Override public void softDelete(UUID traineeId, String reason) {}
+        @Override public void updateProfileImage(UUID traineeId, String profileImageUrl) {}
     }
 
     private static class RecordingNotification implements StaffNotificationPort {

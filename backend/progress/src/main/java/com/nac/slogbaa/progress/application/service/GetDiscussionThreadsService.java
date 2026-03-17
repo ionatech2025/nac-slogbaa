@@ -13,6 +13,9 @@ import com.nac.slogbaa.progress.application.port.out.DiscussionPort;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 /**
  * Application service: retrieve discussion threads with author display names.
  * Optionally filtered by moduleId.
@@ -40,6 +43,17 @@ public final class GetDiscussionThreadsService implements GetDiscussionThreadsUs
             threads = discussionPort.findThreadsByCourse(courseId);
         }
         return threads.stream().map(this::toThreadResult).toList();
+    }
+
+    @Override
+    public Page<ThreadResult> getThreads(UUID courseId, UUID moduleId, Pageable pageable) {
+        Page<DiscussionThreadEntity> threads;
+        if (moduleId != null) {
+            threads = discussionPort.findThreadsByCourseAndModule(courseId, moduleId, pageable);
+        } else {
+            threads = discussionPort.findThreadsByCourse(courseId, pageable);
+        }
+        return threads.map(this::toThreadResult);
     }
 
     @Override

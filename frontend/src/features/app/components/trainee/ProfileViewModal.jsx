@@ -203,7 +203,7 @@ export function ProfileViewModal({ profile, onClose, onEdit, showEditButton = tr
       <div style={styles.profileHeader}>
         {hasImage ? (
           <img
-            src={profile.profileImageUrl}
+            src={getAssetUrl(profile.profileImageUrl)}
             alt={`Profile photo: ${profile.firstName ?? ''} ${profile.lastName ?? ''}`}
             style={styles.avatar}
           />

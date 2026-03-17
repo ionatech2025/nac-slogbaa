@@ -4,6 +4,10 @@ import com.nac.slogbaa.iam.core.valueobject.AuthenticatedIdentity;
 import com.nac.slogbaa.progress.application.dto.BookmarkResult;
 import com.nac.slogbaa.progress.application.port.in.GetBookmarksUseCase;
 import com.nac.slogbaa.progress.application.port.in.ToggleBookmarkUseCase;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -48,9 +52,16 @@ public class BookmarkController {
 
     @GetMapping
     @PreAuthorize("hasRole('TRAINEE')")
-    public ResponseEntity<List<BookmarkResult>> getBookmarks(
+    public ResponseEntity<?> getBookmarks(
             @AuthenticationPrincipal AuthenticatedIdentity identity,
-            @RequestParam(required = false) UUID courseId) {
+            @RequestParam(required = false) UUID courseId,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false, defaultValue = "20") Integer size) {
+        if (page != null) {
+            Pageable pageable = PageRequest.of(page, Math.min(size, 100), Sort.by("createdAt").descending());
+            Page<BookmarkResult> result = getBookmarksUseCase.getBookmarks(identity.getUserId(), courseId, pageable);
+            return ResponseEntity.ok(result);
+        }
         return ResponseEntity.ok(getBookmarksUseCase.getBookmarks(identity.getUserId(), courseId));
     }
 

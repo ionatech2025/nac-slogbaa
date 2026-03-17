@@ -5,6 +5,8 @@ import com.nac.slogbaa.progress.adapters.persistence.entity.DiscussionThreadEnti
 import com.nac.slogbaa.progress.adapters.persistence.repository.JpaDiscussionReplyRepository;
 import com.nac.slogbaa.progress.adapters.persistence.repository.JpaDiscussionThreadRepository;
 import com.nac.slogbaa.progress.application.port.out.DiscussionPort;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,6 +44,16 @@ public class DiscussionAdapter implements DiscussionPort {
     @Override
     public List<DiscussionThreadEntity> findThreadsByCourseAndModule(UUID courseId, UUID moduleId) {
         return threadRepository.findByCourseIdAndModuleIdOrderByCreatedAtDesc(courseId, moduleId);
+    }
+
+    @Override
+    public Page<DiscussionThreadEntity> findThreadsByCourse(UUID courseId, Pageable pageable) {
+        return threadRepository.findByCourseIdOrderByCreatedAtDesc(courseId, pageable);
+    }
+
+    @Override
+    public Page<DiscussionThreadEntity> findThreadsByCourseAndModule(UUID courseId, UUID moduleId, Pageable pageable) {
+        return threadRepository.findByCourseIdAndModuleIdOrderByCreatedAtDesc(courseId, moduleId, pageable);
     }
 
     @Override

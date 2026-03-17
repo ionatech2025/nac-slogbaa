@@ -12,10 +12,13 @@ import com.nac.slogbaa.shared.ports.TraineeNotificationPort;
 import com.nac.slogbaa.progress.application.port.in.CheckAndAwardBadgesUseCase;
 import com.nac.slogbaa.progress.application.port.in.CreateDiscussionThreadUseCase;
 import com.nac.slogbaa.progress.application.port.in.EnrollTraineeUseCase;
+import com.nac.slogbaa.progress.application.port.in.UnenrollTraineeUseCase;
 import com.nac.slogbaa.progress.application.port.in.GetCourseReviewsUseCase;
 import com.nac.slogbaa.progress.application.port.in.GetDiscussionThreadsUseCase;
 import com.nac.slogbaa.progress.application.port.in.GetEnrolledCoursesUseCase;
 import com.nac.slogbaa.progress.application.port.in.GetBookmarksUseCase;
+import com.nac.slogbaa.progress.application.port.in.GetNotificationsUseCase;
+import com.nac.slogbaa.progress.application.port.in.CreateNotificationUseCase;
 import com.nac.slogbaa.progress.application.port.in.GetLeaderboardUseCase;
 import com.nac.slogbaa.progress.application.port.in.GetTraineeAchievementsUseCase;
 import com.nac.slogbaa.progress.application.port.in.ToggleBookmarkUseCase;
@@ -36,16 +39,20 @@ import com.nac.slogbaa.progress.application.port.out.CourseReviewPort;
 import com.nac.slogbaa.progress.application.port.out.DiscussionPort;
 import com.nac.slogbaa.progress.application.port.out.BadgePort;
 import com.nac.slogbaa.progress.application.port.out.BookmarkPort;
+import com.nac.slogbaa.progress.application.port.out.NotificationPort;
 import com.nac.slogbaa.progress.application.port.out.ModuleCompletionPort;
 import com.nac.slogbaa.progress.application.port.out.StreakPort;
 import com.nac.slogbaa.progress.application.port.out.TraineeProgressRepositoryPort;
 import com.nac.slogbaa.progress.application.port.out.XpPort;
 import com.nac.slogbaa.progress.application.service.CreateDiscussionThreadService;
 import com.nac.slogbaa.progress.application.service.EnrollTraineeService;
+import com.nac.slogbaa.progress.application.service.UnenrollTraineeService;
 import com.nac.slogbaa.progress.application.service.GetCourseReviewsService;
 import com.nac.slogbaa.progress.application.service.GetDiscussionThreadsService;
 import com.nac.slogbaa.progress.application.service.CheckAndAwardBadgesService;
 import com.nac.slogbaa.progress.application.service.GetBookmarksService;
+import com.nac.slogbaa.progress.application.service.GetNotificationsService;
+import com.nac.slogbaa.progress.application.service.CreateNotificationService;
 import com.nac.slogbaa.progress.application.service.GetLeaderboardService;
 import com.nac.slogbaa.progress.application.service.GetTraineeAchievementsService;
 import com.nac.slogbaa.progress.application.service.ToggleBookmarkService;
@@ -69,12 +76,23 @@ import org.springframework.context.annotation.Configuration;
 public class ProgressConfiguration {
 
     @Bean
+    public CreateNotificationUseCase createNotificationUseCase(NotificationPort notificationPort) {
+        return new CreateNotificationService(notificationPort);
+    }
+
+    @Bean
+    public GetNotificationsUseCase getNotificationsUseCase(NotificationPort notificationPort) {
+        return new GetNotificationsService(notificationPort);
+    }
+
+    @Bean
     public CheckAndAwardBadgesUseCase checkAndAwardBadgesUseCase(
             BadgePort badgePort,
             XpPort xpPort,
             TraineeProgressRepositoryPort traineeProgressRepository,
-            StreakPort streakPort) {
-        return new CheckAndAwardBadgesService(badgePort, xpPort, traineeProgressRepository, streakPort);
+            StreakPort streakPort,
+            CreateNotificationUseCase createNotificationUseCase) {
+        return new CheckAndAwardBadgesService(badgePort, xpPort, traineeProgressRepository, streakPort, createNotificationUseCase);
     }
 
     @Bean
@@ -83,6 +101,12 @@ public class ProgressConfiguration {
             TraineeProgressRepositoryPort traineeProgressRepository,
             CheckAndAwardBadgesUseCase checkAndAwardBadgesUseCase) {
         return new EnrollTraineeService(coursePublicationPort, traineeProgressRepository, checkAndAwardBadgesUseCase);
+    }
+
+    @Bean
+    public UnenrollTraineeUseCase unenrollTraineeUseCase(
+            TraineeProgressRepositoryPort traineeProgressRepository) {
+        return new UnenrollTraineeService(traineeProgressRepository);
     }
 
     @Bean
@@ -98,8 +122,9 @@ public class ProgressConfiguration {
             ModuleCompletionPort moduleCompletionPort,
             CourseDetailsQueryPort courseDetailsQueryPort,
             IssueCertificateUseCase issueCertificateUseCase,
-            CheckAndAwardBadgesUseCase checkAndAwardBadgesUseCase) {
-        return new RecordModuleCompletionService(traineeProgressRepository, moduleCompletionPort, courseDetailsQueryPort, issueCertificateUseCase, checkAndAwardBadgesUseCase);
+            CheckAndAwardBadgesUseCase checkAndAwardBadgesUseCase,
+            CreateNotificationUseCase createNotificationUseCase) {
+        return new RecordModuleCompletionService(traineeProgressRepository, moduleCompletionPort, courseDetailsQueryPort, issueCertificateUseCase, checkAndAwardBadgesUseCase, createNotificationUseCase);
     }
 
     @Bean
@@ -201,8 +226,9 @@ public class ProgressConfiguration {
     public ReplyToThreadUseCase replyToThreadUseCase(
             DiscussionPort discussionPort,
             GetTraineeByIdUseCase getTraineeByIdUseCase,
-            GetStaffByIdUseCase getStaffByIdUseCase) {
-        return new ReplyToThreadService(discussionPort, getTraineeByIdUseCase, getStaffByIdUseCase);
+            GetStaffByIdUseCase getStaffByIdUseCase,
+            CreateNotificationUseCase createNotificationUseCase) {
+        return new ReplyToThreadService(discussionPort, getTraineeByIdUseCase, getStaffByIdUseCase, createNotificationUseCase);
     }
 
     @Bean

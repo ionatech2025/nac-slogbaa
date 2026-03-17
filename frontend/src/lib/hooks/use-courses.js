@@ -8,6 +8,7 @@ import {
   checkEnrollment,
   getResumePoint,
   enrollInCourse,
+  unenrollFromCourse,
   recordProgress,
   recordModuleCompletion,
 } from '../../api/learning/courses.js'
@@ -82,6 +83,19 @@ export function useEnrollInCourse() {
     onSettled: () => {
       qc.invalidateQueries({ queryKey: queryKeys.courses.enrolled() })
       qc.invalidateQueries({ queryKey: queryKeys.courses.published() })
+    },
+  })
+}
+
+export function useUnenroll() {
+  const { token } = useAuth()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (courseId) => unenrollFromCourse(token, courseId),
+    onSuccess: (_data, courseId) => {
+      qc.invalidateQueries({ queryKey: queryKeys.courses.enrolled() })
+      qc.invalidateQueries({ queryKey: queryKeys.courses.published() })
+      qc.invalidateQueries({ queryKey: queryKeys.courses.enrollment(courseId) })
     },
   })
 }

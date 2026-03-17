@@ -52,6 +52,13 @@ export const queryKeys = {
     current: () => [...queryKeys.streak.all, 'current'],
   },
 
+  // === Notifications ===
+  notifications: {
+    all: ['notifications'],
+    list: (page) => ['notifications', 'list', page],
+    unreadCount: () => ['notifications', 'unread-count'],
+  },
+
   // === Trainee profile ===
   trainee: {
     all: ['trainee'],
