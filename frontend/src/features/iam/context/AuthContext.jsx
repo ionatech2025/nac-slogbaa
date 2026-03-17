@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useCallback, useEffect } from 'react'
 import { setGlobalLogout, queryClient } from '../../../lib/query-client.js'
 import { useIdleTimeout } from '../../../shared/hooks/useIdleTimeout.js'
+import { useUIStore } from '../../../stores/ui-store.js'
 
 const STORAGE_KEY = 'slogbaa_auth'
 const AUTH_CHANNEL = 'slogbaa_auth_sync'
@@ -63,13 +64,18 @@ export function AuthProvider({ children }) {
   const logout = useCallback(() => {
     // 1. Cancel all in-flight queries to prevent 401 cascades
     queryClient.cancelQueries()
-    // 2. Clear auth state — route guards will redirect to /auth/login on next render
+    // 2. Invalidate all queries so stale data is never served post-logout
+    queryClient.invalidateQueries()
+    // 3. Clear auth state — route guards will redirect to /auth/login on next render
     setState(null)
     writeStorage(null, null)
-    // 3. Defer cache clearing so React processes the auth state change first;
+    // 4. Clear transient UI state (toasts, palette) to prevent leaking across sessions
+    try { useUIStore.getState().removeToast?.() } catch { /* store not ready */ }
+    useUIStore.setState({ toasts: [], paletteOpen: false })
+    // 5. Defer cache clearing so React processes the auth state change first;
     //    route guards redirect before components try to read cleared cache data
     queueMicrotask(() => queryClient.clear())
-    // 4. Sync to other tabs
+    // 6. Sync to other tabs
     try {
       const bc = new BroadcastChannel(AUTH_CHANNEL)
       bc.postMessage({ type: 'logout' })
@@ -94,8 +100,10 @@ export function AuthProvider({ children }) {
         const msg = event.data
         if (msg?.type === 'logout') {
           queryClient.cancelQueries()
+          queryClient.invalidateQueries()
           setState(null)
           writeStorage(null, null)
+          useUIStore.setState({ toasts: [], paletteOpen: false })
           queueMicrotask(() => queryClient.clear())
         } else if (msg?.type === 'login' && msg.token && msg.user) {
           setState({ token: msg.token, user: msg.user })
