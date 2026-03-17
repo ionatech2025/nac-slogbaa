@@ -90,7 +90,7 @@ export function AdminNav() {
             subtitle="Admin"
           />
         </Link>
-        <span style={styles.roleBadge}>{user?.role === 'SUPER_ADMIN' ? 'Super Admin' : 'Admin'}</span>
+        <span style={styles.roleBadge}>{String(user?.role ?? '').toUpperCase() === 'SUPER_ADMIN' ? 'Super Admin' : 'Admin'}</span>
       </div>
       <div style={rightStyle}>
         <span style={styles.userLabel}>{user?.fullName || user?.email || 'Staff'}</span>

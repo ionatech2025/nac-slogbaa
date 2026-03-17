@@ -295,7 +295,7 @@ export function AdminOverviewPage() {
                       </Link>
                     </td>
                     <td style={styles.td}>{s.email}</td>
-                    <td style={styles.td}>{s.role === 'SUPER_ADMIN' ? 'Super Admin' : 'Admin'}</td>
+                    <td style={styles.td}>{String(s.role ?? '').toUpperCase() === 'SUPER_ADMIN' ? 'Super Admin' : 'Admin'}</td>
                     {isSuperAdmin && (
                       <td style={styles.td}>
                         <Link

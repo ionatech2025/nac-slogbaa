@@ -1,17 +1,30 @@
 import { apiClient } from '../client.js'
+import { AuthError } from '../../lib/query-client.js'
 
 const client = apiClient()
 
 /**
  * Login with email and password. Returns { data } on success or { error } on failure.
- * Backend: POST /api/auth/login -> 200 { token, userId, email, role, fullName } or 401/409 with problem detail.
+ * Backend: POST /api/auth/login -> 200 { token, userId, email, role, fullName } or 401/403/409 with problem detail.
+ *
+ * Note: apiClient throws AuthError on any 401 (designed for session-expired handling).
+ * For the login endpoint a 401 means invalid credentials, not an expired session,
+ * so we catch it here and return a user-friendly error instead.
  */
 export async function login(email, password) {
-  // Longer timeout to survive Render free-tier cold starts (~60s)
-  const res = await client.post('/api/auth/login', { email, password }, { timeout: 90_000 })
+  let res
+  try {
+    // Longer timeout to survive Render free-tier cold starts (~60s)
+    res = await client.post('/api/auth/login', { email, password }, { timeout: 90_000 })
+  } catch (err) {
+    if (err instanceof AuthError) {
+      return { error: 'Invalid email or password.' }
+    }
+    throw err
+  }
   const body = await res.json().catch(() => ({}))
   if (!res.ok) {
-    const message = body.detail ?? body.title ?? (res.status === 401 ? 'Invalid email or password.' : `Request failed (${res.status}).`)
+    const message = body.detail ?? body.title ?? `Request failed (${res.status}).`
     return { error: message }
   }
   return {

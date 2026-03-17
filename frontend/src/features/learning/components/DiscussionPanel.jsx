@@ -255,7 +255,8 @@ function ThreadDetail({ courseId, threadId, onBack }) {
   const { thread, replies } = data
   // Show resolve button for staff always; for trainees, the backend will
   // authorize based on thread ownership. We show it to all users and handle errors.
-  const isStaff = user?.role === 'SUPER_ADMIN' || user?.role === 'ADMIN'
+  const roleUpper = String(user?.role ?? '').toUpperCase()
+  const isStaff = roleUpper === 'SUPER_ADMIN' || roleUpper === 'ADMIN'
   const canResolve = !thread.isResolved && (isStaff || thread.authorType === 'TRAINEE')
 
   const handleReply = (e) => {
