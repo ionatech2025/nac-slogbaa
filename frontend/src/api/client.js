@@ -18,23 +18,9 @@ export function getAssetUrl(url) {
   return base ? `${base}${p}` : p
 }
 
-/**
- * Rewrite /api/ paths to /api/v1/ for API versioning.
- * Non-API paths (e.g. /uploads/) pass through unchanged.
- */
-function versionedPath(path) {
-  if (path.startsWith('/api/') && !path.startsWith('/api/v1/')) {
-    return '/api/v1/' + path.slice('/api/'.length)
-  }
-  if (path.startsWith('api/') && !path.startsWith('api/v1/')) {
-    return 'api/v1/' + path.slice('api/'.length)
-  }
-  return path
-}
-
 function buildUrl(path) {
   const base = API_BASE.replace(/\/$/, '')
-  const p = versionedPath(path.startsWith('/') ? path : `/${path}`)
+  const p = path.startsWith('/') ? path : `/${path}`
   return base ? `${base}${p}` : p
 }
 
