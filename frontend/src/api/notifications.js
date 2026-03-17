@@ -1,8 +1,4 @@
-import { apiClient } from './client.js'
-
-function assertToken(token) {
-  if (!token) throw new Error('Your session is missing. Please log in again.')
-}
+import { apiClient, assertToken, parseResponse } from './client.js'
 
 /**
  * GET /api/me/notifications?page=N&size=N — paginated notification list.
@@ -10,11 +6,7 @@ function assertToken(token) {
 export async function getNotifications(token, page = 0, size = 20) {
   assertToken(token)
   const res = await apiClient(token).get(`/api/me/notifications?page=${page}&size=${size}`)
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}))
-    throw new Error(body.detail ?? body.message ?? `Request failed (${res.status})`)
-  }
-  return res.json()
+  return parseResponse(res)
 }
 
 /**
@@ -23,11 +15,7 @@ export async function getNotifications(token, page = 0, size = 20) {
 export async function getUnreadCount(token) {
   assertToken(token)
   const res = await apiClient(token).get('/api/me/notifications/unread-count')
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}))
-    throw new Error(body.detail ?? body.message ?? `Request failed (${res.status})`)
-  }
-  return res.json()
+  return parseResponse(res)
 }
 
 /**
@@ -36,10 +24,7 @@ export async function getUnreadCount(token) {
 export async function markAsRead(token, notificationId) {
   assertToken(token)
   const res = await apiClient(token).patch(`/api/me/notifications/${notificationId}/read`)
-  if (!res.ok && res.status !== 204) {
-    const body = await res.json().catch(() => ({}))
-    throw new Error(body.detail ?? body.message ?? `Request failed (${res.status})`)
-  }
+  return parseResponse(res)
 }
 
 /**
@@ -48,8 +33,5 @@ export async function markAsRead(token, notificationId) {
 export async function markAllAsRead(token) {
   assertToken(token)
   const res = await apiClient(token).patch('/api/me/notifications/read-all')
-  if (!res.ok && res.status !== 204) {
-    const body = await res.json().catch(() => ({}))
-    throw new Error(body.detail ?? body.message ?? `Request failed (${res.status})`)
-  }
+  return parseResponse(res)
 }

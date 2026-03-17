@@ -10,6 +10,7 @@ import { SafeHtml } from '../../../shared/components/SafeHtml.jsx'
 import { AdminQuizEditor } from '../../assessment/components/AdminQuizEditor.jsx'
 import { AdminQuizReadOnly } from '../../assessment/components/AdminQuizReadOnly.jsx'
 import { LoadingButton } from '../../../shared/components/LoadingButton.jsx'
+import { Breadcrumbs } from '../../../shared/components/Breadcrumbs.jsx'
 import { useToast } from '../../../shared/hooks/useToast.js'
 import { icons as iconSet } from '../../../shared/icons.jsx'
 const GripVertical = iconSet.grip
@@ -449,9 +450,12 @@ export function AdminModuleEditorPage() {
 
   return (
     <div style={styles.page} onClick={handleEditorAreaClick}>
-      <Link to={`/admin/learning/${courseId}`} style={styles.backLink}>
-        ← Back to {course.title}
-      </Link>
+      <Breadcrumbs items={[
+        { label: 'Admin', to: '/admin' },
+        { label: 'Learning', to: '/admin/learning' },
+        { label: course?.title || '...', to: `/admin/learning/${courseId}` },
+        { label: module?.title || '...' },
+      ]} />
 
       <div
         style={styles.editorArea}

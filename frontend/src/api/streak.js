@@ -1,8 +1,4 @@
-import { apiClient } from './client.js'
-
-function assertToken(token) {
-  if (!token) throw new Error('Your session is missing. Please log in again.')
-}
+import { apiClient, assertToken, parseResponse } from './client.js'
 
 /**
  * GET /api/me/streak — get current streak data.
@@ -10,11 +6,7 @@ function assertToken(token) {
 export async function getStreak(token) {
   assertToken(token)
   const res = await apiClient(token).get('/api/me/streak')
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}))
-    throw new Error(body.detail ?? body.message ?? `Request failed (${res.status})`)
-  }
-  return res.json()
+  return parseResponse(res)
 }
 
 /**
@@ -23,10 +15,7 @@ export async function getStreak(token) {
 export async function recordActivity(token, minutes) {
   assertToken(token)
   const res = await apiClient(token).post('/api/me/activity', { minutesSpent: minutes })
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}))
-    throw new Error(body.detail ?? body.message ?? `Request failed (${res.status})`)
-  }
+  return parseResponse(res)
 }
 
 /**
@@ -35,8 +24,5 @@ export async function recordActivity(token, minutes) {
 export async function updateDailyGoal(token, minutes) {
   assertToken(token)
   const res = await apiClient(token).put('/api/me/daily-goal', { minutes })
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}))
-    throw new Error(body.detail ?? body.message ?? `Request failed (${res.status})`)
-  }
+  return parseResponse(res)
 }

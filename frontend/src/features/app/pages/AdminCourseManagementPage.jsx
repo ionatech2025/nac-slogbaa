@@ -7,6 +7,7 @@ import { getAssetUrl } from '../../../api/client.js'
 import defaultCourseImg from '../../../assets/images/courses/course1.jpg'
 import { useToast } from '../../../shared/hooks/useToast.js'
 import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle.js'
+import { Breadcrumbs } from '../../../shared/components/Breadcrumbs.jsx'
 import { Skeleton } from '../../../shared/components/Skeleton.jsx'
 
 const styles = {
@@ -436,6 +437,11 @@ export function AdminCourseManagementPage() {
 
   return (
     <div style={styles.page}>
+      <Breadcrumbs items={[
+        { label: 'Admin', to: '/admin' },
+        { label: 'Course Management' },
+      ]} />
+
       {confirmModal && (
         <Modal
           title={confirmModal.type === 'course' ? 'Delete course?' : 'Delete module?'}

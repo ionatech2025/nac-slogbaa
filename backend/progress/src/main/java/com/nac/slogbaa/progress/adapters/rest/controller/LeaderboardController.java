@@ -2,6 +2,7 @@ package com.nac.slogbaa.progress.adapters.rest.controller;
 
 import com.nac.slogbaa.progress.application.dto.LeaderboardEntryDto;
 import com.nac.slogbaa.progress.application.port.in.GetLeaderboardUseCase;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,6 +26,7 @@ public class LeaderboardController {
     }
 
     @GetMapping
+    @Cacheable("leaderboard")
     public ResponseEntity<List<LeaderboardEntryResponse>> getLeaderboard(
             @RequestParam(defaultValue = "10") int limit) {
         List<LeaderboardEntryDto> entries = getLeaderboardUseCase.getLeaderboard(limit);

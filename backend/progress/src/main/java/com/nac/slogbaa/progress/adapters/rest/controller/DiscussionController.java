@@ -45,17 +45,14 @@ public class DiscussionController {
 
     @GetMapping
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> getThreads(
+    public ResponseEntity<Page<ThreadResult>> getThreads(
             @PathVariable UUID courseId,
             @RequestParam(required = false) UUID moduleId,
-            @RequestParam(required = false) Integer page,
-            @RequestParam(required = false, defaultValue = "20") Integer size) {
-        if (page != null) {
-            Pageable pageable = PageRequest.of(page, Math.min(size, 100), Sort.by("createdAt").descending());
-            Page<ThreadResult> result = getThreadsUseCase.getThreads(courseId, moduleId, pageable);
-            return ResponseEntity.ok(result);
-        }
-        return ResponseEntity.ok(getThreadsUseCase.getThreads(courseId, moduleId));
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        Pageable pageable = PageRequest.of(page, Math.min(size, 100), Sort.by("createdAt").descending());
+        Page<ThreadResult> result = getThreadsUseCase.getThreads(courseId, moduleId, pageable);
+        return ResponseEntity.ok(result);
     }
 
     @GetMapping("/{threadId}")

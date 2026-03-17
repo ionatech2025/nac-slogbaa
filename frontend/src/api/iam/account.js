@@ -1,8 +1,4 @@
-import { apiClient } from '../client.js'
-
-function assertToken(token) {
-  if (!token) throw new Error('Your session is missing. Please log in again.')
-}
+import { apiClient, assertToken, parseResponse } from '../client.js'
 
 /**
  * GET /api/me/data-export — export all trainee data as JSON.
@@ -34,13 +30,9 @@ export async function exportMyData(token) {
  */
 export async function deleteMyAccount(token, reason) {
   assertToken(token)
-  const client = apiClient(token)
   const path = reason
     ? `/api/me/account?reason=${encodeURIComponent(reason)}`
     : '/api/me/account'
-  const res = await client.delete(path)
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}))
-    throw new Error(body.detail ?? body.message ?? `Account deletion failed (${res.status})`)
-  }
+  const res = await apiClient(token).delete(path)
+  return parseResponse(res)
 }

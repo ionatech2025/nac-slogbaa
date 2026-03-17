@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useCallback, useEffect } from 'react'
 import { setGlobalLogout, queryClient } from '../../../lib/query-client.js'
+import { isTokenExpired } from '../../../lib/jwt.js'
 import { useIdleTimeout } from '../../../shared/hooks/useIdleTimeout.js'
 import { useUIStore } from '../../../stores/ui-store.js'
 
@@ -24,7 +25,13 @@ function readStored() {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return null
     const data = JSON.parse(raw)
-    if (data?.token && data?.user?.userId) return data
+    if (data?.token && data?.user?.userId) {
+      if (isTokenExpired(data.token)) {
+        localStorage.removeItem(STORAGE_KEY)
+        return null
+      }
+      return data
+    }
   } catch {
     // Corrupted or missing — start fresh
   }
@@ -49,6 +56,7 @@ export function AuthProvider({ children }) {
   const [state, setState] = useState(() => readStored())
 
   const login = useCallback((token, user) => {
+    if (isTokenExpired(token)) return
     const auth = { token, user }
     setState(auth)
     writeStorage(token, user)
@@ -123,6 +131,17 @@ export function AuthProvider({ children }) {
     if (state?.token) logout()
   }, [state?.token, logout])
   useIdleTimeout(idleLogout, 30 * 60 * 1000)
+
+  // Periodic token expiry check (every 60 seconds)
+  useEffect(() => {
+    if (!state?.token) return
+    const interval = setInterval(() => {
+      if (isTokenExpired(state.token)) {
+        logout()
+      }
+    }, 60_000)
+    return () => clearInterval(interval)
+  }, [state?.token, logout])
 
   const value = {
     token: state?.token ?? null,

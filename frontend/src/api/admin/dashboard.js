@@ -1,13 +1,12 @@
-import { apiClient } from '../client.js'
+import { apiClient, assertToken } from '../client.js'
 
 /**
  * Fetch admin dashboard overview (counts and lists of staff and trainees).
  * Requires auth token. Returns { data }. Throws on failure.
  */
 export async function getDashboardOverview(token) {
-  if (!token) throw new Error('Your session is missing. Please log in again.')
-  const client = apiClient(token)
-  const res = await client.get('/api/admin/dashboard/overview')
+  assertToken(token)
+  const res = await apiClient(token).get('/api/admin/dashboard/overview')
   const body = await res.json().catch(() => ({}))
   if (!res.ok) {
     throw new Error(body.detail ?? body.message ?? `Request failed (${res.status})`)
@@ -26,9 +25,8 @@ export async function getDashboardOverview(token) {
  * Fetch course count for admin dashboard. Returns number. Throws on failure.
  */
 export async function getCourseCount(token) {
-  if (!token) throw new Error('Your session is missing. Please log in again.')
-  const client = apiClient(token)
-  const res = await client.get('/api/admin/courses/count')
+  assertToken(token)
+  const res = await apiClient(token).get('/api/admin/courses/count')
   const body = await res.json().catch(() => ({}))
   if (!res.ok) {
     throw new Error(body.detail ?? body.message ?? `Request failed (${res.status})`)

@@ -1,4 +1,5 @@
 import { AuthError } from '../lib/query-client.js'
+import { isTokenExpired } from '../lib/jwt.js'
 
 /**
  * Base URL for API requests. In dev with Vite proxy use '' so /api/* is proxied to backend.
@@ -48,6 +49,10 @@ export function apiClient(token = null) {
   const credentials = rawToken ? 'include' : 'same-origin'
 
   const request = (path, method, options = {}, body = undefined) => {
+    if (rawToken && isTokenExpired(rawToken)) {
+      return Promise.reject(new AuthError('Session expired'))
+    }
+
     const url = buildUrl(path)
     const timeoutMs = options.timeout ?? DEFAULT_TIMEOUT_MS
     const controller = new AbortController()
@@ -92,4 +97,22 @@ export function apiClient(token = null) {
     patch: (path, body, options = {}) => request(path, 'PATCH', options, body),
     delete: (path, options = {}) => request(path, 'DELETE', options),
   }
+}
+
+export function assertToken(token) {
+  if (!token) throw new Error('Your session is missing. Please log in again.')
+}
+
+export async function parseResponse(res) {
+  if (res.status === 204) return null
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}))
+    throw new Error(body.detail ?? body.message ?? `Request failed (${res.status})`)
+  }
+  return res.json()
+}
+
+export async function parseResponseOrDefault(res, defaultValue) {
+  if (!res.ok) return defaultValue
+  return res.json().catch(() => defaultValue)
 }

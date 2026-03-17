@@ -1,8 +1,4 @@
-import { apiClient } from './client.js'
-
-function assertToken(token) {
-  if (!token) throw new Error('Your session is missing. Please log in again.')
-}
+import { apiClient, assertToken, parseResponse } from './client.js'
 
 /**
  * GET /api/certificates — list trainee's certificates.
@@ -10,11 +6,7 @@ function assertToken(token) {
 export async function getMyCertificates(token) {
   assertToken(token)
   const res = await apiClient(token).get('/api/certificates')
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}))
-    throw new Error(body.detail ?? body.message ?? `Request failed (${res.status})`)
-  }
-  return res.json()
+  return parseResponse(res)
 }
 
 /**
@@ -33,8 +25,5 @@ export async function downloadCertificate(token, certificateId) {
 export async function sendCertificateEmail(token, certificateId) {
   assertToken(token)
   const res = await apiClient(token).post(`/api/certificates/${certificateId}/send-email`)
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}))
-    throw new Error(body.detail ?? body.message ?? `Request failed (${res.status})`)
-  }
+  return parseResponse(res)
 }

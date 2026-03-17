@@ -1,8 +1,4 @@
-import { apiClient } from './client.js'
-
-function assertToken(token) {
-  if (!token) throw new Error('Your session is missing. Please log in again.')
-}
+import { apiClient, assertToken, parseResponse } from './client.js'
 
 /**
  * POST /api/me/bookmarks — toggle a bookmark (create or delete).
@@ -10,11 +6,7 @@ function assertToken(token) {
 export async function toggleBookmark(token, { courseId, moduleId, contentBlockId, note }) {
   assertToken(token)
   const res = await apiClient(token).post('/api/me/bookmarks', { courseId, moduleId, contentBlockId, note })
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}))
-    throw new Error(body.detail ?? body.message ?? `Request failed (${res.status})`)
-  }
-  return res.json()
+  return parseResponse(res)
 }
 
 /**
@@ -24,11 +16,8 @@ export async function getBookmarks(token, courseId) {
   assertToken(token)
   const path = courseId ? `/api/me/bookmarks?courseId=${courseId}` : '/api/me/bookmarks'
   const res = await apiClient(token).get(path)
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}))
-    throw new Error(body.detail ?? body.message ?? `Request failed (${res.status})`)
-  }
-  return res.json()
+  const data = await parseResponse(res)
+  return data?.content ?? data
 }
 
 /**
@@ -37,11 +26,7 @@ export async function getBookmarks(token, courseId) {
 export async function updateBookmarkNote(token, bookmarkId, note) {
   assertToken(token)
   const res = await apiClient(token).put(`/api/me/bookmarks/${bookmarkId}`, { note })
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}))
-    throw new Error(body.detail ?? body.message ?? `Request failed (${res.status})`)
-  }
-  return res.json()
+  return parseResponse(res)
 }
 
 /**
@@ -50,8 +35,5 @@ export async function updateBookmarkNote(token, bookmarkId, note) {
 export async function deleteBookmark(token, bookmarkId) {
   assertToken(token)
   const res = await apiClient(token).delete(`/api/me/bookmarks/${bookmarkId}`)
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}))
-    throw new Error(body.detail ?? body.message ?? `Request failed (${res.status})`)
-  }
+  return parseResponse(res)
 }

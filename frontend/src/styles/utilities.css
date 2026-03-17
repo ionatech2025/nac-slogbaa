@@ -1,0 +1,25 @@
+/* === Utility Classes === */
+
+/* Admin sidebar: light mode hover for nav and quick action buttons */
+[data-theme='light'] .admin-sidebar a:hover,
+[data-theme='light'] .admin-sidebar button:hover {
+  background: rgba(37, 99, 235, 0.06);
+}
+
+/* Block row: icons show on hover */
+.block-group {
+  position: relative;
+}
+.block-group .block-icons {
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+.block-group:hover .block-icons {
+  opacity: 1;
+}
+
+/* Placeholder for empty contenteditable */
+[contenteditable][data-placeholder]:empty::before {
+  content: attr(data-placeholder);
+  color: var(--slogbaa-text-muted);
+}

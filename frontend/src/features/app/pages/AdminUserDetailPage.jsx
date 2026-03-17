@@ -13,6 +13,7 @@ import { LoadingButton } from '../../../shared/components/LoadingButton.jsx'
 import { Avatar } from '../../../shared/components/Avatar.jsx'
 import { Badge } from '../../../shared/components/Badge.jsx'
 import { Input } from '../../../shared/components/Input.jsx'
+import { Breadcrumbs } from '../../../shared/components/Breadcrumbs.jsx'
 import { useToast } from '../../../shared/hooks/useToast.js'
 
 const styles = {
@@ -486,9 +487,11 @@ export function AdminUserDetailPage() {
   if (loading) {
     return (
       <div style={styles.page}>
-        <Link to="/admin/overview" style={styles.backLink}>
-          <FontAwesomeIcon icon={icons.viewList} /> Back to Overview
-        </Link>
+        <Breadcrumbs items={[
+          { label: 'Admin', to: '/admin' },
+          { label: 'Overview', to: '/admin/overview' },
+          { label: '...' },
+        ]} />
         <p style={styles.loading}>Loading user…</p>
       </div>
     )
@@ -497,9 +500,11 @@ export function AdminUserDetailPage() {
   if (error && !user) {
     return (
       <div style={styles.page}>
-        <Link to="/admin/overview" style={styles.backLink}>
-          <FontAwesomeIcon icon={icons.viewList} /> Back to Overview
-        </Link>
+        <Breadcrumbs items={[
+          { label: 'Admin', to: '/admin' },
+          { label: 'Overview', to: '/admin/overview' },
+          { label: '...' },
+        ]} />
         <p style={styles.error}>{error}</p>
       </div>
     )
@@ -508,9 +513,11 @@ export function AdminUserDetailPage() {
   if (!user) {
     return (
       <div style={styles.page}>
-        <Link to="/admin/overview" style={styles.backLink}>
-          <FontAwesomeIcon icon={icons.viewList} /> Back to Overview
-        </Link>
+        <Breadcrumbs items={[
+          { label: 'Admin', to: '/admin' },
+          { label: 'Overview', to: '/admin/overview' },
+          { label: '...' },
+        ]} />
         <p style={styles.error}>User not found.</p>
       </div>
     )
@@ -528,9 +535,11 @@ export function AdminUserDetailPage() {
 
   return (
     <div style={pageStyle}>
-      <Link to="/admin/overview" style={styles.backLink}>
-        <FontAwesomeIcon icon={icons.viewList} /> Back to Overview
-      </Link>
+      <Breadcrumbs items={[
+        { label: 'Admin', to: '/admin' },
+        { label: 'Overview', to: '/admin/overview' },
+        { label: displayName },
+      ]} />
 
       {error && (
         <p style={{ ...styles.error, marginBottom: '1rem' }}>{error}</p>

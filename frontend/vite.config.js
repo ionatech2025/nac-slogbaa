@@ -1,10 +1,17 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
+import { visualizer } from 'rollup-plugin-visualizer'
 
 export default defineConfig({
   plugins: [
     react(),
+    visualizer({
+      filename: 'dist/bundle-stats.html',
+      gzipSize: true,
+      brotliSize: true,
+      open: false,
+    }),
     VitePWA({
       registerType: 'autoUpdate',
       workbox: {
@@ -12,8 +19,9 @@ export default defineConfig({
         runtimeCaching: [
           // API responses — NetworkFirst so fresh data wins, but stale content
           // is served when offline (better than nothing).
+          // Excludes /api/auth/* to prevent stale auth responses from being cached.
           {
-            urlPattern: /\/api\/.*/i,
+            urlPattern: /\/api\/(?!auth\/).*/i,
             handler: 'NetworkFirst',
             options: {
               cacheName: 'api-cache',
@@ -113,6 +121,8 @@ export default defineConfig({
           'vendor-icons': [
             'lucide-react',
           ],
+          // Vendor: Recharts (admin analytics)
+          'vendor-recharts': ['recharts', 'd3-shape', 'd3-scale', 'd3-interpolate', 'd3-path', 'd3-time', 'd3-time-format', 'd3-format', 'd3-color', 'd3-array'],
           // Vendor: DOMPurify
           'vendor-sanitize': ['dompurify'],
         },

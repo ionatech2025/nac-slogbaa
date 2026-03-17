@@ -13,7 +13,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
 
 /**
@@ -52,17 +51,14 @@ public class BookmarkController {
 
     @GetMapping
     @PreAuthorize("hasRole('TRAINEE')")
-    public ResponseEntity<?> getBookmarks(
+    public ResponseEntity<Page<BookmarkResult>> getBookmarks(
             @AuthenticationPrincipal AuthenticatedIdentity identity,
             @RequestParam(required = false) UUID courseId,
-            @RequestParam(required = false) Integer page,
-            @RequestParam(required = false, defaultValue = "20") Integer size) {
-        if (page != null) {
-            Pageable pageable = PageRequest.of(page, Math.min(size, 100), Sort.by("createdAt").descending());
-            Page<BookmarkResult> result = getBookmarksUseCase.getBookmarks(identity.getUserId(), courseId, pageable);
-            return ResponseEntity.ok(result);
-        }
-        return ResponseEntity.ok(getBookmarksUseCase.getBookmarks(identity.getUserId(), courseId));
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        Pageable pageable = PageRequest.of(page, Math.min(size, 100), Sort.by("createdAt").descending());
+        Page<BookmarkResult> result = getBookmarksUseCase.getBookmarks(identity.getUserId(), courseId, pageable);
+        return ResponseEntity.ok(result);
     }
 
     @PutMapping("/{id}")

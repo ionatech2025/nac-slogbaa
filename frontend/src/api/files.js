@@ -1,4 +1,5 @@
 import { AuthError } from '../lib/query-client.js'
+import { parseResponse } from './client.js'
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? ''
 
@@ -48,9 +49,6 @@ export async function uploadFile(token, file, subdir) {
 
   if (res.status === 401) throw new AuthError()
 
-  const data = await res.json().catch(() => ({}))
-  if (!res.ok) {
-    throw new Error(data.error ?? data.detail ?? data.message ?? `Upload failed (${res.status})`)
-  }
+  const data = await parseResponse(res)
   return { url: data.url, size: data.size, contentType: data.contentType }
 }

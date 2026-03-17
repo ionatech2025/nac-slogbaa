@@ -4,12 +4,35 @@ import { Icon, icons } from '../../../shared/icons.jsx'
 import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle.js'
 import { Badge } from '../../../shared/components/Badge.jsx'
 import { Skeleton } from '../../../shared/components/Skeleton.jsx'
+import { AnimatedCounter } from '../../../shared/components/AnimatedCounter.jsx'
 import {
   useAdminCourses,
   useAdminCertificates,
   useAdminQuizAttempts,
   useAdminLibrary,
 } from '../../../lib/hooks/use-admin.js'
+import {
+  PieChart,
+  Pie,
+  Cell,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  AreaChart,
+  Area,
+  ResponsiveContainer,
+  CartesianGrid,
+} from 'recharts'
+
+// ── Color constants for Recharts (CSS vars don't work in SVG) ──
+const COLORS = {
+  green: '#059669',
+  blue: '#2563eb',
+  orange: '#d97706',
+  error: '#dc2626',
+}
 
 // ── Helpers ──
 
@@ -41,6 +64,37 @@ function timeAgo(dateStr) {
   if (days === 1) return 'yesterday'
   if (days < 30) return `${days}d ago`
   return new Date(dateStr).toLocaleDateString()
+}
+
+// ── Custom Recharts tooltip ──
+
+function GlassTooltip({ active, payload, label }) {
+  if (!active || !payload || !payload.length) return null
+  return (
+    <div
+      style={{
+        padding: '0.5rem 0.75rem',
+        borderRadius: 10,
+        border: '1px solid var(--slogbaa-glass-border)',
+        background: 'var(--slogbaa-glass-bg)',
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
+        boxShadow: 'var(--slogbaa-glass-shadow)',
+        fontSize: '0.75rem',
+        color: 'var(--slogbaa-text)',
+        lineHeight: 1.5,
+      }}
+    >
+      {label && (
+        <div style={{ fontWeight: 600, marginBottom: '0.2rem' }}>{label}</div>
+      )}
+      {payload.map((entry, i) => (
+        <div key={i} style={{ color: entry.color || 'var(--slogbaa-text)' }}>
+          {entry.name}: <strong>{entry.value}</strong>
+        </div>
+      ))}
+    </div>
+  )
 }
 
 // ── Styles ──
@@ -219,37 +273,6 @@ const s = {
   },
 
   // Course health
-  bar: {
-    display: 'flex',
-    height: 10,
-    borderRadius: 5,
-    overflow: 'hidden',
-    marginBottom: '1rem',
-    background: 'var(--slogbaa-border)',
-  },
-  barPublished: {
-    background: 'var(--slogbaa-green)',
-    transition: 'width 0.5s ease',
-  },
-  barDraft: {
-    background: 'var(--slogbaa-orange)',
-    transition: 'width 0.5s ease',
-  },
-  barLegend: {
-    display: 'flex',
-    gap: '1rem',
-    marginBottom: '1rem',
-    fontSize: '0.75rem',
-    color: 'var(--slogbaa-text-muted)',
-  },
-  barLegendDot: {
-    display: 'inline-block',
-    width: 8,
-    height: 8,
-    borderRadius: '50%',
-    marginRight: '0.3rem',
-    verticalAlign: 'middle',
-  },
   courseRow: {
     display: 'flex',
     alignItems: 'center',
@@ -283,7 +306,7 @@ const s = {
     display: 'grid',
     gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))',
     gap: '0.875rem',
-    marginBottom: '2rem',
+    marginBottom: '1.25rem',
   },
   insightTile: {
     padding: '1rem',
@@ -306,6 +329,29 @@ const s = {
     fontSize: '0.6875rem',
     fontWeight: 500,
     color: 'var(--slogbaa-text-muted)',
+  },
+
+  // Charts section
+  chartsRow: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
+    gap: '1.25rem',
+    marginBottom: '2rem',
+  },
+  chartPanel: {
+    padding: '1.25rem',
+    borderRadius: 18,
+    border: '1px solid var(--slogbaa-glass-border)',
+    background: 'var(--slogbaa-glass-bg)',
+    backdropFilter: 'var(--slogbaa-glass-blur)',
+    WebkitBackdropFilter: 'var(--slogbaa-glass-blur)',
+    boxShadow: 'var(--slogbaa-glass-shadow)',
+  },
+  chartTitle: {
+    margin: '0 0 0.75rem',
+    fontSize: '0.875rem',
+    fontWeight: 700,
+    color: 'var(--slogbaa-text)',
   },
 
   // Quick nav
@@ -363,9 +409,33 @@ const NAV_LINKS = [
   { to: '/admin/assessment', icon: icons.assessment, label: 'Assessment' },
 ]
 
+// ── Pie chart label renderer ──
+const PIE_COLORS = [COLORS.green, COLORS.orange]
+
+function renderPieLabel({ cx, cy, midAngle, innerRadius, outerRadius, value, name }) {
+  const RADIAN = Math.PI / 180
+  const radius = innerRadius + (outerRadius - innerRadius) * 0.5
+  const x = cx + radius * Math.cos(-midAngle * RADIAN)
+  const y = cy + radius * Math.sin(-midAngle * RADIAN)
+  if (value === 0) return null
+  return (
+    <text
+      x={x}
+      y={y}
+      fill="#fff"
+      textAnchor="middle"
+      dominantBaseline="central"
+      fontSize={12}
+      fontWeight={700}
+    >
+      {value}
+    </text>
+  )
+}
+
 // ── Sub-components ──
 
-function KpiCard({ icon, accent, value, label, sub, loading, delay = 0 }) {
+function KpiCard({ icon, accent, value, label, sub, loading, delay = 0, suffix = '', isText = false }) {
   if (loading) {
     return (
       <div style={s.kpiCard}>
@@ -380,7 +450,17 @@ function KpiCard({ icon, accent, value, label, sub, loading, delay = 0 }) {
       <div style={{ ...s.kpiIconWrap, background: accent.bg, color: accent.color }}>
         <Icon icon={icon} size={20} />
       </div>
-      <p style={s.kpiValue}>{value}</p>
+      <p style={s.kpiValue}>
+        {isText ? (
+          value
+        ) : (
+          <AnimatedCounter
+            value={typeof value === 'number' ? value : Number(value) || 0}
+            suffix={suffix}
+            duration={900}
+          />
+        )}
+      </p>
       <p style={s.kpiLabel}>{label}</p>
       {sub && <p style={s.kpiSub}>{sub}</p>}
     </div>
@@ -492,9 +572,65 @@ export function AdminHomePage() {
   }, [trainees])
 
   const revokedRate = useMemo(() => {
-    if (!certificates.length) return '0%'
-    return Math.round((certificates.filter((c) => c.revoked).length / certificates.length) * 100) + '%'
+    if (!certificates.length) return 0
+    return Math.round((certificates.filter((c) => c.revoked).length / certificates.length) * 100)
   }, [certificates])
+
+  // ── Chart data: PieChart for course health ──
+  const courseHealthPieData = useMemo(
+    () => [
+      { name: 'Published', value: publishedCount },
+      { name: 'Draft', value: draftCount },
+    ],
+    [publishedCount, draftCount]
+  )
+
+  // ── Chart data: BarChart for quiz score distribution ──
+  const scoreDistribution = useMemo(() => {
+    const ranges = [
+      { range: '0-20', min: 0, max: 20, count: 0 },
+      { range: '21-40', min: 21, max: 40, count: 0 },
+      { range: '41-60', min: 41, max: 60, count: 0 },
+      { range: '61-80', min: 61, max: 80, count: 0 },
+      { range: '81-100', min: 81, max: 100, count: 0 },
+    ]
+    attempts.forEach((a) => {
+      const score = a.scorePercent || 0
+      for (const r of ranges) {
+        if (score >= r.min && score <= r.max) {
+          r.count++
+          break
+        }
+      }
+    })
+    return ranges.map((r) => ({ range: r.range, Attempts: r.count }))
+  }, [attempts])
+
+  // ── Chart data: AreaChart for 7-day activity ──
+  const activityByDay = useMemo(() => {
+    const dayMap = {}
+    const now = new Date()
+    // Initialize last 7 days
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(now)
+      d.setDate(d.getDate() - i)
+      const key = d.toISOString().slice(0, 10)
+      dayMap[key] = { date: key, label: d.toLocaleDateString('en-UG', { weekday: 'short', day: 'numeric' }), activity: 0 }
+    }
+    // Count attempts per day
+    attempts.forEach((a) => {
+      if (!a.completedAt) return
+      const key = new Date(a.completedAt).toISOString().slice(0, 10)
+      if (dayMap[key]) dayMap[key].activity++
+    })
+    // Count certificates per day
+    certificates.forEach((c) => {
+      if (!c.issuedDate) return
+      const key = new Date(c.issuedDate).toISOString().slice(0, 10)
+      if (dayMap[key]) dayMap[key].activity++
+    })
+    return Object.values(dayMap)
+  }, [attempts, certificates])
 
   const feedLoading = attemptsLoading || certsLoading
 
@@ -515,14 +651,14 @@ export function AdminHomePage() {
         <KpiCard
           icon={icons.users}
           accent={ACCENT.blue}
-          value={overviewLoading ? '—' : trainees.length}
+          value={trainees.length}
           label="Trainees"
           loading={overviewLoading}
         />
         <KpiCard
           icon={icons.shield}
           accent={ACCENT.green}
-          value={overviewLoading ? '—' : staff.length}
+          value={staff.length}
           label="Staff"
           loading={overviewLoading}
           delay={1}
@@ -530,7 +666,7 @@ export function AdminHomePage() {
         <KpiCard
           icon={icons.course}
           accent={ACCENT.blue}
-          value={overviewLoading ? '—' : courseCount}
+          value={courseCount}
           label="Courses"
           sub={coursesLoading ? '...' : `${publishedCount} published / ${draftCount} draft`}
           loading={overviewLoading}
@@ -547,7 +683,8 @@ export function AdminHomePage() {
         <KpiCard
           icon={icons.grades}
           accent={passRate >= 70 ? ACCENT.green : ACCENT.orange}
-          value={attemptsLoading ? '—' : `${passRate}%`}
+          value={passRate}
+          suffix="%"
           label="Pass Rate"
           sub={attemptsLoading ? '' : `${attempts.length} attempt${attempts.length !== 1 ? 's' : ''}`}
           loading={attemptsLoading}
@@ -613,30 +750,43 @@ export function AdminHomePage() {
             <p style={s.empty}>No courses yet. <Link to="/admin/learning" style={{ color: 'var(--slogbaa-blue)' }}>Create one</Link></p>
           ) : (
             <>
-              {/* Published vs Draft bar */}
-              <div style={s.bar}>
-                <div
-                  style={{
-                    ...s.barPublished,
-                    width: `${courses.length ? (publishedCount / courses.length) * 100 : 0}%`,
-                  }}
-                />
-                <div
-                  style={{
-                    ...s.barDraft,
-                    width: `${courses.length ? (draftCount / courses.length) * 100 : 0}%`,
-                  }}
-                />
-              </div>
-              <div style={s.barLegend}>
-                <span>
-                  <span style={{ ...s.barLegendDot, background: 'var(--slogbaa-green)' }} />
-                  {publishedCount} Published
-                </span>
-                <span>
-                  <span style={{ ...s.barLegendDot, background: 'var(--slogbaa-orange)' }} />
-                  {draftCount} Draft
-                </span>
+              {/* Published vs Draft PieChart */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
+                <div style={{ width: '100%', maxWidth: 180, height: 180 }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={courseHealthPieData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={45}
+                        outerRadius={75}
+                        paddingAngle={3}
+                        dataKey="value"
+                        labelLine={false}
+                        label={renderPieLabel}
+                        stroke="none"
+                      >
+                        {courseHealthPieData.map((_, idx) => (
+                          <Cell key={idx} fill={PIE_COLORS[idx]} />
+                        ))}
+                      </Pie>
+                      <Tooltip content={<GlassTooltip />} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.8125rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <span style={{ width: 10, height: 10, borderRadius: '50%', background: COLORS.green, flexShrink: 0 }} />
+                    <span style={{ color: 'var(--slogbaa-text)', fontWeight: 600 }}>{publishedCount}</span>
+                    <span style={{ color: 'var(--slogbaa-text-muted)' }}>Published</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <span style={{ width: 10, height: 10, borderRadius: '50%', background: COLORS.orange, flexShrink: 0 }} />
+                    <span style={{ color: 'var(--slogbaa-text)', fontWeight: 600 }}>{draftCount}</span>
+                    <span style={{ color: 'var(--slogbaa-text-muted)' }}>Draft</span>
+                  </div>
+                </div>
               </div>
 
               {/* Top courses */}
@@ -662,11 +812,15 @@ export function AdminHomePage() {
       <p style={s.sectionLabel}>Platform Insights</p>
       <div style={s.insightsGrid}>
         <div style={s.insightTile}>
-          <p style={s.insightValue}>{attemptsLoading ? '—' : `${avgScore}%`}</p>
+          <p style={s.insightValue}>
+            {attemptsLoading ? '—' : <AnimatedCounter value={avgScore} suffix="%" duration={900} />}
+          </p>
           <p style={s.insightLabel}>Avg Quiz Score</p>
         </div>
         <div style={s.insightTile}>
-          <p style={s.insightValue}>{attemptsLoading ? '—' : attempts.length}</p>
+          <p style={s.insightValue}>
+            {attemptsLoading ? '—' : <AnimatedCounter value={attempts.length} duration={900} />}
+          </p>
           <p style={s.insightLabel}>Total Attempts</p>
         </div>
         <div style={s.insightTile}>
@@ -674,8 +828,94 @@ export function AdminHomePage() {
           <p style={s.insightLabel}>Top District</p>
         </div>
         <div style={s.insightTile}>
-          <p style={s.insightValue}>{certsLoading ? '—' : revokedRate}</p>
+          <p style={s.insightValue}>
+            {certsLoading ? '—' : <AnimatedCounter value={revokedRate} suffix="%" duration={900} />}
+          </p>
           <p style={s.insightLabel}>Revocation Rate</p>
+        </div>
+      </div>
+
+      {/* ── Charts: Score Distribution + 7-Day Activity ── */}
+      <div style={s.chartsRow}>
+        {/* Quiz Score Distribution BarChart */}
+        <div style={s.chartPanel}>
+          <h4 style={s.chartTitle}>Quiz Score Distribution</h4>
+          {attemptsLoading ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              {[1, 2, 3].map((i) => (
+                <Skeleton key={i} style={{ height: 16, borderRadius: 4 }} />
+              ))}
+            </div>
+          ) : attempts.length === 0 ? (
+            <p style={s.empty}>No quiz attempts yet.</p>
+          ) : (
+            <ResponsiveContainer width="100%" height={220}>
+              <BarChart data={scoreDistribution} margin={{ top: 8, right: 8, bottom: 0, left: -16 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--slogbaa-border)" vertical={false} />
+                <XAxis
+                  dataKey="range"
+                  tick={{ fontSize: 11, fill: 'var(--slogbaa-text-muted)' }}
+                  axisLine={{ stroke: 'var(--slogbaa-border)' }}
+                  tickLine={false}
+                />
+                <YAxis
+                  allowDecimals={false}
+                  tick={{ fontSize: 11, fill: 'var(--slogbaa-text-muted)' }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <Tooltip content={<GlassTooltip />} cursor={{ fill: 'rgba(37, 99, 235, 0.06)' }} />
+                <Bar dataKey="Attempts" fill={COLORS.blue} radius={[6, 6, 0, 0]} maxBarSize={40} />
+              </BarChart>
+            </ResponsiveContainer>
+          )}
+        </div>
+
+        {/* 7-Day Activity AreaChart */}
+        <div style={s.chartPanel}>
+          <h4 style={s.chartTitle}>Activity (Last 7 Days)</h4>
+          {feedLoading ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              {[1, 2, 3].map((i) => (
+                <Skeleton key={i} style={{ height: 16, borderRadius: 4 }} />
+              ))}
+            </div>
+          ) : (
+            <ResponsiveContainer width="100%" height={220}>
+              <AreaChart data={activityByDay} margin={{ top: 8, right: 8, bottom: 0, left: -16 }}>
+                <defs>
+                  <linearGradient id="activityGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor={COLORS.green} stopOpacity={0.3} />
+                    <stop offset="100%" stopColor={COLORS.green} stopOpacity={0.02} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--slogbaa-border)" vertical={false} />
+                <XAxis
+                  dataKey="label"
+                  tick={{ fontSize: 11, fill: 'var(--slogbaa-text-muted)' }}
+                  axisLine={{ stroke: 'var(--slogbaa-border)' }}
+                  tickLine={false}
+                />
+                <YAxis
+                  allowDecimals={false}
+                  tick={{ fontSize: 11, fill: 'var(--slogbaa-text-muted)' }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <Tooltip content={<GlassTooltip />} />
+                <Area
+                  type="monotone"
+                  dataKey="activity"
+                  name="Activity"
+                  stroke={COLORS.green}
+                  strokeWidth={2}
+                  fill="url(#activityGradient)"
+                  dot={{ r: 3, fill: COLORS.green, strokeWidth: 0 }}
+                  activeDot={{ r: 5, fill: COLORS.green, strokeWidth: 2, stroke: '#fff' }}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          )}
         </div>
       </div>
 

@@ -1,9 +1,15 @@
-import { useState } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import { Link, useOutletContext } from 'react-router-dom'
 import { FontAwesomeIcon, icons } from '../../../shared/icons.jsx'
 import { ConfirmModal } from '../../../shared/components/ConfirmModal.jsx'
 import { useAdminCertificates } from '../../../lib/hooks/use-admin.js'
 import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle.js'
+import { useDebounce } from '../../../shared/hooks/useDebounce.js'
+import { Pagination, usePagination } from '../../../shared/components/Pagination.jsx'
+import { TableSkeleton, KpiGridSkeleton } from '../../../shared/components/AdminTableSkeleton.jsx'
+import { AnimatedCounter } from '../../../shared/components/AnimatedCounter.jsx'
+import { Breadcrumbs } from '../../../shared/components/Breadcrumbs.jsx'
+import { exportToCsv } from '../../../shared/utils/csvExport.js'
 
 const styles = {
   pageTitle: {
@@ -96,6 +102,11 @@ const styles = {
     background: 'var(--slogbaa-dark)',
     borderBottom: '3px solid var(--slogbaa-blue)',
   },
+  thSortable: {
+    cursor: 'pointer',
+    userSelect: 'none',
+    transition: 'background 0.15s',
+  },
   thFirst: { borderTopLeftRadius: 11 },
   thLast: { borderTopRightRadius: 11 },
   td: {
@@ -105,6 +116,7 @@ const styles = {
   },
   trStriped: { background: 'rgba(37, 99, 235, 0.04)' },
   trLast: { borderBottom: 'none' },
+  trSelected: { background: 'rgba(37, 99, 235, 0.10)' },
   empty: {
     padding: '2rem 1.5rem',
     textAlign: 'center',
@@ -149,16 +161,255 @@ const styles = {
     color: 'var(--slogbaa-error)',
     fontSize: '0.9375rem',
   },
+  sectionHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    flexWrap: 'wrap',
+    gap: '0.75rem',
+    marginBottom: '0.75rem',
+  },
+  sectionHeaderLeft: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.75rem',
+  },
+  searchInput: {
+    padding: '0.5rem 0.875rem 0.5rem 2.25rem',
+    border: '1px solid var(--slogbaa-glass-border)',
+    borderRadius: 10,
+    background: 'var(--slogbaa-glass-bg)',
+    backdropFilter: 'var(--slogbaa-glass-blur)',
+    WebkitBackdropFilter: 'var(--slogbaa-glass-blur)',
+    color: 'var(--slogbaa-text)',
+    fontSize: '0.875rem',
+    outline: 'none',
+    width: 220,
+    transition: 'border-color 0.15s, box-shadow 0.15s',
+  },
+  searchWrap: {
+    position: 'relative',
+    display: 'inline-flex',
+    alignItems: 'center',
+  },
+  searchIcon: {
+    position: 'absolute',
+    left: '0.75rem',
+    color: 'var(--slogbaa-text-muted)',
+    pointerEvents: 'none',
+    fontSize: '0.8125rem',
+  },
+  csvBtn: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '0.4rem',
+    padding: '0.45rem 0.875rem',
+    border: '1px solid var(--slogbaa-glass-border)',
+    borderRadius: 8,
+    background: 'var(--slogbaa-glass-bg)',
+    backdropFilter: 'var(--slogbaa-glass-blur)',
+    WebkitBackdropFilter: 'var(--slogbaa-glass-blur)',
+    color: 'var(--slogbaa-text)',
+    fontSize: '0.8125rem',
+    fontWeight: 500,
+    cursor: 'pointer',
+    transition: 'background 0.15s, border-color 0.15s',
+  },
+  sortArrow: {
+    marginLeft: '0.35rem',
+    fontSize: '0.6875rem',
+    opacity: 0.85,
+  },
+  sortArrowInactive: {
+    marginLeft: '0.35rem',
+    fontSize: '0.6875rem',
+    opacity: 0.3,
+  },
+  bulkBar: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.75rem',
+    padding: '0.625rem 1.25rem',
+    background: 'rgba(37, 99, 235, 0.08)',
+    borderBottom: '1px solid var(--slogbaa-border)',
+    fontSize: '0.8125rem',
+    color: 'var(--slogbaa-text)',
+    fontWeight: 500,
+  },
+  bulkBtn: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '0.35rem',
+    padding: '0.35rem 0.75rem',
+    border: '1px solid rgba(200, 60, 60, 0.3)',
+    borderRadius: 6,
+    background: 'rgba(200, 60, 60, 0.08)',
+    color: 'var(--slogbaa-error, #c0392b)',
+    fontSize: '0.8125rem',
+    fontWeight: 600,
+    cursor: 'pointer',
+    transition: 'background 0.15s',
+  },
+  checkbox: {
+    width: 16,
+    height: 16,
+    cursor: 'pointer',
+    accentColor: 'var(--slogbaa-blue)',
+  },
 }
 
+/* ------------------------------------------------------------------ */
+/*  Sorting helper                                                     */
+/* ------------------------------------------------------------------ */
+function sortData(data, sortKey, sortDir) {
+  if (!sortKey) return data
+  return [...data].sort((a, b) => {
+    const aVal = (a[sortKey] ?? '').toString().toLowerCase()
+    const bVal = (b[sortKey] ?? '').toString().toLowerCase()
+    if (aVal < bVal) return sortDir === 'asc' ? -1 : 1
+    if (aVal > bVal) return sortDir === 'asc' ? 1 : -1
+    return 0
+  })
+}
+
+function SortArrow({ column, sortKey, sortDir }) {
+  if (sortKey !== column) {
+    return <span style={styles.sortArrowInactive}>{'▲'}</span>
+  }
+  return <span style={styles.sortArrow}>{sortDir === 'asc' ? '▲' : '▼'}</span>
+}
+
+/* ------------------------------------------------------------------ */
+/*  Component                                                          */
+/* ------------------------------------------------------------------ */
 export function AdminOverviewPage() {
-  const { staff, trainees, courseCount = 0, overviewLoading, overviewError, handleDeleteStaff, handleDeleteTrainee, isSuperAdmin, token, currentUserId, currentUserEmail } = useOutletContext()
+  const {
+    staff,
+    trainees,
+    courseCount = 0,
+    overviewLoading,
+    overviewError,
+    handleDeleteStaff,
+    handleDeleteTrainee,
+    isSuperAdmin,
+    token,
+    currentUserId,
+    currentUserEmail,
+  } = useOutletContext()
+
   const { data: certificates = [], isLoading: certsLoading } = useAdminCertificates()
   useDocumentTitle('Overview')
+
+  // Delete state
   const [deleteError, setDeleteError] = useState(null)
   const [deletingId, setDeletingId] = useState(null)
-  const [confirmTarget, setConfirmTarget] = useState(null) // { type: 'staff', item } | { type: 'trainee', item }
+  const [confirmTarget, setConfirmTarget] = useState(null)
 
+  // Staff search & sort
+  const [staffSearch, setStaffSearch] = useState('')
+  const debouncedStaffSearch = useDebounce(staffSearch, 300)
+  const [staffSortKey, setStaffSortKey] = useState(null)
+  const [staffSortDir, setStaffSortDir] = useState('asc')
+
+  // Trainee search & sort
+  const [traineeSearch, setTraineeSearch] = useState('')
+  const debouncedTraineeSearch = useDebounce(traineeSearch, 300)
+  const [traineeSortKey, setTraineeSortKey] = useState(null)
+  const [traineeSortDir, setTraineeSortDir] = useState('asc')
+
+  // Bulk selection (trainees, SuperAdmin only)
+  const [selectedIds, setSelectedIds] = useState(new Set())
+  const [bulkConfirm, setBulkConfirm] = useState(false)
+
+  // --- Filtered + sorted staff ---
+  const filteredStaff = useMemo(() => {
+    const q = debouncedStaffSearch.toLowerCase().trim()
+    let result = staff ?? []
+    if (q) {
+      result = result.filter(
+        (s) =>
+          (s.fullName ?? '').toLowerCase().includes(q) ||
+          (s.email ?? '').toLowerCase().includes(q) ||
+          (s.role ?? '').toLowerCase().includes(q)
+      )
+    }
+    return sortData(result, staffSortKey, staffSortDir)
+  }, [staff, debouncedStaffSearch, staffSortKey, staffSortDir])
+
+  // --- Filtered + sorted trainees ---
+  const filteredTrainees = useMemo(() => {
+    const q = debouncedTraineeSearch.toLowerCase().trim()
+    let result = trainees ?? []
+    if (q) {
+      result = result.filter(
+        (t) =>
+          (t.fullName ?? '').toLowerCase().includes(q) ||
+          (t.email ?? '').toLowerCase().includes(q) ||
+          (t.districtName ?? t.district ?? '').toLowerCase().includes(q)
+      )
+    }
+    return sortData(result, traineeSortKey, traineeSortDir)
+  }, [trainees, debouncedTraineeSearch, traineeSortKey, traineeSortDir])
+
+  // --- Pagination ---
+  const staffPag = usePagination(filteredStaff, 10)
+  const traineePag = usePagination(filteredTrainees, 10)
+
+  // --- Sort toggle ---
+  const toggleStaffSort = useCallback(
+    (key) => {
+      if (staffSortKey === key) {
+        setStaffSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))
+      } else {
+        setStaffSortKey(key)
+        setStaffSortDir('asc')
+      }
+    },
+    [staffSortKey]
+  )
+
+  const toggleTraineeSort = useCallback(
+    (key) => {
+      if (traineeSortKey === key) {
+        setTraineeSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))
+      } else {
+        setTraineeSortKey(key)
+        setTraineeSortDir('asc')
+      }
+    },
+    [traineeSortKey]
+  )
+
+  // --- Bulk selection helpers ---
+  const currentPageTraineeIds = traineePag.paginatedItems.map((t) => t.id)
+  const allOnPageSelected =
+    currentPageTraineeIds.length > 0 &&
+    currentPageTraineeIds.every((id) => selectedIds.has(id))
+
+  const toggleSelectAll = useCallback(() => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      if (allOnPageSelected) {
+        currentPageTraineeIds.forEach((id) => next.delete(id))
+      } else {
+        currentPageTraineeIds.forEach((id) => next.add(id))
+      }
+      return next
+    })
+  }, [allOnPageSelected, currentPageTraineeIds])
+
+  const toggleSelect = useCallback((id) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }, [])
+
+  const clearSelection = useCallback(() => setSelectedIds(new Set()), [])
+
+  // --- Delete handlers ---
   const runDeleteStaff = async (s) => {
     setConfirmTarget(null)
     setDeleteError(null)
@@ -185,6 +436,21 @@ export function AdminOverviewPage() {
     }
   }
 
+  const runBulkDeleteTrainees = async () => {
+    setBulkConfirm(false)
+    setDeleteError(null)
+    const ids = [...selectedIds]
+    for (const id of ids) {
+      try {
+        await handleDeleteTrainee?.(id)
+      } catch (err) {
+        setDeleteError(err?.message ?? `Failed to delete trainee ${id}.`)
+        break
+      }
+    }
+    clearSelection()
+  }
+
   const onDeleteStaff = (s) => {
     setConfirmTarget({ type: 'staff', item: s })
   }
@@ -193,18 +459,49 @@ export function AdminOverviewPage() {
     setConfirmTarget({ type: 'trainee', item: t })
   }
 
+  // --- CSV export ---
+  const exportStaffCsv = () => {
+    exportToCsv(filteredStaff, {
+      filename: 'staff-export',
+      columns: ['fullName', 'email', 'role'],
+      headers: { fullName: 'Name', email: 'Email', role: 'Role' },
+    })
+  }
+
+  const exportTraineesCsv = () => {
+    exportToCsv(
+      filteredTrainees.map((t) => ({
+        ...t,
+        district: t.districtName ?? t.district ?? '',
+      })),
+      {
+        filename: 'trainees-export',
+        columns: ['fullName', 'email', 'district'],
+        headers: { fullName: 'Name', email: 'Email', district: 'District' },
+      }
+    )
+  }
+
+  // --- Loading state ---
   if (overviewLoading) {
     return (
       <>
+        <Breadcrumbs items={[{ label: 'Admin', to: '/admin' }, { label: 'Overview' }]} />
         <h2 style={styles.pageTitle}>Overview</h2>
-        <p style={styles.loading}>Loading dashboard…</p>
+        <KpiGridSkeleton count={4} />
+        <div style={{ marginBottom: '1.5rem' }}>
+          <TableSkeleton rows={5} columns={3} />
+        </div>
+        <TableSkeleton rows={5} columns={4} />
       </>
     )
   }
 
+  // --- Error state ---
   if (overviewError) {
     return (
       <>
+        <Breadcrumbs items={[{ label: 'Admin', to: '/admin' }, { label: 'Overview' }]} />
         <h2 style={styles.pageTitle}>Overview</h2>
         <p style={styles.error}>{overviewError}</p>
       </>
@@ -217,10 +514,15 @@ export function AdminOverviewPage() {
       : `Delete trainee "${confirmTarget.item.fullName}" (${confirmTarget.item.email})? This cannot be undone.`
     : ''
 
+  const staffColCount = isSuperAdmin ? 4 : 3
+  const traineeColCount = isSuperAdmin ? 5 : 4
+
   return (
     <>
+      <Breadcrumbs items={[{ label: 'Admin', to: '/admin' }, { label: 'Overview' }]} />
       <h2 style={styles.pageTitle}>Overview</h2>
 
+      {/* Confirm modals */}
       {confirmTarget && (
         <ConfirmModal
           message={confirmMessage}
@@ -232,70 +534,155 @@ export function AdminOverviewPage() {
           onCancel={() => setConfirmTarget(null)}
         />
       )}
+      {bulkConfirm && (
+        <ConfirmModal
+          message={`Delete ${selectedIds.size} selected trainee${selectedIds.size === 1 ? '' : 's'}? This cannot be undone.`}
+          onContinue={runBulkDeleteTrainees}
+          onCancel={() => setBulkConfirm(false)}
+        />
+      )}
 
+      {/* KPI cards */}
       <section style={styles.section}>
         <div style={styles.statsRow}>
           <div style={{ ...styles.statCard, ...styles.statCardHighlight }}>
-            <p style={styles.statValue}>{staff.length}</p>
+            <p style={styles.statValue}>
+              <AnimatedCounter value={(staff ?? []).length} />
+            </p>
             <p style={styles.statLabel}>Staff</p>
           </div>
           <div style={{ ...styles.statCard, ...styles.statCardHighlight }}>
-            <p style={styles.statValue}>{trainees.length}</p>
+            <p style={styles.statValue}>
+              <AnimatedCounter value={(trainees ?? []).length} />
+            </p>
             <p style={styles.statLabel}>Trainees</p>
           </div>
           <div style={{ ...styles.statCard, ...styles.statCardHighlight }}>
-            <p style={styles.statValue}>{courseCount}</p>
+            <p style={styles.statValue}>
+              <AnimatedCounter value={courseCount} />
+            </p>
             <p style={styles.statLabel}>Courses</p>
           </div>
           <div style={{ ...styles.statCard, ...styles.statCardHighlight }}>
             <p style={certsLoading ? styles.statValueMuted : styles.statValue}>
-              {certsLoading ? '—' : certificates.filter((c) => !c.revoked).length}
+              {certsLoading ? (
+                '\u2014'
+              ) : (
+                <AnimatedCounter value={certificates.filter((c) => !c.revoked).length} />
+              )}
             </p>
             <p style={styles.statLabel}>Certificates</p>
           </div>
         </div>
       </section>
 
+      {/* People section */}
       <section style={styles.section}>
         <h2 style={styles.sectionTitle}>People</h2>
         {deleteError && (
           <p style={{ ...styles.error, marginBottom: '1rem' }}>{deleteError}</p>
         )}
 
-        <h3 style={{ ...styles.subsectionTitle, ...styles.subsectionTitleFirst }}>Staff</h3>
+        {/* ---------- Staff table ---------- */}
+        <div style={styles.sectionHeader}>
+          <div style={styles.sectionHeaderLeft}>
+            <h3 style={{ ...styles.subsectionTitle, ...styles.subsectionTitleFirst, margin: 0 }}>
+              Staff
+            </h3>
+            <button
+              type="button"
+              style={styles.csvBtn}
+              onClick={exportStaffCsv}
+              title="Export staff to CSV"
+            >
+              <FontAwesomeIcon icon={icons.download} size="0.8em" /> CSV
+            </button>
+          </div>
+          <div style={styles.searchWrap}>
+            <span style={styles.searchIcon}>
+              <FontAwesomeIcon icon={icons.search} size="0.85em" />
+            </span>
+            <input
+              type="text"
+              placeholder="Search staff..."
+              value={staffSearch}
+              onChange={(e) => setStaffSearch(e.target.value)}
+              style={styles.searchInput}
+              aria-label="Search staff"
+            />
+          </div>
+        </div>
+
         <div style={styles.tableWrap}>
           <table style={styles.table}>
             <thead>
               <tr>
-                <th style={{ ...styles.th, ...styles.thFirst }}>Name</th>
-                <th style={styles.th}>Email</th>
-                <th style={isSuperAdmin ? styles.th : { ...styles.th, ...styles.thLast }}>Role</th>
-                {isSuperAdmin && <th style={{ ...styles.th, ...styles.thLast }}>Actions</th>}
+                <th
+                  style={{ ...styles.th, ...styles.thFirst, ...styles.thSortable }}
+                  onClick={() => toggleStaffSort('fullName')}
+                >
+                  Name
+                  <SortArrow column="fullName" sortKey={staffSortKey} sortDir={staffSortDir} />
+                </th>
+                <th
+                  style={{ ...styles.th, ...styles.thSortable }}
+                  onClick={() => toggleStaffSort('email')}
+                >
+                  Email
+                  <SortArrow column="email" sortKey={staffSortKey} sortDir={staffSortDir} />
+                </th>
+                <th
+                  style={{
+                    ...styles.th,
+                    ...styles.thSortable,
+                    ...(isSuperAdmin ? {} : styles.thLast),
+                  }}
+                  onClick={() => toggleStaffSort('role')}
+                >
+                  Role
+                  <SortArrow column="role" sortKey={staffSortKey} sortDir={staffSortDir} />
+                </th>
+                {isSuperAdmin && (
+                  <th style={{ ...styles.th, ...styles.thLast }}>Actions</th>
+                )}
               </tr>
             </thead>
             <tbody>
-              {staff.length === 0 ? (
+              {staffPag.paginatedItems.length === 0 ? (
                 <tr>
-                  <td colSpan={isSuperAdmin ? 4 : 3} style={styles.empty}>
-                    No staff yet. Use Quick Actions → Create Staff to add.
+                  <td colSpan={staffColCount} style={styles.empty}>
+                    {debouncedStaffSearch
+                      ? 'No staff matching your search.'
+                      : 'No staff yet. Use Quick Actions \u2192 Create Staff to add.'}
                   </td>
                 </tr>
               ) : (
-                staff.map((s, i) => (
+                staffPag.paginatedItems.map((s, i) => (
                   <tr
                     key={s.id}
                     style={{
-                      ...(i === staff.length - 1 ? styles.trLast : {}),
+                      ...(i === staffPag.paginatedItems.length - 1 ? styles.trLast : {}),
                       ...(i % 2 === 1 ? styles.trStriped : {}),
                     }}
                   >
                     <td style={styles.td}>
-                      <Link to={`/admin/users/staff/${s.id}`} style={{ color: 'var(--slogbaa-blue)', fontWeight: 600, textDecoration: 'none' }}>
+                      <Link
+                        to={`/admin/users/staff/${s.id}`}
+                        style={{
+                          color: 'var(--slogbaa-blue)',
+                          fontWeight: 600,
+                          textDecoration: 'none',
+                        }}
+                      >
                         {s.fullName}
                       </Link>
                     </td>
                     <td style={styles.td}>{s.email}</td>
-                    <td style={styles.td}>{String(s.role ?? '').toUpperCase() === 'SUPER_ADMIN' ? 'Super Admin' : 'Admin'}</td>
+                    <td style={styles.td}>
+                      {String(s.role ?? '').toUpperCase() === 'SUPER_ADMIN'
+                        ? 'Super Admin'
+                        : 'Admin'}
+                    </td>
                     {isSuperAdmin && (
                       <td style={styles.td}>
                         <Link
@@ -306,7 +693,7 @@ export function AdminOverviewPage() {
                         >
                           <FontAwesomeIcon icon={icons.eye} />
                         </Link>
-                        {(s.id !== currentUserId && s.email !== currentUserEmail) ? (
+                        {s.id !== currentUserId && s.email !== currentUserEmail ? (
                           <button
                             type="button"
                             style={styles.deleteBtn}
@@ -326,69 +713,209 @@ export function AdminOverviewPage() {
             </tbody>
           </table>
         </div>
+        <Pagination
+          currentPage={staffPag.page}
+          totalItems={staffPag.totalItems}
+          pageSize={staffPag.pageSize}
+          onPageChange={staffPag.setPage}
+          onPageSizeChange={staffPag.setPageSize}
+        />
 
-        <h3 style={styles.subsectionTitle}>Trainees</h3>
+        {/* ---------- Trainees table ---------- */}
+        <div style={{ ...styles.sectionHeader, marginTop: '1.25rem' }}>
+          <div style={styles.sectionHeaderLeft}>
+            <h3 style={{ ...styles.subsectionTitle, margin: 0 }}>Trainees</h3>
+            <button
+              type="button"
+              style={styles.csvBtn}
+              onClick={exportTraineesCsv}
+              title="Export trainees to CSV"
+            >
+              <FontAwesomeIcon icon={icons.download} size="0.8em" /> CSV
+            </button>
+          </div>
+          <div style={styles.searchWrap}>
+            <span style={styles.searchIcon}>
+              <FontAwesomeIcon icon={icons.search} size="0.85em" />
+            </span>
+            <input
+              type="text"
+              placeholder="Search trainees..."
+              value={traineeSearch}
+              onChange={(e) => setTraineeSearch(e.target.value)}
+              style={styles.searchInput}
+              aria-label="Search trainees"
+            />
+          </div>
+        </div>
+
         <div style={styles.tableWrap}>
+          {/* Bulk action bar */}
+          {isSuperAdmin && selectedIds.size > 0 && (
+            <div style={styles.bulkBar}>
+              <span>
+                {selectedIds.size} trainee{selectedIds.size === 1 ? '' : 's'} selected
+              </span>
+              <button
+                type="button"
+                style={styles.bulkBtn}
+                onClick={() => setBulkConfirm(true)}
+              >
+                <FontAwesomeIcon icon={icons.delete} size="0.8em" /> Delete selected
+              </button>
+              <button
+                type="button"
+                style={{
+                  ...styles.csvBtn,
+                  padding: '0.35rem 0.75rem',
+                  fontSize: '0.8125rem',
+                }}
+                onClick={clearSelection}
+              >
+                Clear
+              </button>
+            </div>
+          )}
+
           <table style={styles.table}>
             <thead>
               <tr>
-                <th style={{ ...styles.th, ...styles.thFirst }}>Name</th>
-                <th style={styles.th}>Email</th>
-                <th style={styles.th}>District</th>
+                {isSuperAdmin && (
+                  <th style={{ ...styles.th, ...styles.thFirst, width: 40, textAlign: 'center' }}>
+                    <input
+                      type="checkbox"
+                      checked={allOnPageSelected && currentPageTraineeIds.length > 0}
+                      onChange={toggleSelectAll}
+                      style={styles.checkbox}
+                      aria-label="Select all trainees on this page"
+                    />
+                  </th>
+                )}
+                <th
+                  style={{
+                    ...styles.th,
+                    ...styles.thSortable,
+                    ...(!isSuperAdmin ? styles.thFirst : {}),
+                  }}
+                  onClick={() => toggleTraineeSort('fullName')}
+                >
+                  Name
+                  <SortArrow
+                    column="fullName"
+                    sortKey={traineeSortKey}
+                    sortDir={traineeSortDir}
+                  />
+                </th>
+                <th
+                  style={{ ...styles.th, ...styles.thSortable }}
+                  onClick={() => toggleTraineeSort('email')}
+                >
+                  Email
+                  <SortArrow
+                    column="email"
+                    sortKey={traineeSortKey}
+                    sortDir={traineeSortDir}
+                  />
+                </th>
+                <th
+                  style={{ ...styles.th, ...styles.thSortable }}
+                  onClick={() => toggleTraineeSort('districtName')}
+                >
+                  District
+                  <SortArrow
+                    column="districtName"
+                    sortKey={traineeSortKey}
+                    sortDir={traineeSortDir}
+                  />
+                </th>
                 <th style={{ ...styles.th, ...styles.thLast }}>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {trainees.length === 0 ? (
+              {traineePag.paginatedItems.length === 0 ? (
                 <tr>
-                  <td colSpan={4} style={styles.empty}>
-                    No trainees registered yet.
+                  <td colSpan={traineeColCount} style={styles.empty}>
+                    {debouncedTraineeSearch
+                      ? 'No trainees matching your search.'
+                      : 'No trainees registered yet.'}
                   </td>
                 </tr>
               ) : (
-                trainees.map((t, i) => (
-                  <tr
-                    key={t.id}
-                    style={{
-                      ...(i === trainees.length - 1 ? styles.trLast : {}),
-                      ...(i % 2 === 1 ? styles.trStriped : {}),
-                    }}
-                  >
-                    <td style={styles.td}>
-                      <Link to={`/admin/users/trainee/${t.id}`} style={{ color: 'var(--slogbaa-blue)', fontWeight: 600, textDecoration: 'none' }}>
-                        {t.fullName}
-                      </Link>
-                    </td>
-                    <td style={styles.td}>{t.email}</td>
-                    <td style={styles.td}>{t.districtName ?? t.district ?? '—'}</td>
-                    <td style={styles.td}>
-                      <Link
-                        to={`/admin/users/trainee/${t.id}`}
-                        style={styles.viewProfileBtn}
-                        title="View / manage trainee"
-                        aria-label={`View / manage trainee: ${t.fullName}`}
-                      >
-                        <FontAwesomeIcon icon={icons.eye} />
-                      </Link>
+                traineePag.paginatedItems.map((t, i) => {
+                  const isSelected = selectedIds.has(t.id)
+                  return (
+                    <tr
+                      key={t.id}
+                      style={{
+                        ...(i === traineePag.paginatedItems.length - 1 ? styles.trLast : {}),
+                        ...(isSelected
+                          ? styles.trSelected
+                          : i % 2 === 1
+                            ? styles.trStriped
+                            : {}),
+                      }}
+                    >
                       {isSuperAdmin && (
-                        <button
-                          type="button"
-                          style={styles.deleteBtn}
-                          onClick={() => onDeleteTrainee(t)}
-                          disabled={deletingId === t.id}
-                          title="Delete trainee"
-                          aria-label={`Delete trainee: ${t.fullName}`}
-                        >
-                          <FontAwesomeIcon icon={icons.delete} />
-                        </button>
+                        <td style={{ ...styles.td, textAlign: 'center', width: 40 }}>
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => toggleSelect(t.id)}
+                            style={styles.checkbox}
+                            aria-label={`Select ${t.fullName}`}
+                          />
+                        </td>
                       )}
-                    </td>
-                  </tr>
-                ))
+                      <td style={styles.td}>
+                        <Link
+                          to={`/admin/users/trainee/${t.id}`}
+                          style={{
+                            color: 'var(--slogbaa-blue)',
+                            fontWeight: 600,
+                            textDecoration: 'none',
+                          }}
+                        >
+                          {t.fullName}
+                        </Link>
+                      </td>
+                      <td style={styles.td}>{t.email}</td>
+                      <td style={styles.td}>{t.districtName ?? t.district ?? '\u2014'}</td>
+                      <td style={styles.td}>
+                        <Link
+                          to={`/admin/users/trainee/${t.id}`}
+                          style={styles.viewProfileBtn}
+                          title="View / manage trainee"
+                          aria-label={`View / manage trainee: ${t.fullName}`}
+                        >
+                          <FontAwesomeIcon icon={icons.eye} />
+                        </Link>
+                        {isSuperAdmin && (
+                          <button
+                            type="button"
+                            style={styles.deleteBtn}
+                            onClick={() => onDeleteTrainee(t)}
+                            disabled={deletingId === t.id}
+                            title="Delete trainee"
+                            aria-label={`Delete trainee: ${t.fullName}`}
+                          >
+                            <FontAwesomeIcon icon={icons.delete} />
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  )
+                })
               )}
             </tbody>
           </table>
         </div>
+        <Pagination
+          currentPage={traineePag.page}
+          totalItems={traineePag.totalItems}
+          pageSize={traineePag.pageSize}
+          onPageChange={traineePag.setPage}
+          onPageSizeChange={traineePag.setPageSize}
+        />
       </section>
     </>
   )

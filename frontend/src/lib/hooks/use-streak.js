@@ -9,6 +9,7 @@ export function useStreak() {
     queryKey: queryKeys.streak.current(),
     queryFn: () => getStreak(token),
     enabled: !!token,
+    staleTime: 5 * 60_000, // 5 min — streak updates on activity, not frequently
   })
 }
 

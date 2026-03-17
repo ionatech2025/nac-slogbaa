@@ -62,9 +62,21 @@ public class CourseDetailsQueryAdapter implements CourseDetailsQueryPort, Course
     @Cacheable("adminCourses")
     @Override
     public List<AdminCourseSummary> findAllCourses() {
-        return jpaCourseRepository.findAll().stream()
+        List<CourseEntity> courses = jpaCourseRepository.findAll();
+        if (courses.isEmpty()) {
+            return List.of();
+        }
+
+        // Batch fetch module counts in a single query instead of N queries
+        List<UUID> courseIds = courses.stream().map(CourseEntity::getId).toList();
+        java.util.Map<UUID, Integer> moduleCounts = new java.util.HashMap<>();
+        for (Object[] row : jpaModuleRepository.findModuleStatsByCourseIds(courseIds)) {
+            moduleCounts.put((UUID) row[0], ((Number) row[1]).intValue());
+        }
+
+        return courses.stream()
                 .map(c -> {
-                    int moduleCount = jpaModuleRepository.findByCourseIdOrderByModuleOrder(c.getId()).size();
+                    int moduleCount = moduleCounts.getOrDefault(c.getId(), 0);
                     String categoryName = c.getCategory() != null ? c.getCategory().getName() : null;
                     String categorySlug = c.getCategory() != null ? c.getCategory().getSlug() : null;
                     return new AdminCourseSummary(

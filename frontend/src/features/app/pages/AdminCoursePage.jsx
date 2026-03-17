@@ -5,6 +5,7 @@ import { useAdminCourseDetail, useAddModule, usePublishCourse } from '../../../l
 import { getAssetUrl } from '../../../api/client.js'
 import { AddModuleModal } from '../components/admin/AddModuleModal.jsx'
 import { Badge } from '../../../shared/components/Badge.jsx'
+import { Breadcrumbs } from '../../../shared/components/Breadcrumbs.jsx'
 import { CardGridSkeleton } from '../../../shared/components/ContentSkeletons.jsx'
 import { useToast } from '../../../shared/hooks/useToast.js'
 
@@ -219,9 +220,11 @@ export function AdminCoursePage() {
 
   return (
     <div style={styles.page}>
-      <Link to="/admin/learning" style={styles.backLink}>
-        ← Back to Learning
-      </Link>
+      <Breadcrumbs items={[
+        { label: 'Admin', to: '/admin' },
+        { label: 'Learning', to: '/admin/learning' },
+        { label: course.title || '...' },
+      ]} />
 
       <header style={styles.header}>
         {course.imageUrl ? (

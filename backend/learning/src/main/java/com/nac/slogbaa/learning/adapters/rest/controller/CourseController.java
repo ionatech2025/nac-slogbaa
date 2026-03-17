@@ -45,20 +45,13 @@ public class CourseController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('TRAINEE','ADMIN','SUPER_ADMIN')")
-    public ResponseEntity<?> getPublishedCourses(
-            @RequestParam(required = false) Integer page,
-            @RequestParam(required = false, defaultValue = "20") Integer size) {
-        if (page != null) {
-            Pageable pageable = PageRequest.of(page, Math.min(size, 100), Sort.by("title").ascending());
-            Page<CourseSummaryResponse> result = getPublishedCoursesUseCase.getPublishedCourses(pageable)
-                    .map(this::toSummaryResponse);
-            return ResponseEntity.ok(result);
-        }
-        List<CourseSummary> summaries = getPublishedCoursesUseCase.getPublishedCourses();
-        List<CourseSummaryResponse> response = summaries.stream()
-                .map(this::toSummaryResponse)
-                .toList();
-        return ResponseEntity.ok(response);
+    public ResponseEntity<Page<CourseSummaryResponse>> getPublishedCourses(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        Pageable pageable = PageRequest.of(page, Math.min(size, 100), Sort.by("title").ascending());
+        Page<CourseSummaryResponse> result = getPublishedCoursesUseCase.getPublishedCourses(pageable)
+                .map(this::toSummaryResponse);
+        return ResponseEntity.ok(result);
     }
 
     @GetMapping("/{id}")
@@ -70,6 +63,7 @@ public class CourseController {
 
     @GetMapping("/categories")
     @PreAuthorize("hasAnyRole('TRAINEE','ADMIN','SUPER_ADMIN')")
+    @org.springframework.cache.annotation.Cacheable("categories")
     public ResponseEntity<List<Map<String, String>>> getCategories() {
         List<Map<String, String>> categories = jpaCourseCategoryRepository.findAll().stream()
                 .map(c -> Map.of("id", c.getId().toString(), "name", c.getName(), "slug", c.getSlug()))

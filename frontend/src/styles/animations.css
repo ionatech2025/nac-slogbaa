@@ -1,0 +1,386 @@
+/* === Animations & Keyframes === */
+
+/* LoadingButton: spinner and shimmer */
+@keyframes loading-button-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-button-spin {
+  animation: loading-button-spin 0.8s linear infinite;
+}
+
+@keyframes loading-button-shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.loading-button-shimmer-wrap {
+  position: relative;
+  overflow: hidden;
+}
+
+.loading-button-shimmer-wrap::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.15) 50%,
+    transparent 100%
+  );
+  animation: loading-button-shimmer 1.5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+[data-theme='dark'] .loading-button-shimmer-wrap::after {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.12) 50%,
+    transparent 100%
+  );
+}
+
+/* Skeleton shimmer — animated gradient sweep instead of static pulse */
+@keyframes skeleton-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Toast slide-in */
+@keyframes toast-slide-in {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+/* Fluid entrance animation — glass panels fade in and float up */
+@keyframes glass-enter {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.glass-enter {
+  animation: glass-enter 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Staggered entrance delays for sequential elements */
+.glass-enter-delay-1 { animation-delay: 0.06s; }
+.glass-enter-delay-2 { animation-delay: 0.12s; }
+.glass-enter-delay-3 { animation-delay: 0.18s; }
+.glass-enter-delay-4 { animation-delay: 0.24s; }
+
+/* Animated gradient orb — floats behind glass panels */
+@keyframes orb-drift {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(30px, -20px) scale(1.05); }
+  50% { transform: translate(-20px, 30px) scale(0.95); }
+  75% { transform: translate(15px, 15px) scale(1.02); }
+}
+
+/* Mobile slide-out animation */
+.admin-sidebar-mobile {
+  animation: sidebar-slide-in 0.2s ease-out;
+}
+@keyframes sidebar-slide-in {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
+/* ============================================================
+   Micro-interaction Animations (2026)
+   ============================================================ */
+
+/* --- 1. Page Transition: fadeSlideIn --- */
+@keyframes fade-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.page-transition {
+  animation: fade-slide-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* --- 2. Table Row Hover: lift & glow --- */
+@keyframes table-row-glow {
+  from {
+    box-shadow: 0 0 0 transparent;
+  }
+  to {
+    box-shadow: 0 2px 12px rgba(37, 99, 235, 0.08);
+  }
+}
+
+.table-row-hover {
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.table-row-hover:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 12px rgba(37, 99, 235, 0.08);
+  background-color: var(--slogbaa-glass-bg);
+}
+
+[data-theme='dark'] .table-row-hover:hover {
+  box-shadow: 0 2px 12px rgba(96, 165, 250, 0.1);
+}
+
+/* --- 3. Button Press: scale-down on active --- */
+.btn-press {
+  transition: transform 0.1s ease;
+}
+
+.btn-press:active {
+  transform: scale(0.96);
+}
+
+/* --- 4. Card Hover Lift: translateY + shadow increase --- */
+@keyframes card-lift-shadow {
+  from {
+    box-shadow: var(--slogbaa-glass-shadow);
+  }
+  to {
+    box-shadow: var(--slogbaa-glass-shadow-lg);
+  }
+}
+
+.card-hover-lift {
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.card-hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--slogbaa-glass-shadow-lg);
+}
+
+/* --- 5. Count-up Support: utility for numeric content animation --- */
+@keyframes count-up-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.count-up {
+  animation: count-up-enter 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  display: inline-block;
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- 6. Pulse Notification: badge pulse ring --- */
+@keyframes notification-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.5);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(37, 99, 235, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0);
+  }
+}
+
+.pulse-notification {
+  animation: notification-pulse 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+[data-theme='dark'] .pulse-notification {
+  animation-name: notification-pulse-dark;
+}
+
+@keyframes notification-pulse-dark {
+  0% {
+    box-shadow: 0 0 0 0 rgba(96, 165, 250, 0.5);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(96, 165, 250, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(96, 165, 250, 0);
+  }
+}
+
+/* --- 7. Stagger Children: entrance delays for up to 8 children --- */
+@keyframes stagger-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.stagger-children > * {
+  opacity: 0;
+  animation: stagger-fade-in 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.stagger-children > *:nth-child(1) { animation-delay: 0.04s; }
+.stagger-children > *:nth-child(2) { animation-delay: 0.08s; }
+.stagger-children > *:nth-child(3) { animation-delay: 0.12s; }
+.stagger-children > *:nth-child(4) { animation-delay: 0.16s; }
+.stagger-children > *:nth-child(5) { animation-delay: 0.20s; }
+.stagger-children > *:nth-child(6) { animation-delay: 0.24s; }
+.stagger-children > *:nth-child(7) { animation-delay: 0.28s; }
+.stagger-children > *:nth-child(8) { animation-delay: 0.32s; }
+
+/* --- 8. Sortable Header Hover: background highlight --- */
+.sortable-header {
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+  border-radius: 4px;
+  padding: 0.25rem 0.5rem;
+  user-select: none;
+}
+
+.sortable-header:hover {
+  background-color: var(--slogbaa-glass-bg);
+  color: var(--slogbaa-blue);
+}
+
+.sortable-header:active {
+  background-color: var(--slogbaa-border);
+}
+
+/* --- 9. Pagination Button: subtle scale on hover --- */
+.pagination-btn {
+  transition: transform 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.pagination-btn:hover {
+  transform: scale(1.08);
+  border-color: var(--slogbaa-blue);
+}
+
+.pagination-btn:active {
+  transform: scale(0.97);
+}
+
+/* --- 10. Export Button Shine: sweep animation --- */
+@keyframes export-shine {
+  0% {
+    transform: translateX(-100%) skewX(-15deg);
+  }
+  100% {
+    transform: translateX(200%) skewX(-15deg);
+  }
+}
+
+.export-btn-shine {
+  position: relative;
+  overflow: hidden;
+}
+
+.export-btn-shine::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.25) 50%,
+    transparent 100%
+  );
+  transform: translateX(-100%) skewX(-15deg);
+  pointer-events: none;
+}
+
+.export-btn-shine:hover::after {
+  animation: export-shine 0.6s ease-in-out;
+}
+
+[data-theme='dark'] .export-btn-shine::after {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.12) 50%,
+    transparent 100%
+  );
+}
+
+/* --- 11. Search Input Focus Glow: expanding border glow --- */
+@keyframes search-glow-expand {
+  from {
+    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0);
+  }
+  to {
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2), 0 0 12px rgba(37, 99, 235, 0.1);
+  }
+}
+
+.search-focus-glow {
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  border: 1px solid var(--slogbaa-border);
+}
+
+.search-focus-glow:focus,
+.search-focus-glow:focus-within {
+  border-color: var(--slogbaa-blue);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2), 0 0 12px rgba(37, 99, 235, 0.1);
+  outline: none;
+}
+
+[data-theme='dark'] .search-focus-glow:focus,
+[data-theme='dark'] .search-focus-glow:focus-within {
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.25), 0 0 12px rgba(96, 165, 250, 0.12);
+}
+
+/* --- 12. Chart Enter: fade in with slight scale --- */
+@keyframes chart-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.chart-enter {
+  animation: chart-enter 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* --- 13. Breadcrumb Separator: subtle fade-in --- */
+@keyframes breadcrumb-sep-fade {
+  from {
+    opacity: 0;
+    transform: translateX(-4px);
+  }
+  to {
+    opacity: 0.5;
+    transform: translateX(0);
+  }
+}
+
+.breadcrumb-separator {
+  display: inline-block;
+  opacity: 0.5;
+  animation: breadcrumb-sep-fade 0.3s ease both;
+  color: var(--slogbaa-text-muted);
+}

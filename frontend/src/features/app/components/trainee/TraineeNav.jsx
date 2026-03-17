@@ -179,6 +179,15 @@ export function TraineeNav({ onOpenProfile, onOpenSearch }) {
           <Icon icon={icons.search} size={18} />
           <kbd style={styles.searchKbd}>{navigator?.platform?.includes('Mac') ? '\u2318K' : 'Ctrl K'}</kbd>
         </button>
+        <button
+          type="button"
+          style={styles.searchButton}
+          onClick={() => navigate('/dashboard/bookmarks')}
+          aria-label="My Bookmarks"
+          title="My Bookmarks"
+        >
+          <Icon icon={icons.bookmark} size={18} />
+        </button>
         <NotificationBell />
         <div ref={ref} style={{ position: 'relative' }}>
           <button

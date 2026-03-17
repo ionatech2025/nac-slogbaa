@@ -13,6 +13,10 @@ import { useToast } from '../../../shared/hooks/useToast.js'
 import { useDebounce } from '../../../shared/hooks/useDebounce.js'
 import { filterAndSortItems } from '../../../shared/utils/filterSort.js'
 import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle.js'
+import { Pagination, usePagination } from '../../../shared/components/Pagination.jsx'
+import { TableSkeleton, SearchBarSkeleton } from '../../../shared/components/AdminTableSkeleton.jsx'
+import { exportToCsv } from '../../../shared/utils/csvExport.js'
+import { Breadcrumbs } from '../../../shared/components/Breadcrumbs.jsx'
 
 const COURSE_FILTERS = [
   {
@@ -50,6 +54,20 @@ const COURSE_SORT_CONFIG = {
   },
 }
 
+const BREADCRUMB_ITEMS = [
+  { label: 'Admin', to: '/admin' },
+  { label: 'Learning' },
+]
+
+const CSV_COLUMNS = ['title', 'description', 'published', 'moduleCount', 'createdAt']
+const CSV_HEADERS = {
+  title: 'Title',
+  description: 'Description',
+  published: 'Status',
+  moduleCount: 'Modules',
+  createdAt: 'Date Created',
+}
+
 const styles = {
   pageTitle: {
     margin: '0 0 1rem',
@@ -64,6 +82,11 @@ const styles = {
     flexWrap: 'wrap',
     gap: '1rem',
     marginBottom: '1.5rem',
+  },
+  toolbarActions: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem',
   },
   tableWrap: {
     overflowX: 'auto',
@@ -135,6 +158,19 @@ const styles = {
     cursor: 'pointer',
     marginRight: '0.5rem',
   },
+  btnExport: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '0.4rem',
+    padding: '0.5rem 1rem',
+    background: 'rgba(39, 129, 191, 0.12)',
+    color: 'var(--slogbaa-blue)',
+    border: '1px solid rgba(39, 129, 191, 0.25)',
+    borderRadius: 8,
+    fontSize: '0.9375rem',
+    fontWeight: 500,
+    cursor: 'pointer',
+  },
   actionWrap: {
     display: 'flex',
     alignItems: 'center',
@@ -185,6 +221,11 @@ const styles = {
     flexShrink: 0,
     background: 'var(--slogbaa-border)',
   },
+  resultCount: {
+    margin: 0,
+    color: 'var(--slogbaa-text-muted)',
+    fontSize: '0.875rem',
+  },
 }
 
 export function AdminLearningPage() {
@@ -215,6 +256,18 @@ export function AdminLearningPage() {
       }),
     [courses, debouncedSearch, filterValues, sortBy]
   )
+
+  const {
+    page,
+    pageSize,
+    totalItems,
+    paginatedItems,
+    setPage,
+    setPageSize,
+  } = usePagination(filteredCourses, 10)
+
+  const from = totalItems === 0 ? 0 : (page - 1) * pageSize + 1
+  const to = Math.min(page * pageSize, totalItems)
 
   const handleFilterChange = useCallback((key, value) => {
     setFilterValues((prev) => ({ ...prev, [key]: value }))
@@ -260,34 +313,64 @@ export function AdminLearningPage() {
     }
   }
 
+  const handleExportCsv = useCallback(() => {
+    const exportData = filteredCourses.map((c) => ({
+      title: c.title,
+      description: c.description || '',
+      published: c.published ? 'Published' : 'Draft',
+      moduleCount: c.moduleCount,
+      createdAt: c.createdAt ? new Date(c.createdAt).toLocaleDateString() : '',
+    }))
+    exportToCsv(exportData, {
+      filename: 'courses',
+      columns: CSV_COLUMNS,
+      headers: CSV_HEADERS,
+    })
+  }, [filteredCourses])
+
   if (loading && courses.length === 0) {
     return (
       <>
+        <Breadcrumbs items={BREADCRUMB_ITEMS} />
         <h2 style={styles.pageTitle}>Learning</h2>
-        <p style={styles.loading}>Loading courses…</p>
+        <SearchBarSkeleton />
+        <TableSkeleton rows={6} columns={isSuperAdmin ? 4 : 3} />
       </>
     )
   }
 
   return (
     <>
+      <Breadcrumbs items={BREADCRUMB_ITEMS} />
       <h2 style={styles.pageTitle}>Learning</h2>
       {(error || queryError) && <p style={styles.error}>{error || queryError?.message || 'Failed to load courses.'}</p>}
 
       <div style={styles.toolbar}>
-        <p style={{ margin: 0, color: 'var(--slogbaa-text-muted)' }}>
-          {filteredCourses.length} of {courses.length} course{courses.length !== 1 ? 's' : ''}
+        <p style={styles.resultCount}>
+          Showing <strong>{from}</strong>–<strong>{to}</strong> of <strong>{totalItems}</strong> course{totalItems !== 1 ? 's' : ''}
         </p>
-        {isSuperAdmin && (
+        <div style={styles.toolbarActions}>
           <button
             type="button"
-            style={styles.btnPrimary}
-            onClick={() => setModal('createCourse')}
+            style={styles.btnExport}
+            onClick={handleExportCsv}
+            disabled={filteredCourses.length === 0}
+            title="Export courses to CSV"
           >
-            <FontAwesomeIcon icon={icons.enroll} />
-            Create course
+            <FontAwesomeIcon icon={icons.download} />
+            Export CSV
           </button>
-        )}
+          {isSuperAdmin && (
+            <button
+              type="button"
+              style={styles.btnPrimary}
+              onClick={() => setModal('createCourse')}
+            >
+              <FontAwesomeIcon icon={icons.enroll} />
+              Create course
+            </button>
+          )}
+        </div>
       </div>
 
       <FilterSortBar
@@ -327,7 +410,7 @@ export function AdminLearningPage() {
                 </td>
               </tr>
             ) : (
-              filteredCourses.map((course) => (
+              paginatedItems.map((course) => (
                 <tr
                   key={course.id}
                   style={styles.trClickable}
@@ -424,6 +507,15 @@ export function AdminLearningPage() {
           </tbody>
         </table>
       </div>
+
+      <Pagination
+        currentPage={page}
+        totalItems={totalItems}
+        pageSize={pageSize}
+        onPageChange={setPage}
+        onPageSizeChange={setPageSize}
+        pageSizeOptions={[10, 20, 50]}
+      />
 
       {modal === 'createCourse' && (
         <CreateCourseModal

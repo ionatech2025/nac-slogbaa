@@ -162,6 +162,8 @@ curl -s -X POST http://localhost:8080/api/auth/login \
 - **Progress:** Streaks + daily goals (V16), XP/badges/achievements (V20), leaderboard, trainee unenrollment (WITHDRAWN status with re-enrollment support)
 - **Engagement:** Course ratings/reviews (V15, wired into course pages), bookmarks/notes (V21, wired into content blocks), Q&A discussions (V22), in-app notification center (V25) with badge/completion/reply notifications
 - **Frontend:** Skeleton loaders, CSP headers, GDPR cookie consent, Sentry (@sentry/react), PWA install prompt + offline content caching (NetworkFirst API, CacheFirst assets, offline banner), skip-to-content (WCAG 2.2 AA), global search command palette (Ctrl+K), onboarding checklist, dedicated settings page, help center/FAQ
+- **Admin Dashboard (March 2026):** Recharts analytics (PieChart, BarChart, AreaChart), animated KPI counters, client-side pagination on all admin tables, debounced search on Overview/Assessment/Library, sortable column headers, bulk trainee selection + delete, CSV export on all admin data tables, breadcrumb navigation on all admin pages, date range filtering on quiz attempts, status filter pills on certificates, skeleton loading states replacing all "Loading..." text
+- **Admin Shared Components:** `Pagination.jsx` (+ `usePagination` hook), `Breadcrumbs.jsx`, `AnimatedCounter.jsx` (IntersectionObserver + rAF), `AdminTableSkeleton.jsx` (KPI/table/search skeletons), `csvExport.js` (RFC 4180)
 - **API:** Versioned at `/api/v1/` with backward-compatible forwarding filter; pagination on courses, reviews, discussions, bookmarks endpoints
 - **Migrations:** V14–V26 (13 total): email_verification_tokens, course_review, daily_activity, trainee_streak, module.estimated_minutes, course_category, badge_definition, trainee_badge, trainee_xp, trainee_bookmark, discussion_thread, discussion_reply, account_deletion_support, profile_image_url, notification, course_prerequisite
 
@@ -192,3 +194,7 @@ curl -s -X POST http://localhost:8080/api/auth/login \
 - Notification system: `backend/progress/.../notification/` (entity, repo, port, adapter, controller)
 - GDPR endpoints: `backend/iam/.../controller/TraineeAccountController.java`
 - API versioning filter: `backend/app/.../config/ApiVersionForwardFilter.java`
+- Admin shared components: `frontend/src/shared/components/{Pagination,Breadcrumbs,AnimatedCounter,AdminTableSkeleton}.jsx`
+- Admin CSV export: `frontend/src/shared/utils/csvExport.js`
+- Admin dashboard analytics: `frontend/src/features/app/pages/AdminHomePage.jsx` (recharts)
+- CSS design system: `frontend/src/styles/` (tokens, animations, glass, accessibility, responsive)

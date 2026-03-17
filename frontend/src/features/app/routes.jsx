@@ -17,6 +17,8 @@ const TraineeDashboardPage = lazy(() => import('./pages/TraineeDashboardPage.jsx
 const CourseListPage = lazy(() => import('../learning/pages/CourseListPage.jsx').then((m) => ({ default: m.CourseListPage })))
 const CourseDetailPage = lazy(() => import('../learning/pages/CourseDetailPage.jsx').then((m) => ({ default: m.CourseDetailPage })))
 const LibraryPage = lazy(() => import('../learning/pages/LibraryPage.jsx').then((m) => ({ default: m.LibraryPage })))
+const BookmarksPage = lazy(() => import('../learning/pages/BookmarksPage.jsx').then((m) => ({ default: m.BookmarksPage })))
+const NotificationsPage = lazy(() => import('./pages/NotificationsPage.jsx').then((m) => ({ default: m.NotificationsPage })))
 const SettingsPage = lazy(() => import('./pages/SettingsPage.jsx').then((m) => ({ default: m.SettingsPage })))
 const HelpPage = lazy(() => import('./pages/HelpPage.jsx').then((m) => ({ default: m.HelpPage })))
 
@@ -50,6 +52,8 @@ export function AppRoutes() {
           <Route path="courses/:courseId" element={<Lazy><CourseDetailPage /></Lazy>} />
           <Route path="courses/:courseId/modules/:moduleId" element={<Lazy><CourseDetailPage /></Lazy>} />
           <Route path="library" element={<Lazy><LibraryPage /></Lazy>} />
+          <Route path="bookmarks" element={<Lazy><BookmarksPage /></Lazy>} />
+          <Route path="notifications" element={<Lazy><NotificationsPage /></Lazy>} />
           <Route path="settings" element={<Lazy><SettingsPage /></Lazy>} />
           <Route path="help" element={<Lazy><HelpPage /></Lazy>} />
         </Route>

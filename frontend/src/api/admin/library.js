@@ -1,8 +1,4 @@
-import { apiClient } from '../client.js'
-
-function assertToken(token) {
-  if (!token) throw new Error('Your session is missing. Please log in again.')
-}
+import { apiClient, assertToken, parseResponse } from '../client.js'
 
 /**
  * GET /api/admin/library/resources — list all library resources (published and draft). Admin/SuperAdmin.
@@ -10,11 +6,7 @@ function assertToken(token) {
 export async function getAdminLibraryResources(token) {
   assertToken(token)
   const res = await apiClient(token).get('/api/admin/library/resources')
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}))
-    throw new Error(body.detail ?? body.message ?? `Request failed (${res.status})`)
-  }
-  return res.json()
+  return parseResponse(res)
 }
 
 /**
@@ -29,11 +21,7 @@ export async function createLibraryResource(token, { title, description, resourc
     fileUrl: fileUrl?.trim(),
     fileType: fileType?.trim() || undefined,
   })
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}))
-    throw new Error(body.detail ?? body.message ?? `Request failed (${res.status})`)
-  }
-  return res.json()
+  return parseResponse(res)
 }
 
 /**
@@ -48,10 +36,7 @@ export async function updateLibraryResource(token, resourceId, { title, descript
     fileUrl: fileUrl?.trim(),
     fileType: fileType?.trim() || undefined,
   })
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}))
-    throw new Error(body.detail ?? body.message ?? `Request failed (${res.status})`)
-  }
+  return parseResponse(res)
 }
 
 /**
@@ -60,10 +45,7 @@ export async function updateLibraryResource(token, resourceId, { title, descript
 export async function publishLibraryResource(token, resourceId) {
   assertToken(token)
   const res = await apiClient(token).post(`/api/admin/library/resources/${resourceId}/publish`)
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}))
-    throw new Error(body.detail ?? body.message ?? `Request failed (${res.status})`)
-  }
+  return parseResponse(res)
 }
 
 /**
@@ -72,8 +54,5 @@ export async function publishLibraryResource(token, resourceId) {
 export async function unpublishLibraryResource(token, resourceId) {
   assertToken(token)
   const res = await apiClient(token).post(`/api/admin/library/resources/${resourceId}/unpublish`)
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}))
-    throw new Error(body.detail ?? body.message ?? `Request failed (${res.status})`)
-  }
+  return parseResponse(res)
 }

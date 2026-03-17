@@ -2,34 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Icon, icons } from '../../../shared/icons.jsx'
 import { useNotifications, useUnreadCount, useMarkAsRead, useMarkAllAsRead } from '../../../lib/hooks/use-notifications.js'
-
-function timeAgo(dateStr) {
-  const now = Date.now()
-  const then = new Date(dateStr).getTime()
-  const diff = Math.max(0, now - then)
-  const seconds = Math.floor(diff / 1000)
-  if (seconds < 60) return 'just now'
-  const minutes = Math.floor(seconds / 60)
-  if (minutes < 60) return `${minutes}m ago`
-  const hours = Math.floor(minutes / 60)
-  if (hours < 24) return `${hours}h ago`
-  const days = Math.floor(hours / 24)
-  if (days < 7) return `${days}d ago`
-  return new Date(dateStr).toLocaleDateString()
-}
-
-function notificationIcon(type) {
-  switch (type) {
-    case 'BADGE_AWARDED':
-      return icons.certificate
-    case 'COURSE_COMPLETED':
-      return icons.checkCircle
-    case 'DISCUSSION_REPLY':
-      return icons.messageSquare
-    default:
-      return icons.bell
-  }
-}
+import { timeAgo, notificationIcon } from '../../../lib/notification-utils.js'
 
 const styles = {
   bellButton: {
@@ -262,6 +235,31 @@ export function NotificationBell() {
               <Icon icon={icons.bell} size={28} style={{ opacity: 0.4, marginBottom: 8 }} />
               <p style={{ margin: 0 }}>No notifications yet</p>
             </div>
+          )}
+
+          {notifications.length > 0 && (
+            <button
+              type="button"
+              style={{
+                display: 'block',
+                width: '100%',
+                padding: '0.625rem 1rem',
+                background: 'none',
+                border: 'none',
+                borderBottom: '1px solid var(--slogbaa-border)',
+                color: 'var(--slogbaa-blue)',
+                fontSize: '0.8125rem',
+                fontWeight: 500,
+                cursor: 'pointer',
+                textAlign: 'center',
+              }}
+              onClick={() => {
+                setOpen(false)
+                navigate('/dashboard/notifications')
+              }}
+            >
+              View all notifications
+            </button>
           )}
 
           {notifications.map((n) => (

@@ -9,6 +9,7 @@ export function useCourseReviews(courseId) {
     queryKey: queryKeys.reviews.byCourse(courseId),
     queryFn: () => getReviews(token, courseId),
     enabled: !!token && !!courseId,
+    staleTime: 2 * 60_000, // 2 min — reviews change infrequently
   })
 }
 
@@ -27,7 +28,29 @@ export function useSubmitReview() {
   return useMutation({
     mutationFn: ({ courseId, rating, reviewText }) =>
       submitReview(token, courseId, { rating, reviewText }),
-    onSuccess: (_, { courseId }) => {
+    // Optimistic update — show review immediately
+    onMutate: async ({ courseId, rating, reviewText }) => {
+      await qc.cancelQueries({ queryKey: queryKeys.reviews.byCourse(courseId) })
+      const prev = qc.getQueryData(queryKeys.reviews.byCourse(courseId))
+      if (Array.isArray(prev)) {
+        const optimisticReview = {
+          id: `temp-${Date.now()}`,
+          rating,
+          reviewText,
+          traineeName: 'You',
+          createdAt: new Date().toISOString(),
+          _pending: true,
+        }
+        qc.setQueryData(queryKeys.reviews.byCourse(courseId), [optimisticReview, ...prev])
+      }
+      return { prev, courseId }
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.prev) {
+        qc.setQueryData(queryKeys.reviews.byCourse(context.courseId), context.prev)
+      }
+    },
+    onSettled: (_, __, { courseId }) => {
       qc.invalidateQueries({ queryKey: queryKeys.reviews.byCourse(courseId) })
       qc.invalidateQueries({ queryKey: queryKeys.reviews.rating(courseId) })
     },

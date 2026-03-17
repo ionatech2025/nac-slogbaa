@@ -20,6 +20,7 @@ export function usePublishedCourses() {
     queryKey: queryKeys.courses.published(),
     queryFn: () => getPublishedCourses(token),
     enabled: !!token,
+    staleTime: 5 * 60_000, // 5 min — course catalog changes infrequently
   })
 }
 
@@ -29,16 +30,41 @@ export function useEnrolledCourses() {
     queryKey: queryKeys.courses.enrolled(),
     queryFn: () => getEnrolledCourses(token),
     enabled: !!token,
+    staleTime: 2 * 60_000, // 2 min — enrollment status changes on user action
   })
 }
 
 export function useCourseDetail(courseId) {
   const { token } = useAuth()
+  const qc = useQueryClient()
   return useQuery({
     queryKey: queryKeys.courses.detail(courseId),
     queryFn: () => getCourseDetails(token, courseId),
     enabled: !!token && !!courseId,
+    staleTime: 5 * 60_000, // 5 min — course content changes infrequently
+    // Use cached course summary from list as placeholder while detail loads
+    placeholderData: () => {
+      const courses = qc.getQueryData(queryKeys.courses.published())
+      return courses?.find?.((c) => c.id === courseId)
+    },
   })
+}
+
+/**
+ * Prefetch course detail on hover — call this when user hovers a course card.
+ * Silently fetches and caches the detail data for instant navigation.
+ */
+export function usePrefetchCourseDetail() {
+  const { token } = useAuth()
+  const qc = useQueryClient()
+  return (courseId) => {
+    if (!token || !courseId) return
+    qc.prefetchQuery({
+      queryKey: queryKeys.courses.detail(courseId),
+      queryFn: () => getCourseDetails(token, courseId),
+      staleTime: 5 * 60_000,
+    })
+  }
 }
 
 export function useCheckEnrollment(courseId) {

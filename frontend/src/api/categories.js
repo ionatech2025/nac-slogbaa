@@ -1,4 +1,4 @@
-import { apiClient } from './client.js'
+import { apiClient, parseResponseOrDefault } from './client.js'
 
 /**
  * Fetch all course categories (GET /api/courses/categories). Requires auth token.
@@ -6,8 +6,6 @@ import { apiClient } from './client.js'
  */
 export async function getCategories(token) {
   if (!token) return []
-  const client = apiClient(token)
-  const res = await client.get('/api/courses/categories')
-  if (!res.ok) return []
-  return res.json().catch(() => [])
+  const res = await apiClient(token).get('/api/courses/categories')
+  return parseResponseOrDefault(res, [])
 }
