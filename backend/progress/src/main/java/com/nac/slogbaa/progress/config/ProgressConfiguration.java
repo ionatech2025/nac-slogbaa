@@ -15,8 +15,10 @@ import com.nac.slogbaa.progress.application.port.in.EnrollTraineeUseCase;
 import com.nac.slogbaa.progress.application.port.in.GetCourseReviewsUseCase;
 import com.nac.slogbaa.progress.application.port.in.GetDiscussionThreadsUseCase;
 import com.nac.slogbaa.progress.application.port.in.GetEnrolledCoursesUseCase;
+import com.nac.slogbaa.progress.application.port.in.GetBookmarksUseCase;
 import com.nac.slogbaa.progress.application.port.in.GetLeaderboardUseCase;
 import com.nac.slogbaa.progress.application.port.in.GetTraineeAchievementsUseCase;
+import com.nac.slogbaa.progress.application.port.in.ToggleBookmarkUseCase;
 import com.nac.slogbaa.progress.application.port.in.GetResumePointUseCase;
 import com.nac.slogbaa.progress.application.port.in.GetStreakUseCase;
 import com.nac.slogbaa.progress.application.port.in.IssueCertificateUseCase;
@@ -33,6 +35,7 @@ import com.nac.slogbaa.progress.application.port.out.CertificateRepositoryPort;
 import com.nac.slogbaa.progress.application.port.out.CourseReviewPort;
 import com.nac.slogbaa.progress.application.port.out.DiscussionPort;
 import com.nac.slogbaa.progress.application.port.out.BadgePort;
+import com.nac.slogbaa.progress.application.port.out.BookmarkPort;
 import com.nac.slogbaa.progress.application.port.out.ModuleCompletionPort;
 import com.nac.slogbaa.progress.application.port.out.StreakPort;
 import com.nac.slogbaa.progress.application.port.out.TraineeProgressRepositoryPort;
@@ -42,8 +45,10 @@ import com.nac.slogbaa.progress.application.service.EnrollTraineeService;
 import com.nac.slogbaa.progress.application.service.GetCourseReviewsService;
 import com.nac.slogbaa.progress.application.service.GetDiscussionThreadsService;
 import com.nac.slogbaa.progress.application.service.CheckAndAwardBadgesService;
+import com.nac.slogbaa.progress.application.service.GetBookmarksService;
 import com.nac.slogbaa.progress.application.service.GetLeaderboardService;
 import com.nac.slogbaa.progress.application.service.GetTraineeAchievementsService;
+import com.nac.slogbaa.progress.application.service.ToggleBookmarkService;
 import com.nac.slogbaa.progress.application.service.GetStreakService;
 import com.nac.slogbaa.progress.application.service.IssueCertificateService;
 import com.nac.slogbaa.progress.application.service.ListCertificatesService;
@@ -214,9 +219,16 @@ public class ProgressConfiguration {
     }
 
     @Bean
-    public GetTraineeAchievementsUseCase getTraineeAchievementsUseCase(
-            BadgePort badgePort,
-            XpPort xpPort) {
-        return new GetTraineeAchievementsService(badgePort, xpPort);
+    public ToggleBookmarkUseCase toggleBookmarkUseCase(
+            BookmarkPort bookmarkPort,
+            CourseDetailsQueryPort courseDetailsQueryPort) {
+        return new ToggleBookmarkService(bookmarkPort, courseDetailsQueryPort);
+    }
+
+    @Bean
+    public GetBookmarksUseCase getBookmarksUseCase(
+            BookmarkPort bookmarkPort,
+            CourseDetailsQueryPort courseDetailsQueryPort) {
+        return new GetBookmarksService(bookmarkPort, courseDetailsQueryPort);
     }
 }
