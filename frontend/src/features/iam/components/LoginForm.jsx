@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { FontAwesomeIcon, icons } from '../../../shared/icons.jsx'
 import { useAuth } from '../hooks/useAuth.js'
@@ -129,6 +129,12 @@ const styles = {
     color: 'var(--slogbaa-success, #059669)',
     marginTop: '0.375rem',
   },
+  slowHint: {
+    fontSize: '0.8125rem',
+    color: 'var(--slogbaa-text-muted)',
+    textAlign: 'center',
+    margin: 0,
+  },
 }
 
 export function LoginForm() {
@@ -140,8 +146,14 @@ export function LoginForm() {
   const [resendMsg, setResendMsg] = useState(null)
   const [resendLoading, setResendLoading] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [slowHint, setSlowHint] = useState(false)
+  const slowTimerRef = useRef(null)
   const { login: setAuth } = useAuth()
   const navigate = useNavigate()
+
+  useEffect(() => {
+    return () => clearTimeout(slowTimerRef.current)
+  }, [])
 
   const handleResendVerification = async () => {
     setResendMsg(null)
@@ -167,6 +179,8 @@ export function LoginForm() {
       return
     }
     setLoading(true)
+    setSlowHint(false)
+    slowTimerRef.current = setTimeout(() => setSlowHint(true), 5000)
     try {
       const result = await loginApi(email.trim(), password)
       if (result.error) {
@@ -186,7 +200,9 @@ export function LoginForm() {
     } catch (err) {
       setError(err?.message ?? 'Network error. Is the backend running?')
     } finally {
+      clearTimeout(slowTimerRef.current)
       setLoading(false)
+      setSlowHint(false)
     }
   }
 
@@ -259,6 +275,11 @@ export function LoginForm() {
         <FontAwesomeIcon icon={icons.signIn} />
         Sign in
       </LoadingButton>
+      {loading && slowHint && (
+        <p style={styles.slowHint}>
+          Server is waking up — this may take up to a minute on first visit...
+        </p>
+      )}
     </form>
   )
 }

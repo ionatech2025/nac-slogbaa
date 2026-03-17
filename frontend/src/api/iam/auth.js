@@ -7,7 +7,8 @@ const client = apiClient()
  * Backend: POST /api/auth/login -> 200 { token, userId, email, role, fullName } or 401/409 with problem detail.
  */
 export async function login(email, password) {
-  const res = await client.post('/api/auth/login', { email, password })
+  // Longer timeout to survive Render free-tier cold starts (~60s)
+  const res = await client.post('/api/auth/login', { email, password }, { timeout: 90_000 })
   const body = await res.json().catch(() => ({}))
   if (!res.ok) {
     const message = body.detail ?? body.title ?? (res.status === 401 ? 'Invalid email or password.' : `Request failed (${res.status}).`)
@@ -29,6 +30,7 @@ export async function login(email, password) {
  * Backend: POST /api/auth/register -> 201 or 403 (staff email) / 409 (duplicate) with problem detail.
  */
 export async function register(payload) {
+  // Longer timeout to survive Render free-tier cold starts (~60s)
   const res = await client.post('/api/auth/register', {
     email: payload.email?.trim(),
     password: payload.password,
@@ -43,7 +45,7 @@ export async function register(payload) {
     street: payload.street?.trim() || undefined,
     city: payload.city?.trim() || undefined,
     postalCode: payload.postalCode?.trim() || undefined,
-  })
+  }, { timeout: 90_000 })
   const body = await res.json().catch(() => ({}))
   if (!res.ok) {
     const message = body.detail ?? body.title ?? `Request failed (${res.status}).`
