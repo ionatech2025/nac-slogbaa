@@ -156,13 +156,30 @@ curl -s -X POST http://localhost:8080/api/auth/login \
 - **SMTP:** Gmail SMTP configured on Render (env vars: `SMTP_HOST`, `SMTP_USERNAME`, `SMTP_PASSWORD`)
 
 ## Feature Summary (March 2026)
-- **IAM:** Email verification (V14), Zod auth form validation, idle session timeout (30 min)
-- **Learning:** Course categories (V19), module time estimates (V17), search/filter/sort, video player (YouTube IFrame API)
-- **Assessment:** Server-side quiz enforcement (maxAttempts + timeLimitMinutes), answer review
-- **Progress:** Streaks + daily goals (V16), XP/badges/achievements (V20), leaderboard
-- **Engagement:** Course ratings/reviews (V15), bookmarks/notes (V21), Q&A discussions (V22)
-- **Frontend:** Skeleton loaders, CSP headers, GDPR cookie consent, Sentry (@sentry/react), PWA install prompt, skip-to-content (WCAG 2.2 AA)
-- **Migrations:** V14–V22 (9 new): email_verification_tokens, course_review, daily_activity, trainee_streak, module.estimated_minutes, course_category, badge_definition, trainee_badge, trainee_xp, trainee_bookmark, discussion_thread, discussion_reply
+- **IAM:** Email verification (V14), Zod auth form validation, idle session timeout (30 min), GDPR self-service account deletion + data export (V23), trainee avatar upload (V24)
+- **Learning:** Course categories (V19), module time estimates (V17), search/filter/sort, video player (YouTube IFrame API), course prerequisites with enrollment validation (V26)
+- **Assessment:** Server-side quiz enforcement (maxAttempts + timeLimitMinutes), answer review, course completion celebration modal with confetti
+- **Progress:** Streaks + daily goals (V16), XP/badges/achievements (V20), leaderboard, trainee unenrollment (WITHDRAWN status with re-enrollment support)
+- **Engagement:** Course ratings/reviews (V15, wired into course pages), bookmarks/notes (V21, wired into content blocks), Q&A discussions (V22), in-app notification center (V25) with badge/completion/reply notifications
+- **Frontend:** Skeleton loaders, CSP headers, GDPR cookie consent, Sentry (@sentry/react), PWA install prompt + offline content caching (NetworkFirst API, CacheFirst assets, offline banner), skip-to-content (WCAG 2.2 AA), global search command palette (Ctrl+K), onboarding checklist, dedicated settings page, help center/FAQ
+- **API:** Versioned at `/api/v1/` with backward-compatible forwarding filter; pagination on courses, reviews, discussions, bookmarks endpoints
+- **Migrations:** V14–V26 (13 total): email_verification_tokens, course_review, daily_activity, trainee_streak, module.estimated_minutes, course_category, badge_definition, trainee_badge, trainee_xp, trainee_bookmark, discussion_thread, discussion_reply, account_deletion_support, profile_image_url, notification, course_prerequisite
+
+## Trainee Workflow Routes
+| Route | Page | Description |
+|---|---|---|
+| `/dashboard` | TraineeDashboardPage | Greeting, stats, streaks, achievements, continue learning, leaderboard, certificates |
+| `/dashboard/courses` | CourseListPage | Browse, search, filter, sort courses with prerequisite indicators |
+| `/dashboard/courses/:id` | CourseDetailPage | Module content, quizzes, bookmarks, reviews, discussions, unenroll |
+| `/dashboard/library` | LibraryPage | Downloadable resources and documents |
+| `/dashboard/settings` | SettingsPage | Theme, notifications, privacy/data export, account deletion |
+| `/dashboard/help` | HelpPage | FAQ accordions (12 items) + contact support |
+
+## API Versioning
+- All frontend requests go to `/api/v1/...`
+- Backend `ApiVersionForwardFilter` rewrites `/api/v1/...` to `/api/...` transparently
+- Existing `/api/...` URLs continue to work (backward-compatible)
+- Controllers unchanged — versioning handled at filter layer
 
 ## Key Paths
 - Backend: `backend/` (Spring Boot, Gradle, Java 21)
@@ -172,3 +189,6 @@ curl -s -X POST http://localhost:8080/api/auth/login \
 - Render blueprint: `render.yaml`
 - Pre-commit hook: `.githooks/pre-commit`
 - Environment: `.env` (secrets), `.env.example` (template)
+- Notification system: `backend/progress/.../notification/` (entity, repo, port, adapter, controller)
+- GDPR endpoints: `backend/iam/.../controller/TraineeAccountController.java`
+- API versioning filter: `backend/app/.../config/ApiVersionForwardFilter.java`
