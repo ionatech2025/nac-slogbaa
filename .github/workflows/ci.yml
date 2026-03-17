@@ -78,7 +78,7 @@ jobs:
 
       - name: Upload build artifacts
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: frontend-dist
           path: frontend/dist
@@ -143,7 +143,7 @@ jobs:
 
       - name: Upload test reports
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: backend-test-reports
           path: backend/**/build/reports/tests/
@@ -151,7 +151,7 @@ jobs:
 
       - name: Upload JAR artifact
         if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: backend-jar
           path: backend/app/build/libs/*.jar

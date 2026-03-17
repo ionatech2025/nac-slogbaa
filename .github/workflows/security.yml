@@ -93,7 +93,7 @@ jobs:
 
       - name: Upload SARIF as artifact (fallback)
         if: always() && steps.semgrep-upload.outcome == 'failure'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: semgrep-sarif
           path: semgrep.sarif
@@ -199,7 +199,7 @@ jobs:
 
       - name: Upload SARIF as artifact (fallback)
         if: always() && steps.owasp-sarif-upload.outcome == 'failure'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: owasp-dependency-check-sarif
           path: backend/reports/dependency-check-report.sarif
@@ -207,7 +207,7 @@ jobs:
 
       - name: Upload HTML report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: owasp-dependency-check-report
           path: backend/reports/dependency-check-report.html
@@ -272,7 +272,7 @@ jobs:
 
       - name: Upload filesystem SARIF as artifact (fallback)
         if: always() && steps.trivy-fs-upload.outcome == 'failure'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: trivy-filesystem-sarif
           path: trivy-fs.sarif
@@ -301,7 +301,7 @@ jobs:
 
       - name: Upload image SARIF as artifact (fallback)
         if: always() && steps.trivy-image-upload.outcome == 'failure'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: trivy-container-sarif
           path: trivy-image.sarif
@@ -328,7 +328,7 @@ jobs:
           output-file: sbom-source.spdx.json
 
       - name: Upload SBOM
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: sbom
           path: sbom-source.spdx.json
