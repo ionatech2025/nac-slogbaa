@@ -14,7 +14,7 @@ public interface JpaNotificationRepository extends JpaRepository<NotificationEnt
 
     Page<NotificationEntity> findByTraineeIdOrderByCreatedAtDesc(UUID traineeId, Pageable pageable);
 
-    long countByTraineeIdAndIsReadFalse(UUID traineeId);
+    long countByTraineeIdAndReadFalse(UUID traineeId);
 
     @Modifying
     @Query("UPDATE NotificationEntity n SET n.read = true WHERE n.traineeId = :traineeId AND n.read = false")

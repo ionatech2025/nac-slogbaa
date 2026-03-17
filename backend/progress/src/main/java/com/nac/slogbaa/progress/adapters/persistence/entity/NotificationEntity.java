@@ -28,7 +28,7 @@ public class NotificationEntity {
     private String link;
 
     @Column(name = "is_read", nullable = false)
-    private boolean isRead;
+    private boolean read;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
@@ -51,8 +51,8 @@ public class NotificationEntity {
     public void setMessage(String message) { this.message = message; }
     public String getLink() { return link; }
     public void setLink(String link) { this.link = link; }
-    public boolean isRead() { return isRead; }
-    public void setRead(boolean read) { this.isRead = read; }
+    public boolean isRead() { return read; }
+    public void setRead(boolean read) { this.read = read; }
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
 }

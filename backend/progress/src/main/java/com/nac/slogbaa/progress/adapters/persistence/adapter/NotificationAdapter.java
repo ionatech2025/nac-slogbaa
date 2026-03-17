@@ -32,7 +32,7 @@ public class NotificationAdapter implements NotificationPort {
 
     @Override
     public long countUnread(UUID traineeId) {
-        return jpaRepository.countByTraineeIdAndIsReadFalse(traineeId);
+        return jpaRepository.countByTraineeIdAndReadFalse(traineeId);
     }
 
     @Override
