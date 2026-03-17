@@ -52,6 +52,17 @@ export const queryKeys = {
     current: () => [...queryKeys.streak.all, 'current'],
   },
 
+  // === Bookmarks ===
+  bookmarks: {
+    all: ['bookmarks'],
+    list: (courseId) => [...queryKeys.bookmarks.all, 'list', courseId],
+  },
+
+  // === Achievements ===
+  achievements: {
+    all: () => ['achievements'],
+  },
+
   // === Notifications ===
   notifications: {
     all: ['notifications'],

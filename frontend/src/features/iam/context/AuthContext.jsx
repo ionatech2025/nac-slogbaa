@@ -70,7 +70,6 @@ export function AuthProvider({ children }) {
     setState(null)
     writeStorage(null, null)
     // 4. Clear transient UI state (toasts, palette) to prevent leaking across sessions
-    try { useUIStore.getState().removeToast?.() } catch { /* store not ready */ }
     useUIStore.setState({ toasts: [], paletteOpen: false })
     // 5. Defer cache clearing so React processes the auth state change first;
     //    route guards redirect before components try to read cleared cache data
