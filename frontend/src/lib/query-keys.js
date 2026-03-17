@@ -59,6 +59,11 @@ export const queryKeys = {
     unreadCount: () => ['notifications', 'unread-count'],
   },
 
+  // === Categories ===
+  categories: {
+    all: () => ['categories'],
+  },
+
   // === Trainee profile ===
   trainee: {
     all: ['trainee'],
