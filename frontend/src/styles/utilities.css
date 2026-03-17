@@ -1,9 +1,9 @@
 /* === Utility Classes === */
 
-/* Admin sidebar: light mode hover for nav and quick action buttons */
+/* Admin sidebar: light mode hover — soft orange surface */
 [data-theme='light'] .admin-sidebar a:hover,
 [data-theme='light'] .admin-sidebar button:hover {
-  background: rgba(37, 99, 235, 0.06);
+  background: rgba(245, 130, 32, 0.06);
 }
 
 /* Block row: icons show on hover */

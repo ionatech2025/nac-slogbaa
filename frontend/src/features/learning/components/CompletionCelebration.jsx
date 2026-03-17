@@ -6,7 +6,7 @@ const FOCUSABLE = 'a[href], button:not([disabled]), textarea:not([disabled]), in
 const AUTO_DISMISS_MS = 30_000
 const CONFETTI_COUNT = 40
 const CONFETTI_COLORS = [
-  '#2563eb', '#60a5fa', '#059669', '#34d399',
+  '#F58220', '#fb923c', '#00A651', '#4ade80',
   '#d97706', '#fbbf24', '#dc2626', '#f87171',
   '#8b5cf6', '#a78bfa', '#ec4899', '#f472b6',
 ]

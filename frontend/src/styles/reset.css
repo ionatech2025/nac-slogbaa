@@ -33,14 +33,14 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-/* Calm text selection color */
+/* Text selection (SLOGBAA Orange tint) */
 ::selection {
-  background: rgba(37, 99, 235, 0.15);
+  background: rgba(245, 130, 32, 0.15);
   color: var(--slogbaa-text);
 }
 
 a {
-  color: var(--slogbaa-blue);
+  color: var(--primary-orange);
   text-decoration: none;
   transition: color 0.15s ease;
 }
@@ -74,8 +74,8 @@ select {
 input:focus,
 textarea:focus,
 select:focus {
-  border-color: var(--slogbaa-blue);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  border-color: var(--primary-orange);
+  box-shadow: 0 0 0 3px rgba(245, 130, 32, 0.12);
   outline: none;
 }
 /* Override browser autofill and ensure dark mode visibility */

@@ -125,7 +125,7 @@
     box-shadow: 0 0 0 transparent;
   }
   to {
-    box-shadow: 0 2px 12px rgba(37, 99, 235, 0.08);
+    box-shadow: 0 2px 12px rgba(245, 130, 32, 0.08);
   }
 }
 
@@ -135,12 +135,12 @@
 
 .table-row-hover:hover {
   transform: translateY(-1px);
-  box-shadow: 0 2px 12px rgba(37, 99, 235, 0.08);
+  box-shadow: 0 2px 12px rgba(245, 130, 32, 0.08);
   background-color: var(--slogbaa-glass-bg);
 }
 
 [data-theme='dark'] .table-row-hover:hover {
-  box-shadow: 0 2px 12px rgba(96, 165, 250, 0.1);
+  box-shadow: 0 2px 12px rgba(251, 146, 60, 0.12);
 }
 
 /* --- 3. Button Press: scale-down on active --- */
@@ -193,13 +193,13 @@
 /* --- 6. Pulse Notification: badge pulse ring --- */
 @keyframes notification-pulse {
   0% {
-    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.5);
+    box-shadow: 0 0 0 0 rgba(245, 130, 32, 0.5);
   }
   70% {
-    box-shadow: 0 0 0 8px rgba(37, 99, 235, 0);
+    box-shadow: 0 0 0 8px rgba(245, 130, 32, 0);
   }
   100% {
-    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0);
+    box-shadow: 0 0 0 0 rgba(245, 130, 32, 0);
   }
 }
 
@@ -213,13 +213,13 @@
 
 @keyframes notification-pulse-dark {
   0% {
-    box-shadow: 0 0 0 0 rgba(96, 165, 250, 0.5);
+    box-shadow: 0 0 0 0 rgba(251, 146, 60, 0.5);
   }
   70% {
-    box-shadow: 0 0 0 8px rgba(96, 165, 250, 0);
+    box-shadow: 0 0 0 8px rgba(251, 146, 60, 0);
   }
   100% {
-    box-shadow: 0 0 0 0 rgba(96, 165, 250, 0);
+    box-shadow: 0 0 0 0 rgba(251, 146, 60, 0);
   }
 }
 
@@ -326,10 +326,10 @@
 /* --- 11. Search Input Focus Glow: expanding border glow --- */
 @keyframes search-glow-expand {
   from {
-    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0);
+    box-shadow: 0 0 0 0 rgba(245, 130, 32, 0);
   }
   to {
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2), 0 0 12px rgba(37, 99, 235, 0.1);
+    box-shadow: 0 0 0 3px rgba(245, 130, 32, 0.2), 0 0 12px rgba(245, 130, 32, 0.1);
   }
 }
 
@@ -340,14 +340,14 @@
 
 .search-focus-glow:focus,
 .search-focus-glow:focus-within {
-  border-color: var(--slogbaa-blue);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2), 0 0 12px rgba(37, 99, 235, 0.1);
+  border-color: var(--slogbaa-primary);
+  box-shadow: 0 0 0 3px rgba(245, 130, 32, 0.2), 0 0 12px rgba(245, 130, 32, 0.1);
   outline: none;
 }
 
 [data-theme='dark'] .search-focus-glow:focus,
 [data-theme='dark'] .search-focus-glow:focus-within {
-  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.25), 0 0 12px rgba(96, 165, 250, 0.12);
+  box-shadow: 0 0 0 3px rgba(251, 146, 60, 0.25), 0 0 12px rgba(251, 146, 60, 0.12);
 }
 
 /* --- 12. Chart Enter: fade in with slight scale --- */

@@ -1,7 +1,8 @@
 /* SLOGBAA Design System — Barrel Import
  *
- * Order matters: tokens first (variables used everywhere), then reset,
- * then progressively specific layers.
+ * Foundation variables (--primary-orange, --primary-white, --bg-soft, --text-main,
+ * --text-muted, --border-color, --success-green, --radius-xl) are defined in tokens.css.
+ * Order: tokens first, then reset, then progressively specific layers.
  */
 @import './styles/tokens.css';
 @import './styles/reset.css';
