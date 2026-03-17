@@ -4,17 +4,20 @@
 # Run:    docker run -p 3000:80 slogbaa-frontend
 # =============================================================================
 
-FROM node:20-alpine AS build
+FROM node:24-alpine AS build
 WORKDIR /app
 
-COPY package.json bun.lock* package-lock.json* ./
-RUN npm ci --ignore-scripts 2>/dev/null || npm install
+# Install bun
+RUN npm i -g bun
+
+COPY package.json bun.lock* ./
+RUN bun install --frozen-lockfile
 
 COPY . .
 
 # In production, API is same-origin (nginx proxies /api to backend)
 ENV VITE_API_BASE_URL=
-RUN npm run build
+RUN bun run build
 
 # ---- Runtime: nginx serves static SPA ----
 FROM nginx:1.27-alpine
