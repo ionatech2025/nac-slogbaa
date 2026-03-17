@@ -32,6 +32,19 @@ export class ErrorBoundary extends Component {
 
   render() {
     if (this.state.hasError) {
+      // If user is logged out, this error was likely caused by the logout transition
+      // (components losing cache data mid-render). Redirect to login instead of
+      // showing the error page — the route guards would do this anyway.
+      try {
+        if (!localStorage.getItem('slogbaa_auth')) {
+          const path = window.location.pathname
+          if (path !== '/auth/login' && path !== '/auth/register' && path !== '/') {
+            window.location.replace('/auth/login')
+            return null
+          }
+        }
+      } catch { /* localStorage unavailable — fall through to error UI */ }
+
       if (this.props.fallback) {
         return this.props.fallback({ error: this.state.error, reset: this.handleReset })
       }

@@ -61,9 +61,15 @@ export function AuthProvider({ children }) {
   }, [])
 
   const logout = useCallback(() => {
+    // 1. Cancel all in-flight queries to prevent 401 cascades
+    queryClient.cancelQueries()
+    // 2. Clear auth state — route guards will redirect to /auth/login on next render
     setState(null)
     writeStorage(null, null)
-    queryClient.clear()
+    // 3. Defer cache clearing so React processes the auth state change first;
+    //    route guards redirect before components try to read cleared cache data
+    queueMicrotask(() => queryClient.clear())
+    // 4. Sync to other tabs
     try {
       const bc = new BroadcastChannel(AUTH_CHANNEL)
       bc.postMessage({ type: 'logout' })
@@ -87,13 +93,14 @@ export function AuthProvider({ children }) {
       bc.onmessage = (event) => {
         const msg = event.data
         if (msg?.type === 'logout') {
+          queryClient.cancelQueries()
           setState(null)
           writeStorage(null, null)
-          queryClient.clear()
+          queueMicrotask(() => queryClient.clear())
         } else if (msg?.type === 'login' && msg.token && msg.user) {
           setState({ token: msg.token, user: msg.user })
           writeStorage(msg.token, msg.user)
-          queryClient.clear()
+          queueMicrotask(() => queryClient.clear())
         }
       }
     } catch {
