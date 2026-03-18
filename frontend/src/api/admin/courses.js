@@ -9,8 +9,9 @@ import { apiClient, assertToken, parseResponse } from '../client.js'
  */
 export async function getAdminCourses(token) {
   assertToken(token)
-  const res = await apiClient(token).get('/api/admin/courses')
-  return parseResponse(res)
+  const res = await apiClient(token).get('/api/admin/courses?size=200')
+  const data = await parseResponse(res)
+  return Array.isArray(data) ? data : data?.content ?? []
 }
 
 /**

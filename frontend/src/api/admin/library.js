@@ -5,8 +5,9 @@ import { apiClient, assertToken, parseResponse } from '../client.js'
  */
 export async function getAdminLibraryResources(token) {
   assertToken(token)
-  const res = await apiClient(token).get('/api/admin/library/resources')
-  return parseResponse(res)
+  const res = await apiClient(token).get('/api/admin/library/resources?size=500')
+  const data = await parseResponse(res)
+  return Array.isArray(data) ? data : data?.content ?? []
 }
 
 /**

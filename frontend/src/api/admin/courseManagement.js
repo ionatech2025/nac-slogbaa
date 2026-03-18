@@ -5,8 +5,9 @@ import { apiClient, assertToken, parseResponse } from '../client.js'
  */
 export async function getCourseEnrollments(token, courseId) {
   assertToken(token)
-  const res = await apiClient(token).get(`/api/admin/course-management/courses/${courseId}/enrollments`)
-  return parseResponse(res)
+  const res = await apiClient(token).get(`/api/admin/course-management/courses/${courseId}/enrollments?size=500`)
+  const data = await parseResponse(res)
+  return Array.isArray(data) ? data : data?.content ?? []
 }
 
 /**

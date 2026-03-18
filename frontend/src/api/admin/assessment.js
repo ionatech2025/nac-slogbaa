@@ -27,8 +27,9 @@ export async function saveAdminQuiz(token, moduleId, payload) {
  */
 export async function getAdminQuizAttempts(token) {
   assertToken(token)
-  const res = await apiClient(token).get('/api/admin/assessment/attempts')
-  return parseResponse(res)
+  const res = await apiClient(token).get('/api/admin/assessment/attempts?size=500')
+  const data = await parseResponse(res)
+  return Array.isArray(data) ? data : data?.content ?? []
 }
 
 /**
