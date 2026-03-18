@@ -65,3 +65,24 @@
     padding: 0.75rem !important;
   }
 }
+
+/* === Container Queries (2026 — component-level responsiveness) === */
+.container-inline {
+  container-type: inline-size;
+}
+
+@container (max-width: 500px) {
+  .container-responsive-stack {
+    flex-direction: column !important;
+  }
+  .container-responsive-hide {
+    display: none !important;
+  }
+}
+
+@container (max-width: 360px) {
+  .container-responsive-compact {
+    padding: 0.75rem !important;
+    gap: 0.5rem !important;
+  }
+}

@@ -384,3 +384,48 @@
   animation: breadcrumb-sep-fade 0.3s ease both;
   color: var(--slogbaa-text-muted);
 }
+
+/* === View Transitions API (2026 — cross-page morph) === */
+@supports (view-transition-name: auto) {
+  .view-transition-hero {
+    view-transition-name: hero;
+  }
+  .view-transition-title {
+    view-transition-name: page-title;
+  }
+
+  ::view-transition-old(hero),
+  ::view-transition-new(hero) {
+    animation-duration: 0.35s;
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  ::view-transition-old(page-title) {
+    animation: fade-slide-out 0.2s ease forwards;
+  }
+  ::view-transition-new(page-title) {
+    animation: fade-slide-in 0.3s ease forwards;
+  }
+}
+
+@keyframes fade-slide-out {
+  to { opacity: 0; transform: translateY(-8px); }
+}
+
+/* === Scroll-Driven Animations (2026 — progressive content reveal) === */
+@supports (animation-timeline: view()) {
+  .scroll-reveal {
+    opacity: 0;
+    transform: translateY(16px);
+    animation: scroll-fade-in linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 30%;
+  }
+
+  @keyframes scroll-fade-in {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}

@@ -5,6 +5,8 @@ import com.nac.slogbaa.progress.adapters.persistence.repository.JpaCertificateRe
 import com.nac.slogbaa.progress.application.dto.CertificateSummaryResult;
 import com.nac.slogbaa.progress.application.port.out.CertificateRepositoryPort.NewCertificateData;
 import com.nac.slogbaa.progress.application.port.out.CertificateRepositoryPort;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -35,6 +37,18 @@ public class CertificateRepositoryAdapter implements CertificateRepositoryPort {
                         p.getCourseTitle()
                 ))
                 .toList();
+    }
+
+    @Override
+    public Page<CertificateSummaryResult> findAllForAdmin(Pageable pageable) {
+        Page<JpaCertificateRepository.CertificateSummaryProjection> page =
+            jpaRepository.findAllWithTraineeAndCoursePaged(pageable);
+        return page.map(p -> new CertificateSummaryResult(
+            p.getId(), p.getTraineeId(), p.getCourseId(),
+            p.getCertificateNumber(), p.getIssuedDate(),
+            p.getFinalScorePercent(), p.isRevoked(),
+            p.getTraineeName(), p.getCourseTitle()
+        ));
     }
 
     @Override

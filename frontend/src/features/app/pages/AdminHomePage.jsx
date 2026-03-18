@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
-import { Link, useOutletContext } from 'react-router-dom'
+import { Link, useOutletContext, useNavigate } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import { Icon, icons } from '../../../shared/icons.jsx'
 import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle.js'
 import { Badge } from '../../../shared/components/Badge.jsx'
@@ -11,6 +12,7 @@ import {
   useAdminQuizAttempts,
   useAdminLibrary,
 } from '../../../lib/hooks/use-admin.js'
+import { getVisitorCount } from '../../../api/homepage.js'
 import {
   PieChart,
   Pie,
@@ -435,7 +437,8 @@ function renderPieLabel({ cx, cy, midAngle, innerRadius, outerRadius, value, nam
 
 // ── Sub-components ──
 
-function KpiCard({ icon, accent, value, label, sub, loading, delay = 0, suffix = '', isText = false }) {
+function KpiCard({ icon, accent, value, label, sub, loading, delay = 0, suffix = '', isText = false, to }) {
+  const navigate = useNavigate()
   if (loading) {
     return (
       <div style={s.kpiCard}>
@@ -445,8 +448,19 @@ function KpiCard({ icon, accent, value, label, sub, loading, delay = 0, suffix =
       </div>
     )
   }
+  const clickable = !!to
+  const handleClick = clickable ? () => navigate(to) : undefined
+  const handleKeyDown = clickable
+    ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate(to) } }
+    : undefined
   return (
-    <div style={s.kpiCard} className={`glass-hover glass-enter${delay ? ` glass-enter-delay-${delay}` : ''}`}>
+    <div
+      style={{ ...s.kpiCard, ...(clickable ? { cursor: 'pointer' } : {}) }}
+      className={`glass-hover glass-enter${delay ? ` glass-enter-delay-${delay}` : ''}${clickable ? ' kpi-clickable' : ''}`}
+      onClick={handleClick}
+      onKeyDown={handleKeyDown}
+      {...(clickable ? { role: 'link', tabIndex: 0, 'aria-label': `View ${label} details` } : {})}
+    >
       <div style={{ ...s.kpiIconWrap, background: accent.bg, color: accent.color }}>
         <Icon icon={icon} size={20} />
       </div>
@@ -504,7 +518,9 @@ export function AdminHomePage() {
     courseCount = 0,
     overviewLoading,
     displayName,
+    token,
   } = useOutletContext()
+  const navigate = useNavigate()
 
   useDocumentTitle('Admin Home')
 
@@ -512,6 +528,16 @@ export function AdminHomePage() {
   const { data: certificates = [], isLoading: certsLoading } = useAdminCertificates()
   const { data: attempts = [], isLoading: attemptsLoading } = useAdminQuizAttempts()
   const { data: library = [], isLoading: libraryLoading } = useAdminLibrary()
+
+  // Site visitor count
+  const { data: visitorData } = useQuery({
+    queryKey: ['admin', 'cms', 'visitors'],
+    queryFn: () => getVisitorCount(token),
+    staleTime: 60_000,
+    retry: false,
+    enabled: !!token,
+  })
+  const totalVisitors = visitorData?.total ?? 0
 
   // Derived KPIs
   const publishedCount = useMemo(() => courses.filter((c) => c.published).length, [courses])
@@ -649,11 +675,19 @@ export function AdminHomePage() {
       <p style={s.sectionLabel}>Platform Overview</p>
       <div style={s.kpiGrid}>
         <KpiCard
+          icon={icons.globe}
+          accent={ACCENT.green}
+          value={totalVisitors}
+          label="Site Visitors"
+          loading={!visitorData}
+        />
+        <KpiCard
           icon={icons.users}
           accent={ACCENT.blue}
           value={trainees.length}
           label="Trainees"
           loading={overviewLoading}
+          to="/admin/overview#trainees"
         />
         <KpiCard
           icon={icons.shield}
@@ -662,6 +696,7 @@ export function AdminHomePage() {
           label="Staff"
           loading={overviewLoading}
           delay={1}
+          to="/admin/overview#staff"
         />
         <KpiCard
           icon={icons.course}
@@ -671,6 +706,7 @@ export function AdminHomePage() {
           sub={coursesLoading ? '...' : `${publishedCount} published / ${draftCount} draft`}
           loading={overviewLoading}
           delay={2}
+          to="/admin/learning"
         />
         <KpiCard
           icon={icons.certificate}
@@ -679,6 +715,7 @@ export function AdminHomePage() {
           label="Certificates"
           loading={certsLoading}
           delay={3}
+          to="/admin/assessment?tab=certificates"
         />
         <KpiCard
           icon={icons.grades}
@@ -689,6 +726,7 @@ export function AdminHomePage() {
           sub={attemptsLoading ? '' : `${attempts.length} attempt${attempts.length !== 1 ? 's' : ''}`}
           loading={attemptsLoading}
           delay={4}
+          to="/admin/assessment?tab=attempts"
         />
         <KpiCard
           icon={icons.library}
@@ -697,6 +735,7 @@ export function AdminHomePage() {
           label="Resources"
           loading={libraryLoading}
           delay={4}
+          to="/admin/library"
         />
       </div>
 
@@ -811,13 +850,29 @@ export function AdminHomePage() {
       {/* ── Platform Insights ── */}
       <p style={s.sectionLabel}>Platform Insights</p>
       <div style={s.insightsGrid}>
-        <div style={s.insightTile}>
+        <div
+          style={{ ...s.insightTile, cursor: 'pointer' }}
+          className="kpi-clickable"
+          role="link"
+          tabIndex={0}
+          aria-label="View quiz score details"
+          onClick={() => navigate('/admin/assessment')}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate('/admin/assessment') } }}
+        >
           <p style={s.insightValue}>
             {attemptsLoading ? '—' : <AnimatedCounter value={avgScore} suffix="%" duration={900} />}
           </p>
           <p style={s.insightLabel}>Avg Quiz Score</p>
         </div>
-        <div style={s.insightTile}>
+        <div
+          style={{ ...s.insightTile, cursor: 'pointer' }}
+          className="kpi-clickable"
+          role="link"
+          tabIndex={0}
+          aria-label="View quiz attempts"
+          onClick={() => navigate('/admin/assessment')}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate('/admin/assessment') } }}
+        >
           <p style={s.insightValue}>
             {attemptsLoading ? '—' : <AnimatedCounter value={attempts.length} duration={900} />}
           </p>

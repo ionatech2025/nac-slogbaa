@@ -1,1 +1,0 @@
--- Test data for IAM tests (loaded when @Sql or similar is used)

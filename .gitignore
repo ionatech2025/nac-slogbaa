@@ -13,6 +13,9 @@ backend/**/build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 backend/.gradle/
+backend/**/bin/
+backend/**/target/
+**/*.class
 
 # ---- Frontend (Node) ----
 frontend/node_modules/

@@ -122,5 +122,32 @@ export const queryKeys = {
       canDeleteCourse: (courseId) => [...queryKeys.admin.all, 'courseManagement', 'canDeleteCourse', courseId],
       canDeleteModule: (courseId, moduleId) => [...queryKeys.admin.all, 'courseManagement', 'canDeleteModule', courseId, moduleId],
     },
+
+    // Admin CMS (homepage content)
+    cms: {
+      banners: () => [...queryKeys.admin.all, 'cms', 'banners'],
+      stories: () => [...queryKeys.admin.all, 'cms', 'stories'],
+      videos: () => [...queryKeys.admin.all, 'cms', 'videos'],
+      partners: () => [...queryKeys.admin.all, 'cms', 'partners'],
+      news: () => [...queryKeys.admin.all, 'cms', 'news'],
+      visitors: () => [...queryKeys.admin.all, 'cms', 'visitors'],
+    },
+
+    // Admin live sessions
+    liveSessions: {
+      all: () => [...queryKeys.admin.all, 'liveSessions'],
+    },
+  },
+
+  // === Public homepage content ===
+  homepage: {
+    all: ['homepage'],
+    content: () => ['homepage', 'content'],
+  },
+
+  // === Live sessions (trainee view) ===
+  liveSessions: {
+    all: ['liveSessions'],
+    active: () => ['liveSessions', 'active'],
   },
 }

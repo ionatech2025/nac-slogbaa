@@ -3,6 +3,8 @@ package com.nac.slogbaa.learning.application.service;
 import com.nac.slogbaa.learning.application.dto.result.AdminCourseSummary;
 import com.nac.slogbaa.learning.application.port.in.GetAdminCoursesUseCase;
 import com.nac.slogbaa.learning.application.port.out.AdminCourseQueryPort;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -19,5 +21,15 @@ public class GetAdminCoursesService implements GetAdminCoursesUseCase {
     @Override
     public List<AdminCourseSummary> getAllCourses() {
         return adminCourseQueryPort.findAllCourses();
+    }
+
+    @Override
+    public Page<AdminCourseSummary> getAllCourses(Pageable pageable) {
+        return adminCourseQueryPort.findAllCourses(pageable);
+    }
+
+    @Override
+    public long countCourses() {
+        return adminCourseQueryPort.countAllCourses();
     }
 }
