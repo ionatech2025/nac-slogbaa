@@ -167,7 +167,6 @@ jobs:
         run: npm install -g vercel@latest
 
       - name: Pull Vercel environment
-        working-directory: frontend
         run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Install dependencies
@@ -181,10 +180,9 @@ jobs:
           VITE_API_BASE_URL: ${{ github.ref_name == 'main' && 'https://slogbaa-backend.onrender.com' || 'https://slogbaa-backend.onrender.com' }}
 
       - name: Prepare Vercel output
-        working-directory: frontend
         run: |
           mkdir -p .vercel/output/static
-          cp -r dist/* .vercel/output/static/
+          cp -r frontend/dist/* .vercel/output/static/
           cat > .vercel/output/config.json << 'CONF'
           {
             "version": 3,
@@ -197,7 +195,6 @@ jobs:
 
       - name: Deploy to Vercel (Preview)
         id: deploy
-        working-directory: frontend
         run: |
           URL=$(vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }})
           echo "url=${URL}" >> "$GITHUB_OUTPUT"
@@ -276,7 +273,6 @@ jobs:
         run: npm install -g vercel@latest
 
       - name: Pull Vercel environment
-        working-directory: frontend
         run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Install dependencies
@@ -290,10 +286,9 @@ jobs:
           VITE_API_BASE_URL: https://slogbaa-backend.onrender.com
 
       - name: Prepare Vercel output
-        working-directory: frontend
         run: |
           mkdir -p .vercel/output/static
-          cp -r dist/* .vercel/output/static/
+          cp -r frontend/dist/* .vercel/output/static/
           cat > .vercel/output/config.json << 'CONF'
           {
             "version": 3,
@@ -306,7 +301,6 @@ jobs:
 
       - name: Deploy to Vercel (Production)
         id: deploy
-        working-directory: frontend
         run: |
           URL=$(vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }})
           echo "url=${URL}" >> "$GITHUB_OUTPUT"
