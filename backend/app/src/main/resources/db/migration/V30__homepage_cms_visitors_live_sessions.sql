@@ -1,7 +1,7 @@
 -- V30: Homepage CMS, site visitor counter, live sessions
 
 -- ── Homepage Banners (hero carousel slides) ──
-CREATE TABLE homepage_banner (
+CREATE TABLE IF NOT EXISTS homepage_banner (
     id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     title          VARCHAR(255) NOT NULL,
     subtitle       TEXT,
@@ -13,7 +13,7 @@ CREATE TABLE homepage_banner (
 );
 
 -- ── Homepage Impact Stories ──
-CREATE TABLE homepage_story (
+CREATE TABLE IF NOT EXISTS homepage_story (
     id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     author_name    VARCHAR(255) NOT NULL,
     author_role    VARCHAR(255),
@@ -26,7 +26,7 @@ CREATE TABLE homepage_story (
 );
 
 -- ── Homepage Videos (YouTube links) ──
-CREATE TABLE homepage_video (
+CREATE TABLE IF NOT EXISTS homepage_video (
     id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     title          VARCHAR(255) NOT NULL,
     youtube_url    TEXT NOT NULL,
@@ -37,7 +37,7 @@ CREATE TABLE homepage_video (
 );
 
 -- ── Homepage Partner Logos ──
-CREATE TABLE homepage_partner (
+CREATE TABLE IF NOT EXISTS homepage_partner (
     id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name           VARCHAR(255) NOT NULL,
     logo_url       TEXT,
@@ -49,7 +49,7 @@ CREATE TABLE homepage_partner (
 );
 
 -- ── Homepage News & Updates ──
-CREATE TABLE homepage_news (
+CREATE TABLE IF NOT EXISTS homepage_news (
     id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     title          VARCHAR(255) NOT NULL,
     summary        TEXT,
@@ -62,14 +62,16 @@ CREATE TABLE homepage_news (
 );
 
 -- ── Site Visitor Counter ──
-CREATE TABLE site_visit (
+CREATE TABLE IF NOT EXISTS site_visit (
     id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     visited_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
     fingerprint    VARCHAR(64)
 );
-CREATE INDEX idx_site_visit_date ON site_visit (visited_at);
+CREATE INDEX IF NOT EXISTS idx_site_visit_date ON site_visit (visited_at);
 
 -- ── Live Sessions ──
+-- Drop old version if exists (from prior failed migration with FK constraint)
+DROP TABLE IF EXISTS live_session;
 CREATE TABLE live_session (
     id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     title            VARCHAR(255) NOT NULL,
@@ -83,4 +85,4 @@ CREATE TABLE live_session (
     created_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at       TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-CREATE INDEX idx_live_session_scheduled ON live_session (scheduled_at);
+CREATE INDEX IF NOT EXISTS idx_live_session_scheduled ON live_session (scheduled_at);
