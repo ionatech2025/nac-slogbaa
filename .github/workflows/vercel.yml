@@ -9,7 +9,7 @@
 #   - Pull Requests → Preview deployment with PR comment link
 #
 # Prerequisites:
-#   1. Install Vercel CLI: bun add -g vercel
+#   1. Install Vercel CLI: npm install -g vercel
 #   2. Link project:      cd frontend && vercel link
 #   3. Add GitHub secrets:
 #      - VERCEL_TOKEN    → Vercel account token (Settings > Tokens)
@@ -164,7 +164,7 @@ jobs:
           bun-version: ${{ env.BUN_VERSION }}
 
       - name: Install Vercel CLI
-        run: bun add -g vercel@latest
+        run: npm install -g vercel@latest
 
       - name: Pull Vercel environment
         working-directory: frontend
@@ -252,7 +252,7 @@ jobs:
           bun-version: ${{ env.BUN_VERSION }}
 
       - name: Install Vercel CLI
-        run: bun add -g vercel@latest
+        run: npm install -g vercel@latest
 
       - name: Pull Vercel environment
         working-directory: frontend
