@@ -35,6 +35,9 @@ const AdminLibraryPage = lazy(() => import('./pages/AdminLibraryPage.jsx').then(
 const AdminCourseManagementPage = lazy(() => import('./pages/AdminCourseManagementPage.jsx').then((m) => ({ default: m.AdminCourseManagementPage })))
 const AdminUserDetailPage = lazy(() => import('./pages/AdminUserDetailPage.jsx').then((m) => ({ default: m.AdminUserDetailPage })))
 const AdminHomePage = lazy(() => import('./pages/AdminHomePage.jsx').then((m) => ({ default: m.AdminHomePage })))
+const AdminCmsPage = lazy(() => import('./pages/AdminCmsPage.jsx').then((m) => ({ default: m.AdminCmsPage })))
+const AdminLiveSessionsPage = lazy(() => import('./pages/AdminLiveSessionsPage.jsx').then((m) => ({ default: m.AdminLiveSessionsPage })))
+const LiveSessionsPage = lazy(() => import('./pages/LiveSessionsPage.jsx').then((m) => ({ default: m.LiveSessionsPage })))
 
 function Lazy({ children }) {
   return <Suspense fallback={<PageSkeleton />}>{children}</Suspense>
@@ -56,6 +59,7 @@ export function AppRoutes() {
           <Route path="bookmarks" element={<Lazy><BookmarksPage /></Lazy>} />
           <Route path="notifications" element={<Lazy><NotificationsPage /></Lazy>} />
           <Route path="settings" element={<Lazy><SettingsPage /></Lazy>} />
+          <Route path="live-sessions" element={<Lazy><LiveSessionsPage /></Lazy>} />
           <Route path="help" element={<Lazy><HelpPage /></Lazy>} />
         </Route>
       </Route>
@@ -71,6 +75,8 @@ export function AppRoutes() {
           <Route path="learning/:courseId/modules/:moduleId" element={<Lazy><AdminModuleEditorPage /></Lazy>} />
           <Route path="library" element={<Lazy><AdminLibraryPage /></Lazy>} />
           <Route path="assessment" element={<Lazy><AdminAssessmentPage /></Lazy>} />
+          <Route path="cms" element={<Lazy><AdminCmsPage /></Lazy>} />
+          <Route path="live-sessions" element={<Lazy><AdminLiveSessionsPage /></Lazy>} />
           <Route path="reports" element={<Lazy><AdminPlaceholderPage title="Reports & Analytics" /></Lazy>} />
         </Route>
       </Route>

@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import { Link, useOutletContext, useNavigate } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import { Icon, icons } from '../../../shared/icons.jsx'
 import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle.js'
 import { Badge } from '../../../shared/components/Badge.jsx'
@@ -11,6 +12,7 @@ import {
   useAdminQuizAttempts,
   useAdminLibrary,
 } from '../../../lib/hooks/use-admin.js'
+import { getVisitorCount } from '../../../api/homepage.js'
 import {
   PieChart,
   Pie,
@@ -516,6 +518,7 @@ export function AdminHomePage() {
     courseCount = 0,
     overviewLoading,
     displayName,
+    token,
   } = useOutletContext()
   const navigate = useNavigate()
 
@@ -525,6 +528,16 @@ export function AdminHomePage() {
   const { data: certificates = [], isLoading: certsLoading } = useAdminCertificates()
   const { data: attempts = [], isLoading: attemptsLoading } = useAdminQuizAttempts()
   const { data: library = [], isLoading: libraryLoading } = useAdminLibrary()
+
+  // Site visitor count
+  const { data: visitorData } = useQuery({
+    queryKey: ['admin', 'cms', 'visitors'],
+    queryFn: () => getVisitorCount(token),
+    staleTime: 60_000,
+    retry: false,
+    enabled: !!token,
+  })
+  const totalVisitors = visitorData?.total ?? 0
 
   // Derived KPIs
   const publishedCount = useMemo(() => courses.filter((c) => c.published).length, [courses])
@@ -661,6 +674,13 @@ export function AdminHomePage() {
       {/* ── KPI Stat Cards ── */}
       <p style={s.sectionLabel}>Platform Overview</p>
       <div style={s.kpiGrid}>
+        <KpiCard
+          icon={icons.globe}
+          accent={ACCENT.green}
+          value={totalVisitors}
+          label="Site Visitors"
+          loading={!visitorData}
+        />
         <KpiCard
           icon={icons.users}
           accent={ACCENT.blue}
