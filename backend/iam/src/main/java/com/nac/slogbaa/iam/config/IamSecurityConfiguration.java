@@ -90,6 +90,8 @@ public class IamSecurityConfiguration {
             )
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**", "/api/v1/auth/**").permitAll()
+                .requestMatchers("/api/public/**", "/api/v1/public/**").permitAll()
+                .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/api-docs/**", "/v3/api-docs/**").permitAll()
                 .requestMatchers("/actuator/health", "/actuator/health/**", "/actuator/info").permitAll()
                 .requestMatchers("/actuator/prometheus").hasAnyRole("ADMIN", "SUPER_ADMIN")
                 .requestMatchers("/actuator/**").hasRole("SUPER_ADMIN")

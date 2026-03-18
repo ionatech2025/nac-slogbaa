@@ -15,5 +15,10 @@ export function useToast() {
     error: (message, opts) => addToast({ message, type: 'error', duration: 6000, ...opts }),
     info: (message, opts) => addToast({ message, type: 'info', ...opts }),
     warning: (message, opts) => addToast({ message, type: 'warning', ...opts }),
+    withUndo: (message, undoFn, opts) => addToast({
+      message, type: 'success', duration: 6000,
+      action: { label: 'Undo', onClick: undoFn },
+      ...opts,
+    }),
   }
 }

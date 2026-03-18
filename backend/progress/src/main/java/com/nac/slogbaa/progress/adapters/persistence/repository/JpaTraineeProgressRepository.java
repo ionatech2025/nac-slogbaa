@@ -6,9 +6,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface JpaTraineeProgressRepository extends JpaRepository<TraineeProgressEntity, UUID> {
 
@@ -33,4 +35,27 @@ public interface JpaTraineeProgressRepository extends JpaRepository<TraineeProgr
 
     @Query("SELECT CASE WHEN COUNT(tp) > 0 THEN true ELSE false END FROM TraineeProgressEntity tp WHERE tp.traineeId = :traineeId AND tp.courseId = :courseId AND tp.status = 'COMPLETED'")
     boolean existsCompletedByTraineeIdAndCourseId(UUID traineeId, UUID courseId);
+
+    @Query(value = """
+        SELECT tp.id AS progressId, tp.trainee_id AS traineeId,
+               (t.first_name || ' ' || t.last_name) AS traineeName,
+               tp.enrollment_date AS enrollmentDate,
+               tp.completion_percentage AS completionPercentage
+        FROM trainee_progress tp
+        JOIN trainee t ON t.id = tp.trainee_id
+        WHERE tp.course_id = :courseId
+        ORDER BY tp.enrollment_date DESC
+        """,
+        countQuery = "SELECT count(*) FROM trainee_progress WHERE course_id = :courseId",
+        nativeQuery = true)
+    Page<EnrollmentWithTraineeProjection> findEnrollmentsWithTrainee(
+        @Param("courseId") UUID courseId, Pageable pageable);
+
+    interface EnrollmentWithTraineeProjection {
+        UUID getProgressId();
+        UUID getTraineeId();
+        String getTraineeName();
+        java.time.LocalDate getEnrollmentDate();
+        Integer getCompletionPercentage();
+    }
 }

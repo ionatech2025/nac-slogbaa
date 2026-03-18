@@ -60,7 +60,7 @@ export function AnimatedCounter({ value, duration = 800, suffix = '', prefix = '
   }, [numValue, duration])
 
   return (
-    <span ref={ref} style={style} {...rest}>
+    <span ref={ref} style={style} role="status" aria-live="polite" aria-atomic="true" {...rest}>
       {prefix}{display.toLocaleString()}{suffix}
     </span>
   )

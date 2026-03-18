@@ -3,6 +3,10 @@ package com.nac.slogbaa.progress.adapters.rest.controller;
 import com.nac.slogbaa.progress.application.dto.CertificateSummaryResult;
 import com.nac.slogbaa.progress.application.port.in.ListCertificatesUseCase;
 import com.nac.slogbaa.progress.application.port.in.RevokeCertificateUseCase;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -29,21 +33,22 @@ public class AdminCertificateController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN')")
-    public ResponseEntity<List<CertificateResponse>> list() {
-        List<CertificateSummaryResult> results = listCertificatesUseCase.list();
-        List<CertificateResponse> body = results.stream()
-                .map(r -> new CertificateResponse(
-                        r.id().toString(),
-                        r.traineeId().toString(),
-                        r.courseId().toString(),
-                        r.certificateNumber(),
-                        r.issuedDate().toString(),
-                        r.finalScorePercent(),
-                        r.revoked(),
-                        r.traineeName(),
-                        r.courseTitle()
-                ))
-                .toList();
+    public ResponseEntity<Page<CertificateResponse>> list(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        Pageable pageable = PageRequest.of(page, Math.min(size, 100), Sort.by("issuedDate").descending());
+        Page<CertificateSummaryResult> results = listCertificatesUseCase.list(pageable);
+        Page<CertificateResponse> body = results.map(r -> new CertificateResponse(
+                r.id().toString(),
+                r.traineeId().toString(),
+                r.courseId().toString(),
+                r.certificateNumber(),
+                r.issuedDate().toString(),
+                r.finalScorePercent(),
+                r.revoked(),
+                r.traineeName(),
+                r.courseTitle()
+        ));
         return ResponseEntity.ok(body);
     }
 

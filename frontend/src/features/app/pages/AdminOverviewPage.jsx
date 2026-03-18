@@ -2,7 +2,7 @@ import { useState, useMemo, useCallback } from 'react'
 import { Link, useOutletContext } from 'react-router-dom'
 import { FontAwesomeIcon, icons } from '../../../shared/icons.jsx'
 import { ConfirmModal } from '../../../shared/components/ConfirmModal.jsx'
-import { useAdminCertificates } from '../../../lib/hooks/use-admin.js'
+import { useAdminCertificates, useAdminQuizAttempts } from '../../../lib/hooks/use-admin.js'
 import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle.js'
 import { useDebounce } from '../../../shared/hooks/useDebounce.js'
 import { Pagination, usePagination } from '../../../shared/components/Pagination.jsx'
@@ -10,6 +10,50 @@ import { TableSkeleton, KpiGridSkeleton } from '../../../shared/components/Admin
 import { AnimatedCounter } from '../../../shared/components/AnimatedCounter.jsx'
 import { Breadcrumbs } from '../../../shared/components/Breadcrumbs.jsx'
 import { exportToCsv } from '../../../shared/utils/csvExport.js'
+import {
+  PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis,
+  Tooltip, ResponsiveContainer, CartesianGrid,
+} from 'recharts'
+
+// ── Chart colors (CSS vars don't work in SVG) ──
+const CHART_COLORS = {
+  blue: '#2563eb', green: '#059669', orange: '#d97706',
+  purple: '#7c3aed', teal: '#0d9488', error: '#dc2626',
+}
+const PIE_PALETTE = [CHART_COLORS.blue, CHART_COLORS.green, CHART_COLORS.orange, CHART_COLORS.purple, CHART_COLORS.teal]
+
+function ChartTooltip({ active, payload, label }) {
+  if (!active || !payload?.length) return null
+  return (
+    <div style={{
+      padding: '0.5rem 0.75rem', borderRadius: 10,
+      border: '1px solid var(--slogbaa-glass-border)',
+      background: 'var(--slogbaa-glass-bg)', backdropFilter: 'blur(12px)',
+      boxShadow: 'var(--slogbaa-glass-shadow)', fontSize: '0.75rem',
+      color: 'var(--slogbaa-text)', lineHeight: 1.5,
+    }}>
+      {label && <div style={{ fontWeight: 600, marginBottom: '0.2rem' }}>{label}</div>}
+      {payload.map((e, i) => (
+        <div key={i} style={{ color: e.color || 'var(--slogbaa-text)' }}>
+          {e.name}: <strong>{e.value}</strong>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function renderPieLabel({ cx, cy, midAngle, innerRadius, outerRadius, value }) {
+  if (value === 0) return null
+  const RADIAN = Math.PI / 180
+  const r = innerRadius + (outerRadius - innerRadius) * 0.5
+  const x = cx + r * Math.cos(-midAngle * RADIAN)
+  const y = cy + r * Math.sin(-midAngle * RADIAN)
+  return (
+    <text x={x} y={y} fill="#fff" textAnchor="middle" dominantBaseline="central" fontSize={11} fontWeight={700}>
+      {value}
+    </text>
+  )
+}
 
 const styles = {
   pageTitle: {
@@ -256,6 +300,47 @@ const styles = {
     cursor: 'pointer',
     accentColor: 'var(--slogbaa-blue)',
   },
+  chartsRow: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+    gap: '1.25rem',
+    marginBottom: '2rem',
+  },
+  chartPanel: {
+    padding: '1.25rem',
+    borderRadius: 16,
+    border: '1px solid var(--slogbaa-glass-border)',
+    background: 'var(--slogbaa-glass-bg)',
+    backdropFilter: 'var(--slogbaa-glass-blur)',
+    WebkitBackdropFilter: 'var(--slogbaa-glass-blur)',
+    boxShadow: 'var(--slogbaa-glass-shadow)',
+  },
+  chartTitle: {
+    margin: '0 0 0.75rem',
+    fontSize: '0.875rem',
+    fontWeight: 700,
+    color: 'var(--slogbaa-text)',
+  },
+  legendList: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: '0.5rem 1rem',
+    marginTop: '0.5rem',
+    fontSize: '0.75rem',
+  },
+  legendItem: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.35rem',
+    color: 'var(--slogbaa-text-muted)',
+  },
+  legendDot: (color) => ({
+    width: 8,
+    height: 8,
+    borderRadius: '50%',
+    background: color,
+    flexShrink: 0,
+  }),
 }
 
 /* ------------------------------------------------------------------ */
@@ -298,6 +383,7 @@ export function AdminOverviewPage() {
   } = useOutletContext()
 
   const { data: certificates = [], isLoading: certsLoading } = useAdminCertificates()
+  const { data: attempts = [], isLoading: attemptsLoading } = useAdminQuizAttempts()
   useDocumentTitle('Overview')
 
   // Delete state
@@ -459,6 +545,62 @@ export function AdminOverviewPage() {
     setConfirmTarget({ type: 'trainee', item: t })
   }
 
+  // --- Demographic breakdowns ---
+  const genderData = useMemo(() => {
+    const counts = {}
+    ;(trainees ?? []).forEach((t) => {
+      const g = (t.gender || 'Unknown').charAt(0).toUpperCase() + (t.gender || 'Unknown').slice(1).toLowerCase()
+      counts[g] = (counts[g] || 0) + 1
+    })
+    return Object.entries(counts).map(([name, value]) => ({ name, value }))
+  }, [trainees])
+
+  const categoryData = useMemo(() => {
+    const labels = { LEADER: 'Leader', CIVIL_SOCIETY_MEMBER: 'Civil Society', COMMUNITY_MEMBER: 'Community' }
+    const counts = {}
+    ;(trainees ?? []).forEach((t) => {
+      const cat = labels[t.traineeCategory] || t.traineeCategory || 'Other'
+      counts[cat] = (counts[cat] || 0) + 1
+    })
+    return Object.entries(counts).map(([name, value]) => ({ name, value }))
+  }, [trainees])
+
+  const districtData = useMemo(() => {
+    const counts = {}
+    ;(trainees ?? []).forEach((t) => {
+      const d = t.districtName || t.district || 'Unknown'
+      counts[d] = (counts[d] || 0) + 1
+    })
+    return Object.entries(counts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 8)
+      .map(([name, value]) => ({ name, Trainees: value }))
+  }, [trainees])
+
+  const traineeStatusData = useMemo(() => {
+    const certifiedIds = new Set(certificates.filter((c) => !c.revoked).map((c) => c.traineeId))
+    // Failed = has quiz attempts where ALL failed (none passed) AND no certificate
+    const attemptsByTrainee = {}
+    attempts.forEach((a) => {
+      if (!a.traineeId) return
+      if (!attemptsByTrainee[a.traineeId]) attemptsByTrainee[a.traineeId] = { any: true, anyPassed: false }
+      if (a.passed) attemptsByTrainee[a.traineeId].anyPassed = true
+    })
+    let graduated = 0
+    let failed = 0
+    ;(trainees ?? []).forEach((t) => {
+      if (certifiedIds.has(t.id)) { graduated++; return }
+      const record = attemptsByTrainee[t.id]
+      if (record && record.any && !record.anyPassed) { failed++; return }
+    })
+    const inProgress = (trainees ?? []).length - graduated - failed
+    return [
+      { name: 'In Progress', value: inProgress },
+      { name: 'Graduated', value: graduated },
+      { name: 'Failed', value: failed },
+    ]
+  }, [trainees, certificates, attempts])
+
   // --- CSV export ---
   const exportStaffCsv = () => {
     exportToCsv(filteredStaff, {
@@ -573,6 +715,152 @@ export function AdminOverviewPage() {
             </p>
             <p style={styles.statLabel}>Certificates</p>
           </div>
+        </div>
+      </section>
+
+      {/* Demographic Breakdowns */}
+      <section style={styles.section}>
+        <h2 style={styles.sectionTitle}>Trainee Demographics</h2>
+        <div style={styles.chartsRow}>
+          {/* Gender breakdown */}
+          <div style={styles.chartPanel}>
+            <h4 style={styles.chartTitle}>Gender Distribution</h4>
+            {genderData.length === 0 ? (
+              <p style={styles.empty}>No trainee data yet.</p>
+            ) : (
+              <>
+                <ResponsiveContainer width="100%" height={200}>
+                  <PieChart>
+                    <Pie
+                      data={genderData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={42}
+                      outerRadius={72}
+                      paddingAngle={3}
+                      dataKey="value"
+                      labelLine={false}
+                      label={renderPieLabel}
+                      stroke="none"
+                    >
+                      {genderData.map((_, idx) => (
+                        <Cell key={idx} fill={PIE_PALETTE[idx % PIE_PALETTE.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip content={<ChartTooltip />} />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div style={styles.legendList}>
+                  {genderData.map((d, i) => (
+                    <span key={d.name} style={styles.legendItem}>
+                      <span style={styles.legendDot(PIE_PALETTE[i % PIE_PALETTE.length])} />
+                      {d.name} ({d.value})
+                    </span>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Trainee category breakdown */}
+          <div style={styles.chartPanel}>
+            <h4 style={styles.chartTitle}>Trainee Category</h4>
+            {categoryData.length === 0 ? (
+              <p style={styles.empty}>No trainee data yet.</p>
+            ) : (
+              <>
+                <ResponsiveContainer width="100%" height={200}>
+                  <PieChart>
+                    <Pie
+                      data={categoryData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={42}
+                      outerRadius={72}
+                      paddingAngle={3}
+                      dataKey="value"
+                      labelLine={false}
+                      label={renderPieLabel}
+                      stroke="none"
+                    >
+                      {categoryData.map((_, idx) => (
+                        <Cell key={idx} fill={PIE_PALETTE[idx % PIE_PALETTE.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip content={<ChartTooltip />} />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div style={styles.legendList}>
+                  {categoryData.map((d, i) => (
+                    <span key={d.name} style={styles.legendItem}>
+                      <span style={styles.legendDot(PIE_PALETTE[i % PIE_PALETTE.length])} />
+                      {d.name} ({d.value})
+                    </span>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Trainee status (in-progress vs graduated) */}
+          <div style={styles.chartPanel}>
+            <h4 style={styles.chartTitle}>Trainee Status</h4>
+            {certsLoading || attemptsLoading ? (
+              <p style={styles.empty}>Loading...</p>
+            ) : traineeStatusData.every((d) => d.value === 0) ? (
+              <p style={styles.empty}>No trainee data yet.</p>
+            ) : (
+              <>
+                <ResponsiveContainer width="100%" height={200}>
+                  <PieChart>
+                    <Pie
+                      data={traineeStatusData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={42}
+                      outerRadius={72}
+                      paddingAngle={3}
+                      dataKey="value"
+                      labelLine={false}
+                      label={renderPieLabel}
+                      stroke="none"
+                    >
+                      <Cell fill={CHART_COLORS.orange} />
+                      <Cell fill={CHART_COLORS.green} />
+                      <Cell fill={CHART_COLORS.error} />
+                    </Pie>
+                    <Tooltip content={<ChartTooltip />} />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div style={styles.legendList}>
+                  {traineeStatusData.map((d, i) => (
+                    <span key={d.name} style={styles.legendItem}>
+                      <span style={styles.legendDot([CHART_COLORS.orange, CHART_COLORS.green, CHART_COLORS.error][i])} />
+                      {d.name} ({d.value})
+                    </span>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* District breakdown bar chart */}
+        <div style={{ ...styles.chartPanel, marginBottom: '2rem' }}>
+          <h4 style={styles.chartTitle}>Top Districts by Trainee Count</h4>
+          {districtData.length === 0 ? (
+            <p style={styles.empty}>No district data yet.</p>
+          ) : (
+            <ResponsiveContainer width="100%" height={Math.max(200, districtData.length * 38)}>
+              <BarChart data={districtData} layout="vertical" margin={{ top: 4, right: 16, bottom: 4, left: 8 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--slogbaa-border)" horizontal={false} />
+                <XAxis type="number" allowDecimals={false} tick={{ fontSize: 11, fill: 'var(--slogbaa-text-muted)' }} axisLine={false} tickLine={false} />
+                <YAxis type="category" dataKey="name" width={100} tick={{ fontSize: 11, fill: 'var(--slogbaa-text-muted)' }} axisLine={false} tickLine={false} />
+                <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(37,99,235,0.06)' }} />
+                <Bar dataKey="Trainees" fill={CHART_COLORS.blue} radius={[0, 6, 6, 0]} maxBarSize={24} />
+              </BarChart>
+            </ResponsiveContainer>
+          )}
         </div>
       </section>
 

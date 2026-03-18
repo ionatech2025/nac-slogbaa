@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Navigate, NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { FontAwesomeIcon, icons } from '../../../shared/icons.jsx'
 import { useAuth } from '../../iam/hooks/useAuth.js'
-import { useAdminOverview, useAdminCourseCount } from '../../../lib/hooks/use-admin.js'
+import { useAdminOverview, useAdminCourseCount, useAdminCourses } from '../../../lib/hooks/use-admin.js'
 import { useDeleteStaff, useDeleteTrainee } from '../../../lib/hooks/use-admin-users.js'
 import { changePassword as changePasswordApi } from '../../../api/admin/me.js'
 import { createStaff as createStaffApi } from '../../../api/admin/staff.js'
@@ -75,6 +75,8 @@ export function AdminLayout() {
   const { data: courseCount = 0 } = useAdminCourseCount()
   const deleteStaffMutation = useDeleteStaff()
   const deleteTraineeMutation = useDeleteTrainee()
+
+  const { data: courses = [] } = useAdminCourses()
 
   const staff = overviewData?.data?.staff ?? []
   const trainees = overviewData?.data?.trainees ?? []
@@ -169,6 +171,44 @@ export function AdminLayout() {
     currentUserId: user?.userId ?? null,
     currentUserEmail: user?.email ?? null,
   }
+
+  const STATIC_COMMANDS = [
+    { label: 'Go to Overview', group: 'Navigation', onSelect: () => navigate('/admin/overview'), shortcut: 'G O' },
+    { label: 'Go to Learning', group: 'Navigation', onSelect: () => navigate('/admin/learning'), shortcut: 'G L' },
+    { label: 'Go to Library', group: 'Navigation', onSelect: () => navigate('/admin/library') },
+    { label: 'Go to Assessment', group: 'Navigation', onSelect: () => navigate('/admin/assessment') },
+    { label: 'Go to Course Management', group: 'Navigation', onSelect: () => navigate('/admin/coursemanagement') },
+    ...(isSuperAdmin ? [
+      { label: 'Create Staff', group: 'Actions', onSelect: () => setModal('createStaff') },
+      { label: 'Update Courses', group: 'Actions', onSelect: () => setModal('updateCourses') },
+    ] : []),
+    { label: 'Change Password', group: 'Actions', onSelect: () => setModal('changePassword') },
+  ]
+
+  const paletteCommands = useMemo(() => {
+    const staffCommands = (staff ?? []).map(s => ({
+      label: s.fullName,
+      subtitle: `Staff · ${s.email}`,
+      group: 'People',
+      onSelect: () => navigate(`/admin/users/staff/${s.id}`),
+    }))
+
+    const traineeCommands = (trainees ?? []).map(t => ({
+      label: t.fullName,
+      subtitle: `Trainee · ${t.email}${t.districtName ? ` · ${t.districtName}` : ''}`,
+      group: 'People',
+      onSelect: () => navigate(`/admin/users/trainee/${t.id}`),
+    }))
+
+    const courseCommands = (courses ?? []).map(c => ({
+      label: c.title,
+      subtitle: `Course · ${c.published ? 'Published' : 'Draft'} · ${c.moduleCount || 0} modules`,
+      group: 'Courses',
+      onSelect: () => navigate(`/admin/learning/${c.id}`),
+    }))
+
+    return [...STATIC_COMMANDS, ...staffCommands, ...traineeCommands, ...courseCommands]
+  }, [staff, trainees, courses, isSuperAdmin, navigate])
 
   return (
     <div style={styles.layout}>
@@ -281,18 +321,7 @@ export function AdminLayout() {
       {paletteOpen && (
         <CommandPalette
           onClose={() => setPaletteOpen(false)}
-          commands={[
-            { label: 'Go to Overview', group: 'Navigation', onSelect: () => navigate('/admin/overview'), shortcut: 'G O' },
-            { label: 'Go to Learning', group: 'Navigation', onSelect: () => navigate('/admin/learning'), shortcut: 'G L' },
-            { label: 'Go to Library', group: 'Navigation', onSelect: () => navigate('/admin/library') },
-            { label: 'Go to Assessment', group: 'Navigation', onSelect: () => navigate('/admin/assessment') },
-            { label: 'Go to Course Management', group: 'Navigation', onSelect: () => navigate('/admin/coursemanagement') },
-            ...(isSuperAdmin ? [
-              { label: 'Create Staff', group: 'Actions', onSelect: () => setModal('createStaff') },
-              { label: 'Update Courses', group: 'Actions', onSelect: () => setModal('updateCourses') },
-            ] : []),
-            { label: 'Change Password', group: 'Actions', onSelect: () => setModal('changePassword') },
-          ]}
+          commands={paletteCommands}
         />
       )}
     </div>

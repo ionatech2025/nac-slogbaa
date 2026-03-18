@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -61,4 +63,18 @@ public interface JpaCertificateRepository extends JpaRepository<CertificateEntit
         String getTraineeName();
         String getCourseTitle();
     }
+
+    @Query(value = """
+        SELECT c.id AS id, c.trainee_id AS traineeId, c.course_id AS courseId,
+               c.certificate_number AS certificateNumber, c.issued_date AS issuedDate,
+               c.final_score_percent AS finalScorePercent, c.is_revoked AS revoked,
+               (t.first_name || ' ' || t.last_name) AS traineeName,
+               co.title AS courseTitle
+        FROM certificate c
+        JOIN trainee t ON t.id = c.trainee_id
+        JOIN course co ON co.id = c.course_id
+        """,
+        countQuery = "SELECT count(*) FROM certificate",
+        nativeQuery = true)
+    Page<CertificateSummaryProjection> findAllWithTraineeAndCoursePaged(Pageable pageable);
 }

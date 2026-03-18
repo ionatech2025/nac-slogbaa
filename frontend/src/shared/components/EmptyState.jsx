@@ -6,10 +6,10 @@ const styles = {
     textAlign: 'center',
   },
   iconWrap: {
-    width: 64,
-    height: 64,
+    width: 72,
+    height: 72,
     borderRadius: '50%',
-    background: 'var(--slogbaa-bg-secondary)',
+    background: 'linear-gradient(135deg, var(--slogbaa-bg-secondary), rgba(37, 99, 235, 0.06))',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -36,7 +36,7 @@ const styles = {
  * Empty state with icon, title, and description.
  * 2026 standard: every empty list has a visual placeholder with context.
  */
-export function EmptyState({ icon = icons.search, title, description, children }) {
+export function EmptyState({ icon = icons.search, title, description, action, children }) {
   return (
     <div style={styles.wrap}>
       <div style={styles.iconWrap}>
@@ -45,6 +45,30 @@ export function EmptyState({ icon = icons.search, title, description, children }
       {title && <p style={styles.title}>{title}</p>}
       {description && <p style={styles.text}>{description}</p>}
       {children && <div style={{ marginTop: '1.25rem' }}>{children}</div>}
+      {action && (
+        <div style={{ marginTop: '1.25rem' }}>
+          <button
+            type="button"
+            onClick={action.onClick}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              padding: '0.6rem 1.25rem',
+              background: 'var(--slogbaa-blue)',
+              color: '#fff',
+              border: 'none',
+              borderRadius: 10,
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'background 0.15s',
+            }}
+          >
+            {action.label}
+          </button>
+        </div>
+      )}
     </div>
   )
 }
