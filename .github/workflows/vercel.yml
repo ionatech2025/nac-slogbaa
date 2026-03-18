@@ -170,9 +170,30 @@ jobs:
         working-directory: frontend
         run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
 
-      - name: Build with Vercel
+      - name: Install dependencies
         working-directory: frontend
-        run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
+        run: bun install --frozen-lockfile
+
+      - name: Build
+        working-directory: frontend
+        run: bun run build
+        env:
+          VITE_API_BASE_URL: ${{ github.ref_name == 'main' && 'https://slogbaa-backend.onrender.com' || 'https://slogbaa-backend.onrender.com' }}
+
+      - name: Prepare Vercel output
+        working-directory: frontend
+        run: |
+          mkdir -p .vercel/output/static
+          cp -r dist/* .vercel/output/static/
+          cat > .vercel/output/config.json << 'CONF'
+          {
+            "version": 3,
+            "routes": [
+              { "handle": "filesystem" },
+              { "src": "/(.*)", "dest": "/index.html" }
+            ]
+          }
+          CONF
 
       - name: Deploy to Vercel (Preview)
         id: deploy
@@ -258,9 +279,30 @@ jobs:
         working-directory: frontend
         run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
 
-      - name: Build with Vercel
+      - name: Install dependencies
         working-directory: frontend
-        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+        run: bun install --frozen-lockfile
+
+      - name: Build
+        working-directory: frontend
+        run: bun run build
+        env:
+          VITE_API_BASE_URL: https://slogbaa-backend.onrender.com
+
+      - name: Prepare Vercel output
+        working-directory: frontend
+        run: |
+          mkdir -p .vercel/output/static
+          cp -r dist/* .vercel/output/static/
+          cat > .vercel/output/config.json << 'CONF'
+          {
+            "version": 3,
+            "routes": [
+              { "handle": "filesystem" },
+              { "src": "/(.*)", "dest": "/index.html" }
+            ]
+          }
+          CONF
 
       - name: Deploy to Vercel (Production)
         id: deploy
