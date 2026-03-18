@@ -23,7 +23,7 @@
 [build]
 builder = "DOCKERFILE"
 dockerfilePath = "Dockerfile"
-watchPatterns = ["backend/**"]
+watchPatterns = ["**"]
 
 [deploy]
 healthcheckPath = "/actuator/health/readiness"
