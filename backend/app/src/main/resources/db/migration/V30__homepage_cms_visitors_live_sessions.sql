@@ -71,7 +71,8 @@ CREATE INDEX IF NOT EXISTS idx_site_visit_date ON site_visit (visited_at);
 
 -- ── Live Sessions ──
 -- Drop old version if exists (from prior failed migration with FK constraint)
-DROP TABLE IF EXISTS live_session;
+DROP TABLE IF EXISTS session_attendee;
+DROP TABLE IF EXISTS live_session CASCADE;
 CREATE TABLE live_session (
     id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     title            VARCHAR(255) NOT NULL,
