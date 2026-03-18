@@ -115,9 +115,6 @@
   box-shadow: var(--slogbaa-glass-shadow-lg);
 }
 
-<<<<<<< HEAD
-/* Identity header / nav — clean white with thick orange bottom border (Enterprise) */
-=======
 /* Clickable KPI cards — subtle scale + shadow on hover/focus */
 .kpi-clickable {
   transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -128,12 +125,11 @@
   box-shadow: var(--slogbaa-glass-shadow-lg);
 }
 .kpi-clickable:focus-visible {
-  outline: 2px solid var(--slogbaa-blue);
+  outline: 2px solid var(--primary-orange, #F58220);
   outline-offset: 2px;
 }
 
-/* Glass nav — transparent top bar with blur (safe-area for notch/dynamic island) */
->>>>>>> dev
+/* Identity header / nav — white + orange bottom border */
 .glass-nav {
   background: var(--primary-white, #FFFFFF);
   backdrop-filter: blur(16px);

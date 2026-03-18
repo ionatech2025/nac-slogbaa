@@ -108,16 +108,26 @@ jobs:
           TOTAL_KB=$((TOTAL / 1024))
           echo "Total assets: ${TOTAL_KB} KB"
 
-          INITIAL=$(stat -c%s dist/assets/index-*.js 2>/dev/null || echo 0)
+          INITIAL=0
+          for f in dist/assets/index-*.js; do
+            [ -f "$f" ] || continue
+            sz=$(stat -c%s "$f")
+            [ "$sz" -gt "$INITIAL" ] && INITIAL=$sz
+          done
           INITIAL_KB=$((INITIAL / 1024))
-          echo "Initial JS chunk: ${INITIAL_KB} KB"
+          echo "Largest index-*.js chunk: ${INITIAL_KB} KB"
 
-          CSS=$(stat -c%s dist/assets/index-*.css 2>/dev/null || echo 0)
+          CSS=0
+          for f in dist/assets/index-*.css; do
+            [ -f "$f" ] || continue
+            sz=$(stat -c%s "$f")
+            [ "$sz" -gt "$CSS" ] && CSS=$sz
+          done
           CSS_KB=$((CSS / 1024))
-          echo "CSS bundle: ${CSS_KB} KB"
+          echo "Largest index-*.css: ${CSS_KB} KB"
 
           if [ "$INITIAL" -gt 120000 ]; then
-            echo "::warning::Initial JS chunk exceeds 120 KB (${INITIAL_KB} KB) — review code splitting"
+            echo "::warning::Largest index JS chunk exceeds 120 KB (${INITIAL_KB} KB) — review code splitting"
           fi
 
       - name: Upload build artifact
