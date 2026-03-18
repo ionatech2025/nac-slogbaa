@@ -1,5 +1,5 @@
 # =============================================================================
-# SLOGBAA Deploy Pipeline — Render
+# SLOGBAA Deploy Pipeline — Railway
 # Triggers: push to dev/main, PRs (build check only), manual dispatch
 # =============================================================================
 
@@ -39,7 +39,7 @@ permissions:
 env:
   REGISTRY: ghcr.io
   IMAGE_PREFIX: ${{ github.repository }}
-  RENDER_SERVICE_ID: srv-d6s383ma2pns73811a20
+  RAILWAY_BACKEND_URL: https://slogbaa-backend-production-ef59.up.railway.app
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
@@ -110,10 +110,10 @@ jobs:
           cache-to: type=gha,mode=max,scope=frontend
 
   # ─────────────────────────────────────────────
-  # Deploy backend to Render
+  # Deploy backend to Railway
   # ─────────────────────────────────────────────
   deploy-backend:
-    name: Deploy Backend to Render
+    name: Deploy Backend to Railway
     needs: [build-images]
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
@@ -121,66 +121,41 @@ jobs:
 
     environment:
       name: ${{ (github.ref_name == 'main' || github.event.inputs.environment == 'production') && 'production' || 'staging' }}
-      url: https://slogbaa-backend.onrender.com
+      url: ${{ env.RAILWAY_BACKEND_URL }}
 
     steps:
-      - name: Trigger Render deploy
-        id: deploy
+      - name: Trigger Railway redeploy
         run: |
-          RESPONSE=$(curl -sf -X POST \
-            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
-            -H "Content-Type: application/json" \
-            "https://api.render.com/v1/services/${{ env.RENDER_SERVICE_ID }}/deploys" \
-            -d '{"clearCache": "do_not_clear"}')
+          echo "Triggering Railway redeploy via deploy webhook..."
+          HTTP_CODE=$(curl -sf -o /dev/null -w "%{http_code}" \
+            -X POST "${{ secrets.RAILWAY_DEPLOY_WEBHOOK }}")
 
-          DEPLOY_ID=$(echo "$RESPONSE" | jq -r '.id')
-          echo "deploy_id=$DEPLOY_ID" >> "$GITHUB_OUTPUT"
-          echo "Render deploy triggered: $DEPLOY_ID"
+          echo "Response: HTTP $HTTP_CODE"
+          if [ "$HTTP_CODE" -lt 200 ] || [ "$HTTP_CODE" -ge 300 ]; then
+            echo "::error::Railway deploy webhook returned HTTP $HTTP_CODE"
+            exit 1
+          fi
+          echo "Railway deploy triggered successfully"
 
-      - name: Wait for deploy to finish
+      - name: Wait for deploy
         run: |
-          DEPLOY_ID="${{ steps.deploy.outputs.deploy_id }}"
-          echo "Waiting for deploy $DEPLOY_ID ..."
-
-          for i in $(seq 1 60); do
-            STATUS=$(curl -sf \
-              -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
-              "https://api.render.com/v1/services/${{ env.RENDER_SERVICE_ID }}/deploys/$DEPLOY_ID" \
-              | jq -r '.status')
-
-            echo "  [$i/60] Status: $STATUS"
-
-            case "$STATUS" in
-              live)
-                echo "Deploy is live!"
-                exit 0
-                ;;
-              deactivated|build_failed|update_failed|canceled|pre_deploy_failed)
-                echo "Deploy failed with status: $STATUS"
-                exit 1
-                ;;
-            esac
-
-            sleep 15
-          done
-
-          echo "Deploy timed out after 15 minutes"
-          exit 1
+          echo "Waiting 90s for Railway to build and deploy..."
+          sleep 90
 
       - name: Health check
         run: |
-          echo "Running health check..."
-          for i in $(seq 1 6); do
+          echo "Running health check against ${{ env.RAILWAY_BACKEND_URL }}..."
+          for i in $(seq 1 12); do
             HTTP_CODE=$(curl -sf -o /dev/null -w "%{http_code}" \
-              "https://slogbaa-backend.onrender.com/actuator/health/readiness" || echo "000")
-            echo "  Attempt $i: HTTP $HTTP_CODE"
+              "${{ env.RAILWAY_BACKEND_URL }}/actuator/health/readiness" || echo "000")
+            echo "  Attempt $i/12: HTTP $HTTP_CODE"
             if [ "$HTTP_CODE" = "200" ]; then
               echo "Health check passed!"
               exit 0
             fi
-            sleep 10
+            sleep 15
           done
-          echo "Health check failed after 6 attempts"
+          echo "::error::Health check failed after 12 attempts (3 minutes)"
           exit 1
 
   # ─────────────────────────────────────────────
@@ -200,4 +175,4 @@ jobs:
           echo "Backend image: ${{ needs.build-images.outputs.backend-tag }}"
           echo "Frontend image: ${{ needs.build-images.outputs.frontend-tag }}"
           echo ""
-          echo "Merge to dev/main to trigger deployment to Render."
+          echo "Merge to dev/main to trigger deployment to Railway."

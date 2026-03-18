@@ -1,15 +1,12 @@
 # =============================================================================
-# SLOGBAA Keep-Alive — Render Backend
-# Prevents Render free-tier cold starts by pinging the health endpoint every
-# 10 minutes. GitHub Actions cron can drift ±5 min, so 10 min keeps us safely
-# under the 15-minute inactivity sleep threshold.
+# SLOGBAA Keep-Alive — Railway Backend
+# Pings the health endpoint every 10 minutes to keep the service warm.
 # =============================================================================
 
 name: Keep Alive
 
 on:
   schedule:
-    # Every 10 minutes, 24/7
     - cron: '*/10 * * * *'
   workflow_dispatch:
     inputs:
@@ -23,7 +20,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  BACKEND_URL: https://slogbaa-backend.onrender.com
+  BACKEND_URL: https://slogbaa-backend-production-ef59.up.railway.app
   HEALTH_ENDPOINT: /actuator/health/readiness
   MAX_RETRIES: 3
   RETRY_DELAY: 15
@@ -61,7 +58,6 @@ jobs:
               echo "response_time=$response_time" >> "$GITHUB_OUTPUT"
               echo "attempts=$attempt" >> "$GITHUB_OUTPUT"
 
-              # Flag cold start (response > 10s typically means the container was sleeping)
               cold_start="false"
               if [ "$(echo "$response_time > 10" | bc -l)" = "1" ]; then
                 cold_start="true"

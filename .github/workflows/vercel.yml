@@ -99,7 +99,7 @@ jobs:
       - name: Build
         run: bun run build
         env:
-          VITE_API_BASE_URL: ${{ github.ref_name == 'main' && 'https://slogbaa-backend.onrender.com' || 'https://slogbaa-backend.onrender.com' }}
+          VITE_API_BASE_URL: https://slogbaa-backend-production-ef59.up.railway.app
 
       - name: Bundle size check
         run: |
@@ -177,7 +177,7 @@ jobs:
         working-directory: frontend
         run: bun run build
         env:
-          VITE_API_BASE_URL: ${{ github.ref_name == 'main' && 'https://slogbaa-backend.onrender.com' || 'https://slogbaa-backend.onrender.com' }}
+          VITE_API_BASE_URL: https://slogbaa-backend-production-ef59.up.railway.app
 
       - name: Prepare Vercel output
         run: |
@@ -283,7 +283,7 @@ jobs:
         working-directory: frontend
         run: bun run build
         env:
-          VITE_API_BASE_URL: https://slogbaa-backend.onrender.com
+          VITE_API_BASE_URL: https://slogbaa-backend-production-ef59.up.railway.app
 
       - name: Prepare Vercel output
         run: |
