@@ -182,7 +182,7 @@ The URL is usually syntactically OK, but nothing answers on the network (wrong h
 
 The app works locally because the Vite **proxy** sends `/api/*` to `localhost:8080`. On Vercel there is **no proxy** — the browser calls the **Railway** origin. If that fails, you usually see **Failed to fetch** (often **CORS**, wrong API URL, or backend down).
 
-### A. Backend must allow your **exact** Vercel origin (CORS)
+### A. Backend CORS (production + Vercel previews)
 
 On **slogbaa-backend** → **Variables**, set:
 
@@ -194,9 +194,8 @@ Rules:
 
 - Use **`https://`** (production profile **rejects** `http://` origins).
 - **No trailing slash** on the origin (`…vercel.app` not `…vercel.app/`).
-- **Preview / branch URLs** are different hosts, e.g. `https://nac-slogbaa-git-fixing-dev-xxx.vercel.app`. Each must be listed, **comma-separated**:
-  - `https://nac-slogbaa.vercel.app,https://nac-slogbaa-git-fixing-dev-xxx.vercel.app`
-- After changing CORS, **redeploy** the backend.
+- **Preview deploys** (e.g. `https://nac-slogbaa-5m707vu73-ionas-projects-422f6728.vercel.app`) are allowed automatically in **prod**: `IamSecurityConfiguration` adds **`https://*.vercel.app`** as an allowed origin pattern so you do not have to list every preview URL in `CORS_ALLOWED_ORIGINS`.
+- After changing `CORS_ALLOWED_ORIGINS`, **redeploy** the backend (pull the latest backend code that includes the pattern).
 
 Set **`PASSWORD_RESET_BASE_URL`** to the same frontend URL you use in the browser (production or preview).
 

@@ -66,6 +66,9 @@ public class IamSecurityConfiguration {
                 throw new IllegalStateException(
                         "Production CORS requires at least one HTTPS origin in app.cors.allowed-origins");
             }
+            // Vercel preview deploys use unique hosts (*.vercel.app). Exact origins alone block them.
+            // Pattern allows any https subdomain of vercel.app (still HTTPS-only in prod).
+            config.addAllowedOriginPattern("https://*.vercel.app");
         }
         config.setAllowedOrigins(origins);
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
