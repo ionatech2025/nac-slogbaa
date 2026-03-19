@@ -1,0 +1,18 @@
+# =============================================================================
+# Railway — backend service (monorepo)
+#
+# Default: build from repository root using ./Dockerfile (copies backend/).
+# If you set Service "Root Directory" to `backend` instead, remove this file's
+# duplicate or use backend/railway.toml + backend/Dockerfile only.
+# =============================================================================
+
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
+watchPatterns = ["backend/**"]
+
+[deploy]
+healthcheckPath = "/actuator/health/readiness"
+healthcheckTimeout = 120
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3

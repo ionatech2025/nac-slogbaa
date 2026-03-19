@@ -1,9 +1,9 @@
 # =============================================================================
-# Railway Config — SLOGBAA Backend
+# Railway Config — SLOGBAA Backend (only when Root Directory = "backend")
 # https://docs.railway.com/config-as-code/reference
 #
-# Place in repo root. Set "Root Directory" to /backend in Railway dashboard,
-# or set the config file path to /railway.toml.
+# If Railway builds from repo root (default), use ../Dockerfile + ../railway.toml
+# instead. This file applies when the service Root Directory is set to `backend`.
 #
 # Environment variables to set in Railway dashboard (not in this file):
 #   SPRING_PROFILES_ACTIVE = prod
@@ -16,8 +16,8 @@
 #   PASSWORD_RESET_BASE_URL = https://nac-slogbaa.vercel.app
 #   SMTP_HOST              = smtp.gmail.com
 #   SMTP_PORT              = 587
-#   SMTP_USERNAME          = 2060newty@gmail.com
-#   SMTP_PASSWORD          = oaxaojugozzakcfg
+#   SMTP_USERNAME          = <set-in-dashboard>
+#   SMTP_PASSWORD          = <set-in-dashboard>
 # =============================================================================
 
 [build]
