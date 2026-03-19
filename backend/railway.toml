@@ -5,12 +5,12 @@
 # If Railway builds from repo root (default), use ../Dockerfile + ../railway.toml
 # instead. This file applies when the service Root Directory is set to `backend`.
 #
-# Environment variables to set in Railway dashboard (not in this file):
+# Environment variables: set on slogbaa-backend service → Variables.
+# Postgres mapping (Railway DB → DATASOURCE_*): see docs/RAILWAY-DATABASE.md
 #   SPRING_PROFILES_ACTIVE = prod
-#   PORT                   = 8080
-#   DATASOURCE_URL         = jdbc:postgresql://<host>/<db>?sslmode=require
-#   DATASOURCE_USERNAME    = <db-user>
-#   DATASOURCE_PASSWORD    = <db-password>
+#   DATASOURCE_URL         = jdbc:postgresql://<PGHOST>:<PGPORT>/<PGDATABASE>?sslmode=require
+#   DATASOURCE_USERNAME    = <PGUSER>
+#   DATASOURCE_PASSWORD    = <PGPASSWORD>
 #   JWT_SECRET             = <generated-secret>
 #   CORS_ALLOWED_ORIGINS   = https://nac-slogbaa.vercel.app
 #   PASSWORD_RESET_BASE_URL = https://nac-slogbaa.vercel.app
