@@ -215,3 +215,5 @@ Set **`PASSWORD_RESET_BASE_URL`** to the same frontend URL you use in the browse
 3. If the request goes to Railway but fails with (blocked) CORS in console → fix **`CORS_ALLOWED_ORIGINS`** on Railway.
 
 4. **PWA / service worker:** An older Workbox rule treated any `https://` URL (except Google Fonts) as a cacheable “external” request, which intercepted **Railway `https://…up.railway.app/api/…`** and caused **Failed to fetch**. This is fixed in `frontend/vite.config.js` with a **`NetworkOnly`** rule for `pathname.startsWith('/api/')`. After upgrading, redeploy Vercel once, then in Chrome **Application → Service Workers → Unregister** (or “Clear site data”) for your Vercel domain so the new SW replaces the old one.
+
+5. **Content-Security-Policy (`connect-src`):** The meta tag in `frontend/index.html` must allow your API origin. It previously listed only `https://slogbaa-backend.onrender.com`; **`https://*.up.railway.app`** is included for Railway. If you put the API on a **custom domain**, add that host to `connect-src` as well.
