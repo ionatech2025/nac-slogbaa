@@ -26,7 +26,8 @@ dockerfilePath = "Dockerfile"
 watchPatterns = ["**"]
 
 [deploy]
-healthcheckPath = "/actuator/health/readiness"
-healthcheckTimeout = 120
+# See root railway.toml — liveness avoids 503 from DB-bound readiness during deploy.
+healthcheckPath = "/actuator/health/liveness"
+healthcheckTimeout = 300
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 3

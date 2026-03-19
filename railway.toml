@@ -12,7 +12,9 @@ dockerfilePath = "Dockerfile"
 watchPatterns = ["backend/**"]
 
 [deploy]
-healthcheckPath = "/actuator/health/readiness"
-healthcheckTimeout = 120
+# Liveness, not readiness: /readiness includes DB and returns 503 until datasource + Flyway succeed,
+# which often exceeds Railway's probe window or fails on misconfigured DATASOURCE_*.
+healthcheckPath = "/actuator/health/liveness"
+healthcheckTimeout = 300
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 3
