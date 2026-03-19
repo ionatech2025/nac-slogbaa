@@ -27,7 +27,7 @@ RUN mkdir -p shared-ports/src/main/java infrastructure/src/main/java \
     progress/src/main/java app/src/main/java
 
 # Download dependencies (--continue allows partial success for stub modules)
-RUN --mount=type=cache,target=/root/.gradle \
+RUN --mount=type=cache,id=slogbaa-gradle,target=/root/.gradle \
     chmod +x gradlew && ./gradlew dependencies --no-daemon --continue -q || true
 
 # Copy all module sources
@@ -39,7 +39,7 @@ COPY assessment assessment
 COPY progress progress
 COPY app app
 
-RUN --mount=type=cache,target=/root/.gradle \
+RUN --mount=type=cache,id=slogbaa-gradle,target=/root/.gradle \
     ./gradlew :app:bootJar --no-daemon -q
 
 # ---- Stage 2: Extract Spring Boot layered JAR ----

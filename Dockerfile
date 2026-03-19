@@ -9,7 +9,8 @@
 FROM docker.io/library/eclipse-temurin:21-jdk-alpine AS build
 WORKDIR /build
 COPY backend/ .
-RUN --mount=type=cache,target=/root/.gradle \
+# Railway requires cache mounts to include id= (see Railway Docker build docs)
+RUN --mount=type=cache,id=slogbaa-gradle,target=/root/.gradle \
     chmod +x gradlew && ./gradlew :app:bootJar --no-daemon -q
 
 FROM docker.io/library/eclipse-temurin:21-jdk-alpine AS extract
