@@ -126,7 +126,10 @@ jobs:
           # Fail the job only if TruffleHog finds VERIFIED secrets.
           # Your logs show verified_secrets: 0 and unverified_secrets > 0,
           # which should not block merges.
-          extra_args: --only-verified --fail-verified
+          #
+          # Note: the trufflehog binary in this action doesn't support
+          # `--fail-verified`; use `--fail` instead.
+          extra_args: --only-verified --fail
 
   # ─────────────────────────────────────────────
   # Secret Scanning: ggshield (GitGuardian)
