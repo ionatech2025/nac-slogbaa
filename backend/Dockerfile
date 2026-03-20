@@ -68,4 +68,8 @@ EXPOSE 8080
 # G1GC for balanced throughput/latency, crash fast on OOM instead of limping.
 ENV JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=75.0 -XX:+UseG1GC -XX:+ExitOnOutOfMemoryError"
 
+# Distroless :nonroot images already default to a non-root UID,
+# but Semgrep requires an explicit USER directive before ENTRYPOINT.
+USER nonroot
+
 ENTRYPOINT ["java", "org.springframework.boot.loader.launch.JarLauncher"]

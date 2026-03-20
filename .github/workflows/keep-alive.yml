@@ -83,13 +83,20 @@ jobs:
 
       - name: Job summary
         if: always()
+        env:
+          STATUS: ${{ steps.health.outputs.status }}
+          TIME: ${{ steps.health.outputs.response_time }}
+          ATTEMPTS: ${{ steps.health.outputs.attempts }}
+          COLD: ${{ steps.health.outputs.cold_start }}
+          TRIGGER: ${{ github.event_name }}
+          REASON: ${{ inputs.reason }}
         run: |
-          status="${{ steps.health.outputs.status }}"
-          time="${{ steps.health.outputs.response_time }}"
-          attempts="${{ steps.health.outputs.attempts }}"
-          cold="${{ steps.health.outputs.cold_start }}"
-          trigger="${{ github.event_name }}"
-          reason="${{ inputs.reason }}"
+          status="${STATUS}"
+          time="${TIME}"
+          attempts="${ATTEMPTS}"
+          cold="${COLD}"
+          trigger="${TRIGGER}"
+          reason="${REASON}"
 
           if [ "$status" = "200" ]; then
             icon="✅"
@@ -109,7 +116,7 @@ jobs:
           |--------|-------|
           | **Status** | \`${status}\` |
           | **Response time** | ${time}s${cold_label} |
-          | **Attempts** | ${attempts}/${{ env.MAX_RETRIES }} |
+          | **Attempts** | ${attempts}/${MAX_RETRIES} |
           | **Trigger** | ${trigger} |
           | **Timestamp** | $(date -u '+%Y-%m-%d %H:%M:%S UTC') |
           $([ -n "$reason" ] && echo "| **Reason** | ${reason} |")
