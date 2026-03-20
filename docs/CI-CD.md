@@ -2,6 +2,14 @@
 
 Complete reference for automated build, test, security scanning, and deployment.
 
+### Code scanning pause (Mar 2026)
+
+**CodeQL** (`codeql.yml`) — only **`workflow_dispatch`** (no push/PR/schedule). Run manually from the Actions tab when you want a scan, or uncomment triggers in the workflow file to re-enable gating.
+
+**Semgrep** (`security.yml`) — job is **`if: false`**. Restore by removing that line and adding `semgrep` back to `security-pass` → `needs: [preflight, semgrep, trufflehog, trivy]`.
+
+**Deploy** (`deploy.yml` → Railway) is **not** dependent on CodeQL or Semgrep; pushes to `main`/`dev` still build and run `deploy-backend` the same as before (except pushes that change *only* `docs/**` or root `*.md` are still ignored).
+
 ---
 
 ## Pipeline Overview
@@ -15,7 +23,7 @@ Pull Request / Push to main
   │   └── ci-pass ─── gate (blocks merge on failure)
   │
   ├── security.yml ── DevSecOps (parallel)
-  │   ├── SAST ────── Semgrep (OWASP Top 10 + JS + Java rules)
+  │   ├── SAST ────── Semgrep (paused — see “Code scanning pause” above)
   │   ├── Secrets ─── TruffleHog (full git history deep scan)
   │   ├── Secrets ─── ggshield / GitGuardian (if enabled)
   │   ├── SCA ─────── OWASP Dependency-Check (Java CVEs)
@@ -24,7 +32,7 @@ Pull Request / Push to main
   │   ├── SBOM ────── Syft (supply chain transparency)
   │   └── sec-pass ── gate (TruffleHog failure = hard block)
   │
-  ├── codeql.yml ──── SAST (GitHub native, hardened)
+  ├── codeql.yml ──── SAST (GitHub native; manual dispatch only — see pause note)
   │   ├── JavaScript/TypeScript analysis (build-mode: none)
   │   ├── Java/Kotlin analysis (build-mode: manual)
   │   ├── Fork PR detection (skips SARIF upload on forks)
@@ -46,8 +54,8 @@ Pull Request / Push to main
       └── OWASP ZAP API scan (backend)
 
 Weekly scheduled:
-  ├── CodeQL (Monday 6 AM)
-  ├── Security scans (Monday 4 AM)
+  ├── CodeQL — disabled while workflow is manual-only
+  ├── Security scans (Monday 4 AM) — Semgrep step skipped; other jobs run
   └── Dependabot PRs (Monday, grouped)
 ```
 

@@ -1,6 +1,9 @@
 # =============================================================================
 # SLOGBAA Deploy Pipeline — Railway
 # Triggers: push to dev/main, PRs (build check only), manual dispatch
+#
+# Independent of CodeQL / Semgrep — deploy-backend is not gated on security.yml.
+# paths-ignore only skips workflow when the push changes *only* docs/root *.md.
 # =============================================================================
 
 name: Deploy
@@ -21,7 +24,6 @@ on:
     paths-ignore:
       - 'docs/**'
       - '*.md'
-      - '.github/workflows/codeql.yml'
   pull_request:
     branches: [main, dev]
     paths:

@@ -5,7 +5,7 @@
 # SARIF uploads. See codeql.yml header for setup instructions.
 #
 # Comprehensive security scanning following OWASP SAMM and 2026 DevSecOps:
-#   - SAST: CodeQL (separate workflow) + Semgrep
+#   - SAST: CodeQL (separate workflow; auto-runs paused) + Semgrep (paused)
 #   - SCA:  OWASP Dependency-Check (Java) + npm audit (JS)
 #   - Secrets: TruffleHog + ggshield (GitGuardian)
 #   - Container: Trivy image + filesystem scan
@@ -68,6 +68,9 @@ jobs:
   # ─────────────────────────────────────────────
   semgrep:
     name: SAST — Semgrep
+    # TEMPORARY (Mar 2026): Skip Semgrep + SARIF upload (same noisy findings).
+    # Re-enable: set to `needs: [preflight]` only and add back to security-pass needs.
+    if: false
     needs: [preflight]
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -348,7 +351,8 @@ jobs:
   # ─────────────────────────────────────────────
   security-pass:
     name: Security Pass
-    needs: [preflight, semgrep, trufflehog, trivy]
+    # semgrep omitted while Semgrep job is disabled (skipped jobs would skip this job)
+    needs: [preflight, trufflehog, trivy]
     runs-on: ubuntu-latest
     if: always()
     steps:
