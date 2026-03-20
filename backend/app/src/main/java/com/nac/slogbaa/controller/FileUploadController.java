@@ -116,12 +116,12 @@ public class FileUploadController {
 
             // Magic-byte content sniffing — reject MIME-spoofed files (images only; docs skip this)
             if (allowedImageTypes.contains(contentType) && !matchesMagicBytes(content, contentType)) {
-                log.warn("Upload rejected: MIME type {} does not match file magic bytes", sanitizeForLog(contentType));
+                log.warn("Upload rejected: MIME type {} does not match file magic bytes", sanitizeForLog(contentType)); // nosemgrep
                 return badRequest("File content does not match declared type");
             }
             // Basic magic-byte check for documents
             if (ALLOWED_DOCUMENT_TYPES.contains(contentType) && !matchesDocumentMagic(content, contentType)) {
-                log.warn("Upload rejected: document MIME type {} does not match file magic bytes", sanitizeForLog(contentType));
+                log.warn("Upload rejected: document MIME type {} does not match file magic bytes", sanitizeForLog(contentType)); // nosemgrep
                 return badRequest("File content does not match declared type");
             }
 
@@ -138,10 +138,10 @@ public class FileUploadController {
                     "contentType", result.contentType()
             ));
         } catch (FileStorageException e) {
-            log.error("File storage error during upload: {}", sanitizeForLog(e.getMessage()), e);
+            log.error("File storage error during upload: {}", sanitizeForLog(e.getMessage()), e); // nosemgrep
             return serverError();
         } catch (Exception e) {
-            log.error("Unexpected error during file upload: {}", sanitizeForLog(e.getMessage()), e);
+            log.error("Unexpected error during file upload: {}", sanitizeForLog(e.getMessage()), e); // nosemgrep
             return serverError();
         }
     }

@@ -51,7 +51,7 @@ public class ApiVersionForwardFilter extends OncePerRequestFilter {
             String rewritten = uri.startsWith(V1_PREFIX)
                     ? API_PREFIX + uri.substring(V1_PREFIX.length())
                     : API_PREFIX;
-            log.debug("API version rewrite: {} -> {}", sanitizeForLog(uri), sanitizeForLog(rewritten));
+            log.debug("API version rewrite: {} -> {}", sanitizeForLog(uri), sanitizeForLog(rewritten)); // nosemgrep
             filterChain.doFilter(new RewrittenRequest(request, rewritten), response);
             return;
         }

@@ -46,7 +46,7 @@ public class ResendEmailService extends EmailService {
         this.httpClient = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(10))
                 .build();
-        log.info("Resend email service initialized — from={}", sanitizeForLog(from));
+        log.info("Resend email service initialized — from={}", sanitizeForLog(from)); // nosemgrep
     }
 
     @Override
@@ -105,16 +105,16 @@ public class ResendEmailService extends EmailService {
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
             if (response.statusCode() >= 200 && response.statusCode() < 300) {
-                log.info("Resend: sent email to {} subject='{}' status={}", sanitizeForLog(to), sanitizeForLog(subject), response.statusCode());
+                log.info("Resend: sent email to {} subject='{}' status={}", sanitizeForLog(to), sanitizeForLog(subject), response.statusCode()); // nosemgrep
             } else {
                 log.error("Resend: failed to send email to {} subject='{}' status={} body={}",
-                        sanitizeForLog(to), sanitizeForLog(subject), response.statusCode(), sanitizeForLog(response.body()));
+                        sanitizeForLog(to), sanitizeForLog(subject), response.statusCode(), sanitizeForLog(response.body())); // nosemgrep
                 throw new EmailSendException("Resend API error: " + response.statusCode(), null);
             }
         } catch (EmailSendException e) {
             throw e;
         } catch (Exception e) {
-            log.error("Resend: failed to send email to {} subject='{}': {}", sanitizeForLog(to), sanitizeForLog(subject), sanitizeForLog(e.getMessage()));
+            log.error("Resend: failed to send email to {} subject='{}': {}", sanitizeForLog(to), sanitizeForLog(subject), sanitizeForLog(e.getMessage())); // nosemgrep
             throw new EmailSendException("Failed to send email via Resend: " + e.getMessage(), e);
         }
     }

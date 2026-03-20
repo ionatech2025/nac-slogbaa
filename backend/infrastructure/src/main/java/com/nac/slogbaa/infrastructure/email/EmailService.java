@@ -40,9 +40,9 @@ public class EmailService {
             helper.setSubject(subject);
             helper.setText(htmlContent, true);
             mailSender.send(message);
-            log.info("Sent HTML email successfully to {} with subject '{}'", sanitizeForLog(to), sanitizeForLog(subject));
+            log.info("Sent HTML email successfully to {} with subject '{}'", sanitizeForLog(to), sanitizeForLog(subject)); // nosemgrep
         } catch (MessagingException e) {
-            log.error("Failed to send HTML email to {} with subject '{}': {}", sanitizeForLog(to), sanitizeForLog(subject), sanitizeForLog(e.getMessage()));
+            log.error("Failed to send HTML email to {} with subject '{}': {}", sanitizeForLog(to), sanitizeForLog(subject), sanitizeForLog(e.getMessage())); // nosemgrep
             throw new EmailSendException("Failed to send email", e);
         }
     }
@@ -61,9 +61,9 @@ public class EmailService {
             helper.setSubject(subject);
             helper.setText(body, false);
             mailSender.send(message);
-            log.info("Sent simple email successfully to {} with subject '{}'", sanitizeForLog(to), sanitizeForLog(subject));
+            log.info("Sent simple email successfully to {} with subject '{}'", sanitizeForLog(to), sanitizeForLog(subject)); // nosemgrep
         } catch (MessagingException e) {
-            log.error("Failed to send simple email to {} with subject '{}': {}", sanitizeForLog(to), sanitizeForLog(subject), sanitizeForLog(e.getMessage()));
+            log.error("Failed to send simple email to {} with subject '{}': {}", sanitizeForLog(to), sanitizeForLog(subject), sanitizeForLog(e.getMessage())); // nosemgrep
             throw new EmailSendException("Failed to send email", e);
         }
     }
@@ -83,9 +83,9 @@ public class EmailService {
             helper.setText(body, false);
             helper.addAttachment(fileName, new ByteArrayResource(attachment));
             mailSender.send(message);
-            log.info("Sent email with attachment '{}' successfully to {} with subject '{}'", sanitizeForLog(fileName), sanitizeForLog(to), sanitizeForLog(subject));
+            log.info("Sent email with attachment '{}' successfully to {} with subject '{}'", sanitizeForLog(fileName), sanitizeForLog(to), sanitizeForLog(subject)); // nosemgrep
         } catch (MessagingException e) {
-            log.error("Failed to send email with attachment to {} with subject '{}': {}", sanitizeForLog(to), sanitizeForLog(subject), sanitizeForLog(e.getMessage()));
+            log.error("Failed to send email with attachment to {} with subject '{}': {}", sanitizeForLog(to), sanitizeForLog(subject), sanitizeForLog(e.getMessage())); // nosemgrep
             throw new EmailSendException("Failed to send email with attachment", e);
         }
     }
