@@ -571,7 +571,12 @@ export function AdminModuleEditorPage() {
             </button>
             {module?.imageUrl && (
               <div style={{ marginTop: '0.5rem' }}>
-                <img src={getAssetUrl(module.imageUrl)} alt="Module" style={{ maxWidth: 120, maxHeight: 80, borderRadius: 8, border: '1px solid var(--slogbaa-border)', objectFit: 'cover' }} onError={(e) => { e.target.style.display = 'none' }} />
+                <img
+                  src={typeof module?.imageUrl === 'string' && (module.imageUrl.startsWith('/') || module.imageUrl.startsWith('http://') || module.imageUrl.startsWith('https://')) ? getAssetUrl(module.imageUrl) : ''}
+                  alt="Module"
+                  style={{ maxWidth: 120, maxHeight: 80, borderRadius: 8, border: '1px solid var(--slogbaa-border)', objectFit: 'cover' }}
+                  onError={(e) => { e.target.style.display = 'none' }}
+                />
               </div>
             )}
           </div>

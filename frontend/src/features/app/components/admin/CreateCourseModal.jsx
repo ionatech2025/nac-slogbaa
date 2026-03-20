@@ -161,7 +161,12 @@ export function CreateCourseModal({ token, onClose, onSubmit }) {
           </button>
           {imageUrl && (
             <div style={{ marginTop: '0.5rem' }}>
-              <img src={getAssetUrl(imageUrl)} alt="Preview" style={styles.imagePreview} onError={(e) => { e.target.style.display = 'none' }} />
+              <img
+                src={typeof imageUrl === 'string' && (imageUrl.startsWith('blob:') || imageUrl.startsWith('/') || imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) ? getAssetUrl(imageUrl) : ''}
+                alt="Preview"
+                style={styles.imagePreview}
+                onError={(e) => { e.target.style.display = 'none' }}
+              />
             </div>
           )}
         </div>

@@ -271,7 +271,7 @@ export function EditProfileModal({ profile, certificateEmailOptIn = false, onClo
         <div style={styles.avatarSection}>
           {currentAvatarUrl ? (
             <img
-              src={currentAvatarUrl}
+              src={typeof currentAvatarUrl === 'string' && (currentAvatarUrl.startsWith('blob:') || currentAvatarUrl.startsWith('/') || currentAvatarUrl.startsWith('http://') || currentAvatarUrl.startsWith('https://')) ? currentAvatarUrl : ''}
               alt={`Avatar: ${profile?.firstName ?? ''} ${profile?.lastName ?? ''}`}
               style={styles.avatarImage}
             />

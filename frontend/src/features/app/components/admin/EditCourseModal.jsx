@@ -175,7 +175,7 @@ export function EditCourseModal({ token, course, onClose, onSubmit }) {
           {imageUrl && (
             <div style={{ marginTop: '0.5rem' }}>
               <img
-                src={imageUrl.startsWith('blob:') ? imageUrl : getAssetUrl(imageUrl)}
+                src={typeof imageUrl === 'string' && (imageUrl.startsWith('blob:') || imageUrl.startsWith('/') || imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) ? (imageUrl.startsWith('blob:') ? imageUrl : getAssetUrl(imageUrl)) : ''}
                 alt="Preview"
                 style={styles.imagePreview}
                 onError={(e) => { e.target.style.display = 'none' }}
