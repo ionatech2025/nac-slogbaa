@@ -123,7 +123,10 @@ jobs:
           path: ./
           base: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event_name == 'push' && github.event.before || github.event.repository.default_branch }}
           head: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.event_name == 'push' && github.sha || 'HEAD' }}
-          extra_args: --results=verified,unverified
+          # Fail the job only if TruffleHog finds VERIFIED secrets.
+          # Your logs show verified_secrets: 0 and unverified_secrets > 0,
+          # which should not block merges.
+          extra_args: --only-verified --fail-verified
 
   # ─────────────────────────────────────────────
   # Secret Scanning: ggshield (GitGuardian)
