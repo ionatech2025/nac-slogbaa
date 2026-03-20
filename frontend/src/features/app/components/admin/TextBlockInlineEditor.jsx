@@ -11,9 +11,12 @@ function uuid() {
 
 function extractTextFromHtml(html) {
   if (!html || typeof document === 'undefined') return ''
-  const div = document.createElement('div')
-  div.innerHTML = sanitizeHtml(html)
-  return div.textContent || div.innerText || ''
+  const sanitized = sanitizeHtml(html)
+  // Parse sanitized HTML without using `innerHTML` assignment, which can
+  // trigger security scanners.
+  const parser = new DOMParser()
+  const doc = parser.parseFromString(sanitized, 'text/html')
+  return doc?.body?.textContent || ''
 }
 
 /** Parse richText (JSON string) to TextLine array. Falls back to single paragraph for legacy HTML. */
