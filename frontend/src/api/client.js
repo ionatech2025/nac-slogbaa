@@ -7,15 +7,21 @@ import { isTokenExpired } from '../lib/jwt.js'
  */
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? ''
 
+/** URL schemes that are unsafe for img src (XSS vectors). */
+const UNSAFE_SCHEMES = /^(javascript|data|vbscript|file):/i
+
 /**
  * Resolve an asset URL (e.g. /uploads/courses/xxx.png) to the correct origin.
  * When VITE_API_BASE_URL is set, assets are served by the backend; otherwise use path as-is (proxy).
+ * Rejects javascript:, data:, and similar schemes to prevent XSS from user-provided URLs.
  */
 export function getAssetUrl(url) {
   if (!url || typeof url !== 'string') return url
-  if (url.startsWith('http://') || url.startsWith('https://')) return url
+  const trimmed = url.trim()
+  if (UNSAFE_SCHEMES.test(trimmed)) return ''
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return trimmed
   const base = API_BASE.replace(/\/$/, '')
-  const p = url.startsWith('/') ? url : `/${url}`
+  const p = trimmed.startsWith('/') ? trimmed : `/${trimmed}`
   return base ? `${base}${p}` : p
 }
 

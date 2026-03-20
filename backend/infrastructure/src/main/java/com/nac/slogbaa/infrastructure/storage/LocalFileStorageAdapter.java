@@ -39,7 +39,10 @@ public class LocalFileStorageAdapter implements FileStoragePort {
 
         String extension = extractExtension(originalFilename);
         String filename = UUID.randomUUID() + extension;
-        Path targetDir = basePath.resolve(subdir);
+        Path targetDir = basePath.resolve(subdir).normalize();
+        if (!targetDir.startsWith(basePath)) {
+            throw new FileStorageException("Invalid subdirectory: path traversal not allowed");
+        }
         Path targetFile = targetDir.resolve(filename);
 
         try {

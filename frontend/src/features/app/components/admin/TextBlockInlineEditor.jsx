@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef, useImperativeHandle } from 'react'
+import { sanitizeHtml } from '../../../shared/components/SafeHtml.jsx'
 
 function uuid() {
   return crypto.randomUUID?.() ?? 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
@@ -11,7 +12,7 @@ function uuid() {
 function extractTextFromHtml(html) {
   if (!html || typeof document === 'undefined') return ''
   const div = document.createElement('div')
-  div.innerHTML = html
+  div.innerHTML = sanitizeHtml(html)
   return div.textContent || div.innerText || ''
 }
 

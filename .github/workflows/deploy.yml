@@ -110,7 +110,8 @@ jobs:
           cache-to: type=gha,mode=max,scope=frontend
 
   # ─────────────────────────────────────────────
-  # Deploy backend to Railway
+  # Deploy backend to Railway (CLI + project token)
+  # Requires: RAILWAY_TOKEN, RAILWAY_BACKEND_SERVICE_NAME (GitHub secrets/env)
   # ─────────────────────────────────────────────
   deploy-backend:
     name: Deploy Backend to Railway
@@ -119,22 +120,21 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
+    container: ghcr.io/railwayapp/cli:latest
+
     environment:
       name: ${{ (github.ref_name == 'main' || github.event.inputs.environment == 'production') && 'production' || 'staging' }}
       url: ${{ env.RAILWAY_BACKEND_URL }}
 
+    env:
+      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+      RAILWAY_SERVICE: ${{ secrets.RAILWAY_BACKEND_SERVICE_NAME }}
+
     steps:
       - name: Trigger Railway redeploy
         run: |
-          echo "Triggering Railway redeploy via deploy webhook..."
-          HTTP_CODE=$(curl -sf -o /dev/null -w "%{http_code}" \
-            -X POST "${{ secrets.RAILWAY_DEPLOY_WEBHOOK }}")
-
-          echo "Response: HTTP $HTTP_CODE"
-          if [ "$HTTP_CODE" -lt 200 ] || [ "$HTTP_CODE" -ge 300 ]; then
-            echo "::error::Railway deploy webhook returned HTTP $HTTP_CODE"
-            exit 1
-          fi
+          echo "Triggering Railway redeploy for service: ${RAILWAY_SERVICE}..."
+          railway redeploy -y --service "$RAILWAY_SERVICE"
           echo "Railway deploy triggered successfully"
 
       - name: Wait for deploy

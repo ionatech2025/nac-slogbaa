@@ -77,7 +77,8 @@ public class R2FileStorageAdapter implements FileStoragePort {
                             .build(),
                     RequestBody.fromBytes(content));
         } catch (Exception e) {
-            log.error("R2 upload failed for key={}: {}", key, e.getMessage());
+            String safeKey = key != null ? key.replaceAll("[\\r\\n]", "_") : "null";
+            log.error("R2 upload failed for key={}: {}", safeKey, e.getMessage());
             throw new FileStorageException("Failed to upload file to R2: " + e.getMessage(), e);
         }
 

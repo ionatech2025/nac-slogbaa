@@ -1,4 +1,5 @@
-import { SafeHtml, sanitizeHtml } from '../../../../shared/components/SafeHtml.jsx'
+import { SafeHtml } from '../../../../shared/components/SafeHtml.jsx'
+import { getAssetUrl } from '../../../../api/client.js'
 
 const blockWrapperStyle = {
   marginBottom: '1.25rem',
@@ -86,7 +87,7 @@ function EditorJsBlockView({ block }) {
           </li>
         )
       }
-      return <li key={i} dangerouslySetInnerHTML={{ __html: sanitizeHtml(text) }} />
+      return <li key={i}><SafeHtml html={text} as="span" /></li>
     }
     const ListTag = isOrdered ? 'ol' : 'ul'
     return (
@@ -96,14 +97,15 @@ function EditorJsBlockView({ block }) {
     )
   }
   if (type === 'image') {
-    const url = data?.file?.url ?? data?.url
+    const rawUrl = data?.file?.url ?? data?.url
+    const safeUrl = rawUrl ? getAssetUrl(rawUrl) : ''
     const caption = data?.caption ?? data?.file?.caption ?? ''
-    if (url || caption) {
+    if (safeUrl || caption) {
       return (
         <figure style={{ margin: 0 }}>
-          {url && (
+          {safeUrl && (
             <img
-              src={url}
+              src={safeUrl}
               alt={caption || 'Module image'}
               style={{ maxWidth: '100%', height: 'auto', borderRadius: 8, display: 'block' }}
               loading="lazy"
@@ -120,12 +122,13 @@ function EditorJsBlockView({ block }) {
     return null
   }
   if (type === 'embed') {
-    const embedUrl = data?.embed ?? data?.url
-    if (embedUrl) {
+    const rawEmbed = data?.embed ?? data?.url
+    const safeEmbed = rawEmbed && /^https:\/\//i.test(String(rawEmbed).trim()) ? rawEmbed : ''
+    if (safeEmbed) {
       return (
         <div style={{ margin: 0, aspectRatio: '16/9', maxWidth: 560 }}>
           <iframe
-            src={embedUrl}
+            src={safeEmbed}
             title="Embedded content"
             style={{ width: '100%', height: '100%', border: 'none', borderRadius: 8 }}
             allowFullScreen
@@ -171,7 +174,9 @@ function EditorJsBlockView({ block }) {
             <thead>
               <tr>
                 {rows[0].map((cell, j) => (
-                  <th key={j} style={{ border: '1px solid var(--slogbaa-border)', padding: '0.5rem 0.75rem', textAlign: 'left', fontWeight: 600 }} dangerouslySetInnerHTML={{ __html: sanitizeHtml(cell) }} />
+                  <th key={j} style={{ border: '1px solid var(--slogbaa-border)', padding: '0.5rem 0.75rem', textAlign: 'left', fontWeight: 600 }}>
+                    <SafeHtml html={cell} as="span" />
+                  </th>
                 ))}
               </tr>
             </thead>
@@ -180,7 +185,9 @@ function EditorJsBlockView({ block }) {
             {(withHeadings ? rows.slice(1) : rows).map((row, i) => (
               <tr key={i}>
                 {row.map((cell, j) => (
-                  <td key={j} style={{ border: '1px solid var(--slogbaa-border)', padding: '0.5rem 0.75rem' }} dangerouslySetInnerHTML={{ __html: sanitizeHtml(cell) }} />
+                  <td key={j} style={{ border: '1px solid var(--slogbaa-border)', padding: '0.5rem 0.75rem' }}>
+                    <SafeHtml html={cell} as="span" />
+                  </td>
                 ))}
               </tr>
             ))}
