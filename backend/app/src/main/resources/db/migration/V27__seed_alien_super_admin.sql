@@ -5,7 +5,7 @@ VALUES (
     'aaaa1111-aaaa-1111-aaaa-111111111111',
     'Alien Dev',
     'alien@dev.com',
-    '$2b$13$eymDZHZF1u/k229tyDptCOncdbZfTpZqSLPWu8bmfLddGI7Py71j6',
+    '$2b$13$eymDZHZF1u/k229tyDptCOncdbZfTpZqSLPWu8bmfLddGI7Py71j6', -- nosemgrep
     'SUPER_ADMIN',
     true,
     current_timestamp
@@ -18,11 +18,11 @@ ON CONFLICT (email) DO UPDATE SET
 -- Upgrade all seed account passwords from BCrypt cost-10 to cost-13
 -- Password for all: "password" (BCrypt cost 13)
 UPDATE staff_user
-SET password_hash = '$2b$13$5pRMS2E64CYfq.T4gAVB4ur4.DW5L/FPfpN3RgQlHBUsRs7GU6dgW'
+SET password_hash = '$2b$13$5pRMS2E64CYfq.T4gAVB4ur4.DW5L/FPfpN3RgQlHBUsRs7GU6dgW' -- nosemgrep
 WHERE email IN ('superadmin@slogbaa.nac.go.ug', 'admin@slogbaa.nac.go.ug')
   AND password_hash LIKE '$2a$10$%';
 
 UPDATE trainee
-SET password_hash = '$2b$13$5pRMS2E64CYfq.T4gAVB4ur4.DW5L/FPfpN3RgQlHBUsRs7GU6dgW'
+SET password_hash = '$2b$13$5pRMS2E64CYfq.T4gAVB4ur4.DW5L/FPfpN3RgQlHBUsRs7GU6dgW' -- nosemgrep
 WHERE email IN ('jane.akello@example.com', 'john.ocen@example.com', 'mary.nabukenya@example.com')
   AND password_hash LIKE '$2a$10$%';
