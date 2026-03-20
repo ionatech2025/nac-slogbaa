@@ -308,8 +308,10 @@ jobs:
 
   # ─────────────────────────────────────────────
   # 4. Post-deploy health check (production only)
-  # Preview deploys often have Vercel Deployment Protection (401);
-  # health check runs only for production where the site is public.
+  # Vercel Deployment Protection (SSO / password) returns 401/403 on *.vercel.app
+  # and sometimes on prod — that still means the deployment is live. Do not use
+  # curl -f here: on 401 curl exits non-zero and `|| echo 000` produced bogus
+  # codes like "401000".
   # ─────────────────────────────────────────────
   health-check:
     name: Health Check
@@ -333,12 +335,15 @@ jobs:
         run: |
           URL="${{ steps.url.outputs.url }}"
           for i in $(seq 1 6); do
-            HTTP_CODE=$(curl -sf -o /dev/null -w "%{http_code}" "${URL}" 2>/dev/null || echo "000")
+            # No -f: we need the real status code; -f + || echo 000 mangles 401 into 401000
+            HTTP_CODE=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 30 "$URL" || echo "000")
             echo "Attempt $i: HTTP ${HTTP_CODE}"
-            if [ "$HTTP_CODE" = "200" ]; then
-              echo "Health check passed"
-              exit 0
-            fi
+            case "$HTTP_CODE" in
+              200|401|403)
+                echo "Health check passed (deployment reachable; 401/403 = Vercel protection OK)"
+                exit 0
+                ;;
+            esac
             sleep 10
           done
           echo "::warning::Deployment health check failed after 6 attempts"
@@ -347,9 +352,9 @@ jobs:
       - name: Verify SPA routing works
         run: |
           URL="${{ steps.url.outputs.url }}"
-          # Test SPA fallback — a deep route should still return 200
-          HTTP_CODE=$(curl -sf -o /dev/null -w "%{http_code}" "${URL}/auth/login" 2>/dev/null || echo "000")
+          HTTP_CODE=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 30 "${URL}/auth/login" || echo "000")
           echo "SPA route /auth/login: HTTP ${HTTP_CODE}"
-          if [ "$HTTP_CODE" != "200" ]; then
-            echo "::warning::SPA fallback routing may not be working"
-          fi
+          case "$HTTP_CODE" in
+            200|401|403) echo "OK (200 or expected protection response)" ;;
+            *) echo "::warning::SPA fallback routing may not be working" ;;
+          esac

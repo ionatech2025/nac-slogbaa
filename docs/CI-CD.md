@@ -47,7 +47,7 @@ Pull Request / Push to main
   │   ├── Build & validate (bun, bundle size check)
   │   ├── Preview deploy (PRs + dev branch, comment URL on PR)
   │   ├── Production deploy (main branch only)
-  │   └── Post-deploy health check (HTTP 200 + SPA routing)
+  │   └── Post-deploy health check (200, or 401/403 when Vercel Deployment Protection is on)
   │
   └── dast.yml ────── Post-deploy scanning
       ├── OWASP ZAP baseline (frontend)
