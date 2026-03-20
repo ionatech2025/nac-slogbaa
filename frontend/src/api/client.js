@@ -14,14 +14,20 @@ const UNSAFE_SCHEMES = /^(javascript|data|vbscript|file):/i
  * Resolve an asset URL (e.g. /uploads/courses/xxx.png) to the correct origin.
  * When VITE_API_BASE_URL is set, assets are served by the backend; otherwise use path as-is (proxy).
  * Rejects javascript:, data:, and similar schemes to prevent XSS from user-provided URLs.
+ *
+ * This acts as a URL sanitizer for use in attributes like <img src>, and will return
+ * either a safe, normalized URL string or the empty string ('') if the input is unsafe.
  */
 export function getAssetUrl(url) {
-  if (!url || typeof url !== 'string') return url
+  if (!url || typeof url !== 'string') return ''
   const trimmed = url.trim()
   // Allow local in-memory object URLs for file previews.
   if (trimmed.startsWith('blob:')) return trimmed
+  // Reject known-unsafe schemes such as javascript:, data:, vbscript:, file:, etc.
   if (UNSAFE_SCHEMES.test(trimmed)) return ''
+  // Allow fully-qualified HTTP(S) asset URLs.
   if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return trimmed
+  // Fallback: treat as path relative to API_BASE or current origin.
   const base = API_BASE.replace(/\/$/, '')
   const p = trimmed.startsWith('/') ? trimmed : `/${trimmed}`
   return base ? `${base}${p}` : p
