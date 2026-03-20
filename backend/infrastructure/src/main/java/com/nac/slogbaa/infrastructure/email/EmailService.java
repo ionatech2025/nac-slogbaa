@@ -40,9 +40,9 @@ public class EmailService {
             helper.setSubject(subject);
             helper.setText(htmlContent, true);
             mailSender.send(message);
-            log.info("Sent HTML email successfully to {} with subject '{}'", to, subject);
+            log.info("Sent HTML email successfully to {} with subject '{}'", sanitizeForLog(to), sanitizeForLog(subject));
         } catch (MessagingException e) {
-            log.error("Failed to send HTML email to {} with subject '{}': {}", to, subject, e.getMessage());
+            log.error("Failed to send HTML email to {} with subject '{}': {}", sanitizeForLog(to), sanitizeForLog(subject), sanitizeForLog(e.getMessage()));
             throw new EmailSendException("Failed to send email", e);
         }
     }
@@ -61,9 +61,9 @@ public class EmailService {
             helper.setSubject(subject);
             helper.setText(body, false);
             mailSender.send(message);
-            log.info("Sent simple email successfully to {} with subject '{}'", to, subject);
+            log.info("Sent simple email successfully to {} with subject '{}'", sanitizeForLog(to), sanitizeForLog(subject));
         } catch (MessagingException e) {
-            log.error("Failed to send simple email to {} with subject '{}': {}", to, subject, e.getMessage());
+            log.error("Failed to send simple email to {} with subject '{}': {}", sanitizeForLog(to), sanitizeForLog(subject), sanitizeForLog(e.getMessage()));
             throw new EmailSendException("Failed to send email", e);
         }
     }
@@ -83,9 +83,9 @@ public class EmailService {
             helper.setText(body, false);
             helper.addAttachment(fileName, new ByteArrayResource(attachment));
             mailSender.send(message);
-            log.info("Sent email with attachment '{}' successfully to {} with subject '{}'", fileName, to, subject);
+            log.info("Sent email with attachment '{}' successfully to {} with subject '{}'", sanitizeForLog(fileName), sanitizeForLog(to), sanitizeForLog(subject));
         } catch (MessagingException e) {
-            log.error("Failed to send email with attachment to {} with subject '{}': {}", to, subject, e.getMessage());
+            log.error("Failed to send email with attachment to {} with subject '{}': {}", sanitizeForLog(to), sanitizeForLog(subject), sanitizeForLog(e.getMessage()));
             throw new EmailSendException("Failed to send email with attachment", e);
         }
     }
@@ -111,5 +111,11 @@ public class EmailService {
             "When running from IDE/Maven, add the env vars to the run configuration.",
             null
         );
+    }
+
+    private static String sanitizeForLog(String value) {
+        if (value == null) return null;
+        // Prevent log injection by removing newlines/control chars.
+        return value.replaceAll("[\\r\\n]", " ");
     }
 }

@@ -34,6 +34,12 @@ public class ApiVersionForwardFilter extends OncePerRequestFilter {
     private static final String V1_BARE = "/api/v1";
     private static final String API_PREFIX = "/api/";
 
+    private static String sanitizeForLog(String value) {
+        if (value == null) return null;
+        // Prevent log injection by removing newlines/control chars.
+        return value.replaceAll("[\\r\\n]", " ");
+    }
+
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
@@ -45,7 +51,7 @@ public class ApiVersionForwardFilter extends OncePerRequestFilter {
             String rewritten = uri.startsWith(V1_PREFIX)
                     ? API_PREFIX + uri.substring(V1_PREFIX.length())
                     : API_PREFIX;
-            log.debug("API version rewrite: {} -> {}", uri, rewritten);
+            log.debug("API version rewrite: {} -> {}", sanitizeForLog(uri), sanitizeForLog(rewritten));
             filterChain.doFilter(new RewrittenRequest(request, rewritten), response);
             return;
         }

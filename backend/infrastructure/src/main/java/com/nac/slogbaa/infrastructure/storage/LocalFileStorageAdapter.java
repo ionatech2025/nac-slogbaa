@@ -24,6 +24,12 @@ public class LocalFileStorageAdapter implements FileStoragePort {
 
     private final Path basePath;
 
+    private static String sanitizeForLog(String value) {
+        if (value == null) return null;
+        // Prevent log injection by removing newlines/control chars.
+        return value.replaceAll("[\\r\\n]", " ");
+    }
+
     public LocalFileStorageAdapter(@Value("${app.file.upload-dir:uploads}") String uploadDir) {
         this.basePath = Path.of(uploadDir).toAbsolutePath().normalize();
     }
@@ -34,7 +40,7 @@ public class LocalFileStorageAdapter implements FileStoragePort {
             throw new FileStorageException("File content must not be empty");
         }
         if (subdir == null || !SAFE_SUBDIR.matcher(subdir).matches()) {
-            throw new FileStorageException("Invalid subdirectory: " + subdir);
+            throw new FileStorageException("Invalid subdirectory: " + sanitizeForLog(subdir));
         }
 
         String extension = extractExtension(originalFilename);
@@ -49,7 +55,7 @@ public class LocalFileStorageAdapter implements FileStoragePort {
             Files.createDirectories(targetDir);
             Files.write(targetFile, content);
         } catch (IOException e) {
-            throw new FileStorageException("Failed to store file: " + e.getMessage(), e);
+            throw new FileStorageException("Failed to store file: " + sanitizeForLog(e.getMessage()), e);
         }
 
         String url = "/uploads/" + subdir + "/" + filename;

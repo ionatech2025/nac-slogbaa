@@ -63,6 +63,12 @@ public class FileUploadController {
     private final long maxSizeBytes;
     private final Set<String> allowedImageTypes;
 
+    private static String sanitizeForLog(String value) {
+        if (value == null) return null;
+        // Prevent log injection by removing newlines/control chars.
+        return value.replaceAll("[\\r\\n]", " ");
+    }
+
     public FileUploadController(
             FileStoragePort fileStoragePort,
             @Value("${app.file.max-size-bytes:5242880}") long maxSizeBytes,
@@ -110,12 +116,12 @@ public class FileUploadController {
 
             // Magic-byte content sniffing — reject MIME-spoofed files (images only; docs skip this)
             if (allowedImageTypes.contains(contentType) && !matchesMagicBytes(content, contentType)) {
-                log.warn("Upload rejected: MIME type {} does not match file magic bytes", contentType);
+                log.warn("Upload rejected: MIME type {} does not match file magic bytes", sanitizeForLog(contentType));
                 return badRequest("File content does not match declared type");
             }
             // Basic magic-byte check for documents
             if (ALLOWED_DOCUMENT_TYPES.contains(contentType) && !matchesDocumentMagic(content, contentType)) {
-                log.warn("Upload rejected: document MIME type {} does not match file magic bytes", contentType);
+                log.warn("Upload rejected: document MIME type {} does not match file magic bytes", sanitizeForLog(contentType));
                 return badRequest("File content does not match declared type");
             }
 
@@ -132,10 +138,10 @@ public class FileUploadController {
                     "contentType", result.contentType()
             ));
         } catch (FileStorageException e) {
-            log.error("File storage error during upload", e);
+            log.error("File storage error during upload: {}", sanitizeForLog(e.getMessage()), e);
             return serverError();
         } catch (Exception e) {
-            log.error("Unexpected error during file upload", e);
+            log.error("Unexpected error during file upload: {}", sanitizeForLog(e.getMessage()), e);
             return serverError();
         }
     }

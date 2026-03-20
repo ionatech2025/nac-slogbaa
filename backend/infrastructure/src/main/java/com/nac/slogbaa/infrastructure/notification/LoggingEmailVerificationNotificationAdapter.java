@@ -16,9 +16,15 @@ public class LoggingEmailVerificationNotificationAdapter implements EmailVerific
 
     private static final Logger log = LoggerFactory.getLogger(LoggingEmailVerificationNotificationAdapter.class);
 
+    private static String sanitizeForLog(String value) {
+        if (value == null) return null;
+        // Prevent log injection by removing newlines/control chars.
+        return value.replaceAll("[\\r\\n]", " ");
+    }
+
     @Override
     public void sendVerificationLink(String email, String fullName, String verificationUrl) {
         log.info("Email verification notification (SMTP not configured): to={}, fullName={}, url={}",
-                email, fullName, verificationUrl);
+                sanitizeForLog(email), sanitizeForLog(fullName), sanitizeForLog(verificationUrl));
     }
 }

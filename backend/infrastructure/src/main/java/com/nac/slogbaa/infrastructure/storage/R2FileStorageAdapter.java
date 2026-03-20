@@ -38,6 +38,12 @@ public class R2FileStorageAdapter implements FileStoragePort {
     private final String bucket;
     private final String publicUrl;
 
+    private static String sanitizeForLog(String value) {
+        if (value == null) return null;
+        // Prevent log injection by removing newlines/control chars.
+        return value.replaceAll("[\\r\\n]", " ");
+    }
+
     public R2FileStorageAdapter(
             @Value("${app.storage.r2.account-id}") String accountId,
             @Value("${app.storage.r2.access-key-id}") String accessKeyId,
@@ -78,8 +84,9 @@ public class R2FileStorageAdapter implements FileStoragePort {
                     RequestBody.fromBytes(content));
         } catch (Exception e) {
             String safeKey = key != null ? key.replaceAll("[\\r\\n]", "_") : "null";
-            log.error("R2 upload failed for key={}: {}", safeKey, e.getMessage());
-            throw new FileStorageException("Failed to upload file to R2: " + e.getMessage(), e);
+            String safeMessage = sanitizeForLog(e.getMessage());
+            log.error("R2 upload failed for key={}: {}", safeKey, safeMessage);
+            throw new FileStorageException("Failed to upload file to R2: " + safeMessage, e);
         }
 
         String url = publicUrl + "/" + key;

@@ -30,6 +30,12 @@ public class ResendEmailService extends EmailService {
     private final String from;
     private final HttpClient httpClient;
 
+    private static String sanitizeForLog(String value) {
+        if (value == null) return null;
+        // Prevent log injection by removing newlines/control chars.
+        return value.replaceAll("[\\r\\n]", " ");
+    }
+
     public ResendEmailService(
             org.springframework.beans.factory.ObjectProvider<org.springframework.mail.javamail.JavaMailSender> mailSenderProvider,
             @Value("${app.email.resend.api-key}") String apiKey,
@@ -40,7 +46,7 @@ public class ResendEmailService extends EmailService {
         this.httpClient = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(10))
                 .build();
-        log.info("Resend email service initialized — from={}", from);
+        log.info("Resend email service initialized — from={}", sanitizeForLog(from));
     }
 
     @Override
@@ -99,16 +105,16 @@ public class ResendEmailService extends EmailService {
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
             if (response.statusCode() >= 200 && response.statusCode() < 300) {
-                log.info("Resend: sent email to {} subject='{}' status={}", to, subject, response.statusCode());
+                log.info("Resend: sent email to {} subject='{}' status={}", sanitizeForLog(to), sanitizeForLog(subject), response.statusCode());
             } else {
                 log.error("Resend: failed to send email to {} subject='{}' status={} body={}",
-                        to, subject, response.statusCode(), response.body());
+                        sanitizeForLog(to), sanitizeForLog(subject), response.statusCode(), sanitizeForLog(response.body()));
                 throw new EmailSendException("Resend API error: " + response.statusCode(), null);
             }
         } catch (EmailSendException e) {
             throw e;
         } catch (Exception e) {
-            log.error("Resend: failed to send email to {} subject='{}': {}", to, subject, e.getMessage());
+            log.error("Resend: failed to send email to {} subject='{}': {}", sanitizeForLog(to), sanitizeForLog(subject), sanitizeForLog(e.getMessage()));
             throw new EmailSendException("Failed to send email via Resend: " + e.getMessage(), e);
         }
     }
