@@ -131,6 +131,11 @@ jobs:
       RAILWAY_SERVICE: ${{ secrets.RAILWAY_BACKEND_SERVICE_NAME }}
 
     steps:
+      - name: List Railway services (diagnostic)
+        run: |
+          echo "Available services in this environment:"
+          railway service status --all 2>&1 || true
+
       - name: Trigger Railway redeploy
         run: |
           echo "Triggering Railway redeploy for service: ${RAILWAY_SERVICE}..."
