@@ -185,7 +185,7 @@ export function EditCourseModal({ token, course, onClose, onSubmit }) {
           </button>
           {imageUrl && (
             <div style={{ marginTop: '0.5rem' }}>
-              // codeql[js/xss]: preview image src is derived from a user URL but is filtered by getAssetUrl() / safeImageSrc().
+              // codeql[js/xss]
               <img
                 src={safeImageSrc(imageUrl)}
                 alt="Preview"

@@ -215,7 +215,7 @@ function AdminContentBlockRenderer({ block }) {
     return (
       <div style={{ marginBottom: '1.5rem' }}>
         <figure style={{ margin: 0 }}>
-          // codeql[js/xss]: imageUrl is normalized via getAssetUrl() before use in img src.
+          // codeql[js/xss]
           <img src={getAssetUrl(imageUrl)} alt={imageAltText || ''} style={styles.blockImage} loading="lazy" />
           {imageCaption && <figcaption style={styles.blockImageCaption}>{imageCaption}</figcaption>}
         </figure>

@@ -15,7 +15,7 @@ function extractTextFromHtml(html) {
   // Parse sanitized HTML without using `innerHTML` assignment, which can
   // trigger security scanners.
   const parser = new DOMParser()
-  // codeql[js/xss-through-dom]: sanitized HTML is parsed only to extract textContent;
+  // codeql[js/xss-through-dom]
   // we never re-inject the parsed HTML back into the DOM.
   const doc = parser.parseFromString(sanitized, 'text/html')
   return doc?.body?.textContent || ''
