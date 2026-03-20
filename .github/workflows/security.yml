@@ -117,6 +117,12 @@ jobs:
       - name: TruffleHog scan
         uses: trufflesecurity/trufflehog@main
         with:
+          # Avoid the action inferring BASE/HEAD from `github.event.commits[*]`
+          # (which can be only a single commit => BASE == HEAD => no scan).
+          # Use PR base/head SHAs when available, otherwise use push before/sha.
+          path: ./
+          base: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event_name == 'push' && github.event.before || github.event.repository.default_branch }}
+          head: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.event_name == 'push' && github.sha || 'HEAD' }}
           extra_args: --results=verified,unverified
 
   # ─────────────────────────────────────────────
