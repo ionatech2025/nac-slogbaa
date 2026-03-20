@@ -79,6 +79,21 @@ const styles = {
     fontSize: '0.875rem',
     color: 'var(--slogbaa-success, #0a7c42)',
   },
+  iconWrap: {
+    position: 'relative',
+    display: 'flex',
+    alignItems: 'stretch',
+  },
+  leadingIcon: {
+    position: 'absolute',
+    left: '0.75rem',
+    top: '50%',
+    transform: 'translateY(-50%)',
+    color: 'var(--slogbaa-text-muted)',
+    pointerEvents: 'none',
+    fontSize: '0.9375rem',
+    zIndex: 1,
+  },
   passwordWrap: {
     position: 'relative',
     display: 'flex',
@@ -151,27 +166,33 @@ export function CreateStaffModal({ onClose, onSubmit }) {
       <form style={styles.form} onSubmit={handleSubmit}>
         <div style={styles.field}>
           <label style={styles.label} htmlFor="staff-fullName">Full name</label>
-          <input
-            id="staff-fullName"
-            type="text"
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
-            style={styles.input}
-            placeholder="e.g. Jane Doe"
-            autoComplete="name"
-          />
+          <div style={styles.iconWrap}>
+            <FontAwesomeIcon icon={icons.viewProfile} style={styles.leadingIcon} />
+            <input
+              id="staff-fullName"
+              type="text"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              style={{ ...styles.input, paddingLeft: '2.5rem' }}
+              placeholder="e.g. Jane Doe"
+              autoComplete="name"
+            />
+          </div>
         </div>
         <div style={styles.field}>
           <label style={styles.label} htmlFor="staff-email">Email</label>
-          <input
-            id="staff-email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            style={styles.input}
-            placeholder="staff@example.org"
-            autoComplete="email"
-          />
+          <div style={styles.iconWrap}>
+            <FontAwesomeIcon icon={icons.envelope} style={styles.leadingIcon} />
+            <input
+              id="staff-email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              style={{ ...styles.input, paddingLeft: '2.5rem' }}
+              placeholder="staff@example.org"
+              autoComplete="email"
+            />
+          </div>
         </div>
         <div style={styles.field}>
           <label style={styles.label} htmlFor="staff-role">Role</label>
@@ -189,12 +210,13 @@ export function CreateStaffModal({ onClose, onSubmit }) {
         <div style={styles.field}>
           <label style={styles.label} htmlFor="staff-password">Initial password</label>
           <div style={styles.passwordWrap}>
+            <FontAwesomeIcon icon={icons.lock} style={styles.leadingIcon} />
             <input
               id="staff-password"
               type={showPassword ? 'text' : 'password'}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              style={{ ...styles.input, ...styles.passwordInput }}
+              style={{ ...styles.input, ...styles.passwordInput, paddingLeft: '2.5rem' }}
               placeholder="Min. 6 characters"
               autoComplete="new-password"
             />

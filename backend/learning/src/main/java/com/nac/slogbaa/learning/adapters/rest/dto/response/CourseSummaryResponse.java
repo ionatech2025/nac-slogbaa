@@ -8,5 +8,10 @@ public record CourseSummaryResponse(
         String title,
         String description,
         String imageUrl,
-        int moduleCount
+        int moduleCount,
+        Integer totalEstimatedMinutes,
+        String categoryName,
+        String categorySlug,
+        String prerequisiteCourseId,
+        String prerequisiteCourseName
 ) {}

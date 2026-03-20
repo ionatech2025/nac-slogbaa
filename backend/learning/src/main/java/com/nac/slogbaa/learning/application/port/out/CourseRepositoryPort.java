@@ -6,12 +6,17 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 /**
  * Port for course persistence. Implementations (JPA) in adapters.
  */
 public interface CourseRepositoryPort {
 
     List<Course> findPublishedCourses();
+
+    Page<Course> findPublishedCourses(Pageable pageable);
 
     Optional<Course> findById(UUID id);
 }

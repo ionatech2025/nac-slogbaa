@@ -1,8 +1,9 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { Link, Outlet, useLocation } from 'react-router-dom'
 import { TraineeNav } from '../components/trainee/TraineeNav.jsx'
 import { ProfileViewModal } from '../components/trainee/ProfileViewModal.jsx'
 import { EditProfileModal } from '../components/trainee/EditProfileModal.jsx'
+import { GlobalSearchPalette, useCommandPaletteShortcut } from '../../../shared/components/GlobalSearchPalette.jsx'
 import { useAuth } from '../../iam/hooks/useAuth.js'
 import { useTraineeProfile, useTraineeSettings, useUpdateTraineeProfile, useUpdateTraineeSettings } from '../../../lib/hooks/use-trainee.js'
 import { useEnrolledCourses } from '../../../lib/hooks/use-courses.js'
@@ -23,6 +24,8 @@ export function TraineeLayout() {
   const location = useLocation()
   const isDashboardIndex = location.pathname === '/dashboard' || location.pathname === '/dashboard/'
   const isCourseDetail = /^\/dashboard\/courses\/[^/]+/.test(location.pathname)
+
+  const { open: searchOpen, close: closeSearch, toggle: toggleSearch } = useCommandPaletteShortcut()
 
   const [profileModalOpen, setProfileModalOpen] = useState(false)
   const [editProfileOpen, setEditProfileOpen] = useState(false)
@@ -74,6 +77,11 @@ export function TraineeLayout() {
 
   const profileSaving = updateProfile.isPending || updateSettings.isPending
 
+  const outletContext = useMemo(() => ({
+    profileData,
+    onEditProfile: handleEditProfile,
+  }), [profileData, handleEditProfile])
+
   const layoutWrapperStyle = {
     display: 'flex',
     flexDirection: 'column',
@@ -91,7 +99,8 @@ export function TraineeLayout() {
 
   return (
     <div style={layoutWrapperStyle}>
-      <TraineeNav onOpenProfile={handleOpenProfile} />
+      <TraineeNav onOpenProfile={handleOpenProfile} onOpenSearch={toggleSearch} />
+      <GlobalSearchPalette open={searchOpen} onClose={closeSearch} />
       {profileModalOpen && profileData && (
         <ProfileViewModal
           profile={profileData}
@@ -132,7 +141,9 @@ export function TraineeLayout() {
           style={{
             position: 'fixed',
             inset: 0,
-            background: 'rgba(0,0,0,0.45)',
+            background: 'rgba(15, 23, 42, 0.4)',
+            backdropFilter: 'blur(12px) saturate(150%)',
+            WebkitBackdropFilter: 'blur(12px) saturate(150%)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -142,11 +153,14 @@ export function TraineeLayout() {
         >
           <div
             style={{
-              background: 'var(--slogbaa-surface)',
+              background: 'var(--slogbaa-glass-bg)',
+              backdropFilter: 'var(--slogbaa-glass-blur)',
+              WebkitBackdropFilter: 'var(--slogbaa-glass-blur)',
               padding: '1.5rem',
-              borderRadius: 12,
+              borderRadius: 20,
               maxWidth: 400,
-              border: '1px solid var(--slogbaa-border)',
+              border: '1px solid var(--slogbaa-glass-border)',
+              boxShadow: 'var(--slogbaa-glass-shadow-lg)',
             }}
           >
             <p style={{ margin: '0 0 0.5rem', fontSize: '0.875rem', fontWeight: 600, color: 'var(--slogbaa-text)' }}>
@@ -178,7 +192,7 @@ export function TraineeLayout() {
             </Link>
           </div>
         )}
-        <Outlet />
+        <Outlet context={outletContext} />
       </div>
     </div>
   )

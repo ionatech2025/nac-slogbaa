@@ -1,0 +1,14 @@
+{
+  "buildCommand": "bun run build",
+  "outputDirectory": "dist",
+  "installCommand": "bun install",
+  "framework": "vite",
+  "build": {
+    "env": {
+      "VITE_API_BASE_URL": "https://slogbaa-backend-production-ef59.up.railway.app"
+    }
+  },
+  "rewrites": [
+    { "source": "/((?!api|uploads).*)", "destination": "/index.html" }
+  ]
+}

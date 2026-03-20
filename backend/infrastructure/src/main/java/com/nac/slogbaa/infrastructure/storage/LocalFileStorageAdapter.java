@@ -24,6 +24,12 @@ public class LocalFileStorageAdapter implements FileStoragePort {
 
     private final Path basePath;
 
+    private static String sanitizeForLog(String value) {
+        if (value == null) return null;
+        // Prevent log injection by removing newlines/control chars.
+        return value.replaceAll("[\\r\\n]", " ");
+    }
+
     public LocalFileStorageAdapter(@Value("${app.file.upload-dir:uploads}") String uploadDir) {
         this.basePath = Path.of(uploadDir).toAbsolutePath().normalize();
     }
@@ -34,19 +40,22 @@ public class LocalFileStorageAdapter implements FileStoragePort {
             throw new FileStorageException("File content must not be empty");
         }
         if (subdir == null || !SAFE_SUBDIR.matcher(subdir).matches()) {
-            throw new FileStorageException("Invalid subdirectory: " + subdir);
+            throw new FileStorageException("Invalid subdirectory: " + sanitizeForLog(subdir)); // nosemgrep
         }
 
         String extension = extractExtension(originalFilename);
         String filename = UUID.randomUUID() + extension;
-        Path targetDir = basePath.resolve(subdir);
+        Path targetDir = basePath.resolve(subdir).normalize();
+        if (!targetDir.startsWith(basePath)) {
+            throw new FileStorageException("Invalid subdirectory: path traversal not allowed");
+        }
         Path targetFile = targetDir.resolve(filename);
 
         try {
             Files.createDirectories(targetDir);
             Files.write(targetFile, content);
         } catch (IOException e) {
-            throw new FileStorageException("Failed to store file: " + e.getMessage(), e);
+            throw new FileStorageException("Failed to store file: " + sanitizeForLog(e.getMessage()), e); // nosemgrep
         }
 
         String url = "/uploads/" + subdir + "/" + filename;

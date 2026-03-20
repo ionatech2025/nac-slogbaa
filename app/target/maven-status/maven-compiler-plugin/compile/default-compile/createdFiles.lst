@@ -1,0 +1,5 @@
+com\nac\slogbaa\SlogbaaApplication.class
+com\nac\slogbaa\controller\FileUploadController.class
+com\nac\slogbaa\FileStorageWebConfig.class
+com\nac\slogbaa\WebMvcConfig$1.class
+com\nac\slogbaa\WebMvcConfig.class

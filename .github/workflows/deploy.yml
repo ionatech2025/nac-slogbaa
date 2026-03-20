@@ -1,6 +1,9 @@
 # =============================================================================
-# SLOGBAA Deploy Pipeline — March 2026
-# Builds Docker images + deploys (manual trigger or auto on main)
+# SLOGBAA Deploy Pipeline — Railway
+# Triggers: push to dev/main, PRs (build check only), manual dispatch
+#
+# Independent of CodeQL / Semgrep — deploy-backend is not gated on security.yml.
+# paths-ignore only skips workflow when the push changes *only* docs/root *.md.
 # =============================================================================
 
 name: Deploy
@@ -17,25 +20,29 @@ on:
           - staging
           - production
   push:
-    branches: [main]
+    branches: [main, dev]
     paths-ignore:
       - 'docs/**'
       - '*.md'
-      - '.github/workflows/codeql.yml'
+  pull_request:
+    branches: [main, dev]
+    paths:
+      - 'backend/**'
 
 concurrency:
-  group: deploy-${{ github.event.inputs.environment || 'staging' }}
-  cancel-in-progress: false
+  group: deploy-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.number) || github.ref_name }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
   packages: write
+  pull-requests: write
 
 env:
   REGISTRY: ghcr.io
   IMAGE_PREFIX: ${{ github.repository }}
-  JAVA_VERSION: '21'
-  BUN_VERSION: '1.3'
+  RAILWAY_BACKEND_URL: https://slogbaa-backend-production-ef59.up.railway.app
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   # ─────────────────────────────────────────────
@@ -78,7 +85,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: ./backend
-          push: true
+          push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta-backend.outputs.tags }}
           labels: ${{ steps.meta-backend.outputs.labels }}
           cache-from: type=gha,scope=backend
@@ -98,36 +105,99 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: ./frontend
-          push: true
+          push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta-frontend.outputs.tags }}
           labels: ${{ steps.meta-frontend.outputs.labels }}
           cache-from: type=gha,scope=frontend
           cache-to: type=gha,mode=max,scope=frontend
 
   # ─────────────────────────────────────────────
-  # Deploy to environment
+  # Deploy backend to Railway (CLI + project token)
+  # Requires: RAILWAY_TOKEN, RAILWAY_BACKEND_SERVICE_NAME (GitHub secrets/env)
   # ─────────────────────────────────────────────
-  deploy:
-    name: Deploy to ${{ github.event.inputs.environment || 'staging' }}
+  deploy-backend:
+    name: Deploy Backend to Railway
     needs: [build-images]
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
 
     environment:
-      name: ${{ github.event.inputs.environment || 'staging' }}
+      name: ${{ (github.ref_name == 'main' || github.event.inputs.environment == 'production') && 'production' || 'staging' }}
+      url: ${{ env.RAILWAY_BACKEND_URL }}
+
+    env:
+      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+      RAILWAY_SERVICE: ${{ secrets.RAILWAY_BACKEND_SERVICE_NAME }}
 
     steps:
-      - name: Deploy notification
+      - name: Install Railway CLI
         run: |
-          ENV="${{ github.event.inputs.environment || 'staging' }}"
-          echo "🚀 Deploying to ${ENV}"
-          echo "Backend: ${{ needs.build-images.outputs.backend-tag }}"
-          echo "Frontend: ${{ needs.build-images.outputs.frontend-tag }}"
+          set -euo pipefail
+          if ! command -v railway >/dev/null 2>&1; then
+            echo "Installing Railway CLI..."
+            bash <(curl -fsSL https://cli.new)
+          fi
+          if ! command -v railway >/dev/null 2>&1; then
+            # Installer may place the binary under a custom bin dir.
+            if [ -x "$HOME/.railway/bin/railway" ]; then
+              export PATH="$HOME/.railway/bin:$PATH"
+            fi
+          fi
+          command -v railway
+          railway --version
+
+      - name: List Railway services (diagnostic)
+        run: |
+          echo "Available services in this environment:"
+          railway service status --all 2>&1 || true
+
+      - name: Trigger Railway redeploy
+        run: |
+          echo "Triggering Railway redeploy for service: ${RAILWAY_SERVICE}..."
+          railway redeploy -y --service "$RAILWAY_SERVICE"
+          echo "Railway deploy triggered successfully"
+
+      - name: Wait for deploy
+        run: |
+          echo "Waiting 90s for Railway to build and deploy..."
+          sleep 90
+
+      - name: Health check
+        run: |
+          echo "Running health check against ${{ env.RAILWAY_BACKEND_URL }}..."
+          for i in $(seq 1 12); do
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+              "${{ env.RAILWAY_BACKEND_URL }}/actuator/health/readiness" || echo "000")
+            if [ "$HTTP_CODE" != "200" ]; then
+              HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+                "${{ env.RAILWAY_BACKEND_URL }}/actuator/health/liveness" || echo "000")
+            fi
+            echo "  Attempt $i/12: HTTP $HTTP_CODE"
+            if [ "$HTTP_CODE" = "200" ]; then
+              echo "Health check passed!"
+              exit 0
+            fi
+            sleep 15
+          done
+          echo "::error::Health check failed after 12 attempts (3 minutes)"
+          exit 1
+
+  # ─────────────────────────────────────────────
+  # PR build check (no deploy)
+  # ─────────────────────────────────────────────
+  pr-check:
+    name: PR Build Check
+    if: github.event_name == 'pull_request'
+    needs: [build-images]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Build verification
+        run: |
+          echo "Docker build succeeded for PR #${{ github.event.number }}"
+          echo "Backend image: ${{ needs.build-images.outputs.backend-tag }}"
+          echo "Frontend image: ${{ needs.build-images.outputs.frontend-tag }}"
           echo ""
-          echo "── Deployment steps (customize per hosting) ──"
-          echo "1. Pull images from ghcr.io"
-          echo "2. Run database migrations"
-          echo "3. Rolling restart backend service"
-          echo "4. Invalidate CDN cache for frontend"
-          echo ""
-          echo "Add your deployment commands here (SSH, kubectl, fly deploy, etc.)"
+          echo "Merge to dev/main to trigger deployment to Railway."

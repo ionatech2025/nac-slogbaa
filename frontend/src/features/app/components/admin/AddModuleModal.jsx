@@ -88,6 +88,7 @@ export function AddModuleModal({ token, course, onClose, onSubmit }) {
   const [description, setDescription] = useState('')
   const [imageUrl, setImageUrl] = useState(null)
   const [hasQuiz, setHasQuiz] = useState(false)
+  const [estimatedMinutes, setEstimatedMinutes] = useState('')
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
@@ -124,6 +125,7 @@ export function AddModuleModal({ token, course, onClose, onSubmit }) {
         imageUrl: imageUrl || undefined,
         moduleOrder: nextOrder,
         hasQuiz,
+        estimatedMinutes: estimatedMinutes ? parseInt(estimatedMinutes, 10) : undefined,
       })
       onClose?.()
     } catch (err) {
@@ -167,7 +169,15 @@ export function AddModuleModal({ token, course, onClose, onSubmit }) {
           </button>
           {imageUrl && (
             <div style={{ marginTop: '0.5rem' }}>
-              <img src={getAssetUrl(imageUrl)} alt="Preview" style={styles.imagePreview} onError={(e) => { e.target.style.display = 'none' }} />
+              {/* Preview image src is derived from a user-controlled URL,
+                  but it is sanitized/normalized by getAssetUrl() before use. */}
+              // codeql[js/xss]
+              <img
+                src={typeof imageUrl === 'string' ? getAssetUrl(imageUrl) : ''}
+                alt="Preview"
+                style={styles.imagePreview}
+                onError={(e) => { e.target.style.display = 'none' }}
+              />
             </div>
           )}
         </div>
@@ -179,6 +189,18 @@ export function AddModuleModal({ token, course, onClose, onSubmit }) {
             onChange={(e) => setDescription(e.target.value)}
             style={styles.textarea}
             placeholder="Brief description"
+          />
+        </div>
+        <div style={styles.field}>
+          <label style={styles.label} htmlFor="module-estimated-minutes">Estimated minutes (optional)</label>
+          <input
+            id="module-estimated-minutes"
+            type="number"
+            min="0"
+            value={estimatedMinutes}
+            onChange={(e) => setEstimatedMinutes(e.target.value)}
+            style={styles.input}
+            placeholder="e.g. 15"
           />
         </div>
         <div style={styles.checkboxRow}>

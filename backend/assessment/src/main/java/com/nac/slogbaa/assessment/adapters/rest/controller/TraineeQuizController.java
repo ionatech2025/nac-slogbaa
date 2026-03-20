@@ -6,6 +6,7 @@ import com.nac.slogbaa.assessment.application.port.in.StartAttemptUseCase;
 import com.nac.slogbaa.assessment.application.port.in.SubmitAttemptUseCase;
 import com.nac.slogbaa.assessment.application.port.out.AttemptPort;
 import com.nac.slogbaa.iam.core.valueobject.AuthenticatedIdentity;
+import com.nac.slogbaa.progress.application.port.in.CheckAndAwardBadgesUseCase;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -25,13 +26,16 @@ public class TraineeQuizController {
     private final GetQuizForAttemptUseCase getQuizForAttemptUseCase;
     private final StartAttemptUseCase startAttemptUseCase;
     private final SubmitAttemptUseCase submitAttemptUseCase;
+    private final CheckAndAwardBadgesUseCase checkAndAwardBadgesUseCase;
 
     public TraineeQuizController(GetQuizForAttemptUseCase getQuizForAttemptUseCase,
                                 StartAttemptUseCase startAttemptUseCase,
-                                SubmitAttemptUseCase submitAttemptUseCase) {
+                                SubmitAttemptUseCase submitAttemptUseCase,
+                                CheckAndAwardBadgesUseCase checkAndAwardBadgesUseCase) {
         this.getQuizForAttemptUseCase = getQuizForAttemptUseCase;
         this.startAttemptUseCase = startAttemptUseCase;
         this.submitAttemptUseCase = submitAttemptUseCase;
+        this.checkAndAwardBadgesUseCase = checkAndAwardBadgesUseCase;
     }
 
     @GetMapping
@@ -74,14 +78,36 @@ public class TraineeQuizController {
                 .toList();
         try {
             SubmittedAttemptDto dto = submitAttemptUseCase.submit(attemptId, identity.getUserId(), answers);
-            return ResponseEntity.ok(new SubmittedAttemptResponse(
+            List<SubmittedAnswerResponse> answerResponses = dto.answers() == null ? List.of() :
+                    dto.answers().stream().map(a -> new SubmittedAnswerResponse(
+                            a.questionId() != null ? a.questionId().toString() : null,
+                            a.questionText(),
+                            a.selectedOptionId() != null ? a.selectedOptionId().toString() : null,
+                            a.selectedOptionText(),
+                            a.correctOptionId() != null ? a.correctOptionId().toString() : null,
+                            a.correctOptionText(),
+                            a.correct(),
+                            a.pointsAwarded(),
+                            a.totalPoints()
+                    )).toList();
+            var response = new SubmittedAttemptResponse(
                     dto.attemptId().toString(),
                     dto.pointsEarned(),
                     dto.totalPoints(),
                     dto.percentScore(),
                     dto.passed(),
-                    dto.completedAt().toString()
-            ));
+                    dto.completedAt().toString(),
+                    answerResponses
+            );
+
+            // Check for Perfect Score badge (non-blocking)
+            try {
+                checkAndAwardBadgesUseCase.checkPerfectQuiz(identity.getUserId(), dto.passed(), dto.percentScore());
+            } catch (Exception ignored) {
+                // Badge checks must never break the main quiz flow
+            }
+
+            return ResponseEntity.ok(response);
         } catch (SecurityException e) {
             return ResponseEntity.status(403).build();
         } catch (Exception e) {
@@ -130,5 +156,6 @@ public class TraineeQuizController {
     public record OptionForAttemptResponse(String id, String optionText, int optionOrder) {}
 
     public record AttemptResponse(String attemptId, String traineeAssessmentId, int attemptNumber, String startedAt, QuizForAttemptResponse quiz) {}
-    public record SubmittedAttemptResponse(String attemptId, int pointsEarned, int totalPoints, int percentScore, boolean passed, String completedAt) {}
+    public record SubmittedAttemptResponse(String attemptId, int pointsEarned, int totalPoints, int percentScore, boolean passed, String completedAt, List<SubmittedAnswerResponse> answers) {}
+    public record SubmittedAnswerResponse(String questionId, String questionText, String selectedOptionId, String selectedOptionText, String correctOptionId, String correctOptionText, boolean correct, int pointsAwarded, int totalPoints) {}
 }

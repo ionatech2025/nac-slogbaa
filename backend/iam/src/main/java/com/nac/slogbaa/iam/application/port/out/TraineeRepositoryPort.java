@@ -26,4 +26,10 @@ public interface TraineeRepositoryPort {
     void deleteById(UUID id);
 
     void updatePasswordHash(UUID traineeId, String newPasswordHash);
+
+    void setEmailVerified(UUID traineeId, boolean verified);
+
+    void softDelete(UUID traineeId, String reason);
+
+    void updateProfileImage(UUID traineeId, String profileImageUrl);
 }

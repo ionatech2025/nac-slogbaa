@@ -1,0 +1,10 @@
+D:\2026\WORK\Software\sourcecode\work\web\slogbaa\infrastructure\src\main\java\com\nac\slogbaa\infrastructure\certificate\CertificatePdfGenerator.java
+D:\2026\WORK\Software\sourcecode\work\web\slogbaa\infrastructure\src\main\java\com\nac\slogbaa\infrastructure\email\EmailSendException.java
+D:\2026\WORK\Software\sourcecode\work\web\slogbaa\infrastructure\src\main\java\com\nac\slogbaa\infrastructure\email\EmailService.java
+D:\2026\WORK\Software\sourcecode\work\web\slogbaa\infrastructure\src\main\java\com\nac\slogbaa\infrastructure\email\MailConfig.java
+D:\2026\WORK\Software\sourcecode\work\web\slogbaa\infrastructure\src\main\java\com\nac\slogbaa\infrastructure\notification\EmailStaffNotificationAdapter.java
+D:\2026\WORK\Software\sourcecode\work\web\slogbaa\infrastructure\src\main\java\com\nac\slogbaa\infrastructure\notification\EmailTraineeNotificationAdapter.java
+D:\2026\WORK\Software\sourcecode\work\web\slogbaa\infrastructure\src\main\java\com\nac\slogbaa\infrastructure\notification\LoggingStaffNotificationAdapter.java
+D:\2026\WORK\Software\sourcecode\work\web\slogbaa\infrastructure\src\main\java\com\nac\slogbaa\infrastructure\notification\LoggingTraineeNotificationAdapter.java
+D:\2026\WORK\Software\sourcecode\work\web\slogbaa\infrastructure\src\main\java\com\nac\slogbaa\infrastructure\notification\PasswordResetNotificationAdapter.java
+D:\2026\WORK\Software\sourcecode\work\web\slogbaa\infrastructure\src\main\java\com\nac\slogbaa\infrastructure\storage\LocalFileStorageAdapter.java

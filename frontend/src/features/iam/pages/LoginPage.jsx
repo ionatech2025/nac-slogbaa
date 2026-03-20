@@ -1,11 +1,16 @@
-import { Link } from 'react-router-dom'
+import { Link, Navigate } from 'react-router-dom'
 import { LoginForm } from '../components/LoginForm.jsx'
 import { TestCredentialsSidebar } from '../components/TestCredentialsSidebar.jsx'
+import { Logo } from '../../../shared/components/Logo.jsx'
+import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle.js'
+import { useAuth } from '../hooks/useAuth.js'
 
 const styles = {
   page: {
     display: 'flex',
     minHeight: '100vh',
+    position: 'relative',
+    zIndex: 1,
   },
   main: {
     flex: 1,
@@ -13,30 +18,16 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'center',
     padding: '2rem',
-    background: 'var(--slogbaa-bg)',
   },
   formCard: {
     width: '100%',
     maxWidth: 420,
     padding: '2.5rem 2rem',
-    background: 'var(--slogbaa-surface)',
-    borderRadius: 16,
-    border: '1px solid var(--slogbaa-border)',
-    boxShadow: '0 4px 24px rgba(0,0,0,0.06)',
+    position: 'relative',
+    zIndex: 1,
   },
-  logoMark: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    background: 'var(--slogbaa-blue)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    color: '#fff',
-    fontSize: '1.25rem',
-    fontWeight: 800,
-    marginBottom: '1.5rem',
-    letterSpacing: '-0.02em',
+  logoWrap: {
+    marginBottom: '1.75rem',
   },
   title: {
     margin: '0 0 0.35rem',
@@ -65,12 +56,24 @@ const styles = {
 }
 
 export function LoginPage() {
+  useDocumentTitle('Sign In')
+  const { isAuthenticated, user } = useAuth()
+
+  // Redirect already-authenticated users to their dashboard
+  if (isAuthenticated && user) {
+    const role = String(user.role ?? '').toUpperCase()
+    const target = role === 'SUPER_ADMIN' || role === 'ADMIN' ? '/admin' : '/dashboard'
+    return <Navigate to={target} replace />
+  }
+
   return (
-    <div style={styles.page} className="login-page">
+    <div style={styles.page} className="login-page auth-bg">
       <TestCredentialsSidebar />
       <main style={styles.main}>
-        <div style={styles.formCard}>
-          <div style={styles.logoMark}>S</div>
+        <div style={styles.formCard} className="glass-card-elevated glass-enter">
+          <div style={styles.logoWrap}>
+            <Logo variant="full" size={44} color="blue" />
+          </div>
           <h1 style={styles.title}>Welcome back</h1>
           <p style={styles.subtitle}>Sign in to your SLOGBAA learning account</p>
           <LoginForm />

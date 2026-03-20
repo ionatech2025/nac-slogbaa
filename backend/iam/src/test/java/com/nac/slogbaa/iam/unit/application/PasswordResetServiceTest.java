@@ -123,6 +123,12 @@ class PasswordResetServiceTest {
             saved.removeIf(t -> t.getToken().equals(token));
             deleted.add(token);
         }
+        @Override public int deleteExpired() {
+            Instant now = Instant.now();
+            int n = (int) saved.stream().filter(t -> t.getExpiryDate().isBefore(now)).count();
+            saved.removeIf(t -> t.getExpiryDate().isBefore(now));
+            return n;
+        }
     }
 
     private static class StubTraineeRepo implements TraineeRepositoryPort {
@@ -145,6 +151,9 @@ class PasswordResetServiceTest {
         @Override public void deleteById(UUID id) {}
         @Override public long count() { return 0; }
         @Override public void updatePasswordHash(UUID id, String hash) { passwordUpdated = true; }
+        @Override public void setEmailVerified(UUID traineeId, boolean verified) {}
+        @Override public void softDelete(UUID traineeId, String reason) {}
+        @Override public void updateProfileImage(UUID traineeId, String profileImageUrl) {}
     }
 
     private static class StubStaffRepo implements StaffUserRepositoryPort {

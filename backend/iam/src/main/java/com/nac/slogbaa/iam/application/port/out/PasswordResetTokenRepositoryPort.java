@@ -14,4 +14,9 @@ public interface PasswordResetTokenRepositoryPort {
     Optional<PasswordResetToken> findByToken(String token);
 
     void deleteByToken(String token);
+
+    /**
+     * Delete all tokens with expiry date before now. Returns the number of rows deleted.
+     */
+    int deleteExpired();
 }

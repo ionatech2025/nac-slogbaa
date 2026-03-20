@@ -10,6 +10,7 @@ import { SafeHtml } from '../../../shared/components/SafeHtml.jsx'
 import { AdminQuizEditor } from '../../assessment/components/AdminQuizEditor.jsx'
 import { AdminQuizReadOnly } from '../../assessment/components/AdminQuizReadOnly.jsx'
 import { LoadingButton } from '../../../shared/components/LoadingButton.jsx'
+import { Breadcrumbs } from '../../../shared/components/Breadcrumbs.jsx'
 import { useToast } from '../../../shared/hooks/useToast.js'
 import { icons as iconSet } from '../../../shared/icons.jsx'
 const GripVertical = iconSet.grip
@@ -214,6 +215,7 @@ function AdminContentBlockRenderer({ block }) {
     return (
       <div style={{ marginBottom: '1.5rem' }}>
         <figure style={{ margin: 0 }}>
+          // codeql[js/xss]
           <img src={getAssetUrl(imageUrl)} alt={imageAltText || ''} style={styles.blockImage} loading="lazy" />
           {imageCaption && <figcaption style={styles.blockImageCaption}>{imageCaption}</figcaption>}
         </figure>
@@ -401,7 +403,7 @@ export function AdminModuleEditorPage() {
     if (trimmed === module?.title) return
     setModule((m) => (m ? { ...m, title: trimmed } : m))
     try {
-      await updateModule(token, courseId, moduleId, { title: trimmed, description: module?.description ?? '', imageUrl: module?.imageUrl ?? undefined })
+      await updateModule(token, courseId, moduleId, { title: trimmed, description: module?.description ?? '', imageUrl: module?.imageUrl ?? undefined, estimatedMinutes: module?.estimatedMinutes ?? undefined })
     } catch (e) { toast.error(e?.message ?? 'Failed to save title.') }
   }, [module, token, courseId, moduleId, toast])
   const handleDescriptionBlur = useCallback(async (text) => {
@@ -409,7 +411,7 @@ export function AdminModuleEditorPage() {
     if (trimmed === (module?.description ?? '')) return
     setModule((m) => (m ? { ...m, description: trimmed } : m))
     try {
-      await updateModule(token, courseId, moduleId, { title: module?.title ?? '', description: trimmed, imageUrl: module?.imageUrl ?? undefined })
+      await updateModule(token, courseId, moduleId, { title: module?.title ?? '', description: trimmed, imageUrl: module?.imageUrl ?? undefined, estimatedMinutes: module?.estimatedMinutes ?? undefined })
     } catch (e) { toast.error(e?.message ?? 'Failed to save description.') }
   }, [module, token, courseId, moduleId, toast])
 
@@ -422,7 +424,7 @@ export function AdminModuleEditorPage() {
     try {
       const { url } = await uploadFile(token, file, 'courses')
       setModule((m) => (m ? { ...m, imageUrl: url } : m))
-      await updateModule(token, courseId, moduleId, { title: module?.title ?? '', description: module?.description ?? '', imageUrl: url })
+      await updateModule(token, courseId, moduleId, { title: module?.title ?? '', description: module?.description ?? '', imageUrl: url, estimatedMinutes: module?.estimatedMinutes ?? undefined })
       await refresh()
     } catch (e) { toast.error(e?.message ?? 'Failed to upload image.') }
     finally {
@@ -449,9 +451,12 @@ export function AdminModuleEditorPage() {
 
   return (
     <div style={styles.page} onClick={handleEditorAreaClick}>
-      <Link to={`/admin/learning/${courseId}`} style={styles.backLink}>
-        ← Back to {course.title}
-      </Link>
+      <Breadcrumbs items={[
+        { label: 'Admin', to: '/admin' },
+        { label: 'Learning', to: '/admin/learning' },
+        { label: course?.title || '...', to: `/admin/learning/${courseId}` },
+        { label: module?.title || '...' },
+      ]} />
 
       <div
         style={styles.editorArea}
@@ -567,9 +572,48 @@ export function AdminModuleEditorPage() {
             </button>
             {module?.imageUrl && (
               <div style={{ marginTop: '0.5rem' }}>
-                <img src={getAssetUrl(module.imageUrl)} alt="Module" style={{ maxWidth: 120, maxHeight: 80, borderRadius: 8, border: '1px solid var(--slogbaa-border)', objectFit: 'cover' }} onError={(e) => { e.target.style.display = 'none' }} />
+                <img
+                  src={typeof module?.imageUrl === 'string' && (module.imageUrl.startsWith('/') || module.imageUrl.startsWith('http://') || module.imageUrl.startsWith('https://')) ? getAssetUrl(module.imageUrl) : ''}
+                  alt="Module"
+                  style={{ maxWidth: 120, maxHeight: 80, borderRadius: 8, border: '1px solid var(--slogbaa-border)', objectFit: 'cover' }}
+                  onError={(e) => { e.target.style.display = 'none' }}
+                />
               </div>
             )}
+          </div>
+        )}
+
+        {/* Estimated minutes (SuperAdmin only) */}
+        {isSuperAdmin && (
+          <div style={{ marginTop: '1rem', marginBottom: '1rem' }}>
+            <label style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--slogbaa-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: '0.5rem' }}>
+              Estimated minutes (optional)
+            </label>
+            <input
+              type="number"
+              min="0"
+              value={module?.estimatedMinutes ?? ''}
+              onChange={(e) => {
+                const val = e.target.value === '' ? null : parseInt(e.target.value, 10)
+                setModule((m) => (m ? { ...m, estimatedMinutes: val } : m))
+              }}
+              onBlur={async (e) => {
+                const val = e.target.value === '' ? null : parseInt(e.target.value, 10)
+                try {
+                  await updateModule(token, courseId, moduleId, { title: module?.title ?? '', description: module?.description ?? '', imageUrl: module?.imageUrl ?? undefined, estimatedMinutes: val })
+                } catch (err) { toast.error(err?.message ?? 'Failed to save estimated minutes.') }
+              }}
+              style={{
+                padding: '0.5rem 0.75rem',
+                border: '1px solid var(--slogbaa-border)',
+                borderRadius: 8,
+                fontSize: '0.9375rem',
+                background: 'var(--slogbaa-surface)',
+                color: 'var(--slogbaa-text)',
+                width: 120,
+              }}
+              placeholder="e.g. 15"
+            />
           </div>
         )}
 

@@ -1,7 +1,22 @@
 import { Link } from 'react-router-dom'
-import { FontAwesomeIcon, icons } from '../../../../shared/icons.jsx'
+import { FontAwesomeIcon, Icon, icons } from '../../../../shared/icons.jsx'
 import { useAuth } from '../../../iam/hooks/useAuth.js'
 import { useTheme } from '../../../../contexts/ThemeContext.jsx'
+import { Logo } from '../../../../shared/components/Logo.jsx'
+
+const themeToggleBase = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  width: 44,
+  height: 44,
+  background: 'transparent',
+  border: '1px solid',
+  borderRadius: 8,
+  cursor: 'pointer',
+  padding: 0,
+  flexShrink: 0,
+}
 
 const darkStyles = {
   nav: {
@@ -9,14 +24,17 @@ const darkStyles = {
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: '0.75rem 1.5rem',
-    background: 'var(--slogbaa-dark)',
+    background: 'rgba(15, 23, 42, 0.75)',
+    backdropFilter: 'blur(16px) saturate(170%)',
+    WebkitBackdropFilter: 'blur(16px) saturate(170%)',
     color: '#fff',
     position: 'sticky',
     top: 0,
     zIndex: 100,
-    boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
+    borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
+    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
   },
-  logo: { margin: 0, fontSize: '1.25rem', fontWeight: 600, color: '#fff', textDecoration: 'none' },
+  logo: { textDecoration: 'none', display: 'inline-flex', alignItems: 'center' },
   roleBadge: {
     padding: '0.2rem 0.5rem',
     borderRadius: 6,
@@ -30,11 +48,12 @@ const darkStyles = {
     display: 'inline-flex',
     alignItems: 'center',
     gap: '0.4rem',
-    padding: '0.4rem 0.75rem',
+    padding: '0.5rem 0.75rem',
+    minHeight: 44,
     background: 'transparent',
     color: '#fff',
     border: '1px solid rgba(255,255,255,0.4)',
-    borderRadius: 6,
+    borderRadius: 8,
     fontSize: '0.875rem',
     cursor: 'pointer',
   },
@@ -43,12 +62,14 @@ const darkStyles = {
 const lightStyles = {
   nav: {
     ...darkStyles.nav,
-    background: '#ffffff',
+    background: 'var(--slogbaa-glass-bg)',
+    backdropFilter: 'var(--slogbaa-glass-blur)',
+    WebkitBackdropFilter: 'var(--slogbaa-glass-blur)',
     color: 'var(--slogbaa-text)',
-    borderBottom: '1px solid var(--slogbaa-border)',
-    boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+    borderBottom: '1px solid var(--slogbaa-glass-border)',
+    boxShadow: 'var(--slogbaa-glass-shadow)',
   },
-  logo: { ...darkStyles.logo, color: 'var(--slogbaa-text)' },
+  logo: { ...darkStyles.logo },
   roleBadge: {
     ...darkStyles.roleBadge,
     background: 'rgba(37, 99, 235, 0.12)',
@@ -59,12 +80,13 @@ const lightStyles = {
     ...darkStyles.signOut,
     color: 'var(--slogbaa-text)',
     border: '1px solid var(--slogbaa-border)',
+    borderRadius: 8,
   },
 }
 
 export function AdminNav() {
   const { user, logout } = useAuth()
-  const { theme } = useTheme()
+  const { theme, toggleTheme } = useTheme()
   const isLight = theme === 'light'
   const styles = isLight ? lightStyles : darkStyles
 
@@ -75,12 +97,29 @@ export function AdminNav() {
     <header style={styles.nav}>
       <div style={leftStyle}>
         <Link to="/admin" style={styles.logo}>
-          SLOGBAA Admin
+          <Logo
+            variant="full"
+            size={30}
+            color={isLight ? 'dark' : 'white'}
+            subtitle="Admin"
+          />
         </Link>
-        <span style={styles.roleBadge}>{user?.role === 'SUPER_ADMIN' ? 'Super Admin' : 'Admin'}</span>
+        <span style={styles.roleBadge}>{String(user?.role ?? '').toUpperCase() === 'SUPER_ADMIN' ? 'Super Admin' : 'Admin'}</span>
       </div>
       <div style={rightStyle}>
         <span style={styles.userLabel}>{user?.fullName || user?.email || 'Staff'}</span>
+        <button
+          type="button"
+          style={{
+            ...themeToggleBase,
+            borderColor: isLight ? 'var(--slogbaa-border)' : 'rgba(255,255,255,0.4)',
+            color: isLight ? 'var(--slogbaa-text)' : '#fff',
+          }}
+          onClick={toggleTheme}
+          aria-label={`Switch to ${isLight ? 'dark' : 'light'} mode`}
+        >
+          <Icon icon={isLight ? icons.moon : icons.sun} size={18} />
+        </button>
         <button type="button" style={styles.signOut} onClick={logout}>
           <FontAwesomeIcon icon={icons.signOut} />
           Sign out

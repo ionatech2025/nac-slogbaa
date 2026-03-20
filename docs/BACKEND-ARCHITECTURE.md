@@ -2,6 +2,9 @@
 
 Technical reference for the Spring Boot backend. Updated March 2026.
 
+> **Database schema:** See [DATABASE-SCHEMA.md](DATABASE-SCHEMA.md) for full table definitions, ERD, and migration history.
+> **Deployment:** Backend on Render (Singapore), frontend on Vercel. See [PRODUCTION-READINESS.md](PRODUCTION-READINESS.md).
+
 ---
 
 ## Build System
@@ -66,7 +69,7 @@ Implements shared-ports interfaces with real infrastructure:
 
 **Domain (core/):**
 - Aggregates: `Trainee`, `StaffUser`
-- Entities: `Profile`, `PasswordResetToken`
+- Entities: `Profile`, `PasswordResetToken`, `EmailVerificationToken`
 - Value objects: `Email`, `TraineeId`, `StaffUserId`, `FullName`, `PhoneNumber`, `District`, `PhysicalAddress`, `Gender`, `TraineeCategory`, `StaffRole`, `AuthenticatedIdentity`, `AuthenticatedRole`
 - Domain exceptions: 12 typed exceptions
 
@@ -76,7 +79,7 @@ Implements shared-ports interfaces with real infrastructure:
 - 14 application services implementing use cases
 
 **Adapters:**
-- REST controllers (8): Auth, PasswordReset, AdminStaff, AdminTrainees, AdminDashboard, AdminMe, Trainee, Test
+- REST controllers (9): Auth (login, register, email verification), PasswordReset, AdminStaff, AdminTrainees, AdminDashboard, AdminMe, Trainee, Leaderboard, Test
 - Persistence adapters (3): Trainee, StaffUser, PasswordResetToken (JPA)
 - Security adapters: `JwtTokenAdapter`, `JwtAuthenticationFilter`, `RateLimitFilter`, `PasswordEncoderAdapter`, `AuditLogger`
 
@@ -86,31 +89,31 @@ Implements shared-ports interfaces with real infrastructure:
 
 ### learning
 
-**Domain:** `Course`, `CourseWithModules`, `Module`, `ContentBlock` aggregates and entities.
+**Domain:** `Course`, `CourseWithModules`, `Module`, `ContentBlock`, `CourseCategory`, `CourseReview`, `DiscussionThread`, `DiscussionReply` aggregates and entities.
 
-**Application:** Use cases for published courses, admin courses, course details, library resources (CRUD + publish/unpublish).
+**Application:** Use cases for published courses, admin courses, course details, library resources (CRUD + publish/unpublish), course categories, course reviews/ratings, threaded Q&A discussions.
 
 **Adapters:**
-- REST controllers (4): Course, AdminCourse, LibraryResource, AdminLibraryResource
+- REST controllers (8): Course, AdminCourse, LibraryResource, AdminLibraryResource, CourseReview, CourseCategory, Discussion, DiscussionReply
 - Persistence adapters with `@Cacheable` on read queries and `@CacheEvict` on mutations
 
 ### assessment
 
 **Domain:** Quiz, Question, Option, QuizAttempt.
 
-**Application:** Quiz CRUD, attempt management, scoring.
+**Application:** Quiz CRUD, attempt management, scoring, answer review. Server-side enforcement of maxAttempts and timeLimitMinutes.
 
 **Adapters:**
-- REST controllers (3): TraineeQuiz, AdminQuiz, AdminQuizAttempts
+- REST controllers (3): TraineeQuiz (with answer review), AdminQuiz, AdminQuizAttempts
 
 ### progress
 
-**Domain:** `TraineeProgress` aggregate.
+**Domain:** `TraineeProgress`, `DailyActivity`, `TraineeStreak`, `BadgeDefinition`, `TraineeBadge`, `TraineeXp`, `TraineeBookmark` aggregates and entities.
 
-**Application:** Enrollment, progress tracking, module completion, certificate issuance/revocation.
+**Application:** Enrollment, progress tracking, module completion, certificate issuance/revocation, streak tracking (daily goals, activity logging), XP/badges/achievements, bookmarks/notes.
 
 **Adapters:**
-- REST controllers (6): Enrollment, Progress, Certificate, AdminCertificate, AdminCourseManagement, TraineeSettings
+- REST controllers (10): Enrollment, Progress, Certificate, AdminCertificate, AdminCourseManagement, TraineeSettings, Streak, Achievement, Bookmark, Leaderboard
 
 ### app (entry point)
 
@@ -219,7 +222,7 @@ Backend: `ConcurrentMapCacheManager` (in-memory). For multi-instance: swap to Re
 ## Database
 
 - **Engine:** PostgreSQL 16
-- **Migrations:** Flyway 10.14, 13 versioned scripts (V1–V13)
+- **Migrations:** Flyway 10.14, 22 versioned scripts (V1–V22)
 - **Location:** `app/src/main/resources/db/migration/` (single canonical directory)
 - **Strategy:** `baseline-on-migrate=true`, `validate-on-migrate=true`, `clean-disabled=true`
 - **JPA:** `ddl-auto=none`, `open-in-view=false`
@@ -241,12 +244,37 @@ Backend: `ConcurrentMapCacheManager` (in-memory). For multi-instance: swap to Re
 | V11 | Additional course seed data |
 | V12 | Course/module image URL columns |
 | V13 | Trainee settings |
+| V14 | `email_verification_tokens` (email verification on registration) |
+| V15 | `course_review` (5-star ratings + text reviews) |
+| V16 | `daily_activity`, `trainee_streak` (streak counter + daily goals) |
+| V17 | `module.estimated_minutes` (module time estimates) |
+| V19 | `course_category` (5 seeded categories, filter chips) |
+| V20 | `badge_definition`, `trainee_badge`, `trainee_xp` (XP/badges/achievements) |
+| V21 | `trainee_bookmark` (bookmarks + notes on content blocks) |
+| V22 | `discussion_thread`, `discussion_reply` (course Q&A discussions) |
 
 ---
 
-## Docker
+## Deployment
 
-### Backend Dockerfile
+### Production (Render)
+
+| Property | Value |
+|----------|-------|
+| Platform | Render (Singapore region) |
+| Runtime | Docker (`backend/Dockerfile`) |
+| Service URL | `https://slogbaa-backend.onrender.com` |
+| Health check | `/actuator/health/readiness` |
+| Deploy trigger | Render API via GitHub Actions (`deploy.yml`) |
+| Blueprint | `render.yaml` (infrastructure-as-code) |
+
+**CORS origins (prod):** `https://frontend-seven-red-wsusnzc0va.vercel.app`, `https://slogbaa-backend.onrender.com`
+
+**SMTP (prod):** Gmail SMTP with app password, configured via Render env vars (`SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`).
+
+### Docker
+
+#### Backend Dockerfile
 
 Multi-stage build:
 1. **Build stage:** `eclipse-temurin:21-jdk-alpine` — runs `./gradlew :app:bootJar`
@@ -254,13 +282,13 @@ Multi-stage build:
 
 Layer caching: Gradle wrapper + build scripts copied first; source copied second.
 
-### Frontend Dockerfile
+#### Frontend Dockerfile
 
 Multi-stage build:
 1. **Build stage:** `node:20-alpine` — `npm ci && npm run build`
 2. **Runtime stage:** `nginx:1.27-alpine` — SPA routing, API proxy to backend, gzip, cache headers, security headers
 
-### Docker Compose
+#### Docker Compose (local)
 
 3 services:
 - `postgres` — PostgreSQL 16 with health checks and persistent volume

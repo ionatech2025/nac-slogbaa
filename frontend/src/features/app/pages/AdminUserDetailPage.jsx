@@ -13,6 +13,7 @@ import { LoadingButton } from '../../../shared/components/LoadingButton.jsx'
 import { Avatar } from '../../../shared/components/Avatar.jsx'
 import { Badge } from '../../../shared/components/Badge.jsx'
 import { Input } from '../../../shared/components/Input.jsx'
+import { Breadcrumbs } from '../../../shared/components/Breadcrumbs.jsx'
 import { useToast } from '../../../shared/hooks/useToast.js'
 
 const styles = {
@@ -27,7 +28,7 @@ const styles = {
     gap: '0.5rem',
     marginBottom: '1.25rem',
     fontSize: '0.9375rem',
-    color: 'var(--slogbaa-blue)',
+    color: 'var(--slogbaa-primary)',
     textDecoration: 'none',
     fontWeight: 500,
   },
@@ -56,14 +57,14 @@ const styles = {
     height: 56,
     borderRadius: 12,
     objectFit: 'cover',
-    background: 'linear-gradient(135deg, var(--slogbaa-teal, #0d9488) 0%, var(--slogbaa-blue) 100%)',
+    background: 'var(--slogbaa-primary)',
     flexShrink: 0,
   },
   avatarPlaceholder: {
     width: 56,
     height: 56,
     borderRadius: 12,
-    background: 'linear-gradient(135deg, #0d9488 0%, var(--slogbaa-blue) 100%)',
+    background: 'var(--slogbaa-primary)',
     color: '#fff',
     display: 'flex',
     alignItems: 'center',
@@ -132,19 +133,19 @@ const styles = {
     color: '#a16207',
   },
   actionBtnActivate: {
-    background: 'rgba(34, 197, 94, 0.12)',
-    borderColor: 'rgba(34, 197, 94, 0.4)',
-    color: '#15803d',
+    background: 'rgba(0, 166, 81, 0.12)',
+    borderColor: 'rgba(0, 166, 81, 0.4)',
+    color: 'var(--slogbaa-success)',
   },
   actionBtnEmail: {
-    background: 'rgba(59, 130, 246, 0.1)',
-    borderColor: 'rgba(59, 130, 246, 0.3)',
-    color: 'var(--slogbaa-blue)',
+    background: 'rgba(245, 130, 32, 0.08)',
+    borderColor: 'rgba(245, 130, 32, 0.3)',
+    color: 'var(--primary-orange, #F58220)',
   },
   actionBtnDanger: {
-    background: 'rgba(239, 68, 68, 0.08)',
-    borderColor: 'rgba(239, 68, 68, 0.35)',
-    color: 'var(--slogbaa-error, #dc2626)',
+    background: 'rgba(237, 28, 36, 0.08)',
+    borderColor: 'rgba(237, 28, 36, 0.35)',
+    color: 'var(--slogbaa-error)',
   },
   grid: {
     display: 'grid',
@@ -185,8 +186,8 @@ const styles = {
     borderRadius: 6,
     fontSize: '0.75rem',
     fontWeight: 600,
-    background: 'rgba(34, 197, 94, 0.15)',
-    color: 'var(--slogbaa-green)',
+    background: 'rgba(0, 166, 81, 0.12)',
+    color: 'var(--slogbaa-success)',
   },
   input: {
     width: '100%',
@@ -225,7 +226,7 @@ const styles = {
     padding: '0.6rem 1.25rem',
     border: 'none',
     borderRadius: 8,
-    background: 'linear-gradient(135deg, #0d9488 0%, #0e7490 100%)',
+    background: 'var(--slogbaa-primary)',
     color: '#fff',
     fontSize: '0.9375rem',
     fontWeight: 600,
@@ -349,7 +350,7 @@ const styles = {
   progressBarFill: {
     height: '100%',
     borderRadius: 4,
-    background: 'linear-gradient(90deg, var(--slogbaa-teal, #0d9488), var(--slogbaa-blue))',
+    background: 'var(--slogbaa-primary)',
     transition: 'width 0.2s',
   },
   certBadge: {
@@ -486,9 +487,11 @@ export function AdminUserDetailPage() {
   if (loading) {
     return (
       <div style={styles.page}>
-        <Link to="/admin/overview" style={styles.backLink}>
-          <FontAwesomeIcon icon={icons.viewList} /> Back to Overview
-        </Link>
+        <Breadcrumbs items={[
+          { label: 'Admin', to: '/admin' },
+          { label: 'Overview', to: '/admin/overview' },
+          { label: '...' },
+        ]} />
         <p style={styles.loading}>Loading user…</p>
       </div>
     )
@@ -497,9 +500,11 @@ export function AdminUserDetailPage() {
   if (error && !user) {
     return (
       <div style={styles.page}>
-        <Link to="/admin/overview" style={styles.backLink}>
-          <FontAwesomeIcon icon={icons.viewList} /> Back to Overview
-        </Link>
+        <Breadcrumbs items={[
+          { label: 'Admin', to: '/admin' },
+          { label: 'Overview', to: '/admin/overview' },
+          { label: '...' },
+        ]} />
         <p style={styles.error}>{error}</p>
       </div>
     )
@@ -508,9 +513,11 @@ export function AdminUserDetailPage() {
   if (!user) {
     return (
       <div style={styles.page}>
-        <Link to="/admin/overview" style={styles.backLink}>
-          <FontAwesomeIcon icon={icons.viewList} /> Back to Overview
-        </Link>
+        <Breadcrumbs items={[
+          { label: 'Admin', to: '/admin' },
+          { label: 'Overview', to: '/admin/overview' },
+          { label: '...' },
+        ]} />
         <p style={styles.error}>User not found.</p>
       </div>
     )
@@ -528,9 +535,11 @@ export function AdminUserDetailPage() {
 
   return (
     <div style={pageStyle}>
-      <Link to="/admin/overview" style={styles.backLink}>
-        <FontAwesomeIcon icon={icons.viewList} /> Back to Overview
-      </Link>
+      <Breadcrumbs items={[
+        { label: 'Admin', to: '/admin' },
+        { label: 'Overview', to: '/admin/overview' },
+        { label: displayName },
+      ]} />
 
       {error && (
         <p style={{ ...styles.error, marginBottom: '1rem' }}>{error}</p>

@@ -1,21 +1,20 @@
 package com.nac.slogbaa.progress.adapters.rest.controller;
 
-import com.nac.slogbaa.iam.application.port.in.GetTraineeByIdUseCase;
-import com.nac.slogbaa.progress.adapters.persistence.entity.ModuleProgressEntity;
-import com.nac.slogbaa.progress.adapters.persistence.entity.TraineeProgressEntity;
 import com.nac.slogbaa.progress.adapters.persistence.repository.JpaModuleProgressRepository;
 import com.nac.slogbaa.progress.adapters.persistence.repository.JpaTraineeProgressRepository;
 import com.nac.slogbaa.shared.ports.CourseDeletionCheckPort;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 /**
  * REST controller for SuperAdmin course management: enrollments per course, progress, and can-delete checks.
@@ -26,42 +25,51 @@ public class AdminCourseManagementController {
 
     private final JpaTraineeProgressRepository traineeProgressRepository;
     private final JpaModuleProgressRepository moduleProgressRepository;
-    private final GetTraineeByIdUseCase getTraineeByIdUseCase;
     private final CourseDeletionCheckPort courseDeletionCheckPort;
 
     public AdminCourseManagementController(JpaTraineeProgressRepository traineeProgressRepository,
                                             JpaModuleProgressRepository moduleProgressRepository,
-                                            GetTraineeByIdUseCase getTraineeByIdUseCase,
                                             CourseDeletionCheckPort courseDeletionCheckPort) {
         this.traineeProgressRepository = traineeProgressRepository;
         this.moduleProgressRepository = moduleProgressRepository;
-        this.getTraineeByIdUseCase = getTraineeByIdUseCase;
         this.courseDeletionCheckPort = courseDeletionCheckPort;
     }
 
     @GetMapping("/courses/{courseId}/enrollments")
     @PreAuthorize("hasRole('SUPER_ADMIN')")
-    public ResponseEntity<List<CourseEnrollmentResponse>> getEnrollments(@PathVariable UUID courseId) {
-        List<TraineeProgressEntity> progressList = traineeProgressRepository.findByCourseIdOrderByEnrollmentDateDesc(courseId);
-        List<CourseEnrollmentResponse> body = progressList.stream()
-                .map(p -> {
-                    String traineeName = getTraineeByIdUseCase.getById(p.getTraineeId())
-                            .map(t -> t.getFirstName() + " " + t.getLastName())
-                            .orElse(p.getTraineeId().toString());
-                    List<UUID> completedModuleIds = moduleProgressRepository.findByTraineeProgressIdAndStatusCompleted(p.getId())
-                            .stream()
-                            .map(ModuleProgressEntity::getModuleId)
-                            .collect(Collectors.toList());
-                    return new CourseEnrollmentResponse(
-                            p.getTraineeId().toString(),
-                            traineeName,
-                            p.getEnrollmentDate() != null ? p.getEnrollmentDate().toString() : null,
-                            p.getCompletionPercentage(),
-                            completedModuleIds.stream().map(UUID::toString).toList()
-                    );
-                })
-                .toList();
-        return ResponseEntity.ok(body);
+    public ResponseEntity<Page<CourseEnrollmentResponse>> getEnrollments(
+            @PathVariable UUID courseId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        Pageable pageable = PageRequest.of(page, Math.min(size, 100));
+
+        Page<JpaTraineeProgressRepository.EnrollmentWithTraineeProjection> enrollmentPage =
+            traineeProgressRepository.findEnrollmentsWithTrainee(courseId, pageable);
+
+        // Batch fetch completed modules for all progress IDs on this page
+        List<UUID> progressIds = enrollmentPage.getContent().stream()
+            .map(JpaTraineeProgressRepository.EnrollmentWithTraineeProjection::getProgressId)
+            .toList();
+
+        Map<UUID, List<UUID>> completedModulesMap = new HashMap<>();
+        if (!progressIds.isEmpty()) {
+            for (Object[] row : moduleProgressRepository.findCompletedModulesByProgressIds(progressIds)) {
+                UUID progressId = (UUID) row[0];
+                UUID moduleId = (UUID) row[1];
+                completedModulesMap.computeIfAbsent(progressId, k -> new ArrayList<>()).add(moduleId);
+            }
+        }
+
+        Page<CourseEnrollmentResponse> result = enrollmentPage.map(p -> new CourseEnrollmentResponse(
+            p.getTraineeId().toString(),
+            p.getTraineeName(),
+            p.getEnrollmentDate() != null ? p.getEnrollmentDate().toString() : null,
+            p.getCompletionPercentage() != null ? p.getCompletionPercentage() : 0,
+            completedModulesMap.getOrDefault(p.getProgressId(), List.of())
+                .stream().map(UUID::toString).toList()
+        ));
+
+        return ResponseEntity.ok(result);
     }
 
     @GetMapping("/courses/{courseId}/can-delete")

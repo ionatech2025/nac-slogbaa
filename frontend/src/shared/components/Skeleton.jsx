@@ -1,11 +1,12 @@
 /**
- * Skeleton primitive — animated placeholder for loading states.
- * Inspired by Shadcn skeleton pattern.
+ * Skeleton primitive — animated shimmer placeholder for loading states.
+ * Uses gradient sweep animation inspired by Facebook/Notion skeleton loaders.
  */
 const baseStyle = {
-  background: 'var(--slogbaa-border)',
+  background: 'linear-gradient(90deg, var(--slogbaa-border) 25%, var(--slogbaa-bg-secondary) 50%, var(--slogbaa-border) 75%)',
+  backgroundSize: '200% 100%',
   borderRadius: 10,
-  animation: 'skeleton-pulse 1.5s ease-in-out infinite',
+  animation: 'skeleton-shimmer 1.5s ease-in-out infinite',
 }
 
 export function Skeleton({ width, height = 16, rounded, style, ...rest }) {

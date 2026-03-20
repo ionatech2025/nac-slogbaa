@@ -3,6 +3,7 @@ import { useAuth } from '../../features/iam/hooks/useAuth.js'
 import { queryKeys } from '../query-keys.js'
 import { getTraineeProfile, updateTraineeProfile } from '../../api/trainee.js'
 import { getTraineeSettings, updateTraineeSettings } from '../../api/traineeSettings.js'
+import { uploadAvatar } from '../../api/iam/avatar.js'
 
 export function useTraineeProfile() {
   const { token } = useAuth()
@@ -40,6 +41,17 @@ export function useUpdateTraineeSettings() {
     mutationFn: (payload) => updateTraineeSettings(token, payload),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.trainee.settings() })
+    },
+  })
+}
+
+export function useUploadAvatar() {
+  const { token } = useAuth()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (file) => uploadAvatar(token, file),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.trainee.profile() })
     },
   })
 }

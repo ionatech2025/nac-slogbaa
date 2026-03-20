@@ -12,13 +12,15 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
         "com.nac.slogbaa.iam.adapters.persistence.entity",
         "com.nac.slogbaa.learning.adapters.persistence.entity",
         "com.nac.slogbaa.progress.adapters.persistence.entity",
-        "com.nac.slogbaa.assessment.adapters.persistence.entity"
+        "com.nac.slogbaa.assessment.adapters.persistence.entity",
+        "com.nac.slogbaa.app.cms.entity"
 })
 @EnableJpaRepositories(basePackages = {
         "com.nac.slogbaa.iam.adapters.persistence.repository",
         "com.nac.slogbaa.learning.adapters.persistence.repository",
         "com.nac.slogbaa.progress.adapters.persistence.repository",
-        "com.nac.slogbaa.assessment.adapters.persistence.repository"
+        "com.nac.slogbaa.assessment.adapters.persistence.repository",
+        "com.nac.slogbaa.app.cms.repository"
 })
 public class SlogbaaApplication {
 

@@ -1,16 +1,20 @@
 package com.nac.slogbaa.iam.unit.adapters;
 
-import com.nac.slogbaa.iam.adapters.security.RateLimitFilter;
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
+import java.io.IOException;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
-import java.io.IOException;
+import com.nac.slogbaa.iam.adapters.security.RateLimitFilter;
 
-import static org.junit.jupiter.api.Assertions.*;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
 
 class RateLimitFilterTest {
 
@@ -19,8 +23,8 @@ class RateLimitFilterTest {
 
     @BeforeEach
     void setUp() {
-        // 5 requests per 60 seconds for auth
-        filter = new RateLimitFilter(5, 10, 60);
+        // auth max 5, upload 10, admin-mutation 30, window 60s
+        filter = new RateLimitFilter(5, 10, 30, 60L);
         noopChain = (req, res) -> {};
     }
 

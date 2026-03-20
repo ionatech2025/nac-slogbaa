@@ -4,6 +4,7 @@ import { FontAwesomeIcon, icons } from '../../../shared/icons.jsx'
 import { useAuth } from '../../iam/hooks/useAuth.js'
 import { getCourseDetails } from '../../../api/learning/courses.js'
 import { getAssetUrl } from '../../../api/client.js'
+import defaultCourseImg from '../../../assets/images/courses/course1.jpg'
 
 function findFirstVideoBlock(course) {
   for (const module of course?.modules ?? []) {
@@ -101,7 +102,7 @@ const styles = {
   },
 }
 
-export function CoursePreviewModal({ course, onClose, onEnroll }) {
+export function CoursePreviewModal({ course, onClose, onEnroll, prerequisiteMet = true }) {
   const { token } = useAuth()
   const [details, setDetails] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -126,11 +127,12 @@ export function CoursePreviewModal({ course, onClose, onEnroll }) {
       {error && <div style={styles.error}>{error}</div>}
       {!loading && !error && details && (
         <>
-          {details.imageUrl ? (
-            <img src={getAssetUrl(details.imageUrl)} alt={`Course: ${details.title ?? ''}`} style={styles.image} onError={(e) => { e.target.style.display = 'none' }} />
-          ) : (
-            <div style={styles.imagePlaceholder}>📚</div>
-          )}
+          <img
+            src={details.imageUrl ? getAssetUrl(details.imageUrl) : defaultCourseImg}
+            alt={`Course: ${details.title ?? ''}`}
+            style={styles.image}
+            onError={(e) => { e.target.onerror = null; e.target.src = defaultCourseImg }}
+          />
           {details.description && (
             <p style={styles.description}>{details.description}</p>
           )}
@@ -162,10 +164,37 @@ export function CoursePreviewModal({ course, onClose, onEnroll }) {
               </div>
             </>
           )}
+          {course?.prerequisiteCourseId && (
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              fontSize: '0.875rem',
+              padding: '0.5rem 0.75rem',
+              borderRadius: 8,
+              marginBottom: '1rem',
+              ...(prerequisiteMet
+                ? { background: 'rgba(56, 161, 105, 0.1)', color: 'var(--slogbaa-green)', border: '1px solid rgba(56, 161, 105, 0.25)' }
+                : { background: 'rgba(237, 137, 54, 0.1)', color: 'var(--slogbaa-warning, #dd6b20)', border: '1px solid rgba(237, 137, 54, 0.25)' }),
+            }}>
+              <FontAwesomeIcon icon={prerequisiteMet ? icons.checkCircle : icons.lock} style={{ width: '1em' }} />
+              <span>
+                {prerequisiteMet
+                  ? 'Prerequisite met'
+                  : `Requires: ${course.prerequisiteCourseName ?? 'a prerequisite course'}`}
+              </span>
+            </div>
+          )}
           {onEnroll && (
             <button type="button" style={styles.enrollBtn} onClick={() => onEnroll(course)}>
               <FontAwesomeIcon icon={icons.enroll} />
               Enroll now →
+            </button>
+          )}
+          {!onEnroll && course?.prerequisiteCourseId && !prerequisiteMet && (
+            <button type="button" disabled style={{ ...styles.enrollBtn, opacity: 0.5, cursor: 'not-allowed', background: 'var(--slogbaa-text-muted)' }}>
+              <FontAwesomeIcon icon={icons.lock} />
+              Locked
             </button>
           )}
         </>

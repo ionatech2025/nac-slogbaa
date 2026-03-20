@@ -17,17 +17,19 @@ const baseStyle = {
 }
 
 const variants = {
+  /* Primary: solid orange, white text (Sign In, Update Password) */
   primary: {
-    background: 'var(--slogbaa-blue)',
-    color: '#fff',
+    background: 'var(--primary-orange, #F58220)',
+    color: 'var(--primary-white, #FFFFFF)',
   },
+  /* Secondary: white background, orange text and border (Edit Profile) */
   secondary: {
-    background: 'var(--slogbaa-surface)',
-    color: 'var(--slogbaa-text)',
-    border: '1px solid var(--slogbaa-border)',
+    background: 'var(--primary-white, #FFFFFF)',
+    color: 'var(--primary-orange, #F58220)',
+    border: '1px solid var(--primary-orange, #F58220)',
   },
   danger: {
-    background: 'rgba(220, 38, 38, 0.06)',
+    background: 'rgba(237, 28, 36, 0.08)',
     color: 'var(--slogbaa-error)',
     border: '1px solid var(--slogbaa-error)',
   },
@@ -36,19 +38,19 @@ const variants = {
     color: 'var(--slogbaa-text)',
   },
   accent: {
-    background: 'var(--slogbaa-green)',
+    background: 'var(--success-green, #00A651)',
     color: '#fff',
   },
   warm: {
-    background: 'var(--slogbaa-blue)',
-    color: '#fff',
+    background: 'var(--primary-orange, #F58220)',
+    color: 'var(--primary-white, #FFFFFF)',
   },
 }
 
 const sizes = {
-  sm: { padding: '0.35rem 0.75rem', fontSize: '0.8125rem' },
-  md: {},
-  lg: { padding: '0.75rem 1.5rem', fontSize: '1rem' },
+  sm: { padding: '0.5rem 0.75rem', fontSize: '0.8125rem', minHeight: 36 },
+  md: { minHeight: 44 },
+  lg: { padding: '0.75rem 1.5rem', fontSize: '1rem', minHeight: 48 },
 }
 
 /**

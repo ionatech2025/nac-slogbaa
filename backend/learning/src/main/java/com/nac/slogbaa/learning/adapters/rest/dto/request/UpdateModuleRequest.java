@@ -1,5 +1,6 @@
 package com.nac.slogbaa.learning.adapters.rest.dto.request;
 
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
 
 /**
@@ -12,5 +13,8 @@ public record UpdateModuleRequest(
         String description,
 
         @Size(max = 2048)
-        String imageUrl
+        String imageUrl,
+
+        @Min(0)
+        Integer estimatedMinutes
 ) {}

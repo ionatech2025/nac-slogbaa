@@ -8,6 +8,8 @@ import com.nac.slogbaa.learning.adapters.persistence.repository.JpaLibraryResour
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
@@ -95,6 +97,11 @@ public class LibraryResourceWriteAdapter implements LibraryResourceWritePort {
     @Override
     public List<LibraryResourceRecord> findAll() {
         return jpaRepository.findAll().stream().map(this::toRecord).toList();
+    }
+
+    @Override
+    public Page<LibraryResourceRecord> findAll(Pageable pageable) {
+        return jpaRepository.findAll(pageable).map(this::toRecord);
     }
 
     private LibraryResourceRecord toRecord(LibraryResourceEntity e) {

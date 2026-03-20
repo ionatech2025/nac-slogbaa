@@ -17,6 +17,7 @@ import com.nac.slogbaa.learning.application.dto.command.UpdateContentBlockComman
 import com.nac.slogbaa.learning.application.dto.command.UpdateCourseCommand;
 import com.nac.slogbaa.learning.application.port.in.AddContentBlockToModuleUseCase;
 import com.nac.slogbaa.learning.application.port.in.AddModuleToCourseUseCase;
+import com.nac.slogbaa.learning.application.port.in.CloneCourseUseCase;
 import com.nac.slogbaa.learning.application.port.in.CreateCourseUseCase;
 import com.nac.slogbaa.learning.application.port.in.DeleteCourseUseCase;
 import com.nac.slogbaa.learning.application.port.in.DeleteModuleUseCase;
@@ -32,6 +33,10 @@ import com.nac.slogbaa.learning.core.valueobject.BlockId;
 import com.nac.slogbaa.learning.core.valueobject.CourseId;
 import com.nac.slogbaa.learning.core.valueobject.ModuleId;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -43,6 +48,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.nac.slogbaa.learning.adapters.rest.dto.response.AdminCourseSummaryResponse;
@@ -79,6 +85,7 @@ public class AdminCourseController {
     private final UnpublishCourseUseCase unpublishCourseUseCase;
     private final DeleteCourseUseCase deleteCourseUseCase;
     private final DeleteModuleUseCase deleteModuleUseCase;
+    private final CloneCourseUseCase cloneCourseUseCase;
 
     public AdminCourseController(GetAdminCoursesUseCase getAdminCoursesUseCase,
                                 GetAdminCourseDetailsUseCase getAdminCourseDetailsUseCase,
@@ -92,7 +99,8 @@ public class AdminCourseController {
                                 PublishCourseUseCase publishCourseUseCase,
                                 UnpublishCourseUseCase unpublishCourseUseCase,
                                 DeleteCourseUseCase deleteCourseUseCase,
-                                DeleteModuleUseCase deleteModuleUseCase) {
+                                DeleteModuleUseCase deleteModuleUseCase,
+                                CloneCourseUseCase cloneCourseUseCase) {
         this.getAdminCoursesUseCase = getAdminCoursesUseCase;
         this.getAdminCourseDetailsUseCase = getAdminCourseDetailsUseCase;
         this.createCourseUseCase = createCourseUseCase;
@@ -106,19 +114,23 @@ public class AdminCourseController {
         this.unpublishCourseUseCase = unpublishCourseUseCase;
         this.deleteCourseUseCase = deleteCourseUseCase;
         this.deleteModuleUseCase = deleteModuleUseCase;
+        this.cloneCourseUseCase = cloneCourseUseCase;
     }
 
     @GetMapping("/count")
     @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN')")
     public ResponseEntity<Map<String, Long>> getCourseCount() {
-        long count = getAdminCoursesUseCase.getAllCourses().size();
+        long count = getAdminCoursesUseCase.countCourses();
         return ResponseEntity.ok(Map.of("count", count));
     }
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN')")
-    public ResponseEntity<List<AdminCourseSummaryResponse>> getAllCourses() {
-        List<AdminCourseSummaryResponse> list = getAdminCoursesUseCase.getAllCourses().stream()
+    public ResponseEntity<Page<AdminCourseSummaryResponse>> getAllCourses(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        Pageable pageable = PageRequest.of(page, Math.min(size, 100), Sort.by("createdAt").descending());
+        Page<AdminCourseSummaryResponse> result = getAdminCoursesUseCase.getAllCourses(pageable)
                 .map(s -> new AdminCourseSummaryResponse(
                         s.getId().toString(),
                         s.getTitle(),
@@ -126,10 +138,11 @@ public class AdminCourseController {
                         s.getImageUrl(),
                         s.isPublished(),
                         s.getModuleCount(),
-                        s.getCreatedAt() != null ? s.getCreatedAt().toString() : null
-                ))
-                .toList();
-        return ResponseEntity.ok(list);
+                        s.getCreatedAt() != null ? s.getCreatedAt().toString() : null,
+                        s.getCategoryName(),
+                        s.getCategorySlug()
+                ));
+        return ResponseEntity.ok(result);
     }
 
     @GetMapping("/{id}")
@@ -149,7 +162,8 @@ public class AdminCourseController {
                 request.title(),
                 request.description(),
                 request.imageUrl(),
-                identity.getUserId()
+                identity.getUserId(),
+                request.categoryId()
         );
         CourseId courseId = createCourseUseCase.execute(command);
         return ResponseEntity
@@ -166,7 +180,8 @@ public class AdminCourseController {
                 id,
                 request.title(),
                 request.description(),
-                request.imageUrl()
+                request.imageUrl(),
+                request.categoryId()
         );
         updateCourseUseCase.execute(command);
         return ResponseEntity.noContent().build();
@@ -183,7 +198,8 @@ public class AdminCourseController {
                 request.description(),
                 request.imageUrl(),
                 request.moduleOrder(),
-                request.hasQuiz()
+                request.hasQuiz(),
+                request.estimatedMinutes()
         );
         ModuleId moduleId = addModuleToCourseUseCase.execute(command);
         return ResponseEntity
@@ -201,7 +217,8 @@ public class AdminCourseController {
                 moduleId,
                 request.title(),
                 request.description(),
-                request.imageUrl()
+                request.imageUrl(),
+                request.estimatedMinutes()
         );
         updateModuleUseCase.execute(command);
         return ResponseEntity.noContent().build();
@@ -299,6 +316,15 @@ public class AdminCourseController {
         return ResponseEntity.noContent().build();
     }
 
+    @PostMapping("/{courseId}/clone")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    public ResponseEntity<Map<String, UUID>> cloneCourse(
+            @PathVariable UUID courseId,
+            @AuthenticationPrincipal AuthenticatedIdentity identity) {
+        UUID newCourseId = cloneCourseUseCase.clone(courseId, identity.getUserId());
+        return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("id", newCourseId));
+    }
+
     private CourseDetailsResponse toDetailsResponse(CourseDetails d) {
         List<ModuleSummaryResponse> modules = d.getModules().stream()
                 .map(this::toModuleResponse)
@@ -309,6 +335,9 @@ public class AdminCourseController {
                 d.getDescription(),
                 d.getImageUrl(),
                 d.isPublished(),
+                d.getTotalEstimatedMinutes(),
+                d.getCategoryName(),
+                d.getCategorySlug(),
                 modules
         );
     }
@@ -324,6 +353,7 @@ public class AdminCourseController {
                 m.getImageUrl(),
                 m.getModuleOrder(),
                 m.isHasQuiz(),
+                m.getEstimatedMinutes(),
                 blocks
         );
     }

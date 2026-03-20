@@ -3,6 +3,7 @@ import { useAuth } from '../../features/iam/hooks/useAuth.js'
 import { queryKeys } from '../query-keys.js'
 import { getDashboardOverview, getCourseCount } from '../../api/admin/dashboard.js'
 import { getAdminCourses, getAdminCourseDetails, createCourse, updateCourse, publishCourse, unpublishCourse, deleteCourse, deleteModule, addModule } from '../../api/admin/courses.js'
+import { getCourseEnrollments, canDeleteCourse, canDeleteModule } from '../../api/admin/courseManagement.js'
 import { getAdminLibraryResources, createLibraryResource, updateLibraryResource, publishLibraryResource, unpublishLibraryResource } from '../../api/admin/library.js'
 import { getAdminCertificates, revokeCertificate } from '../../api/admin/certificates.js'
 import { getAdminQuizAttempts } from '../../api/admin/assessment.js'
@@ -33,6 +34,7 @@ export function useAdminCourses() {
     queryKey: queryKeys.admin.courses.list(),
     queryFn: () => getAdminCourses(token),
     enabled: !!token,
+    staleTime: 5 * 60_000,   // admin course list rarely changes mid-session
   })
 }
 
@@ -42,6 +44,49 @@ export function useAdminCourseDetail(courseId) {
     queryKey: queryKeys.admin.courses.detail(courseId),
     queryFn: () => getAdminCourseDetails(token, courseId),
     enabled: !!token && !!courseId,
+    staleTime: 2 * 60_000,
+  })
+}
+
+/** Prefetch a course detail into cache (call on hover/intent). */
+export function usePrefetchCourseDetail() {
+  const { token } = useAuth()
+  const qc = useQueryClient()
+  return (courseId) => {
+    if (!token || !courseId) return
+    qc.prefetchQuery({
+      queryKey: queryKeys.admin.courses.detail(courseId),
+      queryFn: () => getAdminCourseDetails(token, courseId),
+      staleTime: 2 * 60_000,
+    })
+  }
+}
+
+// === Course Management — expanded detail (cached, deduplicated) ===
+
+/** Fetches course detail + enrollments + deletion permissions in one cached query. */
+export function useCourseExpandedDetail(courseId) {
+  const { token } = useAuth()
+  return useQuery({
+    queryKey: [...queryKeys.admin.courses.detail(courseId), 'expanded'],
+    queryFn: async () => {
+      const [detail, enrollments, canDelCourse] = await Promise.all([
+        getAdminCourseDetails(token, courseId),
+        getCourseEnrollments(token, courseId).catch(() => []),
+        canDeleteCourse(token, courseId).catch(() => ({ canDelete: false })),
+      ])
+      // Batch all canDeleteModule checks in parallel (eliminates N+1)
+      const modules = detail?.modules ?? []
+      const canDelResults = await Promise.all(
+        modules.map((m) => canDeleteModule(token, courseId, m.id).catch(() => ({ canDelete: false })))
+      )
+      const canDeleteModules = {}
+      modules.forEach((m, i) => { canDeleteModules[m.id] = canDelResults[i].canDelete })
+      return { detail, enrollments, canDeleteCourse: canDelCourse.canDelete, canDeleteModules }
+    },
+    enabled: !!token && !!courseId,
+    staleTime: 2 * 60_000,
+    gcTime: 10 * 60_000,
   })
 }
 
@@ -110,9 +155,10 @@ export function useDeleteCourse() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (courseId) => deleteCourse(token, courseId),
-    onSuccess: () => {
+    onSuccess: (_, courseId) => {
       qc.invalidateQueries({ queryKey: queryKeys.admin.courses.all() })
       qc.invalidateQueries({ queryKey: queryKeys.admin.courseCount() })
+      qc.removeQueries({ queryKey: [...queryKeys.admin.courses.detail(courseId), 'expanded'] })
     },
   })
 }
@@ -125,6 +171,8 @@ export function useDeleteModule() {
     onSuccess: (_, { courseId }) => {
       qc.invalidateQueries({ queryKey: queryKeys.admin.courses.detail(courseId) })
       qc.invalidateQueries({ queryKey: queryKeys.admin.courses.list() })
+      // Also invalidate course management expanded detail cache
+      qc.invalidateQueries({ queryKey: [...queryKeys.admin.courses.detail(courseId), 'expanded'] })
     },
   })
 }

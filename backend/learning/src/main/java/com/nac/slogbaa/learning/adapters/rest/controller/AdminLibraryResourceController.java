@@ -13,6 +13,10 @@ import com.nac.slogbaa.learning.application.port.in.PublishLibraryResourceUseCas
 import com.nac.slogbaa.learning.application.port.in.UnpublishLibraryResourceUseCase;
 import com.nac.slogbaa.learning.application.port.in.UpdateLibraryResourceUseCase;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -49,9 +53,13 @@ public class AdminLibraryResourceController {
 
     @GetMapping("/resources")
     @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN')")
-    public ResponseEntity<List<AdminLibraryResourceSummaryResponse>> getAll() {
-        List<AdminLibraryResourceSummary> list = getAdminLibraryResourcesUseCase.getAll();
-        return ResponseEntity.ok(list.stream().map(AdminLibraryResourceSummaryResponse::from).toList());
+    public ResponseEntity<Page<AdminLibraryResourceSummaryResponse>> getAll(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        Pageable pageable = PageRequest.of(page, Math.min(size, 100), Sort.by("createdAt").descending());
+        Page<AdminLibraryResourceSummaryResponse> result = getAdminLibraryResourcesUseCase.getAll(pageable)
+                .map(AdminLibraryResourceSummaryResponse::from);
+        return ResponseEntity.ok(result);
     }
 
     @PostMapping("/resources")

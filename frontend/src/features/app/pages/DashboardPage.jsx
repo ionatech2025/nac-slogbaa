@@ -9,7 +9,8 @@ export function DashboardPage() {
     return <Navigate to="/auth/login" replace />
   }
 
-  if (user.role === 'SUPER_ADMIN' || user.role === 'ADMIN') {
+  const role = String(user.role ?? '').toUpperCase()
+  if (role === 'SUPER_ADMIN' || role === 'ADMIN') {
     return <Navigate to="/admin" replace />
   }
 

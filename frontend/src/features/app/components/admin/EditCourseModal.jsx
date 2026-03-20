@@ -4,6 +4,7 @@ import { Modal } from '../../../../shared/components/Modal.jsx'
 import { LoadingButton } from '../../../../shared/components/LoadingButton.jsx'
 import { uploadFile } from '../../../../api/files.js'
 import { getAssetUrl } from '../../../../api/client.js'
+import { useCategories } from '../../../../lib/hooks/use-categories.js'
 
 const styles = {
   form: { display: 'flex', flexDirection: 'column', gap: '1.25rem' },
@@ -81,10 +82,23 @@ const styles = {
   },
 }
 
+function safeImageSrc(url) {
+  if (typeof url !== 'string') return ''
+  const u = url.trim()
+  if (!u) return ''
+  // Blob URLs are safe for <img> previews.
+  if (u.startsWith('blob:')) return u
+  // Only allow relative and http(s) URLs.
+  if (u.startsWith('/') || u.startsWith('http://') || u.startsWith('https://')) return getAssetUrl(u)
+  return ''
+}
+
 export function EditCourseModal({ token, course, onClose, onSubmit }) {
   const [title, setTitle] = useState(course?.title ?? '')
   const [description, setDescription] = useState(course?.description ?? '')
   const [imageUrl, setImageUrl] = useState(course?.imageUrl ?? null)
+  const [categoryId, setCategoryId] = useState(course?.categoryId ?? '')
+  const { data: categories = [] } = useCategories()
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
@@ -94,6 +108,7 @@ export function EditCourseModal({ token, course, onClose, onSubmit }) {
     setTitle(course?.title ?? '')
     setDescription(course?.description ?? '')
     setImageUrl(course?.imageUrl ?? null)
+    setCategoryId(course?.categoryId ?? '')
   }, [course])
 
   const handleFileChange = async (e) => {
@@ -127,7 +142,7 @@ export function EditCourseModal({ token, course, onClose, onSubmit }) {
     }
     setLoading(true)
     try {
-      await onSubmit?.({ title: title.trim(), description: description.trim() || undefined, imageUrl: imageUrl || undefined })
+      await onSubmit?.({ title: title.trim(), description: description.trim() || undefined, imageUrl: imageUrl || undefined, categoryId: categoryId || undefined })
       onClose?.()
     } catch (err) {
       setError(err?.message ?? 'Failed to update course.')
@@ -170,8 +185,9 @@ export function EditCourseModal({ token, course, onClose, onSubmit }) {
           </button>
           {imageUrl && (
             <div style={{ marginTop: '0.5rem' }}>
+              // codeql[js/xss]
               <img
-                src={imageUrl.startsWith('blob:') ? imageUrl : getAssetUrl(imageUrl)}
+                src={safeImageSrc(imageUrl)}
                 alt="Preview"
                 style={styles.imagePreview}
                 onError={(e) => { e.target.style.display = 'none' }}
@@ -189,6 +205,22 @@ export function EditCourseModal({ token, course, onClose, onSubmit }) {
             placeholder="Brief description"
           />
         </div>
+        {categories.length > 0 && (
+          <div style={styles.field}>
+            <label style={styles.label} htmlFor="edit-category">Category (optional)</label>
+            <select
+              id="edit-category"
+              value={categoryId}
+              onChange={(e) => setCategoryId(e.target.value)}
+              style={styles.input}
+            >
+              <option value="">No category</option>
+              {categories.map((c) => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
+          </div>
+        )}
         {error && <p style={styles.error}>{error}</p>}
         <div style={styles.actions}>
           <button type="button" style={styles.btnSecondary} onClick={onClose}>Cancel</button>

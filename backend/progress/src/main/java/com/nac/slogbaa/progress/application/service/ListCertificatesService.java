@@ -6,6 +6,9 @@ import com.nac.slogbaa.progress.application.port.out.CertificateRepositoryPort;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 public final class ListCertificatesService implements ListCertificatesUseCase {
 
     private final CertificateRepositoryPort certificateRepository;
@@ -17,5 +20,10 @@ public final class ListCertificatesService implements ListCertificatesUseCase {
     @Override
     public List<CertificateSummaryResult> list() {
         return certificateRepository.findAllForAdmin();
+    }
+
+    @Override
+    public Page<CertificateSummaryResult> list(Pageable pageable) {
+        return certificateRepository.findAllForAdmin(pageable);
     }
 }

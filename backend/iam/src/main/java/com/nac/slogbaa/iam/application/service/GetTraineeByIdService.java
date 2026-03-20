@@ -45,7 +45,7 @@ public final class GetTraineeByIdService implements GetTraineeByIdUseCase {
                 t.getProfile().getAddress().getPostalCode(),
                 phoneCc,
                 phoneNn,
-                null
+                t.getProfileImageUrl()
         );
     }
 }

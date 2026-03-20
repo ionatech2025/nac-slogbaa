@@ -6,12 +6,17 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 /**
  * Port for certificate persistence and queries.
  */
 public interface CertificateRepositoryPort {
 
     List<CertificateSummaryResult> findAllForAdmin();
+
+    Page<CertificateSummaryResult> findAllForAdmin(Pageable pageable);
 
     Optional<CertificateData> findById(UUID id);
 

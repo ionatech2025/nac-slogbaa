@@ -20,6 +20,7 @@
     "@editorjs/quote": "^2.7.6",
     "@editorjs/table": "^2.4.5",
     "@editorjs/warning": "^1.4.1",
+    "@sentry/react": "^10.43.0",
     "@tanstack/react-query": "^5.90.21",
     "@tanstack/react-query-devtools": "^5.91.3",
     "dompurify": "^3.3.3",
@@ -27,10 +28,14 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.28.0",
+    "recharts": "^3.8.0",
+    "zod": "^4.3.6",
     "zustand": "^5.0.12"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.4",
-    "vite": "^6.0.3"
+    "rollup-plugin-visualizer": "^7.0.1",
+    "vite": "^6.0.3",
+    "vite-plugin-pwa": "^1.2.0"
   }
 }

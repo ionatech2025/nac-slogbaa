@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useState, useMemo, useCallback } from 'react'
+import { Link, useOutletContext } from 'react-router-dom'
 import { FontAwesomeIcon, Icon, icons } from '../../../shared/icons.jsx'
 import { useAuth } from '../../iam/hooks/useAuth.js'
 import { useEnrolledCourses, usePublishedCourses, useEnrollInCourse } from '../../../lib/hooks/use-courses.js'
@@ -10,6 +10,12 @@ import { Tabs } from '../../../shared/components/Tabs.jsx'
 import { useToast } from '../../../shared/hooks/useToast.js'
 import { CoursePreviewModal } from '../../learning/components/CoursePreviewModal.jsx'
 import { CertificateCard } from '../components/trainee/CertificateCard.jsx'
+import { StatsSkeleton, CardGridSkeleton } from '../../../shared/components/ContentSkeletons.jsx'
+import { LeaderboardWidget } from '../../../shared/components/LeaderboardWidget.jsx'
+import { StreakWidget } from '../../../shared/components/StreakWidget.jsx'
+import { AchievementsWidget } from '../../../shared/components/AchievementsWidget.jsx'
+import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle.js'
+import { OnboardingChecklist } from '../components/OnboardingChecklist.jsx'
 
 const styles = {
   layout: {
@@ -78,10 +84,12 @@ const styles = {
   viewToggle: {
     display: 'flex',
     gap: 0,
-    border: '1px solid var(--slogbaa-border)',
-    borderRadius: 8,
+    border: '1px solid var(--slogbaa-glass-border)',
+    borderRadius: 10,
     overflow: 'hidden',
-    background: 'var(--slogbaa-surface)',
+    background: 'var(--slogbaa-glass-bg-subtle)',
+    backdropFilter: 'blur(8px)',
+    WebkitBackdropFilter: 'blur(8px)',
   },
   viewToggleBtn: {
     display: 'inline-flex',
@@ -127,13 +135,16 @@ const styles = {
   continueCard: {
     flex: '0 0 280px',
     padding: '1rem 1.25rem',
-    borderRadius: 12,
-    border: '1px solid var(--slogbaa-border)',
-    background: 'var(--slogbaa-surface)',
+    borderRadius: 16,
+    border: '1px solid var(--slogbaa-glass-border)',
+    background: 'var(--slogbaa-glass-bg)',
+    backdropFilter: 'var(--slogbaa-glass-blur)',
+    WebkitBackdropFilter: 'var(--slogbaa-glass-blur)',
+    boxShadow: 'var(--slogbaa-glass-shadow)',
     textDecoration: 'none',
     color: 'var(--slogbaa-text)',
     display: 'block',
-    transition: 'box-shadow 0.15s, border-color 0.15s',
+    transition: 'box-shadow 0.3s ease, transform 0.3s ease, border-color 0.3s ease',
   },
   continueTitle: {
     margin: '0 0 0.5rem',
@@ -172,10 +183,14 @@ const styles = {
   statCard: {
     flex: '1 1 140px',
     padding: '1rem 1.25rem',
-    borderRadius: 12,
-    border: '1px solid var(--slogbaa-border)',
-    background: 'var(--slogbaa-surface)',
+    borderRadius: 16,
+    border: '1px solid var(--slogbaa-glass-border)',
+    background: 'var(--slogbaa-glass-bg)',
+    backdropFilter: 'var(--slogbaa-glass-blur)',
+    WebkitBackdropFilter: 'var(--slogbaa-glass-blur)',
+    boxShadow: 'var(--slogbaa-glass-shadow)',
     textAlign: 'center',
+    transition: 'transform 0.3s ease, box-shadow 0.3s ease',
   },
   statValue: {
     display: 'block',
@@ -196,6 +211,7 @@ const styles = {
 
 export function TraineeDashboardPage() {
   const { user, token } = useAuth()
+  const { profileData, onEditProfile } = useOutletContext() || {}
   const [activeTab, setActiveTab] = useState('courses')
   const [courseView, setCourseView] = useState('vertical')
   const [recommendedCourseView, setRecommendedCourseView] = useState('vertical')
@@ -209,23 +225,24 @@ export function TraineeDashboardPage() {
   const { data: certificates = [], isLoading: certificatesLoading } = useMyCertificates({ enabled: activeTab === 'certificates' })
   const enrollMutation = useEnrollInCourse()
 
+  useDocumentTitle('Dashboard')
   const displayName = user?.fullName || user?.email || 'Trainee'
-  const enrolledIds = new Set(enrolledCourses.map((c) => c.id))
-  const recommendedCourses = publishedCourses.filter((c) => !enrolledIds.has(c.id))
+  const enrolledIds = useMemo(() => new Set(enrolledCourses.map((c) => c.id)), [enrolledCourses])
+  const recommendedCourses = useMemo(() => publishedCourses.filter((c) => !enrolledIds.has(c.id)), [publishedCourses, enrolledIds])
 
   const toast = useToast()
 
-  const handleEnroll = async (course) => {
+  const handleEnroll = useCallback((course) => {
     setPreviewCourse(null)
     enrollMutation.mutate(course.id, {
       onSuccess: () => toast.success(`Enrolled in "${course.title}"!`),
       onError: (err) => toast.error(err?.message ?? 'Enrollment failed.'),
     })
-  }
+  }, [enrollMutation, toast])
 
-  const handlePreview = (course) => setPreviewCourse(course)
+  const handlePreview = useCallback((course) => setPreviewCourse(course), [])
 
-  const handlePreviewCertificate = async (cert) => {
+  const handlePreviewCertificate = useCallback(async (cert) => {
     if (!token || certificateActionId) return
     setCertificateActionId(cert.id)
     setCertificateError(null)
@@ -239,9 +256,9 @@ export function TraineeDashboardPage() {
     } finally {
       setCertificateActionId(null)
     }
-  }
+  }, [token, certificateActionId])
 
-  const handleDownloadCertificate = async (cert, alsoSendEmail = false) => {
+  const handleDownloadCertificate = useCallback(async (cert, alsoSendEmail = false) => {
     if (!token || certificateActionId) return
     setCertificateActionId(cert.id)
     setCertificateError(null)
@@ -261,15 +278,32 @@ export function TraineeDashboardPage() {
     } finally {
       setCertificateActionId(null)
     }
-  }
+  }, [token, certificateActionId])
 
   return (
     <div style={styles.layout}>
       <main style={styles.main}>
+        <OnboardingChecklist
+          profile={profileData}
+          enrolledCourses={enrolledCourses}
+          onEditProfile={onEditProfile}
+        />
+
         <h1 style={styles.greeting}>Welcome Back, {displayName}!</h1>
         <hr style={styles.greetingDivider} aria-hidden />
 
+        {/* Streak widget — Duolingo-style daily streak */}
+        <div style={{ marginBottom: '1.5rem' }}>
+          <StreakWidget />
+        </div>
+
+        {/* Achievements widget — Khan Academy-style XP & badges */}
+        <div style={{ marginBottom: '1.5rem' }}>
+          <AchievementsWidget />
+        </div>
+
         {/* Motivation stats */}
+        {enrolledLoading && <StatsSkeleton count={4} />}
         {!enrolledLoading && (
           <div style={styles.statsRow}>
             <div style={styles.statCard}>
@@ -321,6 +355,10 @@ export function TraineeDashboardPage() {
           )
         })()}
 
+        <div style={{ marginBottom: '1.75rem' }}>
+          <LeaderboardWidget limit={10} />
+        </div>
+
         <Tabs
           tabs={[
             { value: 'courses', label: 'Courses', icon: <Icon icon={icons.course} size="1em" /> },
@@ -356,7 +394,7 @@ export function TraineeDashboardPage() {
               )}
             </div>
             {enrolledLoading ? (
-              <p style={{ margin: '0 0 1rem', color: 'var(--slogbaa-text-muted)', fontSize: '0.9375rem' }}>Loading…</p>
+              <CardGridSkeleton count={3} />
             ) : enrolledCourses.length === 0 ? (
               <p style={{ margin: '0 0 1rem', fontSize: '0.9375rem', color: 'var(--slogbaa-text-muted)' }}>
                 You&apos;re not enrolled in any courses yet. <Link to="/dashboard/courses" style={{ color: 'var(--slogbaa-blue)' }}>Browse courses</Link> to enroll and get started.
@@ -405,7 +443,7 @@ export function TraineeDashboardPage() {
                 <p style={{ margin: '0 0 1rem', color: 'var(--slogbaa-error)', fontSize: '0.9375rem' }}>{coursesError.message || 'Failed to load courses.'}</p>
               )}
               {publishedLoading ? (
-                <p style={{ margin: '0 0 1rem', color: 'var(--slogbaa-text-muted)', fontSize: '0.9375rem' }}>Loading recommended courses…</p>
+                <CardGridSkeleton count={3} />
               ) : recommendedCourses.length === 0 ? (
                 <p style={{ margin: 0, fontSize: '0.9375rem', color: 'var(--slogbaa-text-muted)' }}>
                   No recommended courses right now. <Link to="/dashboard/courses" style={{ color: 'var(--slogbaa-blue)' }}>Browse all courses</Link>.
@@ -448,7 +486,7 @@ export function TraineeDashboardPage() {
               <p style={{ margin: '0 0 1rem', color: 'var(--slogbaa-error)', fontSize: '0.9375rem' }}>{certificateError}</p>
             )}
             {certificatesLoading ? (
-              <p style={{ color: 'var(--slogbaa-text-muted)', fontSize: '0.9375rem' }}>Loading certificates…</p>
+              <CardGridSkeleton count={3} />
             ) : certificates.length === 0 ? (
               <p style={{ color: 'var(--slogbaa-text-muted)', fontSize: '0.9375rem' }}>
                 No certificates yet. Complete courses with passing quiz scores to earn certificates.

@@ -1,6 +1,7 @@
 package com.nac.slogbaa.assessment.application.dto;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 /** Result after submitting an attempt. */
@@ -10,5 +11,6 @@ public record SubmittedAttemptDto(
         int totalPoints,
         int percentScore,
         boolean passed,
-        Instant completedAt
+        Instant completedAt,
+        List<SubmittedAnswerDto> answers
 ) {}

@@ -36,6 +36,24 @@ public class AttemptAdapter implements AttemptPort {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public long countAttemptsByTraineeAndQuiz(UUID traineeId, UUID quizId) {
+        return traineeAssessmentRepository.findByTraineeIdAndQuizId(traineeId, quizId)
+                .map(a -> attemptRepository.countByTraineeAssessmentId(a.getId()))
+                .orElse(0L);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<AttemptTimingInfo> getAttemptTimingInfo(UUID attemptId) {
+        return attemptRepository.findById(attemptId)
+                .map(a -> new AttemptTimingInfo(
+                        a.getStartedAt(),
+                        a.getTraineeAssessment().getQuiz().getTimeLimitMinutes()
+                ));
+    }
+
+    @Override
     @Transactional
     public AttemptDto startAttempt(UUID traineeId, UUID quizId, UUID moduleId) {
         QuizEntity quiz = quizRepository.findById(quizId).orElseThrow(() -> new NoSuchElementException("Quiz not found: " + quizId));
@@ -82,7 +100,8 @@ public class AttemptAdapter implements AttemptPort {
                     attempt.getTotalPoints(),
                     attempt.getTotalPoints() > 0 ? (100 * attempt.getPointsEarned() / attempt.getTotalPoints()) : 0,
                     attempt.isPassed(),
-                    attempt.getCompletedAt()
+                    attempt.getCompletedAt(),
+                    List.of()
             );
         }
 
@@ -93,13 +112,16 @@ public class AttemptAdapter implements AttemptPort {
         }
 
         int pointsEarned = 0;
+        List<SubmittedAnswerDto> answerDetails = new ArrayList<>();
         for (AnswerSubmission sub : answers) {
             QuestionEntity q = questionMap.get(sub.questionId());
             if (q == null) continue;
             int awarded = 0;
             boolean correct = false;
+            QuizOptionEntity correctOption = null;
             if (q.getQuestionType().equals("MULTIPLE_CHOICE") || q.getQuestionType().equals("TRUE_FALSE")) {
-                UUID correctOptionId = q.getOptions().stream().filter(QuizOptionEntity::isCorrect).map(QuizOptionEntity::getId).findFirst().orElse(null);
+                correctOption = q.getOptions().stream().filter(QuizOptionEntity::isCorrect).findFirst().orElse(null);
+                UUID correctOptionId = correctOption != null ? correctOption.getId() : null;
                 correct = correctOptionId != null && correctOptionId.equals(sub.selectedOptionId());
                 awarded = correct ? q.getPoints() : 0;
             }
@@ -113,6 +135,26 @@ public class AttemptAdapter implements AttemptPort {
             answer.setCorrect(correct);
             answer.setPointsAwarded(awarded);
             attempt.getAnswers().add(answer);
+
+            // Build review detail
+            String selectedOptionText = null;
+            if (sub.selectedOptionId() != null) {
+                selectedOptionText = q.getOptions().stream()
+                        .filter(o -> o.getId().equals(sub.selectedOptionId()))
+                        .map(QuizOptionEntity::getOptionText)
+                        .findFirst().orElse(null);
+            }
+            answerDetails.add(new SubmittedAnswerDto(
+                    q.getId(),
+                    q.getQuestionText(),
+                    sub.selectedOptionId(),
+                    selectedOptionText,
+                    correctOption != null ? correctOption.getId() : null,
+                    correctOption != null ? correctOption.getOptionText() : null,
+                    correct,
+                    awarded,
+                    q.getPoints()
+            ));
         }
 
         attempt.setPointsEarned(pointsEarned);
@@ -128,7 +170,8 @@ public class AttemptAdapter implements AttemptPort {
                 totalPoints,
                 percent,
                 attempt.isPassed(),
-                attempt.getCompletedAt()
+                attempt.getCompletedAt(),
+                answerDetails
         );
     }
 

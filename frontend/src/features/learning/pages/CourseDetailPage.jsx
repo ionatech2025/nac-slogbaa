@@ -1,11 +1,19 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { getAssetUrl } from '../../../api/client.js'
+import { getEnrolledCourses } from '../../../api/learning/courses.js'
 import { useAuth } from '../../iam/hooks/useAuth.js'
-import { useCourseDetail, useCheckEnrollment, useResumePoint, useRecordProgress } from '../../../lib/hooks/use-courses.js'
+import { useCourseDetail, useCheckEnrollment, useResumePoint, useRecordProgress, useUnenroll } from '../../../lib/hooks/use-courses.js'
+import { ConfirmModal } from '../../../shared/components/ConfirmModal.jsx'
 import { EditorJsReadOnly } from '../../app/components/admin/EditorJsReadOnly.jsx'
 import { ModuleQuizPanel } from '../../assessment/components/ModuleQuizPanel.jsx'
 import { SafeHtml } from '../../../shared/components/SafeHtml.jsx'
+import { CourseDetailSkeleton } from '../../../shared/components/ContentSkeletons.jsx'
+import { CompletionCelebration } from '../components/CompletionCelebration.jsx'
+import { DiscussionPanel } from '../components/DiscussionPanel.jsx'
+import { ReviewSection } from '../components/ReviewSection.jsx'
+import { BookmarkButton } from '../../../shared/components/BookmarkButton.jsx'
+import { useBookmarks } from '../../../lib/hooks/use-bookmarks.js'
 
 const styles = {
   layout: {
@@ -48,16 +56,17 @@ const styles = {
     alignItems: 'flex-start',
   },
   courseImage: {
-    width: 120,
-    height: 80,
+    width: 'clamp(80px, 15vw, 120px)',
+    height: 'auto',
+    aspectRatio: '3/2',
     borderRadius: 8,
     objectFit: 'cover',
     flexShrink: 0,
     background: 'var(--slogbaa-border)',
   },
   courseImagePlaceholder: {
-    width: 120,
-    height: 80,
+    width: 'clamp(80px, 15vw, 120px)',
+    aspectRatio: '3/2',
     borderRadius: 8,
     background: 'var(--slogbaa-border)',
     display: 'flex',
@@ -82,13 +91,14 @@ const styles = {
     flex: 1,
     minHeight: 0,
     display: 'flex',
-    gap: '2rem',
-    flexWrap: 'nowrap',
+    gap: '1.5rem',
+    flexWrap: 'wrap',
     overflow: 'hidden',
   },
   sidebar: {
     flex: '0 0 240px',
     minWidth: 200,
+    maxWidth: '100%',
     overflowY: 'auto',
   },
   moduleList: {
@@ -103,13 +113,17 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     gap: '0.5rem',
-    padding: '0.625rem 0.75rem',
+    padding: '0.75rem',
+    minHeight: 44,
     borderRadius: 8,
     fontSize: '0.9375rem',
     color: 'var(--slogbaa-text)',
     textDecoration: 'none',
-    background: 'var(--slogbaa-surface)',
-    border: '1px solid var(--slogbaa-border)',
+    background: 'var(--slogbaa-glass-bg)',
+    backdropFilter: 'blur(8px)',
+    WebkitBackdropFilter: 'blur(8px)',
+    border: '1px solid var(--slogbaa-glass-border)',
+    transition: 'box-shadow 0.2s ease, border-color 0.2s ease',
   },
   moduleLinkThumb: {
     width: 36,
@@ -144,12 +158,12 @@ const styles = {
     fontWeight: 500,
   },
   moduleMeta: {
-    fontSize: '0.75rem',
-    opacity: 0.85,
+    fontSize: '0.8125rem',
+    color: 'var(--slogbaa-text-muted)',
   },
   article: {
-    flex: 1,
-    minWidth: 280,
+    flex: '1 1 280px',
+    minWidth: 0,
     minHeight: 0,
     overflowY: 'auto',
   },
@@ -205,9 +219,11 @@ const styles = {
   },
   activityBlock: {
     padding: '1.25rem 1.5rem',
-    background: 'var(--slogbaa-surface)',
-    border: '1px solid var(--slogbaa-border)',
-    borderRadius: 10,
+    background: 'var(--slogbaa-glass-bg)',
+    backdropFilter: 'blur(8px)',
+    WebkitBackdropFilter: 'blur(8px)',
+    border: '1px solid var(--slogbaa-glass-border)',
+    borderRadius: 14,
     borderLeft: '4px solid var(--slogbaa-blue)',
   },
   loading: {
@@ -224,9 +240,12 @@ const styles = {
   },
   enrollGate: {
     padding: '2rem',
-    background: 'var(--slogbaa-surface)',
-    border: '1px solid var(--slogbaa-border)',
-    borderRadius: 10,
+    background: 'var(--slogbaa-glass-bg)',
+    backdropFilter: 'var(--slogbaa-glass-blur)',
+    WebkitBackdropFilter: 'var(--slogbaa-glass-blur)',
+    border: '1px solid var(--slogbaa-glass-border)',
+    borderRadius: 18,
+    boxShadow: 'var(--slogbaa-glass-shadow)',
     textAlign: 'center',
   },
   enrollGateTitle: {
@@ -242,7 +261,7 @@ const styles = {
   },
 }
 
-function BlockWithProgressObserver({ block, moduleId, blockOrder, onViewed, onFocusChange, isFocused, scrollRoot }) {
+function BlockWithProgressObserver({ block, moduleId, blockOrder, onViewed, onFocusChange, isFocused, scrollRoot, courseId, bookmarks }) {
   const ref = useRef(null)
 
   useEffect(() => {
@@ -277,7 +296,17 @@ function BlockWithProgressObserver({ block, moduleId, blockOrder, onViewed, onFo
         ...(isFocused ? styles.blockWrapperFocused : {}),
       }}
     >
-      <ContentBlockRenderer block={block} />
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <ContentBlockRenderer block={block} />
+        </div>
+        <BookmarkButton
+          courseId={courseId}
+          moduleId={moduleId}
+          contentBlockId={block.id}
+          bookmarks={bookmarks}
+        />
+      </div>
     </div>
   )
 }
@@ -404,7 +433,21 @@ export function CourseDetailPage() {
     setNotesReadThrough(false)
   }, [selectedModule?.id])
 
+  const [showCelebration, setShowCelebration] = useState(false)
+  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false)
+  const unenrollMutation = useUnenroll()
+
+  const handleLeaveCourse = useCallback(() => {
+    unenrollMutation.mutate(courseId, {
+      onSuccess: () => {
+        navigate('/dashboard/courses')
+      },
+    })
+    setShowLeaveConfirm(false)
+  }, [courseId, unenrollMutation, navigate])
+
   const progressMutation = useRecordProgress()
+  const { data: bookmarks = [] } = useBookmarks(courseId)
 
   // Record progress only when advancing; mark notes as read-through when last block is viewed
   const handleBlockViewed = useCallback(
@@ -436,6 +479,19 @@ export function CourseDetailPage() {
     setFocusedBlockId((prev) => (prev === best[0] ? prev : best[0]))
   }, [])
 
+  // After a module quiz is passed and completion recorded, check if the entire course is now 100% complete
+  const handleModuleCompleted = useCallback(async () => {
+    try {
+      const enrolledCourses = await getEnrolledCourses(token)
+      const thisCourse = enrolledCourses.find((c) => c.id === courseId)
+      if (thisCourse && thisCourse.completionPercentage >= 100) {
+        setShowCelebration(true)
+      }
+    } catch {
+      // Non-critical — silently ignore if enrolled courses fetch fails
+    }
+  }, [token, courseId])
+
   // Record progress for modules with no content blocks (use module id as block id)
   useEffect(() => {
     if (!courseId || !selectedModule || !enrolled) return
@@ -448,7 +504,7 @@ export function CourseDetailPage() {
     return (
       <div style={styles.layout}>
         <main style={styles.main}>
-          <p style={styles.loading}>Loading course…</p>
+          <CourseDetailSkeleton />
         </main>
       </div>
     )
@@ -512,6 +568,25 @@ export function CourseDetailPage() {
           <div style={{ flex: 1, minWidth: 0 }}>
             <h1 style={styles.title}>{course.title}</h1>
             <p style={styles.description}>{course.description || ''}</p>
+            <button
+              type="button"
+              onClick={() => setShowLeaveConfirm(true)}
+              disabled={unenrollMutation.isPending}
+              style={{
+                marginTop: '0.5rem',
+                padding: '0.35rem 0.75rem',
+                borderRadius: 8,
+                border: '1px solid var(--slogbaa-border)',
+                background: 'transparent',
+                color: 'var(--slogbaa-text-muted)',
+                fontSize: '0.8125rem',
+                fontWeight: 500,
+                cursor: 'pointer',
+                opacity: unenrollMutation.isPending ? 0.5 : 1,
+              }}
+            >
+              {unenrollMutation.isPending ? 'Leaving...' : 'Leave Course'}
+            </button>
           </div>
         </header>
         </div>
@@ -534,6 +609,7 @@ export function CourseDetailPage() {
                     )}
                     <span>
                       <span style={styles.moduleTitle}>{m.title}</span>
+                      {m.estimatedMinutes != null && <span style={styles.moduleMeta}> · ~{m.estimatedMinutes} min</span>}
                       {m.hasQuiz && <span style={styles.moduleMeta}> · Quiz</span>}
                     </span>
                   </Link>
@@ -563,9 +639,11 @@ export function CourseDetailPage() {
                     style={{
                       marginBottom: '1.25rem',
                       padding: '1rem 1.25rem',
-                      borderRadius: 12,
-                      background: 'var(--slogbaa-surface)',
-                      border: '1px solid var(--slogbaa-border)',
+                      borderRadius: 14,
+                      background: 'var(--slogbaa-glass-bg-subtle)',
+                      backdropFilter: 'blur(8px)',
+                      WebkitBackdropFilter: 'blur(8px)',
+                      border: '1px solid var(--slogbaa-glass-border-subtle)',
                     }}
                   >
                     <p style={{ margin: 0, fontSize: '0.9375rem', color: 'var(--slogbaa-text-muted)' }}>
@@ -585,6 +663,8 @@ export function CourseDetailPage() {
                         onFocusChange={handleFocusChange}
                         isFocused={focusedBlockId === block.id}
                         scrollRoot={articleEl}
+                        courseId={courseId}
+                        bookmarks={bookmarks}
                       />
                     ))}
                     {(!selectedModule.contentBlocks || selectedModule.contentBlocks.length === 0) && (
@@ -592,7 +672,7 @@ export function CourseDetailPage() {
                     )}
                   </>
                 ) : (
-                  <div style={{ marginTop: '1rem', padding: '1rem 1.25rem', borderRadius: 12, background: 'var(--slogbaa-surface)', border: '1px solid var(--slogbaa-border)' }}>
+                  <div style={{ marginTop: '1rem', padding: '1rem 1.25rem', borderRadius: 14, background: 'var(--slogbaa-glass-bg-subtle)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', border: '1px solid var(--slogbaa-glass-border-subtle)' }}>
                     <p style={{ margin: '0 0 0.75rem', fontSize: '0.9375rem', color: 'var(--slogbaa-text-muted)' }}>
                       Module notes are hidden while the quiz is available. Re-read the notes anytime to refresh.
                     </p>
@@ -627,8 +707,11 @@ export function CourseDetailPage() {
                     notesVisible={notesVisible}
                     onStartQuiz={handleStartQuiz}
                     onRereadNotes={handleRereadNotes}
+                    onModuleCompleted={handleModuleCompleted}
                   />
                 )}
+                <ReviewSection courseId={courseId} />
+                <DiscussionPanel courseId={courseId} moduleId={selectedModule?.id} />
               </>
             ) : (
               <p style={{ color: 'var(--slogbaa-text-muted)' }}>Select a module to view content.</p>
@@ -636,6 +719,19 @@ export function CourseDetailPage() {
           </article>
         </div>
       </main>
+      {showCelebration && (
+        <CompletionCelebration
+          courseTitle={course.title}
+          onClose={() => setShowCelebration(false)}
+        />
+      )}
+      {showLeaveConfirm && (
+        <ConfirmModal
+          message="Are you sure you want to leave this course? Your progress will be preserved."
+          onContinue={handleLeaveCourse}
+          onCancel={() => setShowLeaveConfirm(false)}
+        />
+      )}
     </div>
   )
 }

@@ -40,9 +40,13 @@ const variants = {
   },
 }
 
-export function Badge({ variant = 'default', style, children, ...rest }) {
+export function Badge({ variant = 'default', status = false, style, children, ...rest }) {
   return (
-    <span style={{ ...baseStyle, ...variants[variant], ...style }} {...rest}>
+    <span
+      style={{ ...baseStyle, ...variants[variant], ...style }}
+      {...(status ? { role: 'status' } : {})}
+      {...rest}
+    >
       {children}
     </span>
   )

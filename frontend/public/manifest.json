@@ -2,18 +2,71 @@
   "name": "SLOGBAA — Online Learning Platform",
   "short_name": "SLOGBAA",
   "description": "Empowering active citizens through structured courses, assessments, and certificates.",
+  "id": "/",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#20232B",
-  "theme_color": "#20232B",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "background_color": "#2563eb",
+  "theme_color": "#2563eb",
   "orientation": "any",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": ["education"],
   "icons": [
     {
-      "src": "/vite.svg",
+      "src": "/favicon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
-  "categories": ["education"]
+  "shortcuts": [
+    {
+      "name": "Sign In",
+      "short_name": "Sign In",
+      "url": "/auth/login",
+      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Register",
+      "short_name": "Register",
+      "url": "/auth/register",
+      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "SLOGBAA Learning Platform"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "SLOGBAA on Mobile"
+    }
+  ]
 }

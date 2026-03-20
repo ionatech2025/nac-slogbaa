@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Navigate, NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { FontAwesomeIcon, icons } from '../../../shared/icons.jsx'
 import { useAuth } from '../../iam/hooks/useAuth.js'
-import { useAdminOverview, useAdminCourseCount } from '../../../lib/hooks/use-admin.js'
+import { useAdminOverview, useAdminCourseCount, useAdminCourses } from '../../../lib/hooks/use-admin.js'
 import { useDeleteStaff, useDeleteTrainee } from '../../../lib/hooks/use-admin-users.js'
 import { changePassword as changePasswordApi } from '../../../api/admin/me.js'
 import { createStaff as createStaffApi } from '../../../api/admin/staff.js'
@@ -21,7 +21,6 @@ const MODULES_SUPER_ADMIN = [
   { path: 'coursemanagement', label: 'Course Management', icon: icons.course },
   { path: 'library', label: 'Library', icon: icons.library },
   { path: 'assessment', label: 'Assessment', icon: icons.assessment },
-  { path: 'reports', label: 'Reports & Analytics', icon: icons.reports },
 ]
 
 const MODULES_ADMIN = [
@@ -29,7 +28,6 @@ const MODULES_ADMIN = [
   { path: 'learning', label: 'Learning', icon: icons.learning },
   { path: 'library', label: 'Library', icon: icons.library },
   { path: 'assessment', label: 'Assessment', icon: icons.assessment },
-  { path: 'reports', label: 'Reports & Analytics', icon: icons.reports },
 ]
 
 const baseStyles = {
@@ -43,26 +41,28 @@ const baseStyles = {
 }
 
 const darkSidebarStyles = {
-  sidebar: { width: 260, flexShrink: 0, height: '100%', background: 'var(--slogbaa-dark)', borderRight: '1px solid var(--slogbaa-border)', display: 'flex', flexDirection: 'column', padding: '1.25rem 0', boxShadow: '1px 0 8px rgba(0,0,0,0.08)', overflowY: 'auto', overflowX: 'hidden' },
+  sidebar: { width: 260, flexShrink: 0, height: '100%', background: 'rgba(15, 23, 42, 0.85)', backdropFilter: 'blur(20px) saturate(160%)', WebkitBackdropFilter: 'blur(20px) saturate(160%)', borderRight: '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column', padding: '1.25rem 0', boxShadow: '1px 0 12px rgba(0,0,0,0.08)', overflowY: 'auto', overflowX: 'hidden' },
   sidebarLabel: { margin: '0 1rem 0.6rem', fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--slogbaa-text-muted)', borderBottom: '1px solid var(--slogbaa-border)', paddingBottom: '0.5rem' },
-  navLink: { display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 1rem', marginBottom: 2, fontSize: '0.9375rem', color: 'rgba(255,255,255,0.75)', textDecoration: 'none', borderRadius: 8, transition: 'background 0.15s, color 0.15s' },
-  navLinkActive: { background: 'var(--slogbaa-blue)', color: '#fff', fontWeight: 600 },
-  quickActionBtn: { display: 'flex', alignItems: 'center', gap: '0.5rem', width: '100%', padding: '0.6rem 1rem', marginBottom: 2, border: 'none', background: 'transparent', textAlign: 'left', fontSize: '0.9375rem', color: 'rgba(255,255,255,0.75)', cursor: 'pointer', borderRadius: 8, transition: 'background 0.15s, color 0.15s' },
+  navLink: { display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.7rem 1rem', minHeight: 44, marginBottom: 2, fontSize: '0.9375rem', color: 'rgba(255,255,255,0.75)', textDecoration: 'none', borderRadius: 8, transition: 'background 0.15s, color 0.15s' },
+  navLinkActive: { background: 'var(--primary-orange, #F58220)', color: '#fff', fontWeight: 600 },
+  quickActionBtn: { display: 'flex', alignItems: 'center', gap: '0.5rem', width: '100%', padding: '0.7rem 1rem', minHeight: 44, marginBottom: 2, border: 'none', background: 'transparent', textAlign: 'left', fontSize: '0.9375rem', color: 'rgba(255,255,255,0.75)', cursor: 'pointer', borderRadius: 8, transition: 'background 0.15s, color 0.15s' },
 }
 
 const lightSidebarStyles = {
-  sidebar: { ...darkSidebarStyles.sidebar, background: '#ffffff', borderRight: '1px solid var(--slogbaa-border)', boxShadow: '1px 0 4px rgba(0,0,0,0.04)' },
+  sidebar: { ...darkSidebarStyles.sidebar, background: 'var(--slogbaa-glass-bg)', backdropFilter: 'var(--slogbaa-glass-blur)', WebkitBackdropFilter: 'var(--slogbaa-glass-blur)', borderRight: '1px solid var(--slogbaa-glass-border)', boxShadow: 'var(--slogbaa-glass-shadow)' },
   sidebarLabel: { ...darkSidebarStyles.sidebarLabel, color: 'var(--slogbaa-text-muted)' },
   navLink: { ...darkSidebarStyles.navLink, color: 'var(--slogbaa-text)' },
-  navLinkActive: { background: 'var(--slogbaa-blue)', color: '#fff', fontWeight: 600 },
+  navLinkActive: { background: 'var(--primary-orange, #F58220)', color: '#fff', fontWeight: 600 },
   quickActionBtn: { ...darkSidebarStyles.quickActionBtn, color: 'var(--slogbaa-text)' },
 }
 
 const styles = {
   ...baseStyles,
-  main: { flex: 1, minWidth: 0, overflowY: 'auto', overflowX: 'hidden', padding: '1.5rem 2rem', maxWidth: 1000, margin: '0 auto', width: '100%', background: 'var(--slogbaa-bg)', borderLeft: '1px solid var(--slogbaa-border)' },
-  greeting: { margin: '0 0 0.5rem', fontSize: '1.5rem', fontWeight: 700, color: 'var(--slogbaa-text)' },
-  greetingDivider: { height: 0, border: 'none', borderBottom: '2px solid var(--slogbaa-border)', margin: '0 0 1.5rem' },
+  main: { flex: 1, minWidth: 0, overflowY: 'auto', overflowX: 'hidden', padding: 0, maxWidth: 1000, margin: '0 auto', width: '100%', background: 'var(--slogbaa-bg)', borderLeft: '1px solid var(--slogbaa-border)' },
+  identityHeader: { background: 'var(--identity-header-blue, #0072BB)', borderBottom: '3px solid var(--primary-orange, #F58220)', padding: '1.5rem 2rem', marginBottom: 0 },
+  greeting: { margin: 0, fontSize: '1.5rem', fontWeight: 700, color: '#FFFFFF' },
+  greetingDivider: { display: 'none' },
+  mainContent: { padding: '1.5rem 2rem' },
 }
 
 export function AdminLayout() {
@@ -78,9 +78,11 @@ export function AdminLayout() {
   const deleteStaffMutation = useDeleteStaff()
   const deleteTraineeMutation = useDeleteTrainee()
 
+  const { data: courses = [] } = useAdminCourses()
+
   const staff = overviewData?.data?.staff ?? []
   const trainees = overviewData?.data?.trainees ?? []
-  const overviewError = overviewQueryError?.message ?? overviewData?.error ?? null
+  const overviewError = overviewQueryError?.message ?? null
 
   // Ctrl+K / Cmd+K command palette + G-prefix keyboard shortcuts
   useEffect(() => {
@@ -103,7 +105,7 @@ export function AdminLayout() {
       if (gPressed) {
         gPressed = false
         clearTimeout(gTimer)
-        const routes = { o: '/admin/overview', l: '/admin/learning', b: '/admin/library', a: '/admin/assessment', c: '/admin/coursemanagement', r: '/admin/reports' }
+        const routes = { o: '/admin/overview', l: '/admin/learning', b: '/admin/library', a: '/admin/assessment', c: '/admin/coursemanagement' }
         if (routes[e.key]) { e.preventDefault(); navigate(routes[e.key]) }
       }
     }
@@ -172,6 +174,44 @@ export function AdminLayout() {
     currentUserEmail: user?.email ?? null,
   }
 
+  const STATIC_COMMANDS = [
+    { label: 'Go to Overview', group: 'Navigation', onSelect: () => navigate('/admin/overview'), shortcut: 'G O' },
+    { label: 'Go to Learning', group: 'Navigation', onSelect: () => navigate('/admin/learning'), shortcut: 'G L' },
+    { label: 'Go to Library', group: 'Navigation', onSelect: () => navigate('/admin/library') },
+    { label: 'Go to Assessment', group: 'Navigation', onSelect: () => navigate('/admin/assessment') },
+    { label: 'Go to Course Management', group: 'Navigation', onSelect: () => navigate('/admin/coursemanagement') },
+    ...(isSuperAdmin ? [
+      { label: 'Create Staff', group: 'Actions', onSelect: () => setModal('createStaff') },
+      { label: 'Update Courses', group: 'Actions', onSelect: () => setModal('updateCourses') },
+    ] : []),
+    { label: 'Change Password', group: 'Actions', onSelect: () => setModal('changePassword') },
+  ]
+
+  const paletteCommands = useMemo(() => {
+    const staffCommands = (staff ?? []).map(s => ({
+      label: s.fullName,
+      subtitle: `Staff · ${s.email}`,
+      group: 'People',
+      onSelect: () => navigate(`/admin/users/staff/${s.id}`),
+    }))
+
+    const traineeCommands = (trainees ?? []).map(t => ({
+      label: t.fullName,
+      subtitle: `Trainee · ${t.email}${t.districtName ? ` · ${t.districtName}` : ''}`,
+      group: 'People',
+      onSelect: () => navigate(`/admin/users/trainee/${t.id}`),
+    }))
+
+    const courseCommands = (courses ?? []).map(c => ({
+      label: c.title,
+      subtitle: `Course · ${c.published ? 'Published' : 'Draft'} · ${c.moduleCount || 0} modules`,
+      group: 'Courses',
+      onSelect: () => navigate(`/admin/learning/${c.id}`),
+    }))
+
+    return [...STATIC_COMMANDS, ...staffCommands, ...traineeCommands, ...courseCommands]
+  }, [staff, trainees, courses, isSuperAdmin, navigate])
+
   return (
     <div style={styles.layout}>
       <AdminNav />
@@ -229,7 +269,7 @@ export function AdminLayout() {
         {/* Mobile menu overlay */}
         {mobileMenuOpen && (
           <div
-            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 900 }}
+            style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.4)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', zIndex: 900 }}
             onClick={() => setMobileMenuOpen(false)}
             aria-hidden="true"
           />
@@ -241,7 +281,7 @@ export function AdminLayout() {
             className="admin-sidebar-mobile"
           >
             <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '0.75rem 1rem 0' }}>
-              <button type="button" onClick={() => setMobileMenuOpen(false)} style={{ border: 'none', background: 'none', color: 'rgba(255,255,255,0.7)', fontSize: '1.25rem', cursor: 'pointer', padding: '0.25rem' }} aria-label="Close menu">
+              <button type="button" onClick={() => setMobileMenuOpen(false)} style={{ border: 'none', background: 'none', color: 'rgba(255,255,255,0.7)', fontSize: '1.25rem', cursor: 'pointer', padding: '0.5rem', minWidth: 44, minHeight: 44, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', borderRadius: 8 }} aria-label="Close menu">
                 <FontAwesomeIcon icon={icons.close} />
               </button>
             </div>
@@ -259,20 +299,23 @@ export function AdminLayout() {
           </aside>
         )}
 
-        <main style={styles.main}>
-          {/* Mobile hamburger button (visible only on small screens) */}
-          <button
-            type="button"
-            className="mobile-menu-btn"
-            style={{ display: 'none', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', padding: '0.5rem 0.75rem', border: '1px solid var(--slogbaa-border)', borderRadius: 8, background: 'var(--slogbaa-surface)', color: 'var(--slogbaa-text)', fontSize: '0.9375rem', fontWeight: 500, cursor: 'pointer' }}
-            onClick={() => setMobileMenuOpen(true)}
-            aria-label="Open navigation menu"
-          >
-            <FontAwesomeIcon icon={icons.viewList} /> Menu
-          </button>
-          <h1 style={styles.greeting}>Welcome back, {displayName}!</h1>
-          <hr style={styles.greetingDivider} aria-hidden />
-          <Outlet context={outletContext} />
+        <main className="admin-main-content" style={styles.main}>
+          {/* Identity header: white with thick orange bottom border */}
+          <header style={styles.identityHeader}>
+            <button
+              type="button"
+              className="mobile-menu-btn"
+              style={{ display: 'none', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', padding: '0.625rem 1rem', minHeight: 44, border: '1px solid rgba(255,255,255,0.4)', borderRadius: 10, background: 'rgba(255,255,255,0.15)', color: '#FFFFFF', fontSize: '0.9375rem', fontWeight: 500, cursor: 'pointer' }}
+              onClick={() => setMobileMenuOpen(true)}
+              aria-label="Open navigation menu"
+            >
+              <FontAwesomeIcon icon={icons.viewList} /> Menu
+            </button>
+            <h1 style={styles.greeting}>Welcome back, {displayName}!</h1>
+          </header>
+          <div style={styles.mainContent}>
+            <Outlet context={outletContext} />
+          </div>
         </main>
       </div>
 
@@ -283,19 +326,7 @@ export function AdminLayout() {
       {paletteOpen && (
         <CommandPalette
           onClose={() => setPaletteOpen(false)}
-          commands={[
-            { label: 'Go to Overview', group: 'Navigation', onSelect: () => navigate('/admin/overview'), shortcut: 'G O' },
-            { label: 'Go to Learning', group: 'Navigation', onSelect: () => navigate('/admin/learning'), shortcut: 'G L' },
-            { label: 'Go to Library', group: 'Navigation', onSelect: () => navigate('/admin/library') },
-            { label: 'Go to Assessment', group: 'Navigation', onSelect: () => navigate('/admin/assessment') },
-            { label: 'Go to Course Management', group: 'Navigation', onSelect: () => navigate('/admin/coursemanagement') },
-            { label: 'Go to Reports', group: 'Navigation', onSelect: () => navigate('/admin/reports') },
-            ...(isSuperAdmin ? [
-              { label: 'Create Staff', group: 'Actions', onSelect: () => setModal('createStaff') },
-              { label: 'Update Courses', group: 'Actions', onSelect: () => setModal('updateCourses') },
-            ] : []),
-            { label: 'Change Password', group: 'Actions', onSelect: () => setModal('changePassword') },
-          ]}
+          commands={paletteCommands}
         />
       )}
     </div>

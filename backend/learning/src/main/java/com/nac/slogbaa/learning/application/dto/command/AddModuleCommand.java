@@ -13,14 +13,16 @@ public final class AddModuleCommand {
     private final String imageUrl;
     private final int moduleOrder;
     private final boolean hasQuiz;
+    private final Integer estimatedMinutes;
 
-    public AddModuleCommand(UUID courseId, String title, String description, String imageUrl, int moduleOrder, boolean hasQuiz) {
+    public AddModuleCommand(UUID courseId, String title, String description, String imageUrl, int moduleOrder, boolean hasQuiz, Integer estimatedMinutes) {
         this.courseId = Objects.requireNonNull(courseId);
         this.title = Objects.requireNonNull(title);
         this.description = description;
         this.imageUrl = imageUrl;
         this.moduleOrder = moduleOrder >= 0 ? moduleOrder : 0;
         this.hasQuiz = hasQuiz;
+        this.estimatedMinutes = estimatedMinutes;
     }
 
     public UUID getCourseId() { return courseId; }
@@ -29,4 +31,5 @@ public final class AddModuleCommand {
     public String getImageUrl() { return imageUrl; }
     public int getModuleOrder() { return moduleOrder; }
     public boolean isHasQuiz() { return hasQuiz; }
+    public Integer getEstimatedMinutes() { return estimatedMinutes; }
 }

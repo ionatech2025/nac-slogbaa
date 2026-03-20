@@ -5,11 +5,10 @@ import com.nac.slogbaa.progress.adapters.persistence.repository.JpaTraineeProgre
 import com.nac.slogbaa.progress.application.dto.ResumePoint;
 import com.nac.slogbaa.progress.application.port.out.TraineeProgressRepositoryPort;
 import com.nac.slogbaa.progress.core.aggregate.TraineeProgress;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Component
 public class TraineeProgressRepositoryAdapter implements TraineeProgressRepositoryPort {
@@ -29,12 +28,12 @@ public class TraineeProgressRepositoryAdapter implements TraineeProgressReposito
 
     @Override
     public boolean existsByTraineeIdAndCourseId(UUID traineeId, UUID courseId) {
-        return jpaRepository.existsByTraineeIdAndCourseId(traineeId, courseId);
+        return jpaRepository.existsActiveByTraineeIdAndCourseId(traineeId, courseId);
     }
 
     @Override
     public List<TraineeProgress> findByTraineeId(UUID traineeId) {
-        return jpaRepository.findByTraineeIdOrderByEnrollmentDateDesc(traineeId).stream()
+        return jpaRepository.findActiveByTraineeIdOrderByEnrollmentDateDesc(traineeId).stream()
                 .map(this::toDomain)
                 .toList();
     }
@@ -66,6 +65,35 @@ public class TraineeProgressRepositoryAdapter implements TraineeProgressReposito
                     entity.setCompletionPercentage(Math.max(0, Math.min(100, completionPercentage)));
                     jpaRepository.save(entity);
                 });
+    }
+
+    @Override
+    public List<Map.Entry<UUID, Long>> findTopTraineesByCompletions(int limit) {
+        List<Object[]> rows = jpaRepository.findTopTraineesByCompletions(PageRequest.of(0, limit));
+        List<Map.Entry<UUID, Long>> result = new ArrayList<>();
+        for (Object[] row : rows) {
+            UUID traineeId = (UUID) row[0];
+            long count = ((Number) row[1]).longValue();
+            result.add(Map.entry(traineeId, count));
+        }
+        return result;
+    }
+
+    @Override
+    public boolean hasCompletedCourse(UUID traineeId, UUID courseId) {
+        return jpaRepository.existsCompletedByTraineeIdAndCourseId(traineeId, courseId);
+    }
+
+    @Override
+    public boolean reactivateIfWithdrawn(UUID traineeId, UUID courseId) {
+        Optional<TraineeProgressEntity> opt = jpaRepository.findOneByTraineeIdAndCourseId(traineeId, courseId);
+        if (opt.isPresent() && "WITHDRAWN".equals(opt.get().getStatus())) {
+            TraineeProgressEntity entity = opt.get();
+            entity.setStatus("IN_PROGRESS");
+            jpaRepository.save(entity);
+            return true;
+        }
+        return false;
     }
 
     private TraineeProgressEntity toEntity(TraineeProgress domain) {

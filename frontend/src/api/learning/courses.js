@@ -1,21 +1,14 @@
-import { apiClient } from '../client.js'
+import { apiClient, assertToken, parseResponse, parseResponseOrDefault } from '../client.js'
 
 /**
  * Fetch published courses (GET /api/courses). Requires auth token (TRAINEE or STAFF).
  * Returns array of course summaries.
  */
 export async function getPublishedCourses(token) {
-  if (!token) {
-    throw new Error('Your session is missing. Please log in again.')
-  }
-  const client = apiClient(token)
-  const res = await client.get('/api/courses')
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}))
-    const message = body.detail ?? body.message ?? `Request failed (${res.status})`
-    throw new Error(message)
-  }
-  return res.json()
+  assertToken(token)
+  const res = await apiClient(token).get('/api/courses')
+  const data = await parseResponse(res)
+  return data?.content ?? data
 }
 
 /**
@@ -24,10 +17,9 @@ export async function getPublishedCourses(token) {
  */
 export async function getEnrolledCourses(token) {
   if (!token) return []
-  const client = apiClient(token)
-  const res = await client.get('/api/courses/enrolled')
-  if (res.status === 404 || !res.ok) return []
-  return res.json().catch(() => [])
+  const res = await apiClient(token).get('/api/courses/enrolled')
+  if (res.status === 404) return []
+  return parseResponseOrDefault(res, [])
 }
 
 /**
@@ -36,8 +28,7 @@ export async function getEnrolledCourses(token) {
  */
 export async function checkEnrollment(token, courseId) {
   if (!token || !courseId) return false
-  const client = apiClient(token)
-  const res = await client.get(`/api/courses/${courseId}/enrollment`)
+  const res = await apiClient(token).get(`/api/courses/${courseId}/enrollment`)
   if (!res.ok) return false
   const data = await res.json().catch(() => ({}))
   return data?.enrolled === true
@@ -49,13 +40,22 @@ export async function checkEnrollment(token, courseId) {
  */
 export async function enrollInCourse(token, courseId) {
   if (!token || !courseId) throw new Error('Session or course missing.')
-  const client = apiClient(token)
-  const res = await client.post(`/api/courses/${courseId}/enroll`, {})
+  const res = await apiClient(token).post(`/api/courses/${courseId}/enroll`, {})
   if (!res.ok) {
     const body = await res.json().catch(() => ({}))
     const message = body.detail ?? body.message ?? (res.status === 404 ? 'Enrollment not available yet.' : `Request failed (${res.status})`)
     throw new Error(message)
   }
+}
+
+/**
+ * Unenroll (withdraw) trainee from a course (DELETE /api/courses/:courseId/enroll).
+ * Requires auth token. Throws on error.
+ */
+export async function unenrollFromCourse(token, courseId) {
+  if (!token || !courseId) throw new Error('Session or course missing.')
+  const res = await apiClient(token).delete(`/api/courses/${courseId}/enroll`)
+  return parseResponse(res)
 }
 
 /**
@@ -87,10 +87,10 @@ export async function recordModuleCompletion(token, courseId, moduleId, quizPass
  * Returns { lastModuleId, lastContentBlockId } or { lastModuleId: null, lastContentBlockId: null }.
  */
 export async function getResumePoint(token, courseId) {
-  if (!token || !courseId) return { lastModuleId: null, lastContentBlockId: null }
-  const client = apiClient(token)
-  const res = await client.get(`/api/courses/${courseId}/resume`)
-  if (!res.ok) return { lastModuleId: null, lastContentBlockId: null }
+  const defaultValue = { lastModuleId: null, lastContentBlockId: null }
+  if (!token || !courseId) return defaultValue
+  const res = await apiClient(token).get(`/api/courses/${courseId}/resume`)
+  if (!res.ok) return defaultValue
   const data = await res.json().catch(() => ({}))
   return {
     lastModuleId: data.lastModuleId ?? null,
@@ -103,11 +103,8 @@ export async function getResumePoint(token, courseId) {
  * Returns full course object or throws on 404/error.
  */
 export async function getCourseDetails(token, courseId) {
-  if (!token) {
-    throw new Error('Your session is missing. Please log in again.')
-  }
-  const client = apiClient(token)
-  const res = await client.get(`/api/courses/${courseId}`)
+  assertToken(token)
+  const res = await apiClient(token).get(`/api/courses/${courseId}`)
   if (!res.ok) {
     const body = await res.json().catch(() => ({}))
     const message = body.detail ?? body.message ?? (res.status === 404 ? 'Course not found.' : `Request failed (${res.status})`)
