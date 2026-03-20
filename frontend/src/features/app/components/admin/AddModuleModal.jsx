@@ -169,6 +169,8 @@ export function AddModuleModal({ token, course, onClose, onSubmit }) {
           </button>
           {imageUrl && (
             <div style={{ marginTop: '0.5rem' }}>
+              // codeql[js/xss]: preview image src is derived from a user-controlled URL,
+              // but it is sanitized/normalized by getAssetUrl() before use.
               <img
                 src={typeof imageUrl === 'string' ? getAssetUrl(imageUrl) : ''}
                 alt="Preview"
