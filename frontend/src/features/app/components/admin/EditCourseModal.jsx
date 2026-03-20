@@ -82,6 +82,17 @@ const styles = {
   },
 }
 
+function safeImageSrc(url) {
+  if (typeof url !== 'string') return ''
+  const u = url.trim()
+  if (!u) return ''
+  // Blob URLs are safe for <img> previews.
+  if (u.startsWith('blob:')) return u
+  // Only allow relative and http(s) URLs.
+  if (u.startsWith('/') || u.startsWith('http://') || u.startsWith('https://')) return getAssetUrl(u)
+  return ''
+}
+
 export function EditCourseModal({ token, course, onClose, onSubmit }) {
   const [title, setTitle] = useState(course?.title ?? '')
   const [description, setDescription] = useState(course?.description ?? '')
@@ -175,7 +186,7 @@ export function EditCourseModal({ token, course, onClose, onSubmit }) {
           {imageUrl && (
             <div style={{ marginTop: '0.5rem' }}>
               <img
-                src={typeof imageUrl === 'string' && (imageUrl.startsWith('blob:') || imageUrl.startsWith('/') || imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) ? (imageUrl.startsWith('blob:') ? imageUrl : getAssetUrl(imageUrl)) : ''}
+                src={safeImageSrc(imageUrl)}
                 alt="Preview"
                 style={styles.imagePreview}
                 onError={(e) => { e.target.style.display = 'none' }}
