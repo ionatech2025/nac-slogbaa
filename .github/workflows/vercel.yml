@@ -307,12 +307,14 @@ jobs:
           echo "Production deployed to: ${URL}"
 
   # ─────────────────────────────────────────────
-  # 4. Post-deploy health check
+  # 4. Post-deploy health check (production only)
+  # Preview deploys often have Vercel Deployment Protection (401);
+  # health check runs only for production where the site is public.
   # ─────────────────────────────────────────────
   health-check:
     name: Health Check
     needs: [deploy-preview, deploy-production]
-    if: always() && (needs.deploy-preview.result == 'success' || needs.deploy-production.result == 'success')
+    if: always() && needs.deploy-production.result == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 5
 
