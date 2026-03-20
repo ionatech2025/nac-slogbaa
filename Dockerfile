@@ -34,4 +34,7 @@ EXPOSE 8080
 
 ENV JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=75.0 -XX:+UseG1GC -XX:+ExitOnOutOfMemoryError"
 
+# Distroless :nonroot image already runs as UID 65532; explicit USER satisfies Semgrep rule
+USER nonroot
+
 ENTRYPOINT ["java", "org.springframework.boot.loader.launch.JarLauncher"]
