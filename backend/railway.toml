@@ -1,0 +1,33 @@
+# =============================================================================
+# Railway Config — SLOGBAA Backend (only when Root Directory = "backend")
+# https://docs.railway.com/config-as-code/reference
+#
+# If Railway builds from repo root (default), use ../Dockerfile + ../railway.toml
+# instead. This file applies when the service Root Directory is set to `backend`.
+#
+# Environment variables: set on slogbaa-backend service → Variables.
+# Postgres mapping (Railway DB → DATASOURCE_*): see docs/RAILWAY-DATABASE.md
+#   SPRING_PROFILES_ACTIVE = prod
+#   DATASOURCE_URL         = jdbc:postgresql://<PGHOST>:<PGPORT>/<PGDATABASE>?sslmode=require
+#   DATASOURCE_USERNAME    = <PGUSER>
+#   DATASOURCE_PASSWORD    = <PGPASSWORD>
+#   JWT_SECRET             = <generated-secret>
+#   CORS_ALLOWED_ORIGINS   = https://nac-slogbaa.vercel.app
+#   PASSWORD_RESET_BASE_URL = https://nac-slogbaa.vercel.app
+#   SMTP_HOST              = smtp.gmail.com
+#   SMTP_PORT              = 587
+#   SMTP_USERNAME          = <set-in-dashboard>
+#   SMTP_PASSWORD          = <set-in-dashboard>
+# =============================================================================
+
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
+watchPatterns = ["**"]
+
+[deploy]
+# See root railway.toml — liveness avoids 503 from DB-bound readiness during deploy.
+healthcheckPath = "/actuator/health/liveness"
+healthcheckTimeout = 300
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3

@@ -1,58 +1,57 @@
 /**
- * SLOGBAA Design Tokens — Semantic Color Palette & Glassmorphism.
- *
- * Philosophy: Calm, professional, trustworthy. Inspired by Coursera (education blues),
- * Duolingo (motivational greens), Notion/Linear (clean neutrals), with 2026 trends:
- * nature-grounded hues, high legibility, low cognitive load, WCAG 2.2 AA throughout.
- *
- * Contrast ratios (on white/surface):
- *   --slogbaa-blue #2563eb  → 4.6:1 (AA normal text)
- *   --slogbaa-green #059669 → 4.6:1 (AA normal text)
- *   --slogbaa-orange #d97706 → 4.5:1 (AA normal text)
- *   --slogbaa-text #1e293b  → 14.5:1
- *   --slogbaa-text-muted #64748b → 4.6:1
- *   --slogbaa-error #dc2626  → 4.6:1
+ * SLOGBAA Design Tokens — Professional Orange & White + shared scales
  */
 :root {
-  /* === Primary (trust, education, main actions) === */
-  --slogbaa-blue: #2563eb;
-  --slogbaa-blue-hover: #1d4ed8;
-  /* === Accent / Success (completion, streaks, positive) === */
-  --slogbaa-green: #059669;
-  /* === Warm accent (subtle energy, highlights, badges) === */
-  --slogbaa-orange: #d97706;
-  --slogbaa-orange-hover: #b45309;
-  /* === Danger === */
-  --slogbaa-error: #dc2626;
-  /* === Dark chrome (top bar, sidebar) === */
-  --slogbaa-dark: #0f172a;
-  /* === Neutral surfaces === */
-  --slogbaa-surface: #ffffff;
-  --slogbaa-bg: #f8fafc;
-  --slogbaa-bg-secondary: #f1f5f9;
-  /* === Text hierarchy === */
-  --slogbaa-text: #1e293b;
-  --slogbaa-text-muted: #64748b;
-  /* === Borders === */
-  --slogbaa-border: #e2e8f0;
-  /* === Semantic aliases (consumed by all components) === */
-  --slogbaa-primary: var(--slogbaa-blue);
-  --slogbaa-primary-light: var(--slogbaa-blue-hover);
-  --slogbaa-accent: var(--slogbaa-blue);
-  --slogbaa-accent-light: var(--slogbaa-blue-hover);
-  /* === Focus ring: soft primary glow === */
-  --slogbaa-focus-ring: 0 0 0 2px var(--slogbaa-surface), 0 0 0 4px rgba(37, 99, 235, 0.45);
-  /* === Glassmorphism tokens (2026 — Apple Vision Pro / Linear / Arc inspired) === */
-  --slogbaa-glass-bg: rgba(255, 255, 255, 0.72);
-  --slogbaa-glass-bg-subtle: rgba(255, 255, 255, 0.45);
-  --slogbaa-glass-border: rgba(255, 255, 255, 0.6);
-  --slogbaa-glass-border-subtle: rgba(255, 255, 255, 0.25);
-  --slogbaa-glass-blur: blur(20px) saturate(180%);
-  --slogbaa-glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.06), 0 2px 8px rgba(0, 0, 0, 0.04);
-  --slogbaa-glass-shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.08), 0 4px 16px rgba(0, 0, 0, 0.04);
-  --slogbaa-glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  /* Foundation */
+  --primary-orange: #F58220;
+  --primary-orange-hover: #e07318;
+  --primary-white: #FFFFFF;
+  --bg-soft: #FAFAFA;
+  --text-main: #1A1A1B;
+  --text-muted: #64748B;
+  --border-color: #E2E8F0;
+  --success-green: #00A651;
+  --radius-xl: 12px;
+  --identity-header-blue: #0072BB;
 
-  /* === Fluid Typography Scale (2026 — clamp for smooth viewport scaling) === */
+  --orange-surface: rgba(245, 130, 32, 0.05);
+  --orange-surface-hover: rgba(245, 130, 32, 0.08);
+  --orange-border-subtle: rgba(245, 130, 32, 0.2);
+
+  /* Slogbaa aliases */
+  --slogbaa-blue: var(--primary-orange);
+  --slogbaa-blue-hover: var(--primary-orange-hover);
+  --slogbaa-orange: var(--primary-orange);
+  --slogbaa-orange-hover: var(--primary-orange-hover);
+  --slogbaa-green: var(--success-green);
+  --slogbaa-error: #ED1C24;
+  --slogbaa-dark: #1A1A1B;
+
+  --slogbaa-surface: var(--primary-white);
+  --slogbaa-bg: var(--bg-soft);
+  --slogbaa-bg-secondary: #F5F5F5;
+  --slogbaa-text: var(--text-main);
+  --slogbaa-text-muted: var(--text-muted);
+  --slogbaa-border: var(--border-color);
+
+  --slogbaa-primary: var(--primary-orange);
+  --slogbaa-primary-light: var(--primary-orange-hover);
+  --slogbaa-accent: var(--primary-orange);
+  --slogbaa-accent-light: var(--primary-orange-hover);
+  --slogbaa-success: var(--success-green);
+
+  --slogbaa-focus-ring: 0 0 0 2px var(--primary-white), 0 0 0 4px rgba(245, 130, 32, 0.35);
+
+  --slogbaa-glass-bg: var(--primary-white);
+  --slogbaa-glass-bg-subtle: var(--primary-white);
+  --slogbaa-glass-border: var(--border-color);
+  --slogbaa-glass-border-subtle: rgba(226, 232, 240, 0.8);
+  --slogbaa-glass-blur: blur(16px);
+  --slogbaa-glass-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --slogbaa-glass-shadow-lg: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --slogbaa-glass-highlight: none;
+
+  /* Typography & spacing (from dev) */
   --font-xs: clamp(0.75rem, 0.7rem + 0.15vw, 0.8125rem);
   --font-sm: clamp(0.8125rem, 0.775rem + 0.2vw, 0.875rem);
   --font-base: clamp(0.875rem, 0.825rem + 0.25vw, 1rem);
@@ -61,7 +60,6 @@
   --font-xl: clamp(1.375rem, 1.25rem + 0.5vw, 1.75rem);
   --font-2xl: clamp(1.625rem, 1.45rem + 0.75vw, 2.25rem);
 
-  /* === Spacing Scale (8px base rhythm) === */
   --space-1: 0.25rem;
   --space-2: 0.5rem;
   --space-3: 0.75rem;
@@ -72,46 +70,46 @@
   --space-10: 2.5rem;
   --space-12: 3rem;
 
-  /* === Touch targets (WCAG 2.5 AA) === */
   --touch-min: 44px;
   --touch-comfortable: 48px;
 
-  /* === Multi-layer glass depth (Vision Pro / Linear inspired) === */
   --slogbaa-glass-blur-sm: blur(8px) saturate(160%);
   --slogbaa-glass-blur-md: blur(16px) saturate(175%);
   --slogbaa-glass-blur-lg: blur(24px) saturate(190%);
   --slogbaa-glass-blur-xl: blur(32px) saturate(200%);
 }
 
-/* === Dark theme — deep slate, calming, high contrast === */
 [data-theme='dark'] {
-  --slogbaa-blue: #60a5fa;
-  --slogbaa-blue-hover: #3b82f6;
-  --slogbaa-green: #34d399;
-  --slogbaa-orange: #fbbf24;
-  --slogbaa-orange-hover: #f59e0b;
+  --primary-orange: #fb923c;
+  --primary-orange-hover: #f97316;
+  --bg-soft: #0f172a;
+  --text-main: #f1f5f9;
+  --text-muted: #94a3b8;
+  --border-color: #334155;
+  --identity-header-blue: #0f172a;
+  --orange-surface: rgba(251, 146, 60, 0.08);
+  --orange-surface-hover: rgba(251, 146, 60, 0.12);
+
+  --slogbaa-blue: var(--primary-orange);
+  --slogbaa-blue-hover: var(--primary-orange-hover);
+  --slogbaa-orange: var(--primary-orange);
+  --slogbaa-orange-hover: var(--primary-orange-hover);
+  --slogbaa-green: #4ade80;
   --slogbaa-error: #f87171;
   --slogbaa-dark: #020617;
   --slogbaa-surface: #1e293b;
-  --slogbaa-bg: #0f172a;
+  --slogbaa-bg: var(--bg-soft);
   --slogbaa-bg-secondary: #1e293b;
-  --slogbaa-text: #f1f5f9;
-  --slogbaa-text-muted: #94a3b8;
-  --slogbaa-border: #334155;
-  --slogbaa-focus-ring: 0 0 0 2px var(--slogbaa-surface), 0 0 0 4px rgba(96, 165, 250, 0.45);
-  /* === Glassmorphism tokens — dark mode === */
-  --slogbaa-glass-bg: rgba(30, 41, 59, 0.7);
-  --slogbaa-glass-bg-subtle: rgba(30, 41, 59, 0.45);
-  --slogbaa-glass-border: rgba(255, 255, 255, 0.1);
-  --slogbaa-glass-border-subtle: rgba(255, 255, 255, 0.06);
+  --slogbaa-text: var(--text-main);
+  --slogbaa-text-muted: var(--text-muted);
+  --slogbaa-border: var(--border-color);
+  --slogbaa-focus-ring: 0 0 0 2px var(--slogbaa-surface), 0 0 0 4px rgba(251, 146, 60, 0.4);
+  --slogbaa-glass-bg: rgba(30, 41, 59, 0.9);
+  --slogbaa-glass-bg-subtle: rgba(30, 41, 59, 0.7);
+  --slogbaa-glass-border: rgba(255, 255, 255, 0.08);
+  --slogbaa-glass-border-subtle: rgba(255, 255, 255, 0.05);
   --slogbaa-glass-blur: blur(20px) saturate(180%);
-  --slogbaa-glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), 0 2px 8px rgba(0, 0, 0, 0.12);
-  --slogbaa-glass-shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.25), 0 4px 16px rgba(0, 0, 0, 0.15);
+  --slogbaa-glass-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  --slogbaa-glass-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.25);
   --slogbaa-glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.06);
-
-  /* === Multi-layer glass depth — dark mode === */
-  --slogbaa-glass-blur-sm: blur(8px) saturate(160%);
-  --slogbaa-glass-blur-md: blur(16px) saturate(175%);
-  --slogbaa-glass-blur-lg: blur(24px) saturate(190%);
-  --slogbaa-glass-blur-xl: blur(32px) saturate(200%);
 }

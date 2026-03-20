@@ -1,0 +1,11 @@
+# Root Dockerfile build context — keep image small and fast
+.git
+.github
+frontend
+docs
+**/node_modules
+**/.gradle
+**/build
+*.md
+.env
+.env.*

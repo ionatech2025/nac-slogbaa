@@ -80,6 +80,12 @@ export default defineConfig({
               cacheableResponse: { statuses: [0, 200] },
             },
           },
+          // Backend API (any origin, e.g. Railway) — never cache via SW. The catch-all rule below
+          // would otherwise match https://*.up.railway.app/... and break CORS / cause "Failed to fetch".
+          {
+            urlPattern: ({ url }) => url.pathname.startsWith('/api/'),
+            handler: 'NetworkOnly',
+          },
           // Other external resources (CDNs, analytics, etc.) — StaleWhileRevalidate
           {
             urlPattern: /^https:\/\/(?!fonts\.googleapis\.com|fonts\.gstatic\.com).+/i,

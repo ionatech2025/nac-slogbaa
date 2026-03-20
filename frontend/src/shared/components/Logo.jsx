@@ -43,12 +43,12 @@ function LogoIcon({ size = 32, standalone = false }) {
     >
       <defs>
         <linearGradient id={bgId} x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#2563eb" />
-          <stop offset="100%" stopColor="#1d4ed8" />
+          <stop offset="0%" stopColor="var(--slogbaa-orange, #F58220)" />
+          <stop offset="100%" stopColor="var(--slogbaa-orange-hover, #e07318)" />
         </linearGradient>
         <linearGradient id={accentId} x1="180" y1="160" x2="332" y2="352" gradientUnits="userSpaceOnUse">
           <stop offset="0%" stopColor="#ffffff" />
-          <stop offset="100%" stopColor="#dbeafe" />
+          <stop offset="100%" stopColor="#ffe8d4" />
         </linearGradient>
       </defs>
       <rect width="512" height="512" rx="112" fill={`url(#${bgId})`} />

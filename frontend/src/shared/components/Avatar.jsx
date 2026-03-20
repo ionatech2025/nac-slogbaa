@@ -48,7 +48,7 @@ export function Avatar({ src, name, size = 'md', style, ...rest }) {
     <div
       style={{
         ...base,
-        background: 'linear-gradient(135deg, #2563eb 0%, #059669 100%)',
+        background: 'linear-gradient(135deg, var(--slogbaa-primary) 0%, var(--slogbaa-success) 100%)',
         color: '#fff',
         fontWeight: 700,
         fontSize,

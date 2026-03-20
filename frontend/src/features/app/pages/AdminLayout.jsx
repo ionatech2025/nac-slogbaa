@@ -44,7 +44,7 @@ const darkSidebarStyles = {
   sidebar: { width: 260, flexShrink: 0, height: '100%', background: 'rgba(15, 23, 42, 0.85)', backdropFilter: 'blur(20px) saturate(160%)', WebkitBackdropFilter: 'blur(20px) saturate(160%)', borderRight: '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column', padding: '1.25rem 0', boxShadow: '1px 0 12px rgba(0,0,0,0.08)', overflowY: 'auto', overflowX: 'hidden' },
   sidebarLabel: { margin: '0 1rem 0.6rem', fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--slogbaa-text-muted)', borderBottom: '1px solid var(--slogbaa-border)', paddingBottom: '0.5rem' },
   navLink: { display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.7rem 1rem', minHeight: 44, marginBottom: 2, fontSize: '0.9375rem', color: 'rgba(255,255,255,0.75)', textDecoration: 'none', borderRadius: 8, transition: 'background 0.15s, color 0.15s' },
-  navLinkActive: { background: 'var(--slogbaa-blue)', color: '#fff', fontWeight: 600 },
+  navLinkActive: { background: 'var(--primary-orange, #F58220)', color: '#fff', fontWeight: 600 },
   quickActionBtn: { display: 'flex', alignItems: 'center', gap: '0.5rem', width: '100%', padding: '0.7rem 1rem', minHeight: 44, marginBottom: 2, border: 'none', background: 'transparent', textAlign: 'left', fontSize: '0.9375rem', color: 'rgba(255,255,255,0.75)', cursor: 'pointer', borderRadius: 8, transition: 'background 0.15s, color 0.15s' },
 }
 
@@ -52,15 +52,17 @@ const lightSidebarStyles = {
   sidebar: { ...darkSidebarStyles.sidebar, background: 'var(--slogbaa-glass-bg)', backdropFilter: 'var(--slogbaa-glass-blur)', WebkitBackdropFilter: 'var(--slogbaa-glass-blur)', borderRight: '1px solid var(--slogbaa-glass-border)', boxShadow: 'var(--slogbaa-glass-shadow)' },
   sidebarLabel: { ...darkSidebarStyles.sidebarLabel, color: 'var(--slogbaa-text-muted)' },
   navLink: { ...darkSidebarStyles.navLink, color: 'var(--slogbaa-text)' },
-  navLinkActive: { background: 'var(--slogbaa-blue)', color: '#fff', fontWeight: 600 },
+  navLinkActive: { background: 'var(--primary-orange, #F58220)', color: '#fff', fontWeight: 600 },
   quickActionBtn: { ...darkSidebarStyles.quickActionBtn, color: 'var(--slogbaa-text)' },
 }
 
 const styles = {
   ...baseStyles,
-  main: { flex: 1, minWidth: 0, overflowY: 'auto', overflowX: 'hidden', padding: '1.5rem 2rem', maxWidth: 1000, margin: '0 auto', width: '100%', background: 'var(--slogbaa-bg)', borderLeft: '1px solid var(--slogbaa-border)' },
-  greeting: { margin: '0 0 0.5rem', fontSize: '1.5rem', fontWeight: 700, color: 'var(--slogbaa-text)' },
-  greetingDivider: { height: 0, border: 'none', borderBottom: '2px solid var(--slogbaa-border)', margin: '0 0 1.5rem' },
+  main: { flex: 1, minWidth: 0, overflowY: 'auto', overflowX: 'hidden', padding: 0, maxWidth: 1000, margin: '0 auto', width: '100%', background: 'var(--slogbaa-bg)', borderLeft: '1px solid var(--slogbaa-border)' },
+  identityHeader: { background: 'var(--identity-header-blue, #0072BB)', borderBottom: '3px solid var(--primary-orange, #F58220)', padding: '1.5rem 2rem', marginBottom: 0 },
+  greeting: { margin: 0, fontSize: '1.5rem', fontWeight: 700, color: '#FFFFFF' },
+  greetingDivider: { display: 'none' },
+  mainContent: { padding: '1.5rem 2rem' },
 }
 
 export function AdminLayout() {
@@ -298,19 +300,22 @@ export function AdminLayout() {
         )}
 
         <main className="admin-main-content" style={styles.main}>
-          {/* Mobile hamburger button (visible only on small screens) */}
-          <button
-            type="button"
-            className="mobile-menu-btn"
-            style={{ display: 'none', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', padding: '0.625rem 1rem', minHeight: 44, border: '1px solid var(--slogbaa-glass-border)', borderRadius: 10, background: 'var(--slogbaa-glass-bg-subtle)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', color: 'var(--slogbaa-text)', fontSize: '0.9375rem', fontWeight: 500, cursor: 'pointer' }}
-            onClick={() => setMobileMenuOpen(true)}
-            aria-label="Open navigation menu"
-          >
-            <FontAwesomeIcon icon={icons.viewList} /> Menu
-          </button>
-          <h1 style={styles.greeting}>Welcome back, {displayName}!</h1>
-          <hr style={styles.greetingDivider} aria-hidden />
-          <Outlet context={outletContext} />
+          {/* Identity header: white with thick orange bottom border */}
+          <header style={styles.identityHeader}>
+            <button
+              type="button"
+              className="mobile-menu-btn"
+              style={{ display: 'none', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', padding: '0.625rem 1rem', minHeight: 44, border: '1px solid rgba(255,255,255,0.4)', borderRadius: 10, background: 'rgba(255,255,255,0.15)', color: '#FFFFFF', fontSize: '0.9375rem', fontWeight: 500, cursor: 'pointer' }}
+              onClick={() => setMobileMenuOpen(true)}
+              aria-label="Open navigation menu"
+            >
+              <FontAwesomeIcon icon={icons.viewList} /> Menu
+            </button>
+            <h1 style={styles.greeting}>Welcome back, {displayName}!</h1>
+          </header>
+          <div style={styles.mainContent}>
+            <Outlet context={outletContext} />
+          </div>
         </main>
       </div>
 

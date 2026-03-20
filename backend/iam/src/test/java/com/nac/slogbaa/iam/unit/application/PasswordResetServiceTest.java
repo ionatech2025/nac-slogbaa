@@ -123,6 +123,12 @@ class PasswordResetServiceTest {
             saved.removeIf(t -> t.getToken().equals(token));
             deleted.add(token);
         }
+        @Override public int deleteExpired() {
+            Instant now = Instant.now();
+            int n = (int) saved.stream().filter(t -> t.getExpiryDate().isBefore(now)).count();
+            saved.removeIf(t -> t.getExpiryDate().isBefore(now));
+            return n;
+        }
     }
 
     private static class StubTraineeRepo implements TraineeRepositoryPort {

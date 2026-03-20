@@ -1,0 +1,10 @@
+/home/darkhorse/nac-slogbaa/backend/infrastructure/src/main/java/com/nac/slogbaa/infrastructure/certificate/CertificatePdfGenerator.java
+/home/darkhorse/nac-slogbaa/backend/infrastructure/src/main/java/com/nac/slogbaa/infrastructure/email/EmailSendException.java
+/home/darkhorse/nac-slogbaa/backend/infrastructure/src/main/java/com/nac/slogbaa/infrastructure/email/EmailService.java
+/home/darkhorse/nac-slogbaa/backend/infrastructure/src/main/java/com/nac/slogbaa/infrastructure/email/MailConfig.java
+/home/darkhorse/nac-slogbaa/backend/infrastructure/src/main/java/com/nac/slogbaa/infrastructure/notification/EmailStaffNotificationAdapter.java
+/home/darkhorse/nac-slogbaa/backend/infrastructure/src/main/java/com/nac/slogbaa/infrastructure/notification/EmailTraineeNotificationAdapter.java
+/home/darkhorse/nac-slogbaa/backend/infrastructure/src/main/java/com/nac/slogbaa/infrastructure/notification/LoggingStaffNotificationAdapter.java
+/home/darkhorse/nac-slogbaa/backend/infrastructure/src/main/java/com/nac/slogbaa/infrastructure/notification/LoggingTraineeNotificationAdapter.java
+/home/darkhorse/nac-slogbaa/backend/infrastructure/src/main/java/com/nac/slogbaa/infrastructure/notification/PasswordResetNotificationAdapter.java
+/home/darkhorse/nac-slogbaa/backend/infrastructure/src/main/java/com/nac/slogbaa/infrastructure/storage/LocalFileStorageAdapter.java

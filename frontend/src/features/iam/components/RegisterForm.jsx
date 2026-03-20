@@ -110,7 +110,7 @@ const styles = {
     gap: '0.4rem',
     marginTop: '0.5rem',
     padding: '0.7rem 1.25rem',
-    background: 'var(--slogbaa-blue)',
+    background: 'var(--slogbaa-primary)',
     color: '#fff',
     border: 'none',
     borderRadius: 10,

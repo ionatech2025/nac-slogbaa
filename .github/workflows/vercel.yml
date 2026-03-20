@@ -9,7 +9,7 @@
 #   - Pull Requests → Preview deployment with PR comment link
 #
 # Prerequisites:
-#   1. Install Vercel CLI: bun add -g vercel
+#   1. Install Vercel CLI: npm install -g vercel
 #   2. Link project:      cd frontend && vercel link
 #   3. Add GitHub secrets:
 #      - VERCEL_TOKEN    → Vercel account token (Settings > Tokens)
@@ -99,7 +99,7 @@ jobs:
       - name: Build
         run: bun run build
         env:
-          VITE_API_BASE_URL: ${{ github.ref_name == 'main' && 'https://slogbaa-backend.onrender.com' || 'https://slogbaa-backend.onrender.com' }}
+          VITE_API_BASE_URL: https://slogbaa-backend-production-ef59.up.railway.app
 
       - name: Bundle size check
         run: |
@@ -108,16 +108,26 @@ jobs:
           TOTAL_KB=$((TOTAL / 1024))
           echo "Total assets: ${TOTAL_KB} KB"
 
-          INITIAL=$(stat -c%s dist/assets/index-*.js 2>/dev/null || echo 0)
+          INITIAL=0
+          for f in dist/assets/index-*.js; do
+            [ -f "$f" ] || continue
+            sz=$(stat -c%s "$f")
+            [ "$sz" -gt "$INITIAL" ] && INITIAL=$sz
+          done
           INITIAL_KB=$((INITIAL / 1024))
-          echo "Initial JS chunk: ${INITIAL_KB} KB"
+          echo "Largest index-*.js chunk: ${INITIAL_KB} KB"
 
-          CSS=$(stat -c%s dist/assets/index-*.css 2>/dev/null || echo 0)
+          CSS=0
+          for f in dist/assets/index-*.css; do
+            [ -f "$f" ] || continue
+            sz=$(stat -c%s "$f")
+            [ "$sz" -gt "$CSS" ] && CSS=$sz
+          done
           CSS_KB=$((CSS / 1024))
-          echo "CSS bundle: ${CSS_KB} KB"
+          echo "Largest index-*.css: ${CSS_KB} KB"
 
           if [ "$INITIAL" -gt 120000 ]; then
-            echo "::warning::Initial JS chunk exceeds 120 KB (${INITIAL_KB} KB) — review code splitting"
+            echo "::warning::Largest index JS chunk exceeds 120 KB (${INITIAL_KB} KB) — review code splitting"
           fi
 
       - name: Upload build artifact
@@ -154,19 +164,37 @@ jobs:
           bun-version: ${{ env.BUN_VERSION }}
 
       - name: Install Vercel CLI
-        run: bun add -g vercel@latest
+        run: npm install -g vercel@latest
 
       - name: Pull Vercel environment
-        working-directory: frontend
         run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
 
-      - name: Build with Vercel
+      - name: Install dependencies
         working-directory: frontend
-        run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
+        run: bun install --frozen-lockfile
+
+      - name: Build
+        working-directory: frontend
+        run: bun run build
+        env:
+          VITE_API_BASE_URL: https://slogbaa-backend-production-ef59.up.railway.app
+
+      - name: Prepare Vercel output
+        run: |
+          mkdir -p .vercel/output/static
+          cp -r frontend/dist/* .vercel/output/static/
+          cat > .vercel/output/config.json << 'CONF'
+          {
+            "version": 3,
+            "routes": [
+              { "handle": "filesystem" },
+              { "src": "/(.*)", "dest": "/index.html" }
+            ]
+          }
+          CONF
 
       - name: Deploy to Vercel (Preview)
         id: deploy
-        working-directory: frontend
         run: |
           URL=$(vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }})
           echo "url=${URL}" >> "$GITHUB_OUTPUT"
@@ -242,31 +270,51 @@ jobs:
           bun-version: ${{ env.BUN_VERSION }}
 
       - name: Install Vercel CLI
-        run: bun add -g vercel@latest
+        run: npm install -g vercel@latest
 
       - name: Pull Vercel environment
-        working-directory: frontend
         run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
 
-      - name: Build with Vercel
+      - name: Install dependencies
         working-directory: frontend
-        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+        run: bun install --frozen-lockfile
+
+      - name: Build
+        working-directory: frontend
+        run: bun run build
+        env:
+          VITE_API_BASE_URL: https://slogbaa-backend-production-ef59.up.railway.app
+
+      - name: Prepare Vercel output
+        run: |
+          mkdir -p .vercel/output/static
+          cp -r frontend/dist/* .vercel/output/static/
+          cat > .vercel/output/config.json << 'CONF'
+          {
+            "version": 3,
+            "routes": [
+              { "handle": "filesystem" },
+              { "src": "/(.*)", "dest": "/index.html" }
+            ]
+          }
+          CONF
 
       - name: Deploy to Vercel (Production)
         id: deploy
-        working-directory: frontend
         run: |
           URL=$(vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }})
           echo "url=${URL}" >> "$GITHUB_OUTPUT"
           echo "Production deployed to: ${URL}"
 
   # ─────────────────────────────────────────────
-  # 4. Post-deploy health check
+  # 4. Post-deploy health check (production only)
+  # Preview deploys often have Vercel Deployment Protection (401);
+  # health check runs only for production where the site is public.
   # ─────────────────────────────────────────────
   health-check:
     name: Health Check
     needs: [deploy-preview, deploy-production]
-    if: always() && (needs.deploy-preview.result == 'success' || needs.deploy-production.result == 'success')
+    if: always() && needs.deploy-production.result == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 5
 

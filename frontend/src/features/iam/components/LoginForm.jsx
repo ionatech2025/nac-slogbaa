@@ -82,7 +82,7 @@ const styles = {
     marginTop: '0.5rem',
     padding: '0.7rem 1.25rem',
     minHeight: 44,
-    background: 'var(--slogbaa-blue)',
+    background: 'var(--slogbaa-primary)',
     color: '#fff',
     border: 'none',
     borderRadius: 10,

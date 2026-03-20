@@ -5,8 +5,9 @@ import { apiClient, assertToken, parseResponse } from '../client.js'
  */
 export async function getAdminCertificates(token) {
   assertToken(token)
-  const res = await apiClient(token).get('/api/admin/certificates')
-  return parseResponse(res)
+  const res = await apiClient(token).get('/api/admin/certificates?size=500')
+  const data = await parseResponse(res)
+  return Array.isArray(data) ? data : data?.content ?? []
 }
 
 /**

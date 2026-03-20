@@ -28,6 +28,6 @@ services:
       - key: JWT_SECRET
         generateValue: true
       - key: CORS_ALLOWED_ORIGINS
-        value: https://frontend-seven-red-wsusnzc0va.vercel.app
+        value: https://nac-slogbaa.vercel.app
       - key: PASSWORD_RESET_BASE_URL
-        value: https://frontend-seven-red-wsusnzc0va.vercel.app
+        value: https://nac-slogbaa.vercel.app

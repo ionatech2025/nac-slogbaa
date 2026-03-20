@@ -47,7 +47,7 @@ public class EmailVerificationTokenRepositoryAdapter implements EmailVerificatio
 
     @Override
     @Transactional
-    public void deleteExpired() {
-        jpaRepository.deleteExpiredBefore(Instant.now());
+    public int deleteExpired() {
+        return jpaRepository.deleteExpiredBefore(Instant.now());
     }
 }

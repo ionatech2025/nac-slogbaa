@@ -43,10 +43,10 @@ const HERO_SLIDES = [
     title: 'Empowering Active Citizens Through Online Learning',
     subtitle: 'SLOGBAA is the Network for Active Citizens\u2019 online learning platform. Build your civic leadership skills with structured courses, assessments, and certificates.',
     bg: [
-      'radial-gradient(ellipse 70% 55% at 50% 38%, rgba(37,99,235,0.22) 0%, transparent 70%)',
+      'radial-gradient(ellipse 70% 55% at 50% 38%, rgba(245,130,32,0.22) 0%, transparent 70%)',
       'linear-gradient(160deg, #050a15 0%, #0a1628 25%, #1e3a5f 50%, #0a1628 75%, #050a15 100%)',
     ].join(', '),
-    accent: '#60a5fa',
+    accent: '#F58220',
   },
   {
     title: 'Learn at Your Own Pace, Anywhere',
@@ -71,25 +71,25 @@ const HERO_SLIDES = [
 const FEATURES = [
   {
     icon: icons.learning,
-    bg: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+    bg: 'linear-gradient(135deg, #F58220 0%, #e07318 100%)',
     title: 'Structured Learning Paths',
     text: 'Courses with sequential modules, rich content blocks, and embedded quizzes that guide trainees from basics to mastery.',
   },
   {
     icon: icons.blockActivity,
-    bg: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+    bg: 'linear-gradient(135deg, #00A651 0%, #008a42 100%)',
     title: 'Assessments & Certificates',
     text: 'Validated quizzes at every milestone. Earn certificates on completion to showcase your civic leadership skills.',
   },
   {
     icon: icons.viewList,
-    bg: 'linear-gradient(135deg, #0d9488 0%, #0e7490 100%)',
+    bg: 'linear-gradient(135deg, #F58220 0%, #e07318 100%)',
     title: 'Progress Tracking',
     text: 'Track your learning journey with real-time progress bars, resume-where-you-left-off, and completion dashboards.',
   },
   {
     icon: icons.download,
-    bg: 'linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%)',
+    bg: 'linear-gradient(135deg, #00A651 0%, #F58220 100%)',
     title: 'Resource Library',
     text: 'Access policy documents, reading materials, and reference guides — all organized and searchable.',
   },
@@ -107,7 +107,7 @@ const IMPACT_STORIES = [
     name: 'Sarah Namuli',
     role: 'Community Leader, Kampala',
     quote: 'SLOGBAA gave me the knowledge and confidence to lead accountability initiatives in my community. The structured courses made complex governance topics accessible.',
-    color: '#2563eb',
+    color: '#F58220',
   },
   {
     name: 'James Okello',
@@ -145,7 +145,7 @@ const NEWS_ITEMS = [
 ]
 
 const PARTNER_LOGOS = [
-  { name: 'Network for Active Citizens', initials: 'NAC', color: '#2563eb' },
+  { name: 'Network for Active Citizens', initials: 'NAC', color: '#F58220' },
   { name: 'Ministry of ICT', initials: 'MoICT', color: '#059669' },
   { name: 'Uganda Communications Commission', initials: 'UCC', color: '#d97706' },
   { name: 'Civil Society Alliance', initials: 'CSA', color: '#7c3aed' },
@@ -167,7 +167,7 @@ const s = {
   // Nav
   nav: {
     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-    padding: '0.75rem 2rem', color: '#fff', position: 'sticky', top: 0, zIndex: 100,
+    padding: '0.75rem 2rem', color: 'var(--text-main, #1A1A1B)', position: 'sticky', top: 0, zIndex: 100,
   },
   navRight: { display: 'flex', gap: '0.5rem', alignItems: 'center' },
   navLink: {
@@ -200,7 +200,7 @@ const s = {
     borderRadius: 14, fontSize: '1rem', fontWeight: 600, textDecoration: 'none',
     transition: 'transform 0.2s ease, box-shadow 0.2s ease', border: 'none', cursor: 'pointer',
   },
-  ctaPrimary: { background: '#2563eb', color: '#fff', boxShadow: '0 4px 20px rgba(37,99,235,0.35)' },
+  ctaPrimary: { background: 'var(--primary-orange, #F58220)', color: '#fff', boxShadow: '0 4px 20px rgba(245,130,32,0.35)' },
   ctaSecondary: {
     background: 'rgba(255,255,255,0.08)', color: '#fff',
     border: '1px solid rgba(255,255,255,0.18)', backdropFilter: 'blur(12px)',
@@ -239,7 +239,7 @@ const s = {
   aboutText: { fontSize: '0.9375rem', lineHeight: 1.7, color: 'var(--slogbaa-text)' },
   aboutImagePlaceholder: {
     aspectRatio: '4/3', borderRadius: 20, display: 'flex', alignItems: 'center', justifyContent: 'center',
-    background: 'linear-gradient(135deg, rgba(37,99,235,0.08) 0%, rgba(5,150,105,0.08) 100%)',
+    background: 'linear-gradient(135deg, rgba(245,130,32,0.08) 0%, rgba(0,166,81,0.08) 100%)',
     border: '1px solid var(--slogbaa-glass-border)',
   },
 
@@ -317,7 +317,7 @@ const s = {
   },
   howNumber: {
     display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-    width: 42, height: 42, borderRadius: '50%', background: 'var(--slogbaa-blue)',
+    width: 42, height: 42, borderRadius: '50%', background: 'var(--primary-orange, #F58220)',
     color: '#fff', fontWeight: 800, fontSize: '1.0625rem', marginBottom: '0.875rem',
   },
   howTitle: { margin: '0 0 0.4rem', fontSize: '1rem', fontWeight: 700, color: 'var(--slogbaa-text)' },
@@ -335,7 +335,7 @@ const s = {
   newsTag: {
     display: 'inline-block', padding: '0.2rem 0.6rem', borderRadius: 6,
     fontSize: '0.6875rem', fontWeight: 700, textTransform: 'uppercase',
-    letterSpacing: '0.04em', background: 'rgba(37,99,235,0.1)', color: 'var(--slogbaa-blue)',
+    letterSpacing: '0.04em', background: 'rgba(245,130,32,0.1)', color: 'var(--primary-orange, #F58220)',
     marginBottom: '0.625rem',
   },
   newsTitle: { margin: '0 0 0.4rem', fontSize: '1.0625rem', fontWeight: 700, color: 'var(--slogbaa-text)' },
@@ -366,7 +366,7 @@ const s = {
     position: 'relative', padding: 'clamp(3rem, 6vw, 4.5rem) 2rem', textAlign: 'center',
     color: '#fff', overflow: 'hidden',
     background: [
-      'radial-gradient(ellipse 60% 50% at 50% 50%, rgba(37,99,235,0.15) 0%, transparent 70%)',
+      'radial-gradient(ellipse 60% 50% at 50% 50%, rgba(245,130,32,0.15) 0%, transparent 70%)',
       'linear-gradient(145deg, #050a15 0%, #0f1d3a 35%, #1e3a5f 50%, #0f1d3a 65%, #050a15 100%)',
     ].join(', '),
   },
@@ -524,12 +524,12 @@ export function HomePage() {
     <div style={s.page}>
       {/* ── Navigation ── */}
       <nav style={s.nav} className="glass-nav">
-        <Logo variant="full" size={34} color="white" />
+        <Logo variant="full" size={34} color="dark" />
         <div style={s.navRight}>
-          <Link to="/auth/login" style={{ ...s.navLink, color: 'rgba(255,255,255,0.85)' }}>
+          <Link to="/auth/login" style={{ ...s.navLink, color: 'var(--text-main, #1A1A1B)' }}>
             Sign in
           </Link>
-          <Link to="/auth/register" style={{ ...s.navLink, background: 'var(--slogbaa-blue)', color: '#fff' }}>
+          <Link to="/auth/register" style={{ ...s.navLink, background: 'var(--primary-orange, #F58220)', color: '#fff' }}>
             Register
           </Link>
         </div>
@@ -608,7 +608,7 @@ export function HomePage() {
             const role = story.authorRole || story.role || ''
             const quote = story.quoteText || story.quote || ''
             const img = story.imageUrl || null
-            const color = story.color || '#2563eb'
+            const color = story.color || '#F58220'
             return (
               <article key={name} style={s.storyCard} className="glass-hover">
                 {img ? (
@@ -719,7 +719,7 @@ export function HomePage() {
             {partners.map((p) => {
               const name = p.name || 'Partner'
               const logo = p.logoUrl || null
-              const color = p.color || '#2563eb'
+              const color = p.color || '#F58220'
               const initials = p.initials || name.split(' ').map((w) => w[0]).join('').slice(0, 4)
               return logo ? (
                 <a key={name} href={p.websiteUrl || '#'} target="_blank" rel="noopener noreferrer" title={name} style={{ textDecoration: 'none' }}>

@@ -30,8 +30,8 @@ import {
 
 // ── Color constants for Recharts (CSS vars don't work in SVG) ──
 const COLORS = {
-  green: '#059669',
-  blue: '#2563eb',
+  green: '#00A651',
+  blue: '#F58220',
   orange: '#d97706',
   error: '#dc2626',
 }
@@ -389,7 +389,7 @@ const s = {
 
 // ── Color accents for KPI icons ──
 const ACCENT = {
-  blue: { bg: 'rgba(37, 99, 235, 0.12)', color: 'var(--slogbaa-blue)' },
+  blue: { bg: 'rgba(245, 130, 32, 0.1)', color: 'var(--slogbaa-blue)' },
   green: { bg: 'rgba(5, 150, 105, 0.12)', color: 'var(--slogbaa-green)' },
   orange: { bg: 'rgba(217, 119, 6, 0.12)', color: 'var(--slogbaa-orange)' },
 }
