@@ -18,6 +18,8 @@ const UNSAFE_SCHEMES = /^(javascript|data|vbscript|file):/i
 export function getAssetUrl(url) {
   if (!url || typeof url !== 'string') return url
   const trimmed = url.trim()
+  // Allow local in-memory object URLs for file previews.
+  if (trimmed.startsWith('blob:')) return trimmed
   if (UNSAFE_SCHEMES.test(trimmed)) return ''
   if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return trimmed
   const base = API_BASE.replace(/\/$/, '')
