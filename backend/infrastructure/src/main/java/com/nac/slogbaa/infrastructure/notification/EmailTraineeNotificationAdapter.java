@@ -24,8 +24,9 @@ public class EmailTraineeNotificationAdapter implements TraineeNotificationPort 
     public EmailTraineeNotificationAdapter(EmailService emailService,
                                            @Value("${app.password-reset.base-url:http://localhost:5173}") String frontendBaseUrl) {
         this.emailService = emailService;
-        this.frontendBaseUrl = (frontendBaseUrl != null && !frontendBaseUrl.isBlank())
-                ? frontendBaseUrl.replaceAll("/$", "") : "http://localhost:5173";
+        String base = (frontendBaseUrl != null && !frontendBaseUrl.isBlank())
+                ? frontendBaseUrl.split(",")[0].trim().replaceAll("/$", "") : "http://localhost:5173";
+        this.frontendBaseUrl = base;
     }
 
     @Async

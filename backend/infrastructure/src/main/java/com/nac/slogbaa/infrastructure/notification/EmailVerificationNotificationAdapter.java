@@ -1,17 +1,23 @@
 package com.nac.slogbaa.infrastructure.notification;
 
 import com.nac.slogbaa.infrastructure.email.EmailService;
+import com.nac.slogbaa.infrastructure.email.EmailSendException;
 import com.nac.slogbaa.shared.ports.EmailVerificationNotificationPort;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 /**
  * Sends email verification emails via EmailService when mail is configured.
+ * On send failure (SMTP/Resend misconfigured), logs the verification URL so it can be used manually.
  */
 @Component
 @ConditionalOnBean(EmailService.class)
 public class EmailVerificationNotificationAdapter implements EmailVerificationNotificationPort {
+
+    private static final Logger log = LoggerFactory.getLogger(EmailVerificationNotificationAdapter.class);
 
     private final EmailService emailService;
 
@@ -37,10 +43,20 @@ public class EmailVerificationNotificationAdapter implements EmailVerificationNo
             </p>
             <p style="margin-top: 24px;">— The SLOGBAA Team</p>
             """.formatted(escapeHtml(fullName), escapeHtml(verificationUrl));
-        emailService.sendHtmlEmail(email, "Verify your SLOGBAA email address", htmlContent);
+        try {
+            emailService.sendHtmlEmail(email, "Verify your SLOGBAA email address", htmlContent);
+        } catch (Exception e) {
+            log.warn("Verification email could not be sent to {} (mail not configured or send failed): {}. " +
+                    "Verification link for manual use: {}", sanitizeForLog(email), e.getMessage(), verificationUrl);
+        }
     }
 
-    private String escapeHtml(String s) {
+    private static String sanitizeForLog(String value) {
+        if (value == null) return null;
+        return value.replaceAll("[\\r\\n]", " ");
+    }
+
+    private static String escapeHtml(String s) {
         if (s == null) return "";
         return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;");
     }
