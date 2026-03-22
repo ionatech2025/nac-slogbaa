@@ -2,6 +2,13 @@
 
 Use this when the backend runs on Railway and the database is Railway Postgres.
 
+## Healthcheck / Flyway failures
+
+If the deployment fails with "Healthcheck failed" and logs show a Flyway error:
+- **Checksum mismatch**: The app runs `flyway.repair()` before `migrate()` when `spring.flyway.repair-on-migrate=true`. This fixes checksum mismatches (e.g. after editing V27).
+- **Migration script error**: Check the full stack trace in Railway Deploy Logs for the failing migration (e.g. SQL syntax, constraint violation). Fix the migration and redeploy.
+- **DB connection**: Ensure `DATASOURCE_URL`, `DATASOURCE_USERNAME`, `DATASOURCE_PASSWORD` are set on the backend service. For Neon, add `?sslmode=require`.
+
 ---
 
 ## 0. Database in a **different** Railway project than the backend

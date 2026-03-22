@@ -642,9 +642,9 @@ export function HomePage() {
           </div>
           <div style={s.videosGrid}>
             {(cmsVideos || [
-              { title: 'Introduction to Civic Leadership', youtubeUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ' },
-              { title: 'Community Governance Basics', youtubeUrl: 'https://www.youtube.com/watch?v=9bZkp7q19f0' },
-              { title: 'Accountability & Transparency', youtubeUrl: 'https://www.youtube.com/watch?v=JGwWNGJdvx8' },
+              { title: 'Introduction to Civic Leadership', youtubeUrl: 'https://www.youtube.com/watch?v=avrQXoBConA' },
+              { title: 'Community Governance Basics', youtubeUrl: 'https://www.youtube.com/watch?v=fWUANWrSHSw' },
+              { title: 'Accountability & Transparency', youtubeUrl: 'https://www.youtube.com/watch?v=9Xk3H0JdUTY' },
             ]).map((v) => {
               const vid = extractYoutubeId(v.youtubeUrl)
               return (
