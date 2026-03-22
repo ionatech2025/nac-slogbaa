@@ -2,6 +2,22 @@ plugins {
     id("org.springframework.boot")
 }
 
+// Load .env from repo root into bootRun (local dev). Production uses platform env vars.
+tasks.named<org.springframework.boot.gradle.tasks.run.BootRun>("bootRun") {
+    val envFile = rootProject.file("../.env")
+    if (envFile.exists()) {
+        envFile.readLines()
+            .filter { it.contains("=") && !it.trim().startsWith("#") }
+            .forEach { line ->
+                val parts = line.split("=", limit = 2)
+                if (parts.size == 2) {
+                    val value = parts[1].trim().removeSurrounding("\"", "\"")
+                    environment(parts[0].trim(), value)
+                }
+            }
+    }
+}
+
 // This is the only module that builds a bootable fat-jar
 tasks.named<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {
     enabled = true

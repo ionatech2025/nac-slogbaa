@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { useSearchParams, Link } from 'react-router-dom'
+import { useState } from 'react'
+import { useSearchParams, Link, useNavigate } from 'react-router-dom'
 import { FontAwesomeIcon, icons } from '../../../shared/icons.jsx'
 import { verifyEmail, resendVerification } from '../../../api/iam/auth.js'
 import { LoadingButton } from '../../../shared/components/LoadingButton.jsx'
@@ -106,27 +106,33 @@ const styles = {
 
 export function VerifyEmailPage() {
   const [searchParams] = useSearchParams()
+  const navigate = useNavigate()
   const token = searchParams.get('token')
 
-  const [status, setStatus] = useState('idle')
+  const [status, setStatus] = useState(token ? 'pending' : 'error')
+  const [verifyLoading, setVerifyLoading] = useState(false)
   const [resendEmail, setResendEmail] = useState('')
   const [resendLoading, setResendLoading] = useState(false)
   const [resendMessage, setResendMessage] = useState(null)
   const [resendError, setResendError] = useState(null)
 
-  useEffect(() => {
-    if (!token) {
-      setStatus('error')
-      return
-    }
-    let cancelled = false
+  const handleVerify = async () => {
+    if (!token) return
+    setVerifyLoading(true)
     setStatus('verifying')
-    verifyEmail(token).then((result) => {
-      if (cancelled) return
-      setStatus(result.success ? 'success' : 'error')
-    })
-    return () => { cancelled = true }
-  }, [token])
+    try {
+      const result = await verifyEmail(token)
+      if (result.success) {
+        navigate('/auth/login', { replace: true })
+      } else {
+        setStatus('error')
+      }
+    } catch {
+      setStatus('error')
+    } finally {
+      setVerifyLoading(false)
+    }
+  }
 
   const handleResend = async (e) => {
     e.preventDefault()
@@ -160,23 +166,31 @@ export function VerifyEmailPage() {
         <h1 style={styles.title}>Email verification</h1>
         <p style={styles.subtitle}>Confirm your email address to activate your account.</p>
 
+        {status === 'pending' && (
+          <>
+            <p style={styles.message}>
+              Click the button below to verify your email address and activate your account.
+            </p>
+            <LoadingButton
+              type="button"
+              onClick={handleVerify}
+              loading={verifyLoading}
+              style={{ ...styles.submit, marginTop: '1rem' }}
+            >
+              <FontAwesomeIcon icon={icons.enrolled} />
+              Verify Email
+            </LoadingButton>
+            <Link to="/auth/login" style={styles.loginLink}>
+              Back to Sign in
+            </Link>
+          </>
+        )}
+
         {status === 'verifying' && (
           <p style={styles.loading}>
             <FontAwesomeIcon icon={icons.loader} style={{ marginRight: '0.5rem' }} />
             Verifying your email...
           </p>
-        )}
-
-        {status === 'success' && (
-          <>
-            <p style={styles.success}>
-              <FontAwesomeIcon icon={icons.enrolled} style={{ marginRight: '0.5rem' }} />
-              Email verified! You can now sign in.
-            </p>
-            <Link to="/auth/login" style={styles.loginLink}>
-              Sign in now
-            </Link>
-          </>
         )}
 
         {status === 'error' && (
