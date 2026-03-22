@@ -133,8 +133,18 @@ jobs:
     steps:
       - name: Install Railway CLI
         run: |
-          # cli.new fails in CI ("Failed to fetch latest version from GitHub"). Use npm instead.
-          npm install -g @railway/cli@4
+          set -euo pipefail
+          if ! command -v railway >/dev/null 2>&1; then
+            echo "Installing Railway CLI..."
+            bash <(curl -fsSL https://cli.new)
+          fi
+          if ! command -v railway >/dev/null 2>&1; then
+            # Installer may place the binary under a custom bin dir.
+            if [ -x "$HOME/.railway/bin/railway" ]; then
+              export PATH="$HOME/.railway/bin:$PATH"
+            fi
+          fi
+          command -v railway
           railway --version
 
       - name: List Railway services (diagnostic)
