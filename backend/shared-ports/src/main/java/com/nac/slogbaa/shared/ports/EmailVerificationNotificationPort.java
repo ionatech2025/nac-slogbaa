@@ -1,13 +1,13 @@
 package com.nac.slogbaa.shared.ports;
 
 /**
- * Port for sending email verification notifications (e.g. email with verification link).
- * Implementations in infrastructure. Pure domain interface.
+ * Port for sending email verification notifications (verification link).
+ * Registration uses one email that includes welcome text plus the verify button; resend uses the same template.
  */
 public interface EmailVerificationNotificationPort {
 
     /**
-     * Send a verification link to the given email.
+     * Send welcome + verification link (HTML includes both onboarding copy and the verify button).
      *
      * @param email           the user's email address
      * @param fullName        the user's full name

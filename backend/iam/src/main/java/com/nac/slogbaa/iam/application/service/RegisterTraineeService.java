@@ -7,7 +7,6 @@ import com.nac.slogbaa.iam.application.port.in.VerifyEmailUseCase;
 import com.nac.slogbaa.iam.application.port.out.PasswordHasherPort;
 import com.nac.slogbaa.iam.application.port.out.StaffUserRepositoryPort;
 import com.nac.slogbaa.iam.application.port.out.TraineeRepositoryPort;
-import com.nac.slogbaa.shared.ports.TraineeNotificationPort;
 import com.nac.slogbaa.iam.core.aggregate.Trainee;
 import com.nac.slogbaa.iam.core.entity.Profile;
 import com.nac.slogbaa.iam.core.exception.DuplicateEmailException;
@@ -32,18 +31,15 @@ public final class RegisterTraineeService implements RegisterTraineeUseCase {
     private final TraineeRepositoryPort traineeRepository;
     private final StaffUserRepositoryPort staffUserRepository;
     private final PasswordHasherPort passwordHasher;
-    private final TraineeNotificationPort traineeNotificationPort;
     private final VerifyEmailUseCase verifyEmailUseCase;
 
     public RegisterTraineeService(TraineeRepositoryPort traineeRepository,
                                   StaffUserRepositoryPort staffUserRepository,
                                   PasswordHasherPort passwordHasher,
-                                  TraineeNotificationPort traineeNotificationPort,
                                   VerifyEmailUseCase verifyEmailUseCase) {
         this.traineeRepository = traineeRepository;
         this.staffUserRepository = staffUserRepository;
         this.passwordHasher = passwordHasher;
-        this.traineeNotificationPort = traineeNotificationPort;
         this.verifyEmailUseCase = verifyEmailUseCase;
     }
 
@@ -86,7 +82,7 @@ public final class RegisterTraineeService implements RegisterTraineeUseCase {
         );
         traineeRepository.save(trainee);
 
-        traineeNotificationPort.sendTraineeWelcomeEmail(email.getValue(), fullName.getFullName());
+        // Single email: welcome + verify link (see EmailVerificationNotificationAdapter)
         verifyEmailUseCase.sendVerificationEmail(email.getValue());
 
         return new RegisterTraineeResult(id.getValue(), email.getValue());

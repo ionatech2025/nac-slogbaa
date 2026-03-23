@@ -9,6 +9,7 @@ import com.nac.slogbaa.iam.core.exception.InvalidResetTokenException;
 import com.nac.slogbaa.iam.core.valueobject.*;
 import com.nac.slogbaa.iam.core.entity.Profile;
 import com.nac.slogbaa.shared.ports.PasswordResetNotificationPort;
+import com.nac.slogbaa.shared.util.FrontendAppBaseUrl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -59,6 +60,24 @@ class PasswordResetServiceTest {
     void initiateResetSilentForNullEmail() {
         service.initiateReset(null);
         assertTrue(tokenRepo.saved.isEmpty());
+    }
+
+    @Test
+    void initiateResetUsesHttpsBaseWhenCommaSeparated() {
+        service = new PasswordResetService(traineeRepo, staffRepo, tokenRepo,
+                new PasswordHasherPort() {
+                    @Override public String hash(String raw) { return "h"; }
+                    @Override public boolean matches(String raw, String hashed) { return false; }
+                },
+                notification,
+                FrontendAppBaseUrl.normalize(
+                        "http://localhost:5173,http://localhost:3000,https://nac-slogbaa.vercel.app",
+                        true));
+        traineeRepo.traineeEmail = "user@test.com";
+        service.initiateReset("user@test.com");
+        assertNotNull(notification.lastResetUrl);
+        assertTrue(notification.lastResetUrl.startsWith("https://nac-slogbaa.vercel.app/reset-password?token="),
+                () -> "got: " + notification.lastResetUrl);
     }
 
     @Test
@@ -169,6 +188,12 @@ class PasswordResetServiceTest {
 
     private static class RecordingNotification implements PasswordResetNotificationPort {
         final List<String> sentEmails = new ArrayList<>();
-        @Override public void sendResetLink(String email, String token, String resetUrl) { sentEmails.add(email); }
+        String lastResetUrl;
+
+        @Override
+        public void sendResetLink(String email, String token, String resetUrl) {
+            sentEmails.add(email);
+            lastResetUrl = resetUrl;
+        }
     }
 }

@@ -3,6 +3,9 @@ package com.nac.slogbaa.iam.config;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
+
+import com.nac.slogbaa.shared.util.FrontendAppBaseUrl;
 
 import com.nac.slogbaa.iam.application.port.in.AuthenticateUserUseCase;
 import com.nac.slogbaa.iam.application.port.in.ChangeStaffPasswordUseCase;
@@ -59,8 +62,11 @@ public class IamConfiguration {
     @Value("${app.jwt.expiry-seconds:86400}")
     private long tokenExpirySeconds;
 
-    @Value("${app.password-reset.base-url:http://localhost:5173}")
-    private String passwordResetBaseUrl;
+    private static String resolveFrontendBaseUrl(Environment env) {
+        String raw = env.getProperty("app.password-reset.base-url", "http://localhost:5173");
+        boolean prod = FrontendAppBaseUrl.isProductionProfile(env.getProperty("spring.profiles.active", ""));
+        return FrontendAppBaseUrl.normalize(raw, prod);
+    }
 
     @Bean
     public AuthenticateUserUseCase authenticateUserUseCase(
@@ -81,12 +87,13 @@ public class IamConfiguration {
     public VerifyEmailUseCase verifyEmailUseCase(
             TraineeRepositoryPort traineeRepository,
             EmailVerificationTokenRepositoryPort tokenRepository,
-            EmailVerificationNotificationPort notificationPort) {
+            EmailVerificationNotificationPort notificationPort,
+            Environment env) {
         return new VerifyEmailService(
                 traineeRepository,
                 tokenRepository,
                 notificationPort,
-                passwordResetBaseUrl
+                resolveFrontendBaseUrl(env)
         );
     }
 
@@ -95,13 +102,11 @@ public class IamConfiguration {
             TraineeRepositoryPort traineeRepository,
             StaffUserRepositoryPort staffUserRepository,
             PasswordHasherPort passwordHasher,
-            TraineeNotificationPort traineeNotificationPort,
             VerifyEmailUseCase verifyEmailUseCase) {
         return new RegisterTraineeService(
                 traineeRepository,
                 staffUserRepository,
                 passwordHasher,
-                traineeNotificationPort,
                 verifyEmailUseCase
         );
     }
@@ -193,14 +198,15 @@ public class IamConfiguration {
             StaffUserRepositoryPort staffUserRepository,
             PasswordResetTokenRepositoryPort tokenRepository,
             PasswordHasherPort passwordHasher,
-            PasswordResetNotificationPort notificationPort) {
+            PasswordResetNotificationPort notificationPort,
+            Environment env) {
         return new PasswordResetService(
                 traineeRepository,
                 staffUserRepository,
                 tokenRepository,
                 passwordHasher,
                 notificationPort,
-                passwordResetBaseUrl
+                resolveFrontendBaseUrl(env)
         );
     }
 

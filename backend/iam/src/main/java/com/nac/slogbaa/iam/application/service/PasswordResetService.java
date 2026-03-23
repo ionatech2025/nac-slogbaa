@@ -42,7 +42,7 @@ public final class PasswordResetService implements PasswordResetUseCase {
         this.tokenRepository = tokenRepository;
         this.passwordHasher = passwordHasher;
         this.notificationPort = notificationPort;
-        this.resetBaseUrl = resetBaseUrl;
+        this.resetBaseUrl = resetBaseUrl != null ? resetBaseUrl : "";
     }
 
     @Override

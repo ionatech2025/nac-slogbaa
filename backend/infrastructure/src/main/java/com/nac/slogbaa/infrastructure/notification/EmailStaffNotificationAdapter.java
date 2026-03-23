@@ -1,9 +1,11 @@
 package com.nac.slogbaa.infrastructure.notification;
 
 import com.nac.slogbaa.infrastructure.email.EmailService;
+import com.nac.slogbaa.shared.util.FrontendAppBaseUrl;
 import com.nac.slogbaa.shared.ports.StaffNotificationPort;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
@@ -19,10 +21,12 @@ public class EmailStaffNotificationAdapter implements StaffNotificationPort {
     private final String frontendBaseUrl;
 
     public EmailStaffNotificationAdapter(EmailService emailService,
-                                         @Value("${app.password-reset.base-url:http://localhost:5173}") String frontendBaseUrl) {
+                                         @Value("${app.password-reset.base-url:http://localhost:5173}") String frontendBaseUrl,
+                                         Environment env) {
         this.emailService = emailService;
+        boolean prod = FrontendAppBaseUrl.isProductionProfile(env.getProperty("spring.profiles.active", ""));
         String base = (frontendBaseUrl != null && !frontendBaseUrl.isBlank())
-                ? frontendBaseUrl.split(",")[0].trim().replaceAll("/$", "") : "http://localhost:5173";
+                ? FrontendAppBaseUrl.normalize(frontendBaseUrl, prod).replaceAll("/$", "") : "http://localhost:5173";
         this.frontendBaseUrl = base;
     }
 
