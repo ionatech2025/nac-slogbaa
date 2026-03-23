@@ -1,6 +1,18 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+
+/** Intentionally not in deps: when trainee passes, parent sets moduleCompleted true; re-running would clear `result`. */
+function useLatest(value) {
+  const ref = useRef(value)
+  ref.current = value
+  return ref
+}
 import { Icon, icons } from '../../../shared/icons.jsx'
-import { getQuizForModule, startQuizAttempt, submitQuizAttempt } from '../../../api/assessment/quizzes.js'
+import {
+  getQuizForModule,
+  getLastPassedQuizResult,
+  startQuizAttempt,
+  submitQuizAttempt,
+} from '../../../api/assessment/quizzes.js'
 import { recordModuleCompletion } from '../../../api/learning/courses.js'
 
 const styles = {
@@ -61,25 +73,27 @@ const styles = {
     fontWeight: 600,
     color: 'var(--slogbaa-text)',
   },
-  opt: {
+  opt: (locked) => ({
     display: 'flex',
     gap: '0.6rem',
     alignItems: 'flex-start',
     padding: '0.5rem 0',
-    cursor: 'pointer',
+    cursor: locked ? 'default' : 'pointer',
     color: 'var(--slogbaa-text)',
-  },
-  textarea: {
+    opacity: locked ? 0.9 : 1,
+  }),
+  textarea: (locked) => ({
     width: '100%',
     minHeight: 90,
     marginTop: '0.5rem',
     padding: '0.6rem 0.75rem',
     borderRadius: 10,
     border: '1px solid var(--slogbaa-border)',
-    background: 'var(--slogbaa-bg)',
+    background: locked ? 'var(--slogbaa-surface)' : 'var(--slogbaa-bg)',
     color: 'var(--slogbaa-text)',
     resize: 'vertical',
-  },
+    opacity: locked ? 0.95 : 1,
+  }),
   resultRow: {
     marginTop: '1rem',
     paddingTop: '1rem',
@@ -101,7 +115,6 @@ const styles = {
     color: kind === 'pass' ? 'var(--slogbaa-green)' : 'var(--slogbaa-error)',
     border: `1px solid ${kind === 'pass' ? 'rgba(52, 211, 153, 0.35)' : 'rgba(248, 113, 113, 0.35)'}`,
   }),
-  // Review section styles
   reviewSection: {
     marginTop: '1rem',
     paddingTop: '1rem',
@@ -139,22 +152,72 @@ const styles = {
     fontSize: '0.875rem',
     marginBottom: '0.25rem',
   },
+  doneBanner: {
+    marginTop: '0.75rem',
+    padding: '0.65rem 0.85rem',
+    borderRadius: 10,
+    background: 'rgba(52, 211, 153, 0.08)',
+    border: '1px solid rgba(52, 211, 153, 0.35)',
+    fontSize: '0.875rem',
+    fontWeight: 600,
+    color: 'var(--slogbaa-green)',
+  },
 }
 
 function normalizeType(t) {
   return String(t || '').toUpperCase()
 }
 
-export function ModuleQuizPanel({ token, courseId, moduleId, visible, showPanel = true, notesReadThrough = true, notesVisible = true, onStartQuiz, onRereadNotes, onModuleCompleted }) {
+export function ModuleQuizPanel({
+  token,
+  courseId,
+  moduleId,
+  visible,
+  showPanel = true,
+  notesReadThrough = true,
+  notesVisible = true,
+  moduleCompleted = false,
+  onStartQuiz,
+  onRereadNotes,
+  onModuleCompleted,
+}) {
   const [loading, setLoading] = useState(false)
   const [quiz, setQuiz] = useState(null)
   const [attempt, setAttempt] = useState(null)
   const [answers, setAnswers] = useState({})
   const [submitting, setSubmitting] = useState(false)
   const [result, setResult] = useState(null)
+  /** Loaded when opening an already-completed module (persisted pass). */
+  const [savedResult, setSavedResult] = useState(null)
   const [error, setError] = useState(null)
   const [reviewExpanded, setReviewExpanded] = useState(true)
-  const canStartQuiz = notesReadThrough && !loading && quiz
+  const prevNotesVisibleRef = useRef(notesVisible)
+  const moduleCompletedRef = useLatest(moduleCompleted)
+
+  const effectiveResult = result || savedResult
+  const hasPassed = Boolean(effectiveResult?.passed)
+  const quizFinishedReadonly = Boolean(result) // submitted this session (pass or fail)
+  const inputsLocked = quizFinishedReadonly || hasPassed
+
+  const notesGateOk = notesReadThrough && !loading && quiz
+  const canStartQuiz =
+    notesGateOk && !attempt && !result && !savedResult && !moduleCompleted
+
+  // Re-read Notes: drop in-progress attempt unless module is already completed / passed.
+  useEffect(() => {
+    if (moduleCompleted || hasPassed) {
+      prevNotesVisibleRef.current = notesVisible
+      return
+    }
+    if (notesVisible && prevNotesVisibleRef.current === false) {
+      setAttempt(null)
+      setResult(null)
+      setAnswers({})
+      setSubmitting(false)
+      setError(null)
+    }
+    prevNotesVisibleRef.current = notesVisible
+  }, [notesVisible, moduleCompleted, hasPassed])
 
   useEffect(() => {
     if (!visible || !token || !courseId || !moduleId) return
@@ -165,20 +228,31 @@ export function ModuleQuizPanel({ token, courseId, moduleId, visible, showPanel 
     setAttempt(null)
     setAnswers({})
     setResult(null)
+    setSavedResult(null)
 
-    getQuizForModule(token, courseId, moduleId)
-      .then((q) => {
-        if (cancelled) return
-        setQuiz(q)
-      })
-      .catch((e) => {
+    const run = async () => {
+      try {
+        if (moduleCompletedRef.current) {
+          const [q, lastPassed] = await Promise.all([
+            getQuizForModule(token, courseId, moduleId),
+            getLastPassedQuizResult(token, courseId, moduleId),
+          ])
+          if (cancelled) return
+          setQuiz(q)
+          setSavedResult(lastPassed)
+        } else {
+          const q = await getQuizForModule(token, courseId, moduleId)
+          if (cancelled) return
+          setQuiz(q)
+        }
+      } catch (e) {
         if (cancelled) return
         setError(e?.message ?? 'Failed to load quiz.')
-      })
-      .finally(() => {
-        if (cancelled) return
-        setLoading(false)
-      })
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+    run()
 
     return () => {
       cancelled = true
@@ -188,7 +262,7 @@ export function ModuleQuizPanel({ token, courseId, moduleId, visible, showPanel 
   const questions = useMemo(() => quiz?.questions ?? [], [quiz])
 
   const start = async () => {
-    if (!token || !courseId || !moduleId || !canStartQuiz) return
+    if (!token || !courseId || !moduleId || !canStartQuiz || moduleCompleted) return
     setError(null)
     setSubmitting(false)
     setResult(null)
@@ -207,7 +281,7 @@ export function ModuleQuizPanel({ token, courseId, moduleId, visible, showPanel 
   }
 
   const submit = async () => {
-    if (!token || !attempt?.attemptId) return
+    if (!token || !attempt?.attemptId || inputsLocked) return
     setSubmitting(true)
     setError(null)
     try {
@@ -234,6 +308,9 @@ export function ModuleQuizPanel({ token, courseId, moduleId, visible, showPanel 
 
   if (!visible || !showPanel) return null
 
+  const showActiveQuestions = attempt?.attemptId && quiz && !hasPassed
+  const reviewAnswers = effectiveResult?.answers
+
   return (
     <section style={styles.card}>
       <div style={styles.headerRow}>
@@ -243,7 +320,10 @@ export function ModuleQuizPanel({ token, courseId, moduleId, visible, showPanel 
             {loading ? 'Loading quiz…' : null}
             {!loading && quiz ? `${questions.length} question${questions.length === 1 ? '' : 's'} · Pass mark: ${quiz.passThresholdPercent}%` : null}
             {!loading && !quiz ? 'No quiz is configured for this module yet.' : null}
-            {!loading && quiz && !notesReadThrough ? ' Read through the module notes above to unlock the quiz.' : null}
+            {!loading && quiz && !notesReadThrough && !moduleCompleted
+              ? ' Scroll the notes box above to the bottom to unlock the quiz.'
+              : null}
+            {moduleCompleted && !loading ? ' This module is complete — quiz is view only.' : null}
           </p>
         </div>
 
@@ -256,16 +336,12 @@ export function ModuleQuizPanel({ token, courseId, moduleId, visible, showPanel 
           >
             Start quiz
           </button>
-          {!notesVisible && typeof onRereadNotes === 'function' && (
-            <button
-              type="button"
-              onClick={onRereadNotes}
-              style={styles.button('ghost')}
-            >
+          {!notesVisible && typeof onRereadNotes === 'function' && !moduleCompleted && !hasPassed && (
+            <button type="button" onClick={onRereadNotes} style={styles.button('ghost')}>
               Re-read Notes
             </button>
           )}
-          {attempt?.attemptId && (
+          {attempt?.attemptId && !hasPassed && (
             <button
               type="button"
               onClick={() => {
@@ -283,75 +359,81 @@ export function ModuleQuizPanel({ token, courseId, moduleId, visible, showPanel 
 
       {error && <div style={styles.error}>{error}</div>}
 
-      {attempt?.attemptId && quiz && (
-        <div style={{ marginTop: '0.75rem' }}>
-          {questions.map((q, idx) => {
-            const type = normalizeType(q.questionType)
-            const current = answers[q.id] ?? {}
-            return (
-              <div key={q.id} style={styles.question}>
-                <p style={styles.qText}>
-                  {idx + 1}. {q.questionText}
-                </p>
+      {hasPassed && !loading && <div style={styles.doneBanner}>Quiz passed — your answers below are read only.</div>}
 
-                {(type === 'MULTIPLE_CHOICE' || type === 'TRUE_FALSE') && (
-                  <div>
-                    {(q.options ?? [])
-                      .slice()
-                      .sort((a, b) => (a.optionOrder ?? 0) - (b.optionOrder ?? 0))
-                      .map((o) => (
-                        <label key={o.id} style={styles.opt}>
-                          <input
-                            type="radio"
-                            name={`q_${q.id}`}
-                            checked={current.selectedOptionId === o.id}
-                            onChange={() =>
-                              setAnswers((prev) => ({
-                                ...prev,
-                                [q.id]: { ...prev[q.id], selectedOptionId: o.id },
-                              }))
-                            }
-                          />
-                          <span>{o.optionText}</span>
-                        </label>
-                      ))}
-                  </div>
-                )}
+      {showActiveQuestions &&
+        questions.map((q, idx) => {
+          const type = normalizeType(q.questionType)
+          const current = answers[q.id] ?? {}
+          const locked = inputsLocked
+          return (
+            <div key={q.id} style={styles.question}>
+              <p style={styles.qText}>
+                {idx + 1}. {q.questionText}
+              </p>
 
-                {(type === 'SHORT_ANSWER' || type === 'ESSAY') && (
-                  <textarea
-                    style={styles.textarea}
-                    placeholder="Type your answer…"
-                    value={current.textAnswer ?? ''}
-                    onChange={(e) =>
-                      setAnswers((prev) => ({
-                        ...prev,
-                        [q.id]: { ...prev[q.id], textAnswer: e.target.value },
-                      }))
-                    }
-                  />
-                )}
-              </div>
-            )
-          })}
+              {(type === 'MULTIPLE_CHOICE' || type === 'TRUE_FALSE') && (
+                <div>
+                  {(q.options ?? [])
+                    .slice()
+                    .sort((a, b) => (a.optionOrder ?? 0) - (b.optionOrder ?? 0))
+                    .map((o) => (
+                      <label key={o.id} style={styles.opt(locked)}>
+                        <input
+                          type="radio"
+                          name={`q_${q.id}`}
+                          checked={current.selectedOptionId === o.id}
+                          disabled={locked}
+                          onChange={() =>
+                            setAnswers((prev) => ({
+                              ...prev,
+                              [q.id]: { ...prev[q.id], selectedOptionId: o.id },
+                            }))
+                          }
+                        />
+                        <span>{o.optionText}</span>
+                      </label>
+                    ))}
+                </div>
+              )}
 
-          <div style={styles.resultRow}>
-            <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
-              <span style={{ color: 'var(--slogbaa-text-muted)', fontSize: '0.875rem' }}>
-                Attempt #{attempt.attemptNumber}
-              </span>
-              {result && (
-                <>
-                  <span style={styles.pill(result.passed ? 'pass' : 'fail')}>
-                    {result.passed ? 'PASSED' : 'FAILED'}
-                  </span>
-                  <span style={{ color: 'var(--slogbaa-text)', fontWeight: 600 }}>
-                    Score: {result.percentScore}% ({result.pointsEarned}/{result.totalPoints})
-                  </span>
-                </>
+              {(type === 'SHORT_ANSWER' || type === 'ESSAY') && (
+                <textarea
+                  style={styles.textarea(locked)}
+                  placeholder="Type your answer…"
+                  readOnly={locked}
+                  value={current.textAnswer ?? ''}
+                  onChange={(e) =>
+                    setAnswers((prev) => ({
+                      ...prev,
+                      [q.id]: { ...prev[q.id], textAnswer: e.target.value },
+                    }))
+                  }
+                />
               )}
             </div>
+          )
+        })}
 
+      {attempt?.attemptId && quiz && !hasPassed && (
+        <div style={styles.resultRow}>
+          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+            <span style={{ color: 'var(--slogbaa-text-muted)', fontSize: '0.875rem' }}>
+              Attempt #{attempt.attemptNumber}
+            </span>
+            {result && (
+              <>
+                <span style={styles.pill(result.passed ? 'pass' : 'fail')}>
+                  {result.passed ? 'PASSED' : 'FAILED'}
+                </span>
+                <span style={{ color: 'var(--slogbaa-text)', fontWeight: 600 }}>
+                  Score: {result.percentScore}% ({result.pointsEarned}/{result.totalPoints})
+                </span>
+              </>
+            )}
+          </div>
+
+          {!quizFinishedReadonly && (
             <button
               type="button"
               onClick={submit}
@@ -360,56 +442,69 @@ export function ModuleQuizPanel({ token, courseId, moduleId, visible, showPanel 
             >
               {submitting ? 'Submitting…' : 'Submit answers'}
             </button>
+          )}
+        </div>
+      )}
+
+      {hasPassed && effectiveResult && (
+        <div style={{ ...styles.resultRow, marginTop: '1rem' }}>
+          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+            <span style={styles.pill('pass')}>PASSED</span>
+            <span style={{ color: 'var(--slogbaa-text)', fontWeight: 600 }}>
+              Score: {effectiveResult.percentScore}% ({effectiveResult.pointsEarned}/{effectiveResult.totalPoints})
+            </span>
           </div>
+        </div>
+      )}
 
-          {result && result.answers && result.answers.length > 0 && (
-            <div style={styles.reviewSection}>
-              <button
-                type="button"
-                onClick={() => setReviewExpanded((v) => !v)}
-                style={styles.reviewToggle}
-                aria-expanded={reviewExpanded}
-              >
-                <Icon icon={icons.enrolled} size="1em" />
-                {reviewExpanded ? 'Hide Review' : 'Review Your Answers'}
-              </button>
+      {reviewAnswers && reviewAnswers.length > 0 && (
+        <div style={styles.reviewSection}>
+          <button
+            type="button"
+            onClick={() => setReviewExpanded((v) => !v)}
+            style={styles.reviewToggle}
+            aria-expanded={reviewExpanded}
+          >
+            <Icon icon={icons.enrolled} size="1em" />
+            {reviewExpanded ? 'Hide review' : 'Review your answers'}
+          </button>
 
-              {reviewExpanded && (
-                <div>
-                  {result.answers.map((a, idx) => (
-                    <div key={a.questionId || idx} style={styles.reviewCard(a.correct)}>
-                      <p style={styles.reviewQText}>
-                        {idx + 1}. {a.questionText}
-                      </p>
-                      <div style={styles.reviewAnswer}>
-                        <Icon
-                          icon={a.correct ? icons.enrolled : icons.close}
-                          size="1em"
-                          style={{ color: a.correct ? 'var(--slogbaa-green)' : 'var(--slogbaa-error)', marginTop: 2, flexShrink: 0 }}
-                        />
-                        <span style={{ color: a.correct ? 'var(--slogbaa-green)' : 'var(--slogbaa-error)' }}>
-                          Your answer: {a.selectedOptionText || '(none)'}
-                        </span>
-                      </div>
-                      {!a.correct && a.correctOptionText && (
-                        <div style={styles.reviewAnswer}>
-                          <Icon
-                            icon={icons.enrolled}
-                            size="1em"
-                            style={{ color: 'var(--slogbaa-green)', marginTop: 2, flexShrink: 0 }}
-                          />
-                          <span style={{ color: 'var(--slogbaa-green)' }}>
-                            Correct answer: {a.correctOptionText}
-                          </span>
-                        </div>
-                      )}
-                      <div style={{ fontSize: '0.8125rem', color: 'var(--slogbaa-text-muted)', marginTop: '0.25rem' }}>
-                        {a.pointsAwarded}/{a.totalPoints} point{a.totalPoints !== 1 ? 's' : ''}
-                      </div>
+          {reviewExpanded && (
+            <div>
+              {reviewAnswers.map((a, idx) => (
+                <div key={a.questionId || idx} style={styles.reviewCard(a.correct)}>
+                  <p style={styles.reviewQText}>
+                    {idx + 1}. {a.questionText}
+                  </p>
+                  <div style={styles.reviewAnswer}>
+                    <Icon
+                      icon={a.correct ? icons.enrolled : icons.close}
+                      size="1em"
+                      style={{
+                        color: a.correct ? 'var(--slogbaa-green)' : 'var(--slogbaa-error)',
+                        marginTop: 2,
+                        flexShrink: 0,
+                      }}
+                    />
+                    <span style={{ color: a.correct ? 'var(--slogbaa-green)' : 'var(--slogbaa-error)' }}>
+                      Your answer: {a.selectedOptionText || '(none)'}
+                    </span>
+                  </div>
+                  {!a.correct && a.correctOptionText && (
+                    <div style={styles.reviewAnswer}>
+                      <Icon
+                        icon={icons.enrolled}
+                        size="1em"
+                        style={{ color: 'var(--slogbaa-green)', marginTop: 2, flexShrink: 0 }}
+                      />
+                      <span style={{ color: 'var(--slogbaa-green)' }}>Correct answer: {a.correctOptionText}</span>
                     </div>
-                  ))}
+                  )}
+                  <div style={{ fontSize: '0.8125rem', color: 'var(--slogbaa-text-muted)', marginTop: '0.25rem' }}>
+                    {a.pointsAwarded}/{a.totalPoints} point{a.totalPoints !== 1 ? 's' : ''}
+                  </div>
                 </div>
-              )}
+              ))}
             </div>
           )}
         </div>
@@ -417,4 +512,3 @@ export function ModuleQuizPanel({ token, courseId, moduleId, visible, showPanel 
     </section>
   )
 }
-

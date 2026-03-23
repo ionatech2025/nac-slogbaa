@@ -270,7 +270,7 @@ export function EditProfileModal({ profile, certificateEmailOptIn = false, onClo
         {/* Avatar upload section */}
         <div style={styles.avatarSection}>
           {currentAvatarUrl ? (
-            // codeql[js/xss]
+            /* Avatar URL from our API / blob preview; gated before src. codeql[js/xss] */
             <img
               src={typeof currentAvatarUrl === 'string' && (currentAvatarUrl.startsWith('blob:') || currentAvatarUrl.startsWith('/') || currentAvatarUrl.startsWith('http://') || currentAvatarUrl.startsWith('https://')) ? currentAvatarUrl : ''}
               alt={`Avatar: ${profile?.firstName ?? ''} ${profile?.lastName ?? ''}`}

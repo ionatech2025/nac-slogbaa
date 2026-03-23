@@ -88,6 +88,20 @@ public interface JpaQuizAttemptRepository extends JpaRepository<QuizAttemptEntit
     Optional<BestScoreProjection> findBestPassedScoreForTraineeAndCourse(
             @Param("traineeId") UUID traineeId, @Param("courseId") UUID courseId);
 
+    @Query(value = """
+            SELECT qa.id FROM quiz_attempt qa
+            JOIN trainee_assessment ta ON ta.id = qa.trainee_assessment_id
+            JOIN module m ON m.id = ta.module_id
+            WHERE ta.trainee_id = :traineeId AND ta.module_id = :moduleId AND m.course_id = :courseId
+            AND qa.completed_at IS NOT NULL AND qa.is_passed = true
+            ORDER BY qa.completed_at DESC
+            LIMIT 1
+            """, nativeQuery = true)
+    Optional<UUID> findLatestPassedAttemptId(
+            @Param("traineeId") UUID traineeId,
+            @Param("moduleId") UUID moduleId,
+            @Param("courseId") UUID courseId);
+
     interface BestScoreProjection {
         int getPointsEarned();
         int getTotalPoints();

@@ -11,6 +11,7 @@ export const queryKeys = {
     detail: (courseId) => [...queryKeys.courses.all, 'detail', courseId],
     enrollment: (courseId) => [...queryKeys.courses.all, 'enrollment', courseId],
     resume: (courseId) => [...queryKeys.courses.all, 'resume', courseId],
+    completedModules: (courseId) => [...queryKeys.courses.all, 'completed-modules', courseId],
   },
 
   // === Library ===

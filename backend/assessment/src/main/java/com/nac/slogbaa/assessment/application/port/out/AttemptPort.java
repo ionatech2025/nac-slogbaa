@@ -42,6 +42,11 @@ public interface AttemptPort {
      */
     SubmittedAttemptDto submitAttempt(UUID attemptId, UUID traineeId, List<AnswerSubmission> answers);
 
+    /**
+     * Trainee's most recent passed attempt for the module in the given course (for read-only review after completion).
+     */
+    java.util.Optional<SubmittedAttemptDto> findLatestPassedAttemptReview(UUID traineeId, UUID moduleId, UUID courseId);
+
     record AnswerSubmission(UUID questionId, UUID selectedOptionId, String textAnswer) {}
 
     record AttemptTimingInfo(Instant startedAt, Integer timeLimitMinutes) {}

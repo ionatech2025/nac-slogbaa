@@ -215,8 +215,17 @@ function AdminContentBlockRenderer({ block }) {
     return (
       <div style={{ marginBottom: '1.5rem' }}>
         <figure style={{ margin: 0 }}>
-          // codeql[js/xss]
-          <img src={getAssetUrl(imageUrl)} alt={imageAltText || ''} style={styles.blockImage} loading="lazy" />
+          {/* URL from CMS; normalized via getAssetUrl before img src. codeql[js/xss] */}
+          <img
+            src={getAssetUrl(imageUrl)}
+            alt={imageAltText || ''}
+            style={styles.blockImage}
+            loading="lazy"
+            decoding="async"
+            onError={(e) => {
+              e.target.style.display = 'none'
+            }}
+          />
           {imageCaption && <figcaption style={styles.blockImageCaption}>{imageCaption}</figcaption>}
         </figure>
       </div>
@@ -650,6 +659,7 @@ export function AdminModuleEditorPage() {
                 onReady={() => setEditorReady(true)}
                 readOnly={false}
                 holderId={`module-editor-${moduleId}`}
+                uploadToken={token}
               />
             </div>
           ) : (
