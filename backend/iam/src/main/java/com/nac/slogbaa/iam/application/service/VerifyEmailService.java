@@ -32,10 +32,7 @@ public final class VerifyEmailService implements VerifyEmailUseCase {
         this.traineeRepository = traineeRepository;
         this.tokenRepository = tokenRepository;
         this.notificationPort = notificationPort;
-        // Use first URL if value is comma-separated (e.g. misconfigured like CORS list)
-        this.baseUrl = (baseUrl != null && baseUrl.contains(","))
-                ? baseUrl.split(",")[0].trim()
-                : (baseUrl != null ? baseUrl : "");
+        this.baseUrl = baseUrl != null ? baseUrl : "";
     }
 
     @Override

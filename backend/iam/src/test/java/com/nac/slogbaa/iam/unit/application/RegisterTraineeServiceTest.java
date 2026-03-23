@@ -12,7 +12,6 @@ import com.nac.slogbaa.iam.core.aggregate.Trainee;
 import com.nac.slogbaa.iam.core.exception.DuplicateEmailException;
 import com.nac.slogbaa.iam.core.exception.StaffCannotSelfRegisterException;
 import com.nac.slogbaa.iam.core.valueobject.*;
-import com.nac.slogbaa.shared.ports.TraineeNotificationPort;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -27,21 +26,19 @@ class RegisterTraineeServiceTest {
 
     private InMemoryTraineeRepo traineeRepo;
     private StubStaffRepo staffRepo;
-    private RecordingNotification notification;
-    private NoOpVerifyEmail verifyEmail;
+    private RecordingVerifyEmail verifyEmail;
     private RegisterTraineeService service;
 
     @BeforeEach
     void setUp() {
         traineeRepo = new InMemoryTraineeRepo();
         staffRepo = new StubStaffRepo();
-        notification = new RecordingNotification();
-        verifyEmail = new NoOpVerifyEmail();
+        verifyEmail = new RecordingVerifyEmail();
         PasswordHasherPort hasher = new PasswordHasherPort() {
             @Override public String hash(String raw) { return "hashed:" + raw; }
             @Override public boolean matches(String raw, String hashed) { return hashed.equals("hashed:" + raw); }
         };
-        service = new RegisterTraineeService(traineeRepo, staffRepo, hasher, notification, verifyEmail);
+        service = new RegisterTraineeService(traineeRepo, staffRepo, hasher, verifyEmail);
     }
 
     @Test
@@ -52,7 +49,7 @@ class RegisterTraineeServiceTest {
         assertNotNull(result.getTraineeId());
         assertEquals("new@example.com", result.getEmail());
         assertEquals(1, traineeRepo.saved.size());
-        assertTrue(notification.sentTo.contains("new@example.com"));
+        assertEquals(List.of("new@example.com"), verifyEmail.sentVerificationTo);
     }
 
     @Test
@@ -118,23 +115,12 @@ class RegisterTraineeServiceTest {
         @Override public void updatePasswordHash(StaffUserId id, String newPasswordHash) {}
     }
 
-    private static class RecordingNotification implements TraineeNotificationPort {
-        final List<String> sentTo = new ArrayList<>();
+    private static class RecordingVerifyEmail implements VerifyEmailUseCase {
+        final List<String> sentVerificationTo = new ArrayList<>();
 
-        @Override
-        public void sendTraineeWelcomeEmail(String email, String fullName) {
-            sentTo.add(email);
+        @Override public void sendVerificationEmail(String email) {
+            sentVerificationTo.add(email);
         }
-
-        @Override
-        public void sendCertificateEmail(String toEmail, String traineeName, String courseTitle, byte[] pdfBytes) {}
-
-        @Override
-        public void sendPasswordChangedByAdmin(String toEmail, String fullName, String newPassword) {}
-    }
-
-    private static class NoOpVerifyEmail implements VerifyEmailUseCase {
-        @Override public void sendVerificationEmail(String email) {}
         @Override public boolean verify(String token) { return false; }
         @Override public void resendVerification(String email) {}
     }

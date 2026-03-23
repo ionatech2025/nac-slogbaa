@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useSearchParams, Link, useNavigate } from 'react-router-dom'
 import { FontAwesomeIcon, icons } from '../../../shared/icons.jsx'
 import { verifyResetToken, confirmPasswordReset } from '../../../api/iam/auth.js'
@@ -138,26 +138,27 @@ export function ResetPasswordPage() {
   const token = searchParams.get('token')
   const navigate = useNavigate()
 
-  const [status, setStatus] = useState('idle')
+  const [status, setStatus] = useState(token ? 'pending' : 'invalid')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
+  const [verifyLoading, setVerifyLoading] = useState(false)
 
-  useEffect(() => {
-    if (!token) {
-      setStatus('invalid')
-      return
-    }
-    let cancelled = false
+  const handleContinue = async () => {
+    if (!token) return
+    setVerifyLoading(true)
     setStatus('verifying')
-    verifyResetToken(token).then((result) => {
-      if (cancelled) return
+    try {
+      const result = await verifyResetToken(token)
       setStatus(result.valid ? 'valid' : 'invalid')
-    })
-    return () => { cancelled = true }
-  }, [token])
+    } catch {
+      setStatus('invalid')
+    } finally {
+      setVerifyLoading(false)
+    }
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -175,7 +176,7 @@ export function ResetPasswordPage() {
         return
       }
       setStatus('success')
-      setTimeout(() => navigate('/auth/login', { replace: true }), 2000)
+      setTimeout(() => navigate('/auth/login', { replace: true }), 1500)
     } catch (err) {
       setError(err?.message ?? 'Network error. Is the backend running?')
     } finally {
@@ -191,6 +192,26 @@ export function ResetPasswordPage() {
         </div>
         <h1 style={styles.title}>Reset password</h1>
         <p style={styles.subtitle}>Set a new password for your SLOGBAA account.</p>
+
+        {status === 'pending' && (
+          <>
+            <p style={styles.message}>
+              You requested a password reset. Click below to open the reset form. This link expires in 15 minutes.
+            </p>
+            <LoadingButton
+              type="button"
+              onClick={handleContinue}
+              loading={verifyLoading}
+              style={{ ...styles.submit, marginTop: '1rem' }}
+            >
+              <FontAwesomeIcon icon={icons.changePassword} />
+              Continue to reset password
+            </LoadingButton>
+            <Link to="/auth/login" style={styles.loginLink}>
+              Back to Sign in
+            </Link>
+          </>
+        )}
 
         {status === 'verifying' && (
           <p style={styles.loading}>Verifying reset link...</p>
@@ -225,8 +246,8 @@ export function ResetPasswordPage() {
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   style={{ ...styles.input, ...styles.passwordInput, paddingLeft: '2.5rem' }}
-                  placeholder="At least 6 characters"
-                  minLength={6}
+                  placeholder="At least 12 characters"
+                  minLength={12}
                 />
                 <button
                   type="button"
