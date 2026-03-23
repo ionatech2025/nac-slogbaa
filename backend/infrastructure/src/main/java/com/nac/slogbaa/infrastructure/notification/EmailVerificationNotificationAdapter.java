@@ -10,7 +10,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 /**
- * Sends email verification emails via EmailService when mail is configured.
+ * Sends one registration/resend email: welcome copy plus verify button and link.
  * On send failure (SMTP/Resend misconfigured), logs the verification URL so it can be used manually.
  */
 @Component
@@ -29,9 +29,11 @@ public class EmailVerificationNotificationAdapter implements EmailVerificationNo
     @Override
     public void sendVerificationLink(String email, String fullName, String verificationUrl) {
         String htmlContent = """
-            <h2>Verify your email address</h2>
+            <h2>Welcome to SLOGBAA</h2>
             <p>Hello <strong>%s</strong>,</p>
-            <p>Thank you for registering on SLOGBAA. Please verify your email address by clicking the button below.</p>
+            <p>Thank you for registering on the <strong>SLOGBAA</strong> platform. We are excited to have you on board.</p>
+            <p style="margin-top: 1.25rem;"><strong>Verify your email address</strong></p>
+            <p>Please verify your email address by clicking the button below. You must verify before you can sign in.</p>
             <p>This link will expire in 24 hours.</p>
             <p style="margin-top: 24px;">
                 <a href="%s" style="background-color: #2563eb; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold;">
@@ -44,7 +46,7 @@ public class EmailVerificationNotificationAdapter implements EmailVerificationNo
             <p style="margin-top: 24px;">— The SLOGBAA Team</p>
             """.formatted(escapeHtml(fullName), escapeHtml(verificationUrl));
         try {
-            emailService.sendHtmlEmail(email, "Verify your SLOGBAA email address", htmlContent);
+            emailService.sendHtmlEmail(email, "Welcome to SLOGBAA — verify your email", htmlContent);
         } catch (Exception e) {
             log.warn("Verification email could not be sent to {} (mail not configured or send failed): {}. " +
                     "Verification link for manual use: {}", sanitizeForLog(email), e.getMessage(), verificationUrl);
