@@ -33,11 +33,13 @@ export function LiveSessionsPage() {
   const { token } = useAuth()
   useDocumentTitle('Live Sessions')
 
-  const { data: sessions = [], isLoading } = useQuery({
+  const { data: sessionsRaw, isLoading, isError, error: queryError } = useQuery({
     queryKey: queryKeys.liveSessions.active(),
     queryFn: () => getLiveSessions(token),
     staleTime: 30_000,
+    enabled: !!token,
   })
+  const sessions = Array.isArray(sessionsRaw) ? sessionsRaw : []
 
   const upcoming = sessions.filter((s) => new Date(s.scheduledAt) >= new Date())
   const past = sessions.filter((s) => new Date(s.scheduledAt) < new Date())
@@ -48,12 +50,18 @@ export function LiveSessionsPage() {
         <h1 style={s.title}>Live Sessions</h1>
         <p style={s.subtitle}>Join live training sessions with instructors and fellow trainees.</p>
 
-        {isLoading ? <p style={s.empty}>Loading sessions...</p> : sessions.length === 0 ? (
+        {isError && (
+          <p style={{ ...s.empty, color: 'var(--slogbaa-error)' }} role="alert">
+            {queryError?.message ?? 'Failed to load sessions.'}
+          </p>
+        )}
+        {!isError && isLoading && <p style={s.empty}>Loading sessions...</p>}
+        {!isError && !isLoading && sessions.length === 0 ? (
           <div style={s.empty}>
             <Icon icon={icons.blockVideo} size={40} style={{ opacity: 0.3, marginBottom: '0.75rem' }} />
             <p>No live sessions scheduled yet. Check back later.</p>
           </div>
-        ) : (
+        ) : !isError && !isLoading ? (
           <>
             {upcoming.length > 0 && (
               <div style={{ marginBottom: '2rem' }}>
@@ -92,7 +100,7 @@ export function LiveSessionsPage() {
               </div>
             )}
           </>
-        )}
+        ) : null}
       </main>
     </div>
   )

@@ -16,20 +16,20 @@ import { useToast } from '../../../shared/hooks/useToast.js'
 
 const MODULES_SUPER_ADMIN = [
   { path: 'homepage', label: 'Landing page', icon: icons.home },
-  { path: 'reports', label: 'Reports & Analytics', icon: icons.reports },
   { path: 'overview', label: 'Overview', icon: icons.overview },
   { path: 'learning', label: 'Learning', icon: icons.learning },
   { path: 'coursemanagement', label: 'Course Management', icon: icons.course },
   { path: 'library', label: 'Library', icon: icons.library },
   { path: 'assessment', label: 'Assessment', icon: icons.assessment },
+  { path: 'reports', label: 'Reports & Analytics', icon: icons.reports },
 ]
 
 const MODULES_ADMIN = [
   { path: 'overview', label: 'Overview', icon: icons.overview },
-  { path: 'reports', label: 'Reports & Analytics', icon: icons.reports },
   { path: 'learning', label: 'Learning', icon: icons.learning },
   { path: 'library', label: 'Library', icon: icons.library },
   { path: 'assessment', label: 'Assessment', icon: icons.assessment },
+  { path: 'reports', label: 'Reports & Analytics', icon: icons.reports },
 ]
 
 const baseStyles = {

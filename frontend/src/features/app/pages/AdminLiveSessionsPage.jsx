@@ -7,6 +7,7 @@ import { Breadcrumbs } from '../../../shared/components/Breadcrumbs.jsx'
 import { AdminNavigatePills } from '../components/admin/AdminNavigatePills.jsx'
 import { ConfirmModal } from '../../../shared/components/ConfirmModal.jsx'
 import { queryKeys } from '../../../lib/query-keys.js'
+import { useToast } from '../../../shared/hooks/useToast.js'
 import * as api from '../../../api/liveSessions.js'
 
 const s = {
@@ -27,25 +28,47 @@ const s = {
 export function AdminLiveSessionsPage() {
   const { token, isSuperAdmin } = useOutletContext()
   const qc = useQueryClient()
+  const toast = useToast()
   useDocumentTitle('Live Sessions')
 
-  const { data: sessions = [], isLoading } = useQuery({
+  const { data: sessionsRaw, isLoading, isError, error: queryError } = useQuery({
     queryKey: queryKeys.admin.liveSessions.all(),
     queryFn: () => api.getAdminLiveSessions(token),
     staleTime: 30_000,
+    enabled: !!token,
   })
-  const createMut = useMutation({ mutationFn: (data) => api.createLiveSession(token, data), onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.admin.liveSessions.all() }) })
-  const deleteMut = useMutation({ mutationFn: (id) => api.deleteLiveSession(token, id), onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.admin.liveSessions.all() }) })
+  const sessions = Array.isArray(sessionsRaw) ? sessionsRaw : []
+  const createMut = useMutation({
+    mutationFn: (data) => api.createLiveSession(token, data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.admin.liveSessions.all() }),
+  })
+  const deleteMut = useMutation({
+    mutationFn: (id) => api.deleteLiveSession(token, id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.admin.liveSessions.all() })
+      toast.success('Session removed.')
+    },
+    onError: (e) => toast.error(e?.message ?? 'Failed to delete session.'),
+  })
 
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState({ title: '', description: '', provider: 'ZOOM', meetingUrl: '', scheduledAt: '', durationMinutes: 60 })
   const [deleteTarget, setDeleteTarget] = useState(null)
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    createMut.mutate({ ...form, durationMinutes: Number(form.durationMinutes) || 60, scheduledAt: new Date(form.scheduledAt).toISOString() })
-    setForm({ title: '', description: '', provider: 'ZOOM', meetingUrl: '', scheduledAt: '', durationMinutes: 60 })
-    setShowForm(false)
+    try {
+      await createMut.mutateAsync({
+        ...form,
+        durationMinutes: Number(form.durationMinutes) || 60,
+        scheduledAt: new Date(form.scheduledAt).toISOString(),
+      })
+      setForm({ title: '', description: '', provider: 'ZOOM', meetingUrl: '', scheduledAt: '', durationMinutes: 60 })
+      setShowForm(false)
+      toast.success('Session scheduled.')
+    } catch (err) {
+      toast.error(err?.message ?? 'Failed to create session.')
+    }
   }
 
   return (
@@ -78,7 +101,14 @@ export function AdminLiveSessionsPage() {
         </form>
       )}
 
-      {isLoading ? <p style={s.empty}>Loading...</p> : sessions.length === 0 ? <p style={s.empty}>No live sessions scheduled yet.</p> : (
+      {isError && (
+        <p style={{ ...s.empty, color: 'var(--slogbaa-error)' }} role="alert">
+          {queryError?.message ?? 'Failed to load live sessions.'}
+        </p>
+      )}
+      {!isError && isLoading && <p style={s.empty}>Loading...</p>}
+      {!isError && !isLoading && sessions.length === 0 && <p style={s.empty}>No live sessions scheduled yet.</p>}
+      {!isError && !isLoading && sessions.length > 0 && (
         sessions.map((session) => (
           <div key={session.id} style={s.card}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem', flexWrap: 'wrap' }}>
