@@ -7,7 +7,7 @@ import com.nac.slogbaa.progress.application.port.out.NotificationPort;
 import java.util.UUID;
 
 /**
- * Application service: create an in-app notification for a trainee.
+ * Application service: create an in-app notification for a trainee or staff member.
  */
 public final class CreateNotificationService implements CreateNotificationUseCase {
 
@@ -18,9 +18,22 @@ public final class CreateNotificationService implements CreateNotificationUseCas
     }
 
     @Override
-    public void create(UUID traineeId, String type, String title, String message, String link) {
+    public void createForTrainee(UUID traineeId, String type, String title, String message, String link) {
         NotificationEntity entity = new NotificationEntity();
         entity.setTraineeId(traineeId);
+        entity.setStaffUserId(null);
+        entity.setType(type);
+        entity.setTitle(title);
+        entity.setMessage(message);
+        entity.setLink(link);
+        notificationPort.save(entity);
+    }
+
+    @Override
+    public void createForStaff(UUID staffUserId, String type, String title, String message, String link) {
+        NotificationEntity entity = new NotificationEntity();
+        entity.setTraineeId(null);
+        entity.setStaffUserId(staffUserId);
         entity.setType(type);
         entity.setTitle(title);
         entity.setMessage(message);

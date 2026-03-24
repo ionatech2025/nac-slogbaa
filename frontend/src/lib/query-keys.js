@@ -71,6 +71,12 @@ export const queryKeys = {
     unreadCount: () => ['notifications', 'unread-count'],
   },
 
+  staffNotifications: {
+    all: ['staff-notifications'],
+    list: (page) => [...queryKeys.staffNotifications.all, 'list', page],
+    unreadCount: () => [...queryKeys.staffNotifications.all, 'unread-count'],
+  },
+
   // === Categories ===
   categories: {
     all: () => ['categories'],
@@ -138,6 +144,8 @@ export const queryKeys = {
     liveSessions: {
       all: () => [...queryKeys.admin.all, 'liveSessions'],
     },
+
+    engagementAnalytics: () => [...queryKeys.admin.all, 'engagement-analytics'],
   },
 
   // === Public homepage content ===

@@ -77,7 +77,7 @@ public final class RecordModuleCompletionService implements RecordModuleCompleti
                 String courseTitle = courseDetailsQueryPort.findCourseDetailsById(courseId)
                         .map(c -> c.getTitle())
                         .orElse("a course");
-                createNotificationUseCase.create(
+                createNotificationUseCase.createForTrainee(
                         traineeId,
                         "COURSE_COMPLETED",
                         "Course Completed!",

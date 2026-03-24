@@ -7,6 +7,7 @@ import { getCourseEnrollments, canDeleteCourse, canDeleteModule } from '../../ap
 import { getAdminLibraryResources, createLibraryResource, updateLibraryResource, publishLibraryResource, unpublishLibraryResource } from '../../api/admin/library.js'
 import { getAdminCertificates, revokeCertificate } from '../../api/admin/certificates.js'
 import { getAdminQuizAttempts } from '../../api/admin/assessment.js'
+import { getEngagementAnalytics } from '../../api/analytics.js'
 
 // === Dashboard ===
 export function useAdminOverview() {
@@ -301,5 +302,15 @@ export function useRevokeCertificate() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.admin.assessment.certificates() })
     },
+  })
+}
+
+export function useAdminEngagementAnalytics() {
+  const { token } = useAuth()
+  return useQuery({
+    queryKey: queryKeys.admin.engagementAnalytics(),
+    queryFn: () => getEngagementAnalytics(token),
+    enabled: !!token,
+    staleTime: 120_000,
   })
 }

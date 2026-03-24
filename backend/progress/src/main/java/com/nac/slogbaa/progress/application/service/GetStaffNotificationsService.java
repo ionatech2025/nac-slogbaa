@@ -1,27 +1,24 @@
 package com.nac.slogbaa.progress.application.service;
 
 import com.nac.slogbaa.progress.application.dto.NotificationResult;
-import com.nac.slogbaa.progress.application.port.in.GetNotificationsUseCase;
+import com.nac.slogbaa.progress.application.port.in.GetStaffNotificationsUseCase;
 import com.nac.slogbaa.progress.application.port.out.NotificationPort;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.util.UUID;
 
-/**
- * Application service: retrieve and manage notifications for a trainee.
- */
-public final class GetNotificationsService implements GetNotificationsUseCase {
+public final class GetStaffNotificationsService implements GetStaffNotificationsUseCase {
 
     private final NotificationPort notificationPort;
 
-    public GetNotificationsService(NotificationPort notificationPort) {
+    public GetStaffNotificationsService(NotificationPort notificationPort) {
         this.notificationPort = notificationPort;
     }
 
     @Override
-    public Page<NotificationResult> getNotifications(UUID traineeId, Pageable pageable) {
-        return notificationPort.findByTrainee(traineeId, pageable)
+    public Page<NotificationResult> listForStaff(UUID staffUserId, Pageable pageable) {
+        return notificationPort.findByStaffUser(staffUserId, pageable)
                 .map(e -> new NotificationResult(
                         e.getId(),
                         e.getType(),
@@ -34,14 +31,14 @@ public final class GetNotificationsService implements GetNotificationsUseCase {
     }
 
     @Override
-    public long getUnreadCount(UUID traineeId) {
-        return notificationPort.countUnread(traineeId);
+    public long unreadCountForStaff(UUID staffUserId) {
+        return notificationPort.countUnreadStaff(staffUserId);
     }
 
     @Override
-    public boolean markAsRead(UUID traineeId, UUID notificationId) {
+    public boolean markStaffNotificationRead(UUID staffUserId, UUID notificationId) {
         return notificationPort.findById(notificationId)
-                .filter(n -> n.getTraineeId() != null && n.getTraineeId().equals(traineeId))
+                .filter(n -> n.getStaffUserId() != null && n.getStaffUserId().equals(staffUserId))
                 .map(n -> {
                     if (!n.isRead()) {
                         n.setRead(true);
@@ -53,7 +50,7 @@ public final class GetNotificationsService implements GetNotificationsUseCase {
     }
 
     @Override
-    public void markAllAsRead(UUID traineeId) {
-        notificationPort.markAllRead(traineeId);
+    public void markAllStaffNotificationsRead(UUID staffUserId) {
+        notificationPort.markAllReadStaff(staffUserId);
     }
 }

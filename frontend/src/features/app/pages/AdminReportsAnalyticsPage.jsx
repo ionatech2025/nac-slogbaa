@@ -12,6 +12,7 @@ import {
   useAdminCertificates,
   useAdminQuizAttempts,
   useAdminLibrary,
+  useAdminEngagementAnalytics,
 } from '../../../lib/hooks/use-admin.js'
 import { getVisitorCount } from '../../../api/homepage.js'
 import {
@@ -27,6 +28,7 @@ import {
   Area,
   ResponsiveContainer,
   CartesianGrid,
+  Legend,
 } from 'recharts'
 
 // ── Color constants for Recharts (CSS vars don't work in SVG) ──
@@ -488,6 +490,7 @@ export function AdminReportsAnalyticsPage() {
     overviewLoading,
     displayName,
     token,
+    isSuperAdmin = false,
   } = useOutletContext()
   const navigate = useNavigate()
 
@@ -497,6 +500,7 @@ export function AdminReportsAnalyticsPage() {
   const { data: certificates = [], isLoading: certsLoading } = useAdminCertificates()
   const { data: attempts = [], isLoading: attemptsLoading } = useAdminQuizAttempts()
   const { data: library = [], isLoading: libraryLoading } = useAdminLibrary()
+  const { data: engagement, isLoading: engagementLoading } = useAdminEngagementAnalytics()
 
   // Site visitor count
   const { data: visitorData } = useQuery({
@@ -602,6 +606,21 @@ export function AdminReportsAnalyticsPage() {
   }, [attempts])
 
   // ── Chart data: AreaChart for 7-day activity ──
+  const starRatingDistribution = useMemo(() => {
+    const rows = engagement?.ratingDistribution ?? []
+    return rows.map((r) => ({ stars: `${r.stars}★`, count: r.count }))
+  }, [engagement])
+
+  const engagementByDay = useMemo(() => {
+    const days = engagement?.lastSevenDays ?? []
+    return days.map((d) => ({
+      label: d.label,
+      reviews: d.reviews,
+      questions: d.questions,
+      replies: d.replies,
+    }))
+  }, [engagement])
+
   const activityByDay = useMemo(() => {
     const dayMap = {}
     const now = new Date()
@@ -706,6 +725,46 @@ export function AdminReportsAnalyticsPage() {
           delay={4}
           to="/admin/library"
         />
+        <KpiCard
+          icon={icons.star}
+          accent={ACCENT.orange}
+          value={engagement?.totalReviewCount ?? 0}
+          label="Course reviews"
+          sub={engagementLoading ? '' : `${engagement?.traineeReviewCount ?? 0} trainee · ${engagement?.staffReviewCount ?? 0} staff`}
+          loading={engagementLoading}
+        />
+        <KpiCard
+          icon={icons.grades}
+          accent={ACCENT.green}
+          isText
+          value={
+            engagementLoading
+              ? '—'
+              : (engagement?.totalReviewCount > 0 && engagement?.combinedAverageRating != null
+                  ? Number(engagement.combinedAverageRating).toFixed(1)
+                  : '—')
+          }
+          label="Avg course rating"
+          loading={engagementLoading}
+        />
+        {isSuperAdmin && (
+          <>
+            <KpiCard
+              icon={icons.messageSquare}
+              accent={ACCENT.blue}
+              value={engagement?.traineeQuestionCount ?? 0}
+              label="Trainee questions"
+              loading={engagementLoading}
+            />
+            <KpiCard
+              icon={icons.enroll}
+              accent={ACCENT.orange}
+              value={engagement?.totalDiscussionReplies ?? 0}
+              label="Discussion replies"
+              loading={engagementLoading}
+            />
+          </>
+        )}
       </div>
 
       {/* ── Quick Actions ── */}
@@ -937,6 +996,120 @@ export function AdminReportsAnalyticsPage() {
                   dot={{ r: 3, fill: COLORS.green, strokeWidth: 0 }}
                   activeDot={{ r: 5, fill: COLORS.green, strokeWidth: 2, stroke: '#fff' }}
                 />
+              </AreaChart>
+            </ResponsiveContainer>
+          )}
+        </div>
+      </div>
+
+      <p style={s.sectionLabel}>Reviews & discussions</p>
+      <div style={s.chartsRow}>
+        <div style={s.chartPanel}>
+          <h4 style={s.chartTitle}>Star rating distribution (trainee + staff)</h4>
+          {engagementLoading ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              {[1, 2, 3].map((i) => (
+                <Skeleton key={i} style={{ height: 16, borderRadius: 4 }} />
+              ))}
+            </div>
+          ) : !engagement || starRatingDistribution.every((r) => r.count === 0) ? (
+            <p style={s.empty}>No course reviews yet.</p>
+          ) : (
+            <ResponsiveContainer width="100%" height={220}>
+              <BarChart data={starRatingDistribution} margin={{ top: 8, right: 8, bottom: 0, left: -16 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--slogbaa-border)" vertical={false} />
+                <XAxis
+                  dataKey="stars"
+                  tick={{ fontSize: 11, fill: 'var(--slogbaa-text-muted)' }}
+                  axisLine={{ stroke: 'var(--slogbaa-border)' }}
+                  tickLine={false}
+                />
+                <YAxis
+                  allowDecimals={false}
+                  tick={{ fontSize: 11, fill: 'var(--slogbaa-text-muted)' }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <Tooltip content={<GlassTooltip />} cursor={{ fill: 'rgba(37, 99, 235, 0.06)' }} />
+                <Bar dataKey="count" name="Reviews" fill={COLORS.orange} radius={[6, 6, 0, 0]} maxBarSize={48} />
+              </BarChart>
+            </ResponsiveContainer>
+          )}
+        </div>
+
+        <div style={s.chartPanel}>
+          <h4 style={s.chartTitle}>
+            {isSuperAdmin ? 'Reviews & Q&A activity (7 days)' : 'Review activity (7 days)'}
+          </h4>
+          {engagementLoading ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              {[1, 2, 3].map((i) => (
+                <Skeleton key={i} style={{ height: 16, borderRadius: 4 }} />
+              ))}
+            </div>
+          ) : (
+            <ResponsiveContainer width="100%" height={240}>
+              <AreaChart data={engagementByDay} margin={{ top: 8, right: 8, bottom: 0, left: -16 }}>
+                <defs>
+                  <linearGradient id="engRevGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor={COLORS.blue} stopOpacity={0.28} />
+                    <stop offset="100%" stopColor={COLORS.blue} stopOpacity={0.02} />
+                  </linearGradient>
+                  <linearGradient id="engQGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor={COLORS.orange} stopOpacity={0.22} />
+                    <stop offset="100%" stopColor={COLORS.orange} stopOpacity={0.02} />
+                  </linearGradient>
+                  <linearGradient id="engRGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor={COLORS.green} stopOpacity={0.22} />
+                    <stop offset="100%" stopColor={COLORS.green} stopOpacity={0.02} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--slogbaa-border)" vertical={false} />
+                <XAxis
+                  dataKey="label"
+                  tick={{ fontSize: 11, fill: 'var(--slogbaa-text-muted)' }}
+                  axisLine={{ stroke: 'var(--slogbaa-border)' }}
+                  tickLine={false}
+                />
+                <YAxis
+                  allowDecimals={false}
+                  tick={{ fontSize: 11, fill: 'var(--slogbaa-text-muted)' }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <Tooltip content={<GlassTooltip />} />
+                <Legend wrapperStyle={{ fontSize: 11 }} />
+                <Area
+                  type="monotone"
+                  dataKey="reviews"
+                  name="Reviews"
+                  stroke={COLORS.blue}
+                  strokeWidth={2}
+                  fill="url(#engRevGrad)"
+                  dot={{ r: 2, fill: COLORS.blue, strokeWidth: 0 }}
+                />
+                {isSuperAdmin && (
+                  <>
+                    <Area
+                      type="monotone"
+                      dataKey="questions"
+                      name="Trainee questions"
+                      stroke={COLORS.orange}
+                      strokeWidth={2}
+                      fill="url(#engQGrad)"
+                      dot={{ r: 2, fill: COLORS.orange, strokeWidth: 0 }}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="replies"
+                      name="Replies"
+                      stroke={COLORS.green}
+                      strokeWidth={2}
+                      fill="url(#engRGrad)"
+                      dot={{ r: 2, fill: COLORS.green, strokeWidth: 0 }}
+                    />
+                  </>
+                )}
               </AreaChart>
             </ResponsiveContainer>
           )}

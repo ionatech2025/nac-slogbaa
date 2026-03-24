@@ -151,7 +151,7 @@ public class LiveSessionApplicationService {
         List<UUID> trainees = traineeRepository.findAllActiveTraineeIds();
         for (UUID traineeId : trainees) {
             try {
-                createNotificationUseCase.create(traineeId, NOTIFY_TYPE, title, message, "/dashboard/live-sessions");
+                createNotificationUseCase.createForTrainee(traineeId, NOTIFY_TYPE, title, message, "/dashboard/live-sessions");
             } catch (Exception e) {
                 log.warn("Could not notify trainee {} about live session: {}", traineeId, e.getMessage());
             }

@@ -7,6 +7,8 @@ import { AddModuleModal } from '../components/admin/AddModuleModal.jsx'
 import { Badge } from '../../../shared/components/Badge.jsx'
 import { Breadcrumbs } from '../../../shared/components/Breadcrumbs.jsx'
 import { AdminNavigatePills } from '../components/admin/AdminNavigatePills.jsx'
+import { ReviewSection } from '../../learning/components/ReviewSection.jsx'
+import { DiscussionPanel } from '../../learning/components/DiscussionPanel.jsx'
 import { CardGridSkeleton } from '../../../shared/components/ContentSkeletons.jsx'
 import { useToast } from '../../../shared/hooks/useToast.js'
 
@@ -284,6 +286,11 @@ export function AdminCoursePage() {
           <FontAwesomeIcon icon={icons.modules} /> Add module
         </button>
       )}
+
+      <div style={{ maxWidth: 880, marginTop: '2.5rem' }}>
+        <ReviewSection courseId={courseId} />
+        <DiscussionPanel courseId={courseId} moduleId={null} />
+      </div>
 
       {modal === 'addModule' && (
         <AddModuleModal

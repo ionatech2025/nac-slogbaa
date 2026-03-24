@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -58,5 +59,20 @@ public class CourseReviewAdapter implements CourseReviewPort {
     @Override
     public List<CourseReviewEntity> findByTraineeId(UUID traineeId) {
         return jpaRepository.findByTraineeIdOrderByCreatedAtDesc(traineeId);
+    }
+
+    @Override
+    public List<Object[]> countGroupedByRating() {
+        return jpaRepository.countGroupedByRating();
+    }
+
+    @Override
+    public List<Object[]> countCreatedPerUtcDaySince(Instant since) {
+        return jpaRepository.countCreatedPerUtcDaySince(since);
+    }
+
+    @Override
+    public long countAll() {
+        return jpaRepository.count();
     }
 }
