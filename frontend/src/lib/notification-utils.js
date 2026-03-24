@@ -23,6 +23,8 @@ export function notificationIcon(type) {
       return icons.checkCircle
     case 'DISCUSSION_REPLY':
       return icons.messageSquare
+    case 'LIVE_SESSION_UPCOMING':
+      return icons.blockVideo
     default:
       return icons.bell
   }

@@ -36,3 +36,17 @@ export async function deleteLiveSession(token, id) {
   const res = await apiClient(token).delete(`/api/v1/admin/live-sessions/${id}`)
   return parseResponse(res)
 }
+
+/** Trainee: register for a session (204). */
+export async function registerForLiveSession(token, sessionId) {
+  assertToken(token)
+  const res = await apiClient(token).post(`/api/v1/live-sessions/${sessionId}/register`)
+  return parseResponse(res)
+}
+
+/** Trainee: cancel registration (204). */
+export async function unregisterFromLiveSession(token, sessionId) {
+  assertToken(token)
+  const res = await apiClient(token).delete(`/api/v1/live-sessions/${sessionId}/register`)
+  return parseResponse(res)
+}
