@@ -9,6 +9,7 @@ import { Pagination, usePagination } from '../../../shared/components/Pagination
 import { TableSkeleton, KpiGridSkeleton } from '../../../shared/components/AdminTableSkeleton.jsx'
 import { AnimatedCounter } from '../../../shared/components/AnimatedCounter.jsx'
 import { Breadcrumbs } from '../../../shared/components/Breadcrumbs.jsx'
+import { AdminNavigatePills } from '../components/admin/AdminNavigatePills.jsx'
 import { exportToCsv } from '../../../shared/utils/csvExport.js'
 import {
   PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis,
@@ -635,6 +636,7 @@ export function AdminOverviewPage() {
           <TableSkeleton rows={5} columns={3} />
         </div>
         <TableSkeleton rows={5} columns={4} />
+        <AdminNavigatePills />
       </>
     )
   }
@@ -646,6 +648,7 @@ export function AdminOverviewPage() {
         <Breadcrumbs items={[{ label: 'Admin', to: '/admin' }, { label: 'Overview' }]} />
         <h2 style={styles.pageTitle}>Overview</h2>
         <p style={styles.error}>{overviewError}</p>
+        <AdminNavigatePills />
       </>
     )
   }
@@ -1205,6 +1208,7 @@ export function AdminOverviewPage() {
           onPageSizeChange={traineePag.setPageSize}
         />
       </section>
+      <AdminNavigatePills />
     </>
   )
 }

@@ -8,6 +8,7 @@ import { Badge } from '../../../shared/components/Badge.jsx'
 import { Pagination, usePagination } from '../../../shared/components/Pagination.jsx'
 import { TableSkeleton } from '../../../shared/components/AdminTableSkeleton.jsx'
 import { Breadcrumbs } from '../../../shared/components/Breadcrumbs.jsx'
+import { AdminNavigatePills } from '../components/admin/AdminNavigatePills.jsx'
 import { useToast } from '../../../shared/hooks/useToast.js'
 import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle.js'
 import { useDebounce } from '../../../shared/hooks/useDebounce.js'
@@ -740,6 +741,7 @@ export function AdminAssessmentPage() {
           )}
         </div>
       )}
+      <AdminNavigatePills />
     </div>
   )
 }

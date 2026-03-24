@@ -187,7 +187,8 @@ curl -s -X POST http://localhost:8080/api/auth/login \
 | Route | Page | Description |
 |---|---|---|
 | `/admin/overview` | AdminOverviewPage | KPI cards, demographic breakdown charts, people tables |
-| `/admin/homepage` | AdminHomePage | Admin dashboard with analytics, KPIs (including site visitors), charts |
+| `/admin/homepage` | AdminHomePage | Super Admin landing page shell (future editor); links to Homepage CMS |
+| `/admin/reports` | AdminReportsAnalyticsPage | KPIs, site visitors, charts, activity (Recharts) |
 | `/admin/cms` | AdminCmsPage | Homepage CMS — manage banners, stories, videos, partners, news |
 | `/admin/learning` | AdminLearningPage | Course list with pagination, search, bulk operations |
 | `/admin/learning/:id` | AdminCoursePage | Module list editor for a course |
@@ -229,6 +230,6 @@ curl -s -X POST http://localhost:8080/api/auth/login \
 - Live sessions API: `frontend/src/api/liveSessions.js`
 - Admin shared components: `frontend/src/shared/components/{Pagination,Breadcrumbs,AnimatedCounter,AdminTableSkeleton}.jsx`
 - Admin CSV export: `frontend/src/shared/utils/csvExport.js`
-- Admin dashboard analytics: `frontend/src/features/app/pages/AdminHomePage.jsx` (recharts)
+- Admin reports & analytics: `frontend/src/features/app/pages/AdminReportsAnalyticsPage.jsx` (recharts)
 - Admin demographics: `frontend/src/features/app/pages/AdminOverviewPage.jsx` (gender/district/category/status charts)
 - CSS design system: `frontend/src/styles/` (tokens, animations, glass, accessibility, responsive)

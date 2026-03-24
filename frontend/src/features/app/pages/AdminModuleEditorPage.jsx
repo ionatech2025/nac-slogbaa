@@ -11,6 +11,7 @@ import { AdminQuizEditor } from '../../assessment/components/AdminQuizEditor.jsx
 import { AdminQuizReadOnly } from '../../assessment/components/AdminQuizReadOnly.jsx'
 import { LoadingButton } from '../../../shared/components/LoadingButton.jsx'
 import { Breadcrumbs } from '../../../shared/components/Breadcrumbs.jsx'
+import { AdminNavigatePills } from '../components/admin/AdminNavigatePills.jsx'
 import { useToast } from '../../../shared/hooks/useToast.js'
 import { icons as iconSet } from '../../../shared/icons.jsx'
 const GripVertical = iconSet.grip
@@ -454,9 +455,30 @@ export function AdminModuleEditorPage() {
   }, [loading, module?.id, module?.title, module?.description])
 
   // Only show full-page loading when we don't have a module yet (initial load). When refreshing after save, keep the UI so title/description don't disappear.
-  if (loading && !module) return <p style={styles.loading}>Loading module…</p>
-  if (error || !course) return <p style={styles.error}>{error || 'Course not found.'}</p>
-  if (!module) return <p style={styles.error}>Module not found.</p>
+  if (loading && !module) {
+    return (
+      <div style={styles.page}>
+        <p style={styles.loading}>Loading module…</p>
+        <AdminNavigatePills />
+      </div>
+    )
+  }
+  if (error || !course) {
+    return (
+      <div style={styles.page}>
+        <p style={styles.error}>{error || 'Course not found.'}</p>
+        <AdminNavigatePills />
+      </div>
+    )
+  }
+  if (!module) {
+    return (
+      <div style={styles.page}>
+        <p style={styles.error}>Module not found.</p>
+        <AdminNavigatePills />
+      </div>
+    )
+  }
 
   return (
     <div style={styles.page} onClick={handleEditorAreaClick}>
@@ -729,6 +751,7 @@ export function AdminModuleEditorPage() {
           </div>
         )}
       </div>
+      <AdminNavigatePills />
     </div>
   )
 }
