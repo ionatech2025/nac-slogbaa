@@ -5,17 +5,29 @@
   .admin-main-content {
     padding: 1.25rem 1.5rem !important;
   }
+  .trainee-main-inner {
+    padding-left: 1.25rem !important;
+    padding-right: 1.25rem !important;
+  }
 }
 
 /* Tablet portrait & below: hide sidebar, show hamburger */
 @media (max-width: 768px) {
-  .admin-sidebar {
+  .admin-sidebar,
+  .trainee-sidebar {
     display: none !important;
   }
-  .mobile-menu-btn {
+  .mobile-menu-btn,
+  .trainee-mobile-menu-btn {
     display: inline-flex !important;
   }
   .admin-main-content {
+    padding: 1rem !important;
+  }
+  .trainee-main-content {
+    padding: 0 !important;
+  }
+  .trainee-main-inner {
     padding: 1rem !important;
   }
 }

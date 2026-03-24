@@ -21,6 +21,7 @@ const MODULES_SUPER_ADMIN = [
   { path: 'coursemanagement', label: 'Course Management', icon: icons.course },
   { path: 'library', label: 'Library', icon: icons.library },
   { path: 'assessment', label: 'Assessment', icon: icons.assessment },
+  { path: 'live-sessions', label: 'Live sessions', icon: icons.blockVideo },
   { path: 'reports', label: 'Reports & Analytics', icon: icons.reports },
 ]
 
@@ -29,6 +30,7 @@ const MODULES_ADMIN = [
   { path: 'learning', label: 'Learning', icon: icons.learning },
   { path: 'library', label: 'Library', icon: icons.library },
   { path: 'assessment', label: 'Assessment', icon: icons.assessment },
+  { path: 'live-sessions', label: 'Live sessions', icon: icons.blockVideo },
   { path: 'reports', label: 'Reports & Analytics', icon: icons.reports },
 ]
 
@@ -107,7 +109,7 @@ export function AdminLayout() {
       if (gPressed) {
         gPressed = false
         clearTimeout(gTimer)
-        const routes = { o: '/admin/overview', r: '/admin/reports', l: '/admin/learning', b: '/admin/library', a: '/admin/assessment', c: '/admin/coursemanagement' }
+        const routes = { o: '/admin/overview', r: '/admin/reports', l: '/admin/learning', b: '/admin/library', a: '/admin/assessment', c: '/admin/coursemanagement', v: '/admin/live-sessions' }
         if (routes[e.key]) { e.preventDefault(); navigate(routes[e.key]) }
       }
     }
@@ -183,6 +185,7 @@ export function AdminLayout() {
     { label: 'Go to Learning', group: 'Navigation', onSelect: () => navigate('/admin/learning'), shortcut: 'G L' },
     { label: 'Go to Library', group: 'Navigation', onSelect: () => navigate('/admin/library') },
     { label: 'Go to Assessment', group: 'Navigation', onSelect: () => navigate('/admin/assessment') },
+    { label: 'Go to Live sessions', group: 'Navigation', onSelect: () => navigate('/admin/live-sessions'), shortcut: 'G V' },
     { label: 'Go to Course Management', group: 'Navigation', onSelect: () => navigate('/admin/coursemanagement') },
     ...(isSuperAdmin ? [
       { label: 'Create Staff', group: 'Actions', onSelect: () => setModal('createStaff') },

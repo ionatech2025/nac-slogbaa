@@ -43,33 +43,36 @@ const pillActive = {
   fontWeight: 600,
 }
 
-/** Order matches admin sidebar; super-only entries hidden for regular admins. */
+/** Same destinations as {@link TraineeSidebar} — quick cross-navigation at page bottom. */
 const NAV_CONFIG = [
-  { to: '/admin/homepage', icon: icons.home, label: 'Landing', end: true, superOnly: true },
-  { to: '/admin/overview', icon: icons.overview, label: 'Overview', end: true },
-  { to: '/admin/learning', icon: icons.learning, label: 'Learning' },
-  { to: '/admin/coursemanagement', icon: icons.course, label: 'Course Mgmt', superOnly: true },
-  { to: '/admin/library', icon: icons.library, label: 'Library' },
-  { to: '/admin/assessment', icon: icons.assessment, label: 'Assessment' },
-  { to: '/admin/cms', icon: icons.viewCards, label: 'CMS', superOnly: true },
-  { to: '/admin/live-sessions', icon: icons.blockVideo, label: 'Live sessions' },
-  { to: '/admin/reports', icon: icons.reports, label: 'Analytics' },
+  { to: '/dashboard', icon: icons.home, label: 'Dashboard', end: true },
+  { to: '/dashboard/courses', icon: icons.learning, label: 'Courses' },
+  { to: '/dashboard/library', icon: icons.library, label: 'Library' },
+  { to: '/dashboard/bookmarks', icon: icons.bookmark, label: 'Bookmarks' },
+  { to: '/dashboard/certificates', icon: icons.certificate, label: 'Certificates' },
+  { to: '/dashboard/live-sessions', icon: icons.blockVideo, label: 'Live sessions' },
+  { to: '/dashboard/notifications', icon: icons.bell, label: 'Notifications' },
+  { to: '/dashboard/settings', icon: icons.settings, label: 'Settings' },
+  { to: '/dashboard/help', icon: icons.helpCircle, label: 'Help' },
 ]
 
 /**
- * Horizontal pill links to main admin sections (same set as the primary sidebar).
- * Place at the bottom of admin page content for quick cross-navigation.
+ * Horizontal pills mirroring the trainee sidebar (like admin Navigate).
  */
-export function AdminNavigatePills({ isSuperAdmin: isSuperAdminProp }) {
+export function TraineeNavigatePills() {
   const ctx = useOutletContext()
-  const isSuperAdmin = isSuperAdminProp ?? ctx?.isSuperAdmin ?? false
-  const links = NAV_CONFIG.filter((l) => !l.superOnly || isSuperAdmin)
+  const hint = ctx?.profileData?.fullName || ctx?.profileData?.email
 
   return (
-    <nav style={{ marginTop: '2rem' }} aria-label="Section navigation">
+    <nav style={{ marginTop: '2rem', paddingBottom: '1.5rem' }} aria-label="Section navigation">
       <p style={sectionLabel}>Navigate</p>
+      {hint && (
+        <p style={{ margin: '0 0 0.75rem', fontSize: '0.8125rem', color: 'var(--slogbaa-text-muted)' }}>
+          Signed in as <strong style={{ color: 'var(--slogbaa-text)', fontWeight: 600 }}>{hint}</strong>
+        </p>
+      )}
       <div style={navPills}>
-        {links.map((link) => (
+        {NAV_CONFIG.map((link) => (
           <NavLink
             key={link.to}
             to={link.to}

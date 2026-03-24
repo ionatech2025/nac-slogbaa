@@ -13,6 +13,7 @@
 }
 /* Focus ring for elements inside dark chrome (sidebar, nav, glass-sidebar) */
 .admin-sidebar :focus-visible,
+.trainee-sidebar :focus-visible,
 .glass-sidebar :focus-visible,
 .glass-nav :focus-visible,
 [style*="slogbaa-dark"] :focus-visible {

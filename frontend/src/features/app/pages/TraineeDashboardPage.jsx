@@ -1,15 +1,12 @@
 import { useState, useMemo, useCallback } from 'react'
 import { Link, useOutletContext } from 'react-router-dom'
 import { FontAwesomeIcon, Icon, icons } from '../../../shared/icons.jsx'
-import { useAuth } from '../../iam/hooks/useAuth.js'
 import { useEnrolledCourses, usePublishedCourses, useEnrollInCourse } from '../../../lib/hooks/use-courses.js'
-import { useMyCertificates } from '../../../lib/hooks/use-certificates.js'
-import { downloadCertificate, sendCertificateEmail } from '../../../api/certificates.js'
 import { CourseCard } from '../components/trainee/CourseCard.jsx'
 import { Tabs } from '../../../shared/components/Tabs.jsx'
 import { useToast } from '../../../shared/hooks/useToast.js'
 import { CoursePreviewModal } from '../../learning/components/CoursePreviewModal.jsx'
-import { CertificateCard } from '../components/trainee/CertificateCard.jsx'
+import { TraineeCertificatesPanel } from '../components/trainee/TraineeCertificatesPanel.jsx'
 import { StatsSkeleton, CardGridSkeleton } from '../../../shared/components/ContentSkeletons.jsx'
 import { LeaderboardWidget } from '../../../shared/components/LeaderboardWidget.jsx'
 import { StreakWidget } from '../../../shared/components/StreakWidget.jsx'
@@ -18,30 +15,8 @@ import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle.js'
 import { OnboardingChecklist } from '../components/OnboardingChecklist.jsx'
 
 const styles = {
-  layout: {
-    minHeight: '100vh',
-    display: 'flex',
-    flexDirection: 'column',
-    background: 'var(--slogbaa-bg)',
-  },
   main: {
-    flex: 1,
-    padding: '1.5rem 2rem',
-    maxWidth: 1200,
-    margin: '0 auto',
     width: '100%',
-  },
-  greeting: {
-    margin: '0 0 0.5rem',
-    fontSize: '1.5rem',
-    fontWeight: 700,
-    color: 'var(--slogbaa-text)',
-  },
-  greetingDivider: {
-    height: 0,
-    border: 'none',
-    borderBottom: '2px solid var(--slogbaa-border)',
-    margin: '0 0 1.5rem',
   },
   tabs: {
     display: 'flex',
@@ -210,23 +185,18 @@ const styles = {
 }
 
 export function TraineeDashboardPage() {
-  const { user, token } = useAuth()
   const { profileData, onEditProfile } = useOutletContext() || {}
   const [activeTab, setActiveTab] = useState('courses')
   const [courseView, setCourseView] = useState('vertical')
   const [recommendedCourseView, setRecommendedCourseView] = useState('vertical')
-  const [certificateActionId, setCertificateActionId] = useState(null)
-  const [certificateError, setCertificateError] = useState(null)
   const [previewCourse, setPreviewCourse] = useState(null)
 
   // TanStack Query hooks — shared cache, no duplicated fetches
   const { data: enrolledCourses = [], isLoading: enrolledLoading } = useEnrolledCourses()
   const { data: publishedCourses = [], isLoading: publishedLoading, error: coursesError } = usePublishedCourses()
-  const { data: certificates = [], isLoading: certificatesLoading } = useMyCertificates({ enabled: activeTab === 'certificates' })
   const enrollMutation = useEnrollInCourse()
 
   useDocumentTitle('Dashboard')
-  const displayName = user?.fullName || user?.email || 'Trainee'
   const enrolledIds = useMemo(() => new Set(enrolledCourses.map((c) => c.id)), [enrolledCourses])
   const recommendedCourses = useMemo(() => publishedCourses.filter((c) => !enrolledIds.has(c.id)), [publishedCourses, enrolledIds])
 
@@ -242,57 +212,17 @@ export function TraineeDashboardPage() {
 
   const handlePreview = useCallback((course) => setPreviewCourse(course), [])
 
-  const handlePreviewCertificate = useCallback(async (cert) => {
-    if (!token || certificateActionId) return
-    setCertificateActionId(cert.id)
-    setCertificateError(null)
-    try {
-      const blob = await downloadCertificate(token, cert.id)
-      const url = URL.createObjectURL(blob)
-      window.open(url, '_blank', 'noopener,noreferrer')
-      setTimeout(() => URL.revokeObjectURL(url), 60000)
-    } catch {
-      setCertificateError('Could not preview certificate. Please try downloading instead.')
-    } finally {
-      setCertificateActionId(null)
-    }
-  }, [token, certificateActionId])
-
-  const handleDownloadCertificate = useCallback(async (cert, alsoSendEmail = false) => {
-    if (!token || certificateActionId) return
-    setCertificateActionId(cert.id)
-    setCertificateError(null)
-    try {
-      const blob = await downloadCertificate(token, cert.id)
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `${cert.certificateNumber || 'certificate'}.pdf`
-      a.click()
-      URL.revokeObjectURL(url)
-      if (alsoSendEmail) {
-        await sendCertificateEmail(token, cert.id)
-      }
-    } catch {
-      setCertificateError('Could not download certificate. Please try again.')
-    } finally {
-      setCertificateActionId(null)
-    }
-  }, [token, certificateActionId])
-
   return (
-    <div style={styles.layout}>
-      <main style={styles.main}>
-        <OnboardingChecklist
-          profile={profileData}
-          enrolledCourses={enrolledCourses}
-          onEditProfile={onEditProfile}
-        />
+    <main style={styles.main}>
+      <OnboardingChecklist
+        profile={profileData}
+        enrolledCourses={enrolledCourses}
+        onEditProfile={onEditProfile}
+      />
 
-        <h1 style={styles.greeting}>Welcome Back, {displayName}!</h1>
-        <hr style={styles.greetingDivider} aria-hidden />
+      {/* Greeting lives in TraineeLayout header */}
 
-        {/* Streak widget — Duolingo-style daily streak */}
+      {/* Streak widget — Duolingo-style daily streak */}
         <div style={{ marginBottom: '1.5rem' }}>
           <StreakWidget />
         </div>
@@ -482,38 +412,9 @@ export function TraineeDashboardPage() {
         {activeTab === 'certificates' && (
           <>
             <h2 style={styles.sectionTitle}>Achieved Certificates</h2>
-            {certificateError && (
-              <p style={{ margin: '0 0 1rem', color: 'var(--slogbaa-error)', fontSize: '0.9375rem' }}>{certificateError}</p>
-            )}
-            {certificatesLoading ? (
-              <CardGridSkeleton count={3} />
-            ) : certificates.length === 0 ? (
-              <p style={{ color: 'var(--slogbaa-text-muted)', fontSize: '0.9375rem' }}>
-                No certificates yet. Complete courses with passing quiz scores to earn certificates.
-              </p>
-            ) : (
-              <div style={styles.cardGrid}>
-                {certificates.map((cert) => (
-                  <CertificateCard
-                    key={cert.id}
-                    certificate={{
-                      id: cert.id,
-                      title: cert.courseTitle || cert.certificateNumber,
-                      description: `Score: ${cert.finalScorePercent}%. Issued: ${cert.issuedDate}.`,
-                      certificateNumber: cert.certificateNumber,
-                      fileUrl: cert.fileUrl,
-                    }}
-                    actionLoading={certificateActionId === cert.id}
-                    onPreview={handlePreviewCertificate}
-                    onDownload={(c) => handleDownloadCertificate(c)}
-                    onSendEmail={(c) => handleDownloadCertificate(c, true)}
-                  />
-                ))}
-              </div>
-            )}
+            <TraineeCertificatesPanel enabled={activeTab === 'certificates'} />
           </>
         )}
-      </main>
-    </div>
+    </main>
   )
 }
