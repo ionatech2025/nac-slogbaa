@@ -145,10 +145,23 @@ export function TraineeLayout() {
   }
 
   const scrollInnerStyle = {
-    flex: isCourseDetail ? 1 : undefined,
-    minHeight: isCourseDetail ? 0 : undefined,
-    padding: isCourseDetail ? 0 : '1.5rem 2rem',
-    maxWidth: 1200,
+    // Course player: flex column + minHeight 0 so CourseDetailPage’s nested flex/overflow chain
+    // receives a bounded height (article overflowY:auto can scroll to quiz).
+    ...(isCourseDetail
+      ? {
+          flex: 1,
+          minHeight: 0,
+          minWidth: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+          padding: 0,
+          maxWidth: 'none',
+        }
+      : {
+          padding: '1.5rem 2rem',
+          maxWidth: 1200,
+        }),
     margin: '0 auto',
     width: '100%',
     boxSizing: 'border-box',

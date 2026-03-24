@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react'
-import { Link } from 'react-router-dom'
+import { useState, useMemo, useCallback } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { FontAwesomeIcon, icons } from '../../../shared/icons.jsx'
 import { usePublishedCourses, useEnrolledCourses, useEnrollInCourse } from '../../../lib/hooks/use-courses.js'
 import { useCategories } from '../../../lib/hooks/use-categories.js'
@@ -10,6 +10,7 @@ import { QueryError } from '../../../shared/components/QueryError.jsx'
 import { CardGridSkeleton } from '../../../shared/components/ContentSkeletons.jsx'
 import { FilterSortBar } from '../../../shared/components/FilterSortBar.jsx'
 import { EmptyState } from '../../../shared/components/EmptyState.jsx'
+import { ConfirmModal } from '../../../shared/components/ConfirmModal.jsx'
 import { filterAndSortItems } from '../../../shared/utils/filterSort.js'
 
 const styles = {
@@ -120,12 +121,14 @@ const SORT_OPTIONS = [
 ]
 
 export function CourseListPage() {
+  const navigate = useNavigate()
   const { data: courses = [], isLoading: coursesLoading, error: coursesError, refetch } = usePublishedCourses()
   const { data: enrolled = [], isLoading: enrolledLoading } = useEnrolledCourses()
   const { data: categories = [] } = useCategories()
   const enrollMutation = useEnrollInCourse()
   const [courseView, setCourseView] = useState('vertical')
   const [previewCourse, setPreviewCourse] = useState(null)
+  const [enrollPromptCourse, setEnrollPromptCourse] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [filterValues, setFilterValues] = useState({ status: 'all', category: 'all' })
   const [sortValue, setSortValue] = useState('title:asc')
@@ -134,6 +137,11 @@ export function CourseListPage() {
   const error = coursesError?.message ?? (enrollMutation.error?.message || null)
 
   const enrolledIds = useMemo(() => new Set(enrolled.map((c) => c.id)), [enrolled])
+  const enrolledById = useMemo(() => {
+    const m = new Map()
+    for (const c of enrolled) m.set(c.id, c)
+    return m
+  }, [enrolled])
   const completedIds = useMemo(
     () => new Set(enrolled.filter((c) => c.completionPercentage >= 100).map((c) => c.id)),
     [enrolled]
@@ -180,15 +188,30 @@ export function CourseListPage() {
 
   const toast = useToast()
 
-  const handleEnroll = async (course) => {
+  const handleEnroll = useCallback((course, options = {}) => {
+    const { onSuccess: extraOnSuccess } = options
     setPreviewCourse(null)
     enrollMutation.mutate(course.id, {
-      onSuccess: () => toast.success(`Enrolled in "${course.title}"!`),
+      onSuccess: () => {
+        toast.success(`Enrolled in "${course.title}"!`)
+        extraOnSuccess?.()
+      },
       onError: (err) => toast.error(err?.message ?? 'Enrollment failed.'),
     })
-  }
+  }, [enrollMutation, toast])
 
   const handlePreview = (course) => setPreviewCourse(course)
+
+  const handleConfirmEnrollAndOpen = useCallback(() => {
+    const c = enrollPromptCourse
+    if (!c || enrollMutation.isPending) return
+    handleEnroll(c, {
+      onSuccess: () => {
+        navigate(`/dashboard/courses/${c.id}`)
+        setEnrollPromptCourse(null)
+      },
+    })
+  }, [enrollPromptCourse, enrollMutation.isPending, handleEnroll, navigate])
 
   if (loading) {
     return (
@@ -300,6 +323,8 @@ export function CourseListPage() {
               {filteredCourses.map((course) => {
                 const hasPrereq = !!course.prerequisiteCourseId
                 const prereqMet = !hasPrereq || completedIds.has(course.prerequisiteCourseId)
+                const isEnrolled = enrolledIds.has(course.id)
+                const enrolledRow = enrolledById.get(course.id)
                 return (
                   <CourseCard
                     key={course.id}
@@ -314,8 +339,17 @@ export function CourseListPage() {
                       prerequisiteCourseId: course.prerequisiteCourseId,
                       prerequisiteCourseName: course.prerequisiteCourseName,
                     }}
-                    onEnroll={enrolledIds.has(course.id) || !prereqMet ? undefined : handleEnroll}
+                    enrolled={isEnrolled}
+                    completionPercentage={enrolledRow?.completionPercentage}
+                    onEnroll={isEnrolled || !prereqMet ? undefined : (c) => handleEnroll(c)}
                     onPreview={handlePreview}
+                    onCardClick={
+                      isEnrolled
+                        ? () => navigate(`/dashboard/courses/${course.id}`)
+                        : prereqMet
+                          ? () => setEnrollPromptCourse(course)
+                          : undefined
+                    }
                     variant={courseView}
                     enrolling={enrollMutation.isPending && enrollMutation.variables === course.id}
                     prerequisiteMet={prereqMet}
@@ -338,6 +372,13 @@ export function CourseListPage() {
             />
           )
         })()}
+        {enrollPromptCourse && (
+          <ConfirmModal
+            message={`Enroll in "${enrollPromptCourse.title}" to open the course? After enrolling you will be taken to the course page.`}
+            onCancel={() => setEnrollPromptCourse(null)}
+            onContinue={handleConfirmEnrollAndOpen}
+          />
+        )}
       </main>
     </div>
   )
