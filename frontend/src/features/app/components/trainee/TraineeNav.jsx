@@ -198,7 +198,7 @@ export function TraineeNav({ profile, onOpenProfile, onOpenSearch }) {
             aria-expanded={open}
             aria-haspopup="true"
           >
-            <Avatar src={getAssetUrl(profile.profileImageUrl)}   name={displayName} size="sm" />
+            <Avatar src={getAssetUrl(profile?.profileImageUrl)}   name={displayName} size="sm" />
             <span>{displayName}</span>
             <span style={{ marginLeft: 4 }}>{open ? '\u25B2' : '\u25BC'}</span>
           </button>
