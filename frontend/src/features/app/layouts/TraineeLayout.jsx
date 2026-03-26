@@ -186,7 +186,7 @@ export function TraineeLayout() {
 
   return (
     <div style={layoutWrapperStyle}>
-      <TraineeNav onOpenProfile={handleOpenProfile} onOpenSearch={toggleSearch} />
+      <TraineeNav profile = {profileData} onOpenProfile={handleOpenProfile} onOpenSearch={toggleSearch} />
       <GlobalSearchPalette open={searchOpen} onClose={closeSearch} />
       {profileModalOpen && profileData && (
         <ProfileViewModal
