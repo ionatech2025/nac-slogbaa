@@ -531,7 +531,7 @@ export function AdminUserDetailPage() {
   const roleDisplay = isStaff ? roleLabel(user.role) : 'Trainee'
   const active = isStaff ? user.active : true
   const canDelete = isSuperAdmin && (isStaff ? user.id !== currentUserId : true)
-  const canEdit = isTrainee || (isStaff && isSuperAdmin)
+  const canEdit = isSuperAdmin
   const canChangePassword = isSuperAdmin
   const canToggleActive = isStaff && isSuperAdmin && user.id !== currentUserId
 
