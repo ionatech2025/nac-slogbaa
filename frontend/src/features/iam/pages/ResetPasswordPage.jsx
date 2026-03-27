@@ -246,8 +246,8 @@ export function ResetPasswordPage() {
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   style={{ ...styles.input, ...styles.passwordInput, paddingLeft: '2.5rem' }}
-                  placeholder="At least 12 characters"
-                  minLength={12}
+                  placeholder="At least 6 characters"
+                  minLength={6}
                 />
                 <button
                   type="button"

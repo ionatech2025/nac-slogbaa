@@ -316,7 +316,7 @@ export function SettingsPage() {
     setPasswordError(null)
     setPasswordSuccess(false)
     if (!currentPassword) { setPasswordError('Current password is required.'); return }
-    if (newPassword.length < 8) { setPasswordError('New password must be at least 8 characters.'); return }
+    if (newPassword.length < 6) { setPasswordError('New password must be at least 6 characters.'); return }
     if (newPassword !== confirmPassword) { setPasswordError('Passwords do not match.'); return }
     
     try {
@@ -505,7 +505,7 @@ export function SettingsPage() {
                 onChange={(e) => setNewPassword(e.target.value)}
                 autoComplete="new-password"
               />
-              <p style={{ margin: '0.25rem 0 0', fontSize: '0.8125rem', color: 'var(--slogbaa-text-muted)' }}>Minimum 8 characters</p>
+              <p style={{ margin: '0.25rem 0 0', fontSize: '0.8125rem', color: 'var(--slogbaa-text-muted)' }}>Minimum 6 characters</p>
             </div>
             <div style={{ marginBottom: '1rem' }}>
               <label style={styles.fieldLabel}>Confirm New Password *</label>
