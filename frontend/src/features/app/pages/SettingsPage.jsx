@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useOutletContext } from 'react-router-dom'
 import { Icon, icons } from '../../../shared/icons.jsx'
 import { useTheme } from '../../../contexts/ThemeContext.jsx'
 import { useAuth } from '../../iam/hooks/useAuth.js'
@@ -302,6 +302,8 @@ export function SettingsPage() {
   const [deleting, setDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState(null)
 
+  const { onEditProfile } = useOutletContext() || {}
+
   const handleToggleCertificateEmail = useCallback(
     (checked) => {
       updateSettings.mutate(
@@ -439,7 +441,7 @@ export function SettingsPage() {
           <button
             type="button"
             style={styles.profileLink}
-            onClick={() => navigate('/dashboard')}
+            onClick={onEditProfile}
           >
             <Icon icon={icons.editProfile} size="1rem" />
             Edit Profile
