@@ -1,9 +1,12 @@
 package com.nac.slogbaa.iam.adapters.rest.controller;
 
 import com.nac.slogbaa.iam.adapters.rest.dto.request.DeleteAccountRequest;
+import com.nac.slogbaa.iam.adapters.rest.dto.request.ChangePasswordRequest;
+import com.nac.slogbaa.iam.application.dto.command.ChangeTraineePasswordCommand;
 import com.nac.slogbaa.iam.application.dto.result.TraineeDataExportResult;
 import com.nac.slogbaa.iam.application.port.in.ExportTraineeDataUseCase;
 import com.nac.slogbaa.iam.application.port.in.SoftDeleteAccountUseCase;
+import com.nac.slogbaa.iam.application.port.in.ChangeTraineePasswordUseCase;
 import com.nac.slogbaa.iam.application.port.out.TraineeRepositoryPort;
 import com.nac.slogbaa.iam.core.valueobject.AuthenticatedIdentity;
 import com.nac.slogbaa.shared.ports.FileStoragePort;
@@ -53,15 +56,18 @@ public class TraineeAccountController {
 
     private final ExportTraineeDataUseCase exportTraineeDataUseCase;
     private final SoftDeleteAccountUseCase softDeleteAccountUseCase;
+    private final ChangeTraineePasswordUseCase changeTraineePasswordUseCase;
     private final FileStoragePort fileStoragePort;
     private final TraineeRepositoryPort traineeRepository;
 
     public TraineeAccountController(ExportTraineeDataUseCase exportTraineeDataUseCase,
                                     SoftDeleteAccountUseCase softDeleteAccountUseCase,
+                                    ChangeTraineePasswordUseCase changeTraineePasswordUseCase,
                                     FileStoragePort fileStoragePort,
                                     TraineeRepositoryPort traineeRepository) {
         this.exportTraineeDataUseCase = exportTraineeDataUseCase;
         this.softDeleteAccountUseCase = softDeleteAccountUseCase;
+        this.changeTraineePasswordUseCase = changeTraineePasswordUseCase;
         this.fileStoragePort = fileStoragePort;
         this.traineeRepository = traineeRepository;
     }
@@ -99,6 +105,24 @@ public class TraineeAccountController {
             @AuthenticationPrincipal AuthenticatedIdentity identity,
             @RequestParam(required = false) String reason) {
         softDeleteAccountUseCase.softDelete(identity.getUserId(), reason);
+        return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * Change password for the authenticated trainee.
+     */
+    @PostMapping("/password")
+    @PreAuthorize("hasRole('TRAINEE')")
+    public ResponseEntity<Void> changeMyPassword(
+            @AuthenticationPrincipal AuthenticatedIdentity identity,
+            @Valid @RequestBody ChangePasswordRequest request) {
+
+        changeTraineePasswordUseCase.changePassword(new ChangeTraineePasswordCommand(
+                identity.getUserId(),
+                request.getCurrentPassword(),
+                request.getNewPassword()
+        ));
+
         return ResponseEntity.noContent().build();
     }
 

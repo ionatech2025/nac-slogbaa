@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '../../features/iam/hooks/useAuth.js'
 import { queryKeys } from '../query-keys.js'
-import { getTraineeProfile, updateTraineeProfile } from '../../api/trainee.js'
+import { getTraineeProfile, updateTraineeProfile, updateTraineePassword } from '../../api/trainee.js'
 import { getTraineeSettings, updateTraineeSettings } from '../../api/traineeSettings.js'
 import { uploadAvatar } from '../../api/iam/avatar.js'
 
@@ -53,5 +53,12 @@ export function useUploadAvatar() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.trainee.profile() })
     },
+  })
+}
+
+export function useUpdateTraineePassword() {
+  const { token } = useAuth()
+  return useMutation({
+    mutationFn: (payload) => updateTraineePassword(token, payload.currentPassword, payload.newPassword),
   })
 }

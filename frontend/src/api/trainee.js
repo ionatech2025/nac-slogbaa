@@ -19,3 +19,13 @@ export async function updateTraineeProfile(token, payload) {
   const res = await apiClient(token).patch('/api/trainee/me', payload)
   return parseResponse(res)
 }
+
+/**
+ * Change the current trainee's password (POST /api/me/password). Requires auth token.
+ * Payload: { currentPassword, newPassword }
+ */
+export async function updateTraineePassword(token, currentPassword, newPassword) {
+  assertToken(token)
+  const res = await apiClient(token).post('/api/me/password', { currentPassword, newPassword })
+  return parseResponse(res)
+}
