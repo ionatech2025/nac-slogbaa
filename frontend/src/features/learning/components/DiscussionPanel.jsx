@@ -257,6 +257,7 @@ function ThreadDetail({ courseId, threadId, onBack }) {
   // authorize based on thread ownership. We show it to all users and handle errors.
   const roleUpper = String(user?.role ?? '').toUpperCase()
   const isStaff = roleUpper === 'SUPER_ADMIN' || roleUpper === 'ADMIN'
+  const canPostReply = roleUpper === 'SUPER_ADMIN'
   const canResolve = !thread.isResolved && (isStaff || thread.authorType === 'TRAINEE')
 
   const handleReply = (e) => {
@@ -331,30 +332,40 @@ function ThreadDetail({ courseId, threadId, onBack }) {
         </div>
       )}
 
-      {/* Reply form */}
-      <form onSubmit={handleReply} style={{ ...s.formCard, marginLeft: '1.5rem' }}>
-        <label style={s.formLabel}>Your reply</label>
-        <textarea
-          style={s.textarea}
-          value={replyBody}
-          onChange={(e) => setReplyBody(e.target.value)}
-          placeholder="Write a reply..."
-          maxLength={5000}
-          rows={3}
-        />
-        <div style={s.btnRow}>
-          <button
-            type="submit"
-            disabled={!replyBody.trim() || replyMutation.isPending}
-            style={{ ...s.submitBtn, opacity: !replyBody.trim() || replyMutation.isPending ? 0.5 : 1 }}
-          >
-            {replyMutation.isPending ? 'Posting...' : 'Post Reply'}
-          </button>
+      {/* Reply form — only Super Admin can post (API enforced) */}
+      {canPostReply ? (
+        <form onSubmit={handleReply} style={{ ...s.formCard, marginLeft: '1.5rem' }}>
+          <label style={s.formLabel}>Official reply</label>
+          <textarea
+            style={s.textarea}
+            value={replyBody}
+            onChange={(e) => setReplyBody(e.target.value)}
+            placeholder="Write a reply for the trainee..."
+            maxLength={5000}
+            rows={3}
+          />
+          <div style={s.btnRow}>
+            <button
+              type="submit"
+              disabled={!replyBody.trim() || replyMutation.isPending}
+              style={{ ...s.submitBtn, opacity: !replyBody.trim() || replyMutation.isPending ? 0.5 : 1 }}
+            >
+              {replyMutation.isPending ? 'Posting...' : 'Post Reply'}
+            </button>
+          </div>
+          {replyMutation.isError && (
+            <p style={s.errorText}>{replyMutation.error?.message ?? 'Failed to post reply.'}</p>
+          )}
+        </form>
+      ) : (
+        <div style={{ ...s.formCard, marginLeft: '1.5rem' }}>
+          <p style={{ ...s.emptyText, margin: 0 }}>
+            {roleUpper === 'TRAINEE'
+              ? 'When a facilitator responds, you will see it here and get a notification.'
+              : 'Only a Super Admin can post official replies. Open this course as Super Admin to respond.'}
+          </p>
         </div>
-        {replyMutation.isError && (
-          <p style={s.errorText}>{replyMutation.error?.message ?? 'Failed to post reply.'}</p>
-        )}
-      </form>
+      )}
     </div>
   )
 }
@@ -362,10 +373,13 @@ function ThreadDetail({ courseId, threadId, onBack }) {
 export function DiscussionPanel({ courseId, moduleId }) {
   const { data: threads = [], isLoading } = useDiscussionThreads(courseId, moduleId)
   const createMutation = useCreateThread()
+  const { user } = useAuth()
   const [showForm, setShowForm] = useState(false)
   const [selectedThreadId, setSelectedThreadId] = useState(null)
   const [title, setTitle] = useState('')
   const [body, setBody] = useState('')
+  const roleUpper = String(user?.role ?? '').toUpperCase()
+  const isTrainee = roleUpper === 'TRAINEE'
 
   const handleCreate = (e) => {
     e.preventDefault()
@@ -405,15 +419,15 @@ export function DiscussionPanel({ courseId, moduleId }) {
         Discussion
       </h3>
 
-      {/* Ask a question button */}
-      {!showForm && (
+      {/* Ask a question — trainees only (API: TRAINEE role) */}
+      {isTrainee && !showForm && (
         <button type="button" onClick={() => setShowForm(true)} style={s.askBtn}>
           <Icon icon={icons.enroll} size="0.9em" /> Ask a Question
         </button>
       )}
 
       {/* Thread creation form */}
-      {showForm && (
+      {isTrainee && showForm && (
         <form onSubmit={handleCreate} style={s.formCard}>
           <label style={s.formLabel}>Title</label>
           <input

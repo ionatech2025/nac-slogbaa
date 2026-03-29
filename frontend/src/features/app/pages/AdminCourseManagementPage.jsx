@@ -8,6 +8,7 @@ import defaultCourseImg from '../../../assets/images/courses/course1.jpg'
 import { useToast } from '../../../shared/hooks/useToast.js'
 import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle.js'
 import { Breadcrumbs } from '../../../shared/components/Breadcrumbs.jsx'
+import { AdminNavigatePills } from '../components/admin/AdminNavigatePills.jsx'
 import { Skeleton } from '../../../shared/components/Skeleton.jsx'
 
 const styles = {
@@ -431,6 +432,7 @@ export function AdminCourseManagementPage() {
     return (
       <div style={styles.page}>
         <p style={styles.error}>Course Management is available only to Super Admins.</p>
+        <AdminNavigatePills isSuperAdmin={false} />
       </div>
     )
   }
@@ -591,6 +593,7 @@ export function AdminCourseManagementPage() {
           )
         })
       )}
+      <AdminNavigatePills />
     </div>
   )
 }

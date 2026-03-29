@@ -49,7 +49,7 @@ public final class CheckAndAwardBadgesService implements CheckAndAwardBadgesUseC
                         xpPort.addXp(traineeId, def.xpReward());
                     }
                     try {
-                        createNotificationUseCase.create(
+                        createNotificationUseCase.createForTrainee(
                                 traineeId,
                                 "BADGE_AWARDED",
                                 "Badge Earned!",

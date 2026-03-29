@@ -26,7 +26,6 @@ const HelpPage = lazy(() => import('./pages/HelpPage.jsx').then((m) => ({ defaul
 // Lazy: Admin pages
 const AdminLayout = lazy(() => import('./pages/AdminLayout.jsx').then((m) => ({ default: m.AdminLayout })))
 const AdminOverviewPage = lazy(() => import('./pages/AdminOverviewPage.jsx').then((m) => ({ default: m.AdminOverviewPage })))
-const AdminPlaceholderPage = lazy(() => import('./pages/AdminPlaceholderPage.jsx').then((m) => ({ default: m.AdminPlaceholderPage })))
 const AdminAssessmentPage = lazy(() => import('./pages/AdminAssessmentPage.jsx').then((m) => ({ default: m.AdminAssessmentPage })))
 const AdminLearningPage = lazy(() => import('./pages/AdminLearningPage.jsx').then((m) => ({ default: m.AdminLearningPage })))
 const AdminCoursePage = lazy(() => import('./pages/AdminCoursePage.jsx').then((m) => ({ default: m.AdminCoursePage })))
@@ -35,9 +34,13 @@ const AdminLibraryPage = lazy(() => import('./pages/AdminLibraryPage.jsx').then(
 const AdminCourseManagementPage = lazy(() => import('./pages/AdminCourseManagementPage.jsx').then((m) => ({ default: m.AdminCourseManagementPage })))
 const AdminUserDetailPage = lazy(() => import('./pages/AdminUserDetailPage.jsx').then((m) => ({ default: m.AdminUserDetailPage })))
 const AdminHomePage = lazy(() => import('./pages/AdminHomePage.jsx').then((m) => ({ default: m.AdminHomePage })))
+const AdminReportsAnalyticsPage = lazy(() =>
+  import('./pages/AdminReportsAnalyticsPage.jsx').then((m) => ({ default: m.AdminReportsAnalyticsPage })))
 const AdminCmsPage = lazy(() => import('./pages/AdminCmsPage.jsx').then((m) => ({ default: m.AdminCmsPage })))
 const AdminLiveSessionsPage = lazy(() => import('./pages/AdminLiveSessionsPage.jsx').then((m) => ({ default: m.AdminLiveSessionsPage })))
 const LiveSessionsPage = lazy(() => import('./pages/LiveSessionsPage.jsx').then((m) => ({ default: m.LiveSessionsPage })))
+const TraineeCertificatesPage = lazy(() =>
+  import('./pages/TraineeCertificatesPage.jsx').then((m) => ({ default: m.TraineeCertificatesPage })))
 
 function Lazy({ children }) {
   return <Suspense fallback={<PageSkeleton />}>{children}</Suspense>
@@ -57,6 +60,7 @@ export function AppRoutes() {
           <Route path="courses/:courseId/modules/:moduleId" element={<Lazy><CourseDetailPage /></Lazy>} />
           <Route path="library" element={<Lazy><LibraryPage /></Lazy>} />
           <Route path="bookmarks" element={<Lazy><BookmarksPage /></Lazy>} />
+          <Route path="certificates" element={<Lazy><TraineeCertificatesPage /></Lazy>} />
           <Route path="notifications" element={<Lazy><NotificationsPage /></Lazy>} />
           <Route path="settings" element={<Lazy><SettingsPage /></Lazy>} />
           <Route path="live-sessions" element={<Lazy><LiveSessionsPage /></Lazy>} />
@@ -77,7 +81,7 @@ export function AppRoutes() {
           <Route path="assessment" element={<Lazy><AdminAssessmentPage /></Lazy>} />
           <Route path="cms" element={<Lazy><AdminCmsPage /></Lazy>} />
           <Route path="live-sessions" element={<Lazy><AdminLiveSessionsPage /></Lazy>} />
-          <Route path="reports" element={<Lazy><AdminPlaceholderPage title="Reports & Analytics" /></Lazy>} />
+          <Route path="reports" element={<Lazy><AdminReportsAnalyticsPage /></Lazy>} />
         </Route>
       </Route>
       <Route path="*" element={<NotFoundPage />} />

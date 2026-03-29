@@ -12,7 +12,7 @@ public class PasswordResetConfirmRequest {
     private String token;
 
     @NotBlank(message = "New password is required")
-    @Size(min = 12, message = "Password must be at least 12 characters")
+    @Size(min = 6, message = "Password must be at least 6 characters")
     private String newPassword;
 
     public String getToken() {

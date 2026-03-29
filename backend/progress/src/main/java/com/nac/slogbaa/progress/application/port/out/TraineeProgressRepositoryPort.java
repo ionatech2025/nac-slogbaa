@@ -46,4 +46,9 @@ public interface TraineeProgressRepositoryPort {
      * @return true if the trainee has completed the given course (status = COMPLETED)
      */
     boolean hasCompletedCourse(UUID traineeId, UUID courseId);
+
+    /**
+     * Module IDs the trainee has marked complete for this course enrollment (status COMPLETED).
+     */
+    List<UUID> findCompletedModuleIds(UUID traineeId, UUID courseId);
 }

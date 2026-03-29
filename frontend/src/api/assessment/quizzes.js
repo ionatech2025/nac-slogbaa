@@ -36,3 +36,13 @@ export async function submitQuizAttempt(token, courseId, moduleId, attemptId, an
   return res.json()
 }
 
+/** GET .../quiz/last-passed-result — latest passed attempt review (read-only). 404 if none. */
+export async function getLastPassedQuizResult(token, courseId, moduleId) {
+  if (!token || !courseId || !moduleId) return null
+  const client = apiClient(token)
+  const res = await client.get(`/api/courses/${courseId}/modules/${moduleId}/quiz/last-passed-result`)
+  if (res.status === 404) return null
+  if (!res.ok) throw new Error(await parseError(res))
+  return res.json()
+}
+

@@ -248,7 +248,24 @@ export function ReviewSection({ courseId }) {
         reviews.map((review) => (
           <div key={review.id} style={sectionStyles.reviewCard}>
             <div style={sectionStyles.reviewHeader}>
-              <span style={sectionStyles.reviewAuthor}>{review.traineeDisplayName}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', flexWrap: 'wrap' }}>
+                <span style={sectionStyles.reviewAuthor}>
+                  {review.authorDisplayName ?? review.traineeDisplayName}
+                </span>
+                {review.authorType === 'STAFF' && (
+                  <span
+                    style={{
+                      fontSize: '0.6875rem',
+                      fontWeight: 700,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.04em',
+                      color: 'var(--slogbaa-blue)',
+                    }}
+                  >
+                    Staff
+                  </span>
+                )}
+              </div>
               <span style={sectionStyles.reviewDate}>{formatDate(review.createdAt)}</span>
             </div>
             <StarRating value={review.rating} readOnly size="sm" />

@@ -10,11 +10,32 @@
 #
 # Prerequisites:
 #   1. Install Vercel CLI: npm install -g vercel
-#   2. Link project:      cd frontend && vercel link
-#   3. Add GitHub secrets:
-#      - VERCEL_TOKEN    → Vercel account token (Settings > Tokens)
-#      - VERCEL_ORG_ID   → from .vercel/project.json (orgId)
-#      - VERCEL_PROJECT_ID → from .vercel/project.json (projectId)
+#   2. Link project locally (creates gitignored .vercel — never committed):
+#        cd frontend && vercel link
+#   3. Add GitHub repository secrets (Settings → Secrets and variables → Actions):
+#      - VERCEL_TOKEN         → Vercel account token (https://vercel.com/account/tokens)
+#      - VERCEL_ORG_ID        → "orgId" from frontend/.vercel/project.json (after vercel link in frontend/)
+#      - VERCEL_PROJECT_ID    → "projectId" from that same file
+#   All three are required for `vercel deploy --prebuilt` in CI.
+#   CI writes frontend/.vercel/project.json (same as local `cd frontend && vercel link`).
+#   We do NOT run `vercel pull` in CI — it only syncs .env files for local dev and often fails on
+#   API/token edge cases; the build already sets VITE_API_BASE_URL and Vercel env is in vercel.json.
+#   Paste IDs with no extra quotes or spaces.
+#   Fork PRs: GitHub does not expose secrets to workflows from forks — deploy will fail unless
+#   the PR branch lives on the same repository.
+#
+# Troubleshooting "Could not retrieve Project Settings" on deploy:
+#   That message is misleading in CI — there is no broken folder to delete on your laptop.
+#   Vercel's API rejected the token + org + project combination. Fix:
+#   1) Token: create a NEW token at vercel.com/account/tokens while logged in as a user who is
+#      a MEMBER of the team that OWNS this Vercel project (not a read-only collaborator elsewhere).
+#   2) IDs: Vercel dashboard → Project → Settings → General → copy Project ID.
+#      Team id (orgId): Team Settings → copy Team ID (looks like team_...).
+#      Re-paste into GitHub secrets; no quotes, no trailing spaces.
+#   3) Optional secret VERCEL_SCOPE: your team SLUG from the URL (vercel.com/<slug>/...) if deploy
+#      still fails — some accounts need explicit --scope on the CLI.
+#   4) Simplest long-term: connect this GitHub repo in the Vercel dashboard (Import Project,
+#      Root Directory = frontend) and let Vercel deploy on push — then you can drop CLI deploy.
 #
 # 2026 Standards:
 #   - Waits for CI to pass before deploying (workflow_run trigger)
@@ -158,31 +179,44 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
+      - name: Remove stale frontend/.vercel (if ever committed — avoids wrong team link)
+        run: rm -rf frontend/.vercel
+
+      - name: Verify Vercel secrets
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          if [ -z "$VERCEL_TOKEN" ] || [ -z "$VERCEL_ORG_ID" ] || [ -z "$VERCEL_PROJECT_ID" ]; then
+            echo "::error::VERCEL_TOKEN, VERCEL_ORG_ID, and VERCEL_PROJECT_ID must be repository secrets."
+            echo "Fork PRs do not receive secrets — run from a branch on this repo, or merge from a branch here."
+            echo "Local: cd frontend && vercel link && cat .vercel/project.json"
+            exit 1
+          fi
+
+      # Vercel project root is frontend/ (vercel.json lives here). Link + deploy run from frontend/.
+     - name: Link Vercel project
+        working-directory: frontend
+        shell: bash
+        run: |
+          mkdir -p .vercel
+          echo "{\"orgId\":\"${{ secrets.VERCEL_ORG_ID }}\",\"projectId\":\"${{ secrets.VERCEL_PROJECT_ID }}\"}" > .vercel/project.json
+
+      - name: Download build from Build & Validate job
+        uses: actions/download-artifact@v4
         with:
-          bun-version: ${{ env.BUN_VERSION }}
+          name: frontend-dist
+          path: frontend/dist
 
       - name: Install Vercel CLI
         run: npm install -g vercel@latest
 
-      - name: Pull Vercel environment
-        run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
-
-      - name: Install dependencies
-        working-directory: frontend
-        run: bun install --frozen-lockfile
-
-      - name: Build
-        working-directory: frontend
-        run: bun run build
-        env:
-          VITE_API_BASE_URL: https://slogbaa-backend-production-ef59.up.railway.app
-
       - name: Prepare Vercel output
+        working-directory: frontend
         run: |
           mkdir -p .vercel/output/static
-          cp -r frontend/dist/* .vercel/output/static/
+          cp -r dist/* .vercel/output/static/
           cat > .vercel/output/config.json << 'CONF'
           {
             "version": 3,
@@ -195,10 +229,13 @@ jobs:
 
       - name: Deploy to Vercel (Preview)
         id: deploy
+        working-directory: frontend
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
-          URL=$(vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }})
+          # Use --scope with your Org ID to force the CLI into the right account context
+          URL=$(vercel deploy --prebuilt --token="$VERCEL_TOKEN" --scope="${{ secrets.VERCEL_ORG_ID }}")
           echo "url=${URL}" >> "$GITHUB_OUTPUT"
-          echo "Deployed to: ${URL}"
 
       - name: Comment preview URL on PR
         if: github.event_name == 'pull_request'
@@ -264,31 +301,43 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
+      - name: Remove stale frontend/.vercel (if ever committed)
+        run: rm -rf frontend/.vercel
+
+      - name: Verify Vercel secrets
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          if [ -z "$VERCEL_TOKEN" ] || [ -z "$VERCEL_ORG_ID" ] || [ -z "$VERCEL_PROJECT_ID" ]; then
+            echo "::error::VERCEL_TOKEN, VERCEL_ORG_ID, and VERCEL_PROJECT_ID must be repository secrets."
+            exit 1
+          fi
+
+      - name: Link Vercel project (CI)
+        working-directory: frontend
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          mkdir -p .vercel
+          printf '%s\n' "{\"orgId\":\"$VERCEL_ORG_ID\",\"projectId\":\"$VERCEL_PROJECT_ID\"}" > .vercel/project.json
+
+      - name: Download build from Build & Validate job
+        uses: actions/download-artifact@v4
         with:
-          bun-version: ${{ env.BUN_VERSION }}
+          name: frontend-dist
+          path: frontend/dist
 
       - name: Install Vercel CLI
-        run: npm install -g vercel@latest
-
-      - name: Pull Vercel environment
-        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
-
-      - name: Install dependencies
-        working-directory: frontend
-        run: bun install --frozen-lockfile
-
-      - name: Build
-        working-directory: frontend
-        run: bun run build
-        env:
-          VITE_API_BASE_URL: https://slogbaa-backend-production-ef59.up.railway.app
+        run: npm install -g vercel@50.37.3
 
       - name: Prepare Vercel output
+        working-directory: frontend
         run: |
           mkdir -p .vercel/output/static
-          cp -r frontend/dist/* .vercel/output/static/
+          cp -r dist/* .vercel/output/static/
           cat > .vercel/output/config.json << 'CONF'
           {
             "version": 3,
@@ -301,8 +350,13 @@ jobs:
 
       - name: Deploy to Vercel (Production)
         id: deploy
+        working-directory: frontend
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
-          URL=$(vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }})
+          URL=$(vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN")
           echo "url=${URL}" >> "$GITHUB_OUTPUT"
           echo "Production deployed to: ${URL}"
 

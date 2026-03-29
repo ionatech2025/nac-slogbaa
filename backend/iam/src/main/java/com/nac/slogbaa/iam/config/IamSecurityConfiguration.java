@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -100,6 +101,11 @@ public class IamSecurityConfiguration {
                 .requestMatchers("/actuator/**").hasRole("SUPER_ADMIN")
                 // Static assets served by SPA build (index.html, JS, CSS) — not /uploads
                 .requestMatchers("/", "/index.html", "/assets/**", "/favicon.ico").permitAll()
+                // Uploaded files: browsers never send Bearer on <img src>, <a href>, etc.
+                // Upload remains POST /api/files/upload with @PreAuthorize(ADMIN).
+                // Objects use UUID filenames (see LocalFileStorageAdapter).
+                .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
+                .requestMatchers(HttpMethod.HEAD, "/uploads/**").permitAll()
                 .anyRequest().authenticated()
             )
             .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)

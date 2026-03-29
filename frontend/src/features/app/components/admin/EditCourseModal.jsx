@@ -185,7 +185,7 @@ export function EditCourseModal({ token, course, onClose, onSubmit }) {
           </button>
           {imageUrl && (
             <div style={{ marginTop: '0.5rem' }}>
-              // codeql[js/xss]
+              {/* Preview: URL from upload API; sanitized via safeImageSrc. codeql[js/xss] */}
               <img
                 src={safeImageSrc(imageUrl)}
                 alt="Preview"

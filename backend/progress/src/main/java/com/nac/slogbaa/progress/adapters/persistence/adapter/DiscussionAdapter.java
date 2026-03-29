@@ -10,6 +10,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -89,5 +90,25 @@ public class DiscussionAdapter implements DiscussionPort {
     @Transactional
     public void incrementReplyCount(UUID threadId) {
         threadRepository.incrementReplyCount(threadId);
+    }
+
+    @Override
+    public long countThreadsByAuthorType(String authorType) {
+        return threadRepository.countByAuthorType(authorType);
+    }
+
+    @Override
+    public long countAllReplies() {
+        return replyRepository.count();
+    }
+
+    @Override
+    public List<Object[]> countTraineeThreadsPerUtcDaySince(Instant since) {
+        return threadRepository.countTraineeThreadsPerUtcDaySince(since);
+    }
+
+    @Override
+    public List<Object[]> countDiscussionRepliesPerUtcDaySince(Instant since) {
+        return replyRepository.countPerUtcDaySince(since);
     }
 }

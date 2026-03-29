@@ -1,25 +1,29 @@
 import { SafeHtml } from '../../../../shared/components/SafeHtml.jsx'
 import { getAssetUrl } from '../../../../api/client.js'
 
-const blockWrapperStyle = {
-  marginBottom: '1.25rem',
-  padding: '1rem 1.25rem',
-  background: 'var(--slogbaa-surface)',
-  border: '1px solid var(--slogbaa-border)',
-  borderRadius: 12,
-  boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+/**
+ * Editor.js image URLs: server paths use getAssetUrl(); legacy content used base64 data:image/…
+ * (old ModuleEditorJs uploader) which getAssetUrl intentionally drops — allow those for display only.
+ */
+function resolveEditorImageSrc(rawUrl) {
+  if (rawUrl == null) return ''
+  const s = String(rawUrl).trim()
+  if (!s) return ''
+  if (/^data:image\//i.test(s)) return s
+  return getAssetUrl(s)
 }
 
-// Variants for distinct block types (left border only on focused block via parent; quote gets right blue border)
-const listBlockStyle = { ...blockWrapperStyle }
-const tableBlockStyle = { ...blockWrapperStyle }
-const quoteBlockStyle = { ...blockWrapperStyle, background: 'rgba(39, 129, 191, 0.04)', borderRight: '4px solid var(--slogbaa-blue)' }
-const embedBlockStyle = { ...blockWrapperStyle }
-const imageBlockStyle = { ...blockWrapperStyle }
+/** Vertical rhythm between Editor.js blocks — no per-block “cards” (trainee view matches admin editor flow). */
+const BLOCK_GAP = '1.125rem'
+
+function blockOuterStyle(type) {
+  if (type === 'delimiter') return { margin: '1.5rem 0' }
+  return { marginBottom: BLOCK_GAP }
+}
 
 /**
- * Renders Editor.js JSON output as read-only HTML. Use for trainee/public view.
- * Each internal block (paragraph, list, table, quote, etc.) is wrapped in a distinct container.
+ * Renders Editor.js JSON as one continuous reading surface (like the admin editor canvas).
+ * Callouts (warning), code, tables, and media stay visually distinct without boxing every paragraph.
  */
 export function EditorJsReadOnly({ data, className, style = {} }) {
   if (!data) return null
@@ -37,20 +41,18 @@ export function EditorJsReadOnly({ data, className, style = {} }) {
 
   if (!blocks.length) return null
 
-  const getWrapperStyle = (block) => {
-    const t = block?.type
-    if (t === 'list') return listBlockStyle
-    if (t === 'table') return tableBlockStyle
-    if (t === 'quote') return quoteBlockStyle
-    if (t === 'embed') return embedBlockStyle
-    if (t === 'image') return imageBlockStyle
-    return blockWrapperStyle
-  }
-
   return (
-    <div className={className} style={{ ...style, fontSize: '0.9375rem', lineHeight: 1.6 }}>
+    <div
+      className={className}
+      style={{
+        ...style,
+        fontSize: '1rem',
+        lineHeight: 1.65,
+        color: 'var(--slogbaa-text)',
+      }}
+    >
       {blocks.map((block, i) => (
-        <div key={i} style={getWrapperStyle(block)}>
+        <div key={i} style={blockOuterStyle(block?.type)}>
           <EditorJsBlockView block={block} />
         </div>
       ))}
@@ -66,8 +68,17 @@ function EditorJsBlockView({ block }) {
     return <SafeHtml html={data.text} as="p" style={{ margin: 0 }} />
   }
   if (type === 'header' && data?.text) {
-    const level = `h${Math.min(6, Math.max(1, data.level ?? 2))}`
-    return <SafeHtml html={data.text} as={level} style={{ margin: 0, fontWeight: 700 }} />
+    const level = Math.min(6, Math.max(1, data.level ?? 2))
+    const Tag = `h${level}`
+    const size =
+      level <= 1 ? '1.75rem' : level === 2 ? '1.4rem' : level === 3 ? '1.2rem' : '1.05rem'
+    return (
+      <SafeHtml
+        html={data.text}
+        as={Tag}
+        style={{ margin: 0, fontWeight: 700, fontSize: size, lineHeight: 1.3 }}
+      />
+    )
   }
   if (type === 'list' && Array.isArray(data?.items)) {
     const isOrdered = data.style === 'ordered'
@@ -87,7 +98,11 @@ function EditorJsBlockView({ block }) {
           </li>
         )
       }
-      return <li key={i}><SafeHtml html={text} as="span" /></li>
+      return (
+        <li key={i}>
+          <SafeHtml html={text} as="span" />
+        </li>
+      )
     }
     const ListTag = isOrdered ? 'ol' : 'ul'
     return (
@@ -98,7 +113,7 @@ function EditorJsBlockView({ block }) {
   }
   if (type === 'image') {
     const rawUrl = data?.file?.url ?? data?.url
-    const safeUrl = rawUrl ? getAssetUrl(rawUrl) : ''
+    const safeUrl = rawUrl ? resolveEditorImageSrc(rawUrl) : ''
     const caption = data?.caption ?? data?.file?.caption ?? ''
     if (safeUrl || caption) {
       return (
@@ -109,10 +124,21 @@ function EditorJsBlockView({ block }) {
               alt={caption || 'Module image'}
               style={{ maxWidth: '100%', height: 'auto', borderRadius: 8, display: 'block' }}
               loading="lazy"
+              decoding="async"
+              onError={(e) => {
+                e.target.style.display = 'none'
+              }}
             />
           )}
           {caption && (
-            <figcaption style={{ marginTop: '0.35rem', fontSize: '0.8125rem', color: 'var(--slogbaa-text-muted)', fontStyle: 'italic' }}>
+            <figcaption
+              style={{
+                marginTop: '0.35rem',
+                fontSize: '0.8125rem',
+                color: 'var(--slogbaa-text-muted)',
+                fontStyle: 'italic',
+              }}
+            >
               {caption}
             </figcaption>
           )}
@@ -126,7 +152,7 @@ function EditorJsBlockView({ block }) {
     const safeEmbed = rawEmbed && /^https:\/\//i.test(String(rawEmbed).trim()) ? rawEmbed : ''
     if (safeEmbed) {
       return (
-        <div style={{ margin: 0, aspectRatio: '16/9', maxWidth: 560 }}>
+        <div style={{ margin: 0, aspectRatio: '16/9', maxWidth: 720 }}>
           <iframe
             src={safeEmbed}
             title="Embedded content"
@@ -143,23 +169,52 @@ function EditorJsBlockView({ block }) {
   }
   if (type === 'quote' && (data?.text || data?.caption)) {
     return (
-      <blockquote style={{ margin: 0, paddingLeft: '1rem', color: 'var(--slogbaa-text-muted)', fontStyle: 'italic' }}>
+      <blockquote
+        style={{
+          margin: 0,
+          padding: '0.75rem 0 0.75rem 1rem',
+          borderLeft: '4px solid var(--slogbaa-border)',
+          color: 'var(--slogbaa-text-muted)',
+          fontStyle: 'italic',
+          background: 'rgba(148, 163, 184, 0.08)',
+          borderRadius: '0 8px 8px 0',
+        }}
+      >
         {data.text && <SafeHtml html={data.text} as="p" style={{ margin: 0 }} />}
-        {data.caption && <SafeHtml html={data.caption} as="cite" style={{ display: 'block', marginTop: '0.5rem', fontSize: '0.875rem' }} />}
+        {data.caption && (
+          <SafeHtml
+            html={data.caption}
+            as="cite"
+            style={{ display: 'block', marginTop: '0.5rem', fontSize: '0.875rem', fontStyle: 'normal' }}
+          />
+        )}
       </blockquote>
     )
   }
   if (type === 'delimiter') {
     return (
-      <div style={{ margin: 0, textAlign: 'center', color: 'var(--slogbaa-text-muted)' }}>
-        * * *
-      </div>
+      <hr
+        style={{
+          margin: 0,
+          border: 'none',
+          borderTop: '1px solid var(--slogbaa-border)',
+          opacity: 0.85,
+        }}
+      />
     )
   }
   if (type === 'warning' && (data?.title || data?.message)) {
     return (
-      <div style={{ margin: 0, padding: '1rem', background: 'rgba(37, 99, 235, 0.08)', borderLeft: '4px solid var(--slogbaa-blue)', borderRadius: 6 }}>
-        {data.title && <SafeHtml html={data.title} as="strong" style={{ display: 'block', marginBottom: '0.25rem' }} />}
+      <div
+        style={{
+          margin: 0,
+          padding: '1rem 1.1rem',
+          background: 'rgba(37, 99, 235, 0.08)',
+          borderLeft: '4px solid var(--slogbaa-blue)',
+          borderRadius: 8,
+        }}
+      >
+        {data.title && <SafeHtml html={data.title} as="strong" style={{ display: 'block', marginBottom: '0.35rem' }} />}
         {data.message && <SafeHtml html={data.message} />}
       </div>
     )
@@ -174,7 +229,15 @@ function EditorJsBlockView({ block }) {
             <thead>
               <tr>
                 {rows[0].map((cell, j) => (
-                  <th key={j} style={{ border: '1px solid var(--slogbaa-border)', padding: '0.5rem 0.75rem', textAlign: 'left', fontWeight: 600 }}>
+                  <th
+                    key={j}
+                    style={{
+                      border: '1px solid var(--slogbaa-border)',
+                      padding: '0.5rem 0.75rem',
+                      textAlign: 'left',
+                      fontWeight: 600,
+                    }}
+                  >
                     <SafeHtml html={cell} as="span" />
                   </th>
                 ))}
@@ -199,8 +262,19 @@ function EditorJsBlockView({ block }) {
   if (type === 'code' && data?.code != null) {
     const code = String(data.code)
     return (
-      <pre style={{ margin: 0, padding: '1rem', background: 'var(--slogbaa-bg-secondary)', borderRadius: 8, overflow: 'auto', fontSize: '0.875rem', lineHeight: 1.5 }}>
-        <code style={{ fontFamily: 'ui-monospace, monospace' }}>{code}</code>
+      <pre
+        style={{
+          margin: 0,
+          padding: '1rem',
+          background: 'var(--slogbaa-bg-secondary, rgba(0,0,0,0.2))',
+          borderRadius: 8,
+          overflow: 'auto',
+          fontSize: '0.875rem',
+          lineHeight: 1.5,
+          border: '1px solid var(--slogbaa-border)',
+        }}
+      >
+        <code style={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace' }}>{code}</code>
       </pre>
     )
   }

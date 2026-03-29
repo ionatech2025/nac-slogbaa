@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 public class AttemptAdapter implements AttemptPort {
@@ -167,6 +168,75 @@ public class AttemptAdapter implements AttemptPort {
         return new SubmittedAttemptDto(
                 attempt.getId(),
                 pointsEarned,
+                totalPoints,
+                percent,
+                attempt.isPassed(),
+                attempt.getCompletedAt(),
+                answerDetails
+        );
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<SubmittedAttemptDto> findLatestPassedAttemptReview(UUID traineeId, UUID moduleId, UUID courseId) {
+        return attemptRepository.findLatestPassedAttemptId(traineeId, moduleId, courseId)
+                .flatMap(attemptRepository::findById)
+                .map(this::toSubmittedAttemptDtoFromCompleted);
+    }
+
+    private SubmittedAttemptDto toSubmittedAttemptDtoFromCompleted(QuizAttemptEntity attempt) {
+        QuizEntity quiz = quizRepository.findById(attempt.getTraineeAssessment().getQuiz().getId())
+                .orElseThrow();
+        Map<UUID, QuestionEntity> questionMap = quiz.getQuestions().stream()
+                .collect(Collectors.toMap(QuestionEntity::getId, q -> q, (a, b) -> a));
+
+        List<QuizAnswerEntity> sortedAnswers = attempt.getAnswers().stream()
+                .sorted(Comparator.comparingInt(a -> {
+                    QuestionEntity q = questionMap.get(a.getQuestionId());
+                    return q != null ? q.getQuestionOrder() : 0;
+                }))
+                .toList();
+
+        List<SubmittedAnswerDto> answerDetails = new ArrayList<>();
+        for (QuizAnswerEntity ans : sortedAnswers) {
+            QuestionEntity q = questionMap.get(ans.getQuestionId());
+            if (q == null) {
+                continue;
+            }
+            QuizOptionEntity correctOption = null;
+            if ("MULTIPLE_CHOICE".equals(q.getQuestionType()) || "TRUE_FALSE".equals(q.getQuestionType())) {
+                correctOption = q.getOptions().stream().filter(QuizOptionEntity::isCorrect).findFirst().orElse(null);
+            }
+            String selectedOptionText = null;
+            if (ans.getSelectedOptionId() != null) {
+                selectedOptionText = q.getOptions().stream()
+                        .filter(o -> o.getId().equals(ans.getSelectedOptionId()))
+                        .map(QuizOptionEntity::getOptionText)
+                        .findFirst()
+                        .orElse(null);
+            }
+            if ((selectedOptionText == null || selectedOptionText.isBlank()) && ans.getTextAnswer() != null && !ans.getTextAnswer().isBlank()) {
+                selectedOptionText = ans.getTextAnswer();
+            }
+            answerDetails.add(new SubmittedAnswerDto(
+                    q.getId(),
+                    q.getQuestionText(),
+                    ans.getSelectedOptionId(),
+                    selectedOptionText,
+                    correctOption != null ? correctOption.getId() : null,
+                    correctOption != null ? correctOption.getOptionText() : null,
+                    ans.isCorrect(),
+                    ans.getPointsAwarded(),
+                    q.getPoints()
+            ));
+        }
+
+        int totalPoints = attempt.getTotalPoints();
+        int earned = attempt.getPointsEarned();
+        int percent = totalPoints > 0 ? (100 * earned / totalPoints) : 0;
+        return new SubmittedAttemptDto(
+                attempt.getId(),
+                earned,
                 totalPoints,
                 percent,
                 attempt.isPassed(),

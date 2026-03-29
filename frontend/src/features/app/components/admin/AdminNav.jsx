@@ -3,6 +3,7 @@ import { FontAwesomeIcon, Icon, icons } from '../../../../shared/icons.jsx'
 import { useAuth } from '../../../iam/hooks/useAuth.js'
 import { useTheme } from '../../../../contexts/ThemeContext.jsx'
 import { Logo } from '../../../../shared/components/Logo.jsx'
+import { StaffNotificationBell } from '../StaffNotificationBell.jsx'
 
 const themeToggleBase = {
   display: 'inline-flex',
@@ -108,6 +109,12 @@ export function AdminNav() {
       </div>
       <div style={rightStyle}>
         <span style={styles.userLabel}>{user?.fullName || user?.email || 'Staff'}</span>
+        <StaffNotificationBell
+          buttonStyle={{
+            borderColor: isLight ? 'var(--slogbaa-border)' : 'rgba(255,255,255,0.2)',
+            color: isLight ? 'var(--slogbaa-text)' : '#fff',
+          }}
+        />
         <button
           type="button"
           style={{

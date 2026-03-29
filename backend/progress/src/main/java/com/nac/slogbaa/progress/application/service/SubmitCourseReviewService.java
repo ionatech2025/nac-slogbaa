@@ -16,13 +16,16 @@ public final class SubmitCourseReviewService implements SubmitCourseReviewUseCas
     private final CourseReviewPort courseReviewPort;
     private final TraineeProgressRepositoryPort traineeProgressRepository;
     private final CheckAndAwardBadgesUseCase checkAndAwardBadgesUseCase;
+    private final CourseReviewStaffNotificationService courseReviewStaffNotificationService;
 
     public SubmitCourseReviewService(CourseReviewPort courseReviewPort,
                                      TraineeProgressRepositoryPort traineeProgressRepository,
-                                     CheckAndAwardBadgesUseCase checkAndAwardBadgesUseCase) {
+                                     CheckAndAwardBadgesUseCase checkAndAwardBadgesUseCase,
+                                     CourseReviewStaffNotificationService courseReviewStaffNotificationService) {
         this.courseReviewPort = courseReviewPort;
         this.traineeProgressRepository = traineeProgressRepository;
         this.checkAndAwardBadgesUseCase = checkAndAwardBadgesUseCase;
+        this.courseReviewStaffNotificationService = courseReviewStaffNotificationService;
     }
 
     @Override
@@ -50,6 +53,12 @@ public final class SubmitCourseReviewService implements SubmitCourseReviewUseCas
             checkAndAwardBadgesUseCase.checkAndAward(traineeId, "REVIEW_WRITTEN");
         } catch (Exception ignored) {
             // Badge checks must never break the main review flow
+        }
+
+        try {
+            courseReviewStaffNotificationService.notifyReviewSubmitted(courseId, null);
+        } catch (Exception ignored) {
+            // notifications must not break review flow
         }
     }
 }

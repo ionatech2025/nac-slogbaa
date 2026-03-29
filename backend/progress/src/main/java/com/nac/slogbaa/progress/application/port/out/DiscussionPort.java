@@ -3,6 +3,7 @@ package com.nac.slogbaa.progress.application.port.out;
 import com.nac.slogbaa.progress.adapters.persistence.entity.DiscussionReplyEntity;
 import com.nac.slogbaa.progress.adapters.persistence.entity.DiscussionThreadEntity;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -38,4 +39,12 @@ public interface DiscussionPort {
     void deleteReply(UUID replyId);
 
     void incrementReplyCount(UUID threadId);
+
+    long countThreadsByAuthorType(String authorType);
+
+    long countAllReplies();
+
+    List<Object[]> countTraineeThreadsPerUtcDaySince(Instant since);
+
+    List<Object[]> countDiscussionRepliesPerUtcDaySince(Instant since);
 }

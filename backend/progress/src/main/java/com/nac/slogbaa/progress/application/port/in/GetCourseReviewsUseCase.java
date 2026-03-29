@@ -21,4 +21,6 @@ public interface GetCourseReviewsUseCase {
     CourseRatingSummary getRatingSummary(UUID courseId);
 
     void deleteReview(UUID traineeId, UUID courseId);
+
+    void deleteStaffReview(UUID staffUserId, UUID courseId);
 }

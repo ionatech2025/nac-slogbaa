@@ -231,9 +231,10 @@ const styles = {
   },
 }
 
-export function CourseCard({ course, enrolled, completionPercentage, onEnroll, onPreview, variant = 'vertical', viewHref, enrolling, prerequisiteMet = true }) {
+export function CourseCard({ course, enrolled, completionPercentage, onEnroll, onPreview, variant = 'vertical', viewHref, enrolling, prerequisiteMet = true, onCardClick }) {
   const imgSrc = getAssetUrl(course.imageUrl) || DEFAULT_IMG
   const isHorizontal = variant === 'horizontal'
+  const titleIsLink = viewHref && !onCardClick
 
   const imageBadges = []
   if (enrolled) imageBadges.push({ label: 'ENROLLED', light: false })
@@ -253,7 +254,7 @@ export function CourseCard({ course, enrolled, completionPercentage, onEnroll, o
   const titleStyle = {
     ...styles.title,
     ...(isHorizontal ? styles.titleHorizontal : {}),
-    ...(viewHref ? { color: 'var(--slogbaa-blue)' } : {}),
+    ...(titleIsLink ? { color: 'var(--slogbaa-blue)' } : {}),
   }
   const descriptionStyle = {
     ...styles.description,
@@ -269,8 +270,36 @@ export function CourseCard({ course, enrolled, completionPercentage, onEnroll, o
     course.level,
   ].filter(Boolean)
 
+  const hasFooterButtons = !enrolled && !!(onEnroll || onPreview || (course.prerequisiteCourseId && !prerequisiteMet))
+  const cardIsSingleAction = onCardClick && !hasFooterButtons
+
+  const handleArticleClick = (e) => {
+    if (!onCardClick) return
+    const t = e.target
+    if (typeof t.closest === 'function' && (t.closest('button') || t.closest('a'))) return
+    onCardClick()
+  }
+
+  const handleArticleKeyDown = (e) => {
+    if (!onCardClick || !cardIsSingleAction) return
+    if (e.key !== 'Enter' && e.key !== ' ') return
+    e.preventDefault()
+    onCardClick()
+  }
+
+  const articleStyle = onCardClick
+    ? { ...cardStyle, cursor: 'pointer' }
+    : cardStyle
+
   return (
-    <article style={cardStyle}>
+    <article
+      style={articleStyle}
+      onClick={onCardClick ? handleArticleClick : undefined}
+      onKeyDown={onCardClick ? handleArticleKeyDown : undefined}
+      role={onCardClick ? (cardIsSingleAction ? 'button' : 'group') : undefined}
+      tabIndex={cardIsSingleAction ? 0 : undefined}
+      aria-label={onCardClick ? `Course: ${course.title}. ${enrolled ? 'Open course' : 'Enroll to open course'}` : undefined}
+    >
       <div style={imageWrapStyle}>
         <img
           src={imgSrc}
@@ -296,7 +325,7 @@ export function CourseCard({ course, enrolled, completionPercentage, onEnroll, o
       </div>
       <div style={bodyStyle}>
         <h3 style={titleStyle}>
-          {viewHref ? (
+          {titleIsLink ? (
             <Link to={viewHref} style={{ color: 'inherit', textDecoration: 'inherit' }}>
               {course.title}
             </Link>
@@ -348,7 +377,10 @@ export function CourseCard({ course, enrolled, completionPercentage, onEnroll, o
                   ...styles.buttonSecondary,
                   ...(isHorizontal ? styles.buttonHorizontal : { flex: 1 }),
                 }}
-                onClick={() => onPreview(course)}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onPreview(course)
+                }}
               >
                 <FontAwesomeIcon icon={icons.eye} />
                 Preview
@@ -363,7 +395,10 @@ export function CourseCard({ course, enrolled, completionPercentage, onEnroll, o
                   ...(isHorizontal ? styles.buttonHorizontal : { flex: 1 }),
                   ...(enrolling ? { opacity: 0.7, cursor: 'not-allowed' } : {}),
                 }}
-                onClick={() => onEnroll(course)}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onEnroll(course)
+                }}
               >
                 <FontAwesomeIcon icon={icons.enroll} />
                 {enrolling ? 'Enrolling…' : 'ENROLL NOW →'}

@@ -6,6 +6,9 @@ import { getAssetUrl } from '../../../api/client.js'
 import { AddModuleModal } from '../components/admin/AddModuleModal.jsx'
 import { Badge } from '../../../shared/components/Badge.jsx'
 import { Breadcrumbs } from '../../../shared/components/Breadcrumbs.jsx'
+import { AdminNavigatePills } from '../components/admin/AdminNavigatePills.jsx'
+import { ReviewSection } from '../../learning/components/ReviewSection.jsx'
+import { DiscussionPanel } from '../../learning/components/DiscussionPanel.jsx'
 import { CardGridSkeleton } from '../../../shared/components/ContentSkeletons.jsx'
 import { useToast } from '../../../shared/hooks/useToast.js'
 
@@ -215,8 +218,22 @@ export function AdminCoursePage() {
     }
   }
 
-  if (loading) return <div style={styles.page}><CardGridSkeleton count={4} /></div>
-  if (error || !course) return <p style={styles.error}>{error || 'Course not found.'}</p>
+  if (loading) {
+    return (
+      <div style={styles.page}>
+        <CardGridSkeleton count={4} />
+        <AdminNavigatePills />
+      </div>
+    )
+  }
+  if (error || !course) {
+    return (
+      <div style={styles.page}>
+        <p style={styles.error}>{error || 'Course not found.'}</p>
+        <AdminNavigatePills />
+      </div>
+    )
+  }
 
   return (
     <div style={styles.page}>
@@ -270,6 +287,11 @@ export function AdminCoursePage() {
         </button>
       )}
 
+      <div style={{ maxWidth: 880, marginTop: '2.5rem' }}>
+        <ReviewSection courseId={courseId} />
+        <DiscussionPanel courseId={courseId} moduleId={null} />
+      </div>
+
       {modal === 'addModule' && (
         <AddModuleModal
           token={token}
@@ -278,6 +300,7 @@ export function AdminCoursePage() {
           onSubmit={handleAddModule}
         />
       )}
+      <AdminNavigatePills />
     </div>
   )
 }

@@ -39,7 +39,7 @@ const s = {
  *   <Breadcrumbs />
  */
 export function Breadcrumbs({ items }) {
-  const crumbs = items ?? []
+  const crumbs = Array.isArray(items) ? items : []
 
   if (crumbs.length === 0) return null
 

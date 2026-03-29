@@ -11,6 +11,7 @@ export const queryKeys = {
     detail: (courseId) => [...queryKeys.courses.all, 'detail', courseId],
     enrollment: (courseId) => [...queryKeys.courses.all, 'enrollment', courseId],
     resume: (courseId) => [...queryKeys.courses.all, 'resume', courseId],
+    completedModules: (courseId) => [...queryKeys.courses.all, 'completed-modules', courseId],
   },
 
   // === Library ===
@@ -68,6 +69,12 @@ export const queryKeys = {
     all: ['notifications'],
     list: (page) => ['notifications', 'list', page],
     unreadCount: () => ['notifications', 'unread-count'],
+  },
+
+  staffNotifications: {
+    all: ['staff-notifications'],
+    list: (page) => [...queryKeys.staffNotifications.all, 'list', page],
+    unreadCount: () => [...queryKeys.staffNotifications.all, 'unread-count'],
   },
 
   // === Categories ===
@@ -137,6 +144,8 @@ export const queryKeys = {
     liveSessions: {
       all: () => [...queryKeys.admin.all, 'liveSessions'],
     },
+
+    engagementAnalytics: () => [...queryKeys.admin.all, 'engagement-analytics'],
   },
 
   // === Public homepage content ===

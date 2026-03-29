@@ -45,4 +45,20 @@ public class NotificationAdapter implements NotificationPort {
     public void markAllRead(UUID traineeId) {
         jpaRepository.markAllReadByTraineeId(traineeId);
     }
+
+    @Override
+    public Page<NotificationEntity> findByStaffUser(UUID staffUserId, Pageable pageable) {
+        return jpaRepository.findByStaffUserIdOrderByCreatedAtDesc(staffUserId, pageable);
+    }
+
+    @Override
+    public long countUnreadStaff(UUID staffUserId) {
+        return jpaRepository.countUnreadByStaffUserId(staffUserId);
+    }
+
+    @Override
+    @Transactional
+    public void markAllReadStaff(UUID staffUserId) {
+        jpaRepository.markAllReadByStaffUserId(staffUserId);
+    }
 }

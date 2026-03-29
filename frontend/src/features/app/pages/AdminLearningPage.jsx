@@ -17,6 +17,7 @@ import { Pagination, usePagination } from '../../../shared/components/Pagination
 import { TableSkeleton, SearchBarSkeleton } from '../../../shared/components/AdminTableSkeleton.jsx'
 import { exportToCsv } from '../../../shared/utils/csvExport.js'
 import { Breadcrumbs } from '../../../shared/components/Breadcrumbs.jsx'
+import { AdminNavigatePills } from '../components/admin/AdminNavigatePills.jsx'
 
 const COURSE_FILTERS = [
   {
@@ -532,6 +533,7 @@ export function AdminLearningPage() {
           onSubmit={(data) => handleEditCourse(modalContext.course.id, data)}
         />
       )}
+      <AdminNavigatePills />
     </>
   )
 }

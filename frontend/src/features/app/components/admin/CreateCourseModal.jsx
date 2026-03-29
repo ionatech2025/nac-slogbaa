@@ -161,7 +161,7 @@ export function CreateCourseModal({ token, onClose, onSubmit }) {
           </button>
           {imageUrl && (
             <div style={{ marginTop: '0.5rem' }}>
-              // codeql[js/xss]
+              {/* Preview: getAssetUrl normalizes src. codeql[js/xss] */}
               <img
                 src={typeof imageUrl === 'string' && (imageUrl.startsWith('blob:') || imageUrl.startsWith('/') || imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) ? getAssetUrl(imageUrl) : ''}
                 alt="Preview"

@@ -7,6 +7,7 @@ import {
   getCourseDetails,
   checkEnrollment,
   getResumePoint,
+  getCompletedModuleIds,
   enrollInCourse,
   unenrollFromCourse,
   recordProgress,
@@ -83,6 +84,16 @@ export function useResumePoint(courseId, options = {}) {
     queryFn: () => getResumePoint(token, courseId),
     enabled: !!token && !!courseId && (options.enabled !== false),
     staleTime: 0,
+  })
+}
+
+export function useCompletedModuleIds(courseId, options = {}) {
+  const { token } = useAuth()
+  return useQuery({
+    queryKey: queryKeys.courses.completedModules(courseId),
+    queryFn: () => getCompletedModuleIds(token, courseId),
+    enabled: !!token && !!courseId && (options.enabled !== false),
+    staleTime: 60_000,
   })
 }
 

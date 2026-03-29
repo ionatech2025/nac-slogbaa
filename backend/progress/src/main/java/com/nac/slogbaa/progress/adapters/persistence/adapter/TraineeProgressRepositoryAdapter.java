@@ -1,6 +1,8 @@
 package com.nac.slogbaa.progress.adapters.persistence.adapter;
 
+import com.nac.slogbaa.progress.adapters.persistence.entity.ModuleProgressEntity;
 import com.nac.slogbaa.progress.adapters.persistence.entity.TraineeProgressEntity;
+import com.nac.slogbaa.progress.adapters.persistence.repository.JpaModuleProgressRepository;
 import com.nac.slogbaa.progress.adapters.persistence.repository.JpaTraineeProgressRepository;
 import com.nac.slogbaa.progress.application.dto.ResumePoint;
 import com.nac.slogbaa.progress.application.port.out.TraineeProgressRepositoryPort;
@@ -14,9 +16,12 @@ import java.util.*;
 public class TraineeProgressRepositoryAdapter implements TraineeProgressRepositoryPort {
 
     private final JpaTraineeProgressRepository jpaRepository;
+    private final JpaModuleProgressRepository moduleProgressRepository;
 
-    public TraineeProgressRepositoryAdapter(JpaTraineeProgressRepository jpaRepository) {
+    public TraineeProgressRepositoryAdapter(JpaTraineeProgressRepository jpaRepository,
+                                            JpaModuleProgressRepository moduleProgressRepository) {
         this.jpaRepository = jpaRepository;
+        this.moduleProgressRepository = moduleProgressRepository;
     }
 
     @Override
@@ -82,6 +87,15 @@ public class TraineeProgressRepositoryAdapter implements TraineeProgressReposito
     @Override
     public boolean hasCompletedCourse(UUID traineeId, UUID courseId) {
         return jpaRepository.existsCompletedByTraineeIdAndCourseId(traineeId, courseId);
+    }
+
+    @Override
+    public List<UUID> findCompletedModuleIds(UUID traineeId, UUID courseId) {
+        return jpaRepository.findOneByTraineeIdAndCourseId(traineeId, courseId)
+                .map(progress -> moduleProgressRepository.findByTraineeProgressIdAndStatusCompleted(progress.getId()).stream()
+                        .map(ModuleProgressEntity::getModuleId)
+                        .toList())
+                .orElse(List.of());
     }
 
     @Override

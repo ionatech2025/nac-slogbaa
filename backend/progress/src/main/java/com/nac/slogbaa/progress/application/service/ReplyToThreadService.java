@@ -34,14 +34,16 @@ public final class ReplyToThreadService implements ReplyToThreadUseCase {
     }
 
     @Override
-    public ReplyResult reply(UUID threadId, UUID authorId, String authorType, String body) {
+    public ReplyResult reply(UUID courseId, UUID threadId, UUID authorId, String authorType, String body) {
         if (body == null || body.isBlank()) {
             throw new IllegalArgumentException("Reply body cannot be empty");
         }
 
-        // Verify thread exists
         DiscussionThreadEntity thread = discussionPort.findThreadById(threadId)
                 .orElseThrow(() -> new IllegalArgumentException("Thread not found"));
+        if (!thread.getCourseId().equals(courseId)) {
+            throw new IllegalArgumentException("Thread does not belong to this course");
+        }
 
         DiscussionReplyEntity entity = new DiscussionReplyEntity();
         entity.setThreadId(threadId);
@@ -54,18 +56,17 @@ public final class ReplyToThreadService implements ReplyToThreadUseCase {
 
         String displayName = resolveDisplayName(authorId, authorType);
 
-        // Notify thread author if they're a trainee and not the person replying
         try {
             if ("TRAINEE".equals(thread.getAuthorType()) && !thread.getAuthorId().equals(authorId)) {
                 String threadTitle = thread.getTitle();
                 if (threadTitle != null && threadTitle.length() > 60) {
                     threadTitle = threadTitle.substring(0, 57) + "...";
                 }
-                createNotificationUseCase.create(
+                createNotificationUseCase.createForTrainee(
                         thread.getAuthorId(),
                         "DISCUSSION_REPLY",
-                        "New Reply",
-                        "Someone replied to your thread '" + threadTitle + "'",
+                        "Reply to your question",
+                        "A facilitator replied to your thread '" + threadTitle + "'",
                         "/dashboard/courses/" + thread.getCourseId()
                 );
             }

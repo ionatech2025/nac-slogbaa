@@ -136,8 +136,23 @@ public class EnrollmentController {
                 .orElse(ResponseEntity.ok(new ResumePointResponse(null, null)));
     }
 
+    @GetMapping("/{courseId}/completed-modules")
+    @PreAuthorize("hasRole('TRAINEE')")
+    public ResponseEntity<CompletedModulesResponse> getCompletedModules(
+            @AuthenticationPrincipal AuthenticatedIdentity identity,
+            @PathVariable UUID courseId) {
+        if (!traineeProgressRepository.existsByTraineeIdAndCourseId(identity.getUserId(), courseId)) {
+            return ResponseEntity.ok(new CompletedModulesResponse(List.of()));
+        }
+        List<String> ids = traineeProgressRepository.findCompletedModuleIds(identity.getUserId(), courseId).stream()
+                .map(UUID::toString)
+                .toList();
+        return ResponseEntity.ok(new CompletedModulesResponse(ids));
+    }
+
     public record EnrolledCourseResponse(String id, String title, String description, String imageUrl, int moduleCount, int completionPercentage) {}
     public record RecordProgressRequest(java.util.UUID moduleId, java.util.UUID contentBlockId) {}
     public record RecordModuleCompleteRequest(Boolean quizPassed) {}
     public record ResumePointResponse(String lastModuleId, String lastContentBlockId) {}
+    public record CompletedModulesResponse(List<String> completedModuleIds) {}
 }

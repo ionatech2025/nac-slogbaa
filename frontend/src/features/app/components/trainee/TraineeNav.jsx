@@ -5,6 +5,7 @@ import { useAuth } from '../../../iam/hooks/useAuth.js'
 import { Avatar } from '../../../../shared/components/Avatar.jsx'
 import { Logo } from '../../../../shared/components/Logo.jsx'
 import { NotificationBell } from '../NotificationBell.jsx'
+import { getAssetUrl } from '../../../../api/client.js'
 
 const styles = {
   nav: {
@@ -126,7 +127,7 @@ function getInitials(user) {
   return '?'
 }
 
-export function TraineeNav({ onOpenProfile, onOpenSearch }) {
+export function TraineeNav({ profile, onOpenProfile, onOpenSearch }) {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
@@ -197,7 +198,7 @@ export function TraineeNav({ onOpenProfile, onOpenSearch }) {
             aria-expanded={open}
             aria-haspopup="true"
           >
-            <Avatar name={displayName} size="sm" />
+            <Avatar src={getAssetUrl(profile?.profileImageUrl)}   name={displayName} size="sm" />
             <span>{displayName}</span>
             <span style={{ marginLeft: 4 }}>{open ? '\u25B2' : '\u25BC'}</span>
           </button>

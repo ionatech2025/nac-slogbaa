@@ -181,7 +181,8 @@ export function usePagination(items, initialPageSize = 20) {
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(initialPageSize)
 
-  const totalItems = items.length
+  const list = Array.isArray(items) ? items : []
+  const totalItems = list.length
   const totalPages = Math.max(1, Math.ceil(totalItems / pageSize))
   const safePage = Math.min(page, totalPages)
 
@@ -192,8 +193,8 @@ export function usePagination(items, initialPageSize = 20) {
 
   const paginatedItems = useMemo(() => {
     const start = (safePage - 1) * pageSize
-    return items.slice(start, start + pageSize)
-  }, [items, safePage, pageSize])
+    return list.slice(start, start + pageSize)
+  }, [list, safePage, pageSize])
 
   const handlePageSizeChange = (newSize) => {
     setPageSize(newSize)
