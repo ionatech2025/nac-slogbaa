@@ -24,6 +24,19 @@
 #   Fork PRs: GitHub does not expose secrets to workflows from forks — deploy will fail unless
 #   the PR branch lives on the same repository.
 #
+# Troubleshooting "Could not retrieve Project Settings" on deploy:
+#   That message is misleading in CI — there is no broken folder to delete on your laptop.
+#   Vercel's API rejected the token + org + project combination. Fix:
+#   1) Token: create a NEW token at vercel.com/account/tokens while logged in as a user who is
+#      a MEMBER of the team that OWNS this Vercel project (not a read-only collaborator elsewhere).
+#   2) IDs: Vercel dashboard → Project → Settings → General → copy Project ID.
+#      Team id (orgId): Team Settings → copy Team ID (looks like team_...).
+#      Re-paste into GitHub secrets; no quotes, no trailing spaces.
+#   3) Optional secret VERCEL_SCOPE: your team SLUG from the URL (vercel.com/<slug>/...) if deploy
+#      still fails — some accounts need explicit --scope on the CLI.
+#   4) Simplest long-term: connect this GitHub repo in the Vercel dashboard (Import Project,
+#      Root Directory = frontend) and let Vercel deploy on push — then you can drop CLI deploy.
+#
 # 2026 Standards:
 #   - Waits for CI to pass before deploying (workflow_run trigger)
 #   - Preview URLs on PRs via comment
@@ -166,6 +179,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Remove stale frontend/.vercel (if ever committed — avoids wrong team link)
+        run: rm -rf frontend/.vercel
+
       - name: Verify Vercel secrets
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
@@ -196,7 +212,7 @@ jobs:
           path: frontend/dist
 
       - name: Install Vercel CLI
-        run: npm install -g vercel@latest
+        run: npm install -g vercel@50.37.3
 
       - name: Prepare Vercel output
         working-directory: frontend
@@ -220,8 +236,14 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_SCOPE: ${{ secrets.VERCEL_SCOPE }}
         run: |
-          URL=$(vercel deploy --prebuilt --token="$VERCEL_TOKEN")
+          set -e
+          if [ -n "$VERCEL_SCOPE" ]; then
+            URL=$(vercel deploy --prebuilt --token="$VERCEL_TOKEN" --scope="$VERCEL_SCOPE")
+          else
+            URL=$(vercel deploy --prebuilt --token="$VERCEL_TOKEN")
+          fi
           echo "url=${URL}" >> "$GITHUB_OUTPUT"
           echo "Deployed to: ${URL}"
 
@@ -289,6 +311,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Remove stale frontend/.vercel (if ever committed)
+        run: rm -rf frontend/.vercel
+
       - name: Verify Vercel secrets
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
@@ -316,7 +341,7 @@ jobs:
           path: frontend/dist
 
       - name: Install Vercel CLI
-        run: npm install -g vercel@latest
+        run: npm install -g vercel@50.37.3
 
       - name: Prepare Vercel output
         working-directory: frontend
@@ -340,8 +365,14 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_SCOPE: ${{ secrets.VERCEL_SCOPE }}
         run: |
-          URL=$(vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN")
+          set -e
+          if [ -n "$VERCEL_SCOPE" ]; then
+            URL=$(vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN" --scope="$VERCEL_SCOPE")
+          else
+            URL=$(vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN")
+          fi
           echo "url=${URL}" >> "$GITHUB_OUTPUT"
           echo "Production deployed to: ${URL}"
 
