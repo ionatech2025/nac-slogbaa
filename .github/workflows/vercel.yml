@@ -196,14 +196,12 @@ jobs:
           fi
 
       # Vercel project root is frontend/ (vercel.json lives here). Link + deploy run from frontend/.
-      - name: Link Vercel project (CI — same path as local `cd frontend && vercel link`)
+     - name: Link Vercel project
         working-directory: frontend
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        shell: bash
         run: |
           mkdir -p .vercel
-          printf '%s\n' "{\"orgId\":\"$VERCEL_ORG_ID\",\"projectId\":\"$VERCEL_PROJECT_ID\"}" > .vercel/project.json
+          echo "{\"orgId\":\"${{ secrets.VERCEL_ORG_ID }}\",\"projectId\":\"${{ secrets.VERCEL_PROJECT_ID }}\"}" > .vercel/project.json
 
       - name: Download build from Build & Validate job
         uses: actions/download-artifact@v4
@@ -212,7 +210,7 @@ jobs:
           path: frontend/dist
 
       - name: Install Vercel CLI
-        run: npm install -g vercel@50.37.3
+        run: npm install -g vercel@latest
 
       - name: Prepare Vercel output
         working-directory: frontend
@@ -234,18 +232,10 @@ jobs:
         working-directory: frontend
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-          VERCEL_SCOPE: ${{ secrets.VERCEL_SCOPE }}
         run: |
-          set -e
-          if [ -n "$VERCEL_SCOPE" ]; then
-            URL=$(vercel deploy --prebuilt --token="$VERCEL_TOKEN" --scope="$VERCEL_SCOPE")
-          else
-            URL=$(vercel deploy --prebuilt --token="$VERCEL_TOKEN")
-          fi
+          # Use --scope with your Org ID to force the CLI into the right account context
+          URL=$(vercel deploy --prebuilt --token="$VERCEL_TOKEN" --scope="${{ secrets.VERCEL_ORG_ID }}")
           echo "url=${URL}" >> "$GITHUB_OUTPUT"
-          echo "Deployed to: ${URL}"
 
       - name: Comment preview URL on PR
         if: github.event_name == 'pull_request'
@@ -365,14 +355,8 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-          VERCEL_SCOPE: ${{ secrets.VERCEL_SCOPE }}
         run: |
-          set -e
-          if [ -n "$VERCEL_SCOPE" ]; then
-            URL=$(vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN" --scope="$VERCEL_SCOPE")
-          else
-            URL=$(vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN")
-          fi
+          URL=$(vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN")
           echo "url=${URL}" >> "$GITHUB_OUTPUT"
           echo "Production deployed to: ${URL}"
 
