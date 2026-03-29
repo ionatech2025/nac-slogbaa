@@ -16,9 +16,13 @@
 #      - VERCEL_TOKEN         → Vercel account token (https://vercel.com/account/tokens)
 #      - VERCEL_ORG_ID        → "orgId" from frontend/.vercel/project.json (after vercel link in frontend/)
 #      - VERCEL_PROJECT_ID    → "projectId" from that same file
-#   All three are required for `vercel pull` / `vercel deploy` in CI. Token alone is not enough.
-#   CI writes frontend/.vercel/project.json (project root must match vercel.json — see Vercel monorepo docs).
+#   All three are required for `vercel deploy --prebuilt` in CI.
+#   CI writes frontend/.vercel/project.json (same as local `cd frontend && vercel link`).
+#   We do NOT run `vercel pull` in CI — it only syncs .env files for local dev and often fails on
+#   API/token edge cases; the build already sets VITE_API_BASE_URL and Vercel env is in vercel.json.
 #   Paste IDs with no extra quotes or spaces.
+#   Fork PRs: GitHub does not expose secrets to workflows from forks — deploy will fail unless
+#   the PR branch lives on the same repository.
 #
 # 2026 Standards:
 #   - Waits for CI to pass before deploying (workflow_run trigger)
@@ -162,19 +166,20 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Verify Vercel linking secrets
+      - name: Verify Vercel secrets
         env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
-          if [ -z "$VERCEL_ORG_ID" ] || [ -z "$VERCEL_PROJECT_ID" ]; then
-            echo "::error::VERCEL_ORG_ID and VERCEL_PROJECT_ID must be set as repository secrets."
-            echo "Run locally: cd frontend && vercel link && cat .vercel/project.json"
-            echo "Copy orgId → VERCEL_ORG_ID, projectId → VERCEL_PROJECT_ID"
+          if [ -z "$VERCEL_TOKEN" ] || [ -z "$VERCEL_ORG_ID" ] || [ -z "$VERCEL_PROJECT_ID" ]; then
+            echo "::error::VERCEL_TOKEN, VERCEL_ORG_ID, and VERCEL_PROJECT_ID must be repository secrets."
+            echo "Fork PRs do not receive secrets — run from a branch on this repo, or merge from a branch here."
+            echo "Local: cd frontend && vercel link && cat .vercel/project.json"
             exit 1
           fi
 
-      # Vercel project root is frontend/ (vercel.json lives here). Link + pull + deploy must run from frontend/.
+      # Vercel project root is frontend/ (vercel.json lives here). Link + deploy run from frontend/.
       - name: Link Vercel project (CI — same path as local `cd frontend && vercel link`)
         working-directory: frontend
         env:
@@ -184,31 +189,14 @@ jobs:
           mkdir -p .vercel
           printf '%s\n' "{\"orgId\":\"$VERCEL_ORG_ID\",\"projectId\":\"$VERCEL_PROJECT_ID\"}" > .vercel/project.json
 
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
+      - name: Download build from Build & Validate job
+        uses: actions/download-artifact@v4
         with:
-          bun-version: ${{ env.BUN_VERSION }}
+          name: frontend-dist
+          path: frontend/dist
 
       - name: Install Vercel CLI
         run: npm install -g vercel@latest
-
-      - name: Pull Vercel environment
-        working-directory: frontend
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-        run: vercel pull --yes --environment=preview --token="$VERCEL_TOKEN"
-
-      - name: Install dependencies
-        working-directory: frontend
-        run: bun install --frozen-lockfile
-
-      - name: Build
-        working-directory: frontend
-        run: bun run build
-        env:
-          VITE_API_BASE_URL: https://slogbaa-backend-production-ef59.up.railway.app
 
       - name: Prepare Vercel output
         working-directory: frontend
@@ -301,13 +289,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Verify Vercel linking secrets
+      - name: Verify Vercel secrets
         env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
-          if [ -z "$VERCEL_ORG_ID" ] || [ -z "$VERCEL_PROJECT_ID" ]; then
-            echo "::error::VERCEL_ORG_ID and VERCEL_PROJECT_ID must be set as repository secrets."
+          if [ -z "$VERCEL_TOKEN" ] || [ -z "$VERCEL_ORG_ID" ] || [ -z "$VERCEL_PROJECT_ID" ]; then
+            echo "::error::VERCEL_TOKEN, VERCEL_ORG_ID, and VERCEL_PROJECT_ID must be repository secrets."
             exit 1
           fi
 
@@ -320,31 +309,14 @@ jobs:
           mkdir -p .vercel
           printf '%s\n' "{\"orgId\":\"$VERCEL_ORG_ID\",\"projectId\":\"$VERCEL_PROJECT_ID\"}" > .vercel/project.json
 
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
+      - name: Download build from Build & Validate job
+        uses: actions/download-artifact@v4
         with:
-          bun-version: ${{ env.BUN_VERSION }}
+          name: frontend-dist
+          path: frontend/dist
 
       - name: Install Vercel CLI
         run: npm install -g vercel@latest
-
-      - name: Pull Vercel environment
-        working-directory: frontend
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-        run: vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
-
-      - name: Install dependencies
-        working-directory: frontend
-        run: bun install --frozen-lockfile
-
-      - name: Build
-        working-directory: frontend
-        run: bun run build
-        env:
-          VITE_API_BASE_URL: https://slogbaa-backend-production-ef59.up.railway.app
 
       - name: Prepare Vercel output
         working-directory: frontend
