@@ -14,10 +14,11 @@
 #        cd frontend && vercel link
 #   3. Add GitHub repository secrets (Settings → Secrets and variables → Actions):
 #      - VERCEL_TOKEN         → Vercel account token (https://vercel.com/account/tokens)
-#      - VERCEL_ORG_ID        → team / org id (field "orgId" in frontend/.vercel/project.json)
-#      - VERCEL_PROJECT_ID    → project id (field "projectId" in frontend/.vercel/project.json)
+#      - VERCEL_ORG_ID        → "orgId" from frontend/.vercel/project.json (after vercel link in frontend/)
+#      - VERCEL_PROJECT_ID    → "projectId" from that same file
 #   All three are required for `vercel pull` / `vercel deploy` in CI. Token alone is not enough.
-#   The workflow writes .vercel/project.json on the runner from ORG_ID + PROJECT_ID (see "Link Vercel project").
+#   CI writes frontend/.vercel/project.json (project root must match vercel.json — see Vercel monorepo docs).
+#   Paste IDs with no extra quotes or spaces.
 #
 # 2026 Standards:
 #   - Waits for CI to pass before deploying (workflow_run trigger)
@@ -173,7 +174,9 @@ jobs:
             exit 1
           fi
 
-      - name: Link Vercel project (CI — recreates what .vercel/project.json does locally)
+      # Vercel project root is frontend/ (vercel.json lives here). Link + pull + deploy must run from frontend/.
+      - name: Link Vercel project (CI — same path as local `cd frontend && vercel link`)
+        working-directory: frontend
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
@@ -190,6 +193,7 @@ jobs:
         run: npm install -g vercel@latest
 
       - name: Pull Vercel environment
+        working-directory: frontend
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
@@ -207,9 +211,10 @@ jobs:
           VITE_API_BASE_URL: https://slogbaa-backend-production-ef59.up.railway.app
 
       - name: Prepare Vercel output
+        working-directory: frontend
         run: |
           mkdir -p .vercel/output/static
-          cp -r frontend/dist/* .vercel/output/static/
+          cp -r dist/* .vercel/output/static/
           cat > .vercel/output/config.json << 'CONF'
           {
             "version": 3,
@@ -222,6 +227,7 @@ jobs:
 
       - name: Deploy to Vercel (Preview)
         id: deploy
+        working-directory: frontend
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
@@ -306,6 +312,7 @@ jobs:
           fi
 
       - name: Link Vercel project (CI)
+        working-directory: frontend
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
@@ -322,6 +329,7 @@ jobs:
         run: npm install -g vercel@latest
 
       - name: Pull Vercel environment
+        working-directory: frontend
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
@@ -339,9 +347,10 @@ jobs:
           VITE_API_BASE_URL: https://slogbaa-backend-production-ef59.up.railway.app
 
       - name: Prepare Vercel output
+        working-directory: frontend
         run: |
           mkdir -p .vercel/output/static
-          cp -r frontend/dist/* .vercel/output/static/
+          cp -r dist/* .vercel/output/static/
           cat > .vercel/output/config.json << 'CONF'
           {
             "version": 3,
@@ -354,6 +363,7 @@ jobs:
 
       - name: Deploy to Vercel (Production)
         id: deploy
+        working-directory: frontend
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
