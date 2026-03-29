@@ -10,11 +10,14 @@
 #
 # Prerequisites:
 #   1. Install Vercel CLI: npm install -g vercel
-#   2. Link project:      cd frontend && vercel link
-#   3. Add GitHub secrets:
-#      - VERCEL_TOKEN    → Vercel account token (Settings > Tokens)
-#      - VERCEL_ORG_ID   → from .vercel/project.json (orgId)
-#      - VERCEL_PROJECT_ID → from .vercel/project.json (projectId)
+#   2. Link project locally (creates gitignored .vercel — never committed):
+#        cd frontend && vercel link
+#   3. Add GitHub repository secrets (Settings → Secrets and variables → Actions):
+#      - VERCEL_TOKEN         → Vercel account token (https://vercel.com/account/tokens)
+#      - VERCEL_ORG_ID        → team / org id (field "orgId" in frontend/.vercel/project.json)
+#      - VERCEL_PROJECT_ID    → project id (field "projectId" in frontend/.vercel/project.json)
+#   All three are required for `vercel pull` / `vercel deploy` in CI. Token alone is not enough.
+#   The workflow writes .vercel/project.json on the runner from ORG_ID + PROJECT_ID (see "Link Vercel project").
 #
 # 2026 Standards:
 #   - Waits for CI to pass before deploying (workflow_run trigger)
@@ -158,6 +161,26 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Verify Vercel linking secrets
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          if [ -z "$VERCEL_ORG_ID" ] || [ -z "$VERCEL_PROJECT_ID" ]; then
+            echo "::error::VERCEL_ORG_ID and VERCEL_PROJECT_ID must be set as repository secrets."
+            echo "Run locally: cd frontend && vercel link && cat .vercel/project.json"
+            echo "Copy orgId → VERCEL_ORG_ID, projectId → VERCEL_PROJECT_ID"
+            exit 1
+          fi
+
+      - name: Link Vercel project (CI — recreates what .vercel/project.json does locally)
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          mkdir -p .vercel
+          printf '%s\n' "{\"orgId\":\"$VERCEL_ORG_ID\",\"projectId\":\"$VERCEL_PROJECT_ID\"}" > .vercel/project.json
+
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
@@ -167,7 +190,11 @@ jobs:
         run: npm install -g vercel@latest
 
       - name: Pull Vercel environment
-        run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: vercel pull --yes --environment=preview --token="$VERCEL_TOKEN"
 
       - name: Install dependencies
         working-directory: frontend
@@ -195,8 +222,12 @@ jobs:
 
       - name: Deploy to Vercel (Preview)
         id: deploy
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
-          URL=$(vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }})
+          URL=$(vercel deploy --prebuilt --token="$VERCEL_TOKEN")
           echo "url=${URL}" >> "$GITHUB_OUTPUT"
           echo "Deployed to: ${URL}"
 
@@ -264,6 +295,24 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Verify Vercel linking secrets
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          if [ -z "$VERCEL_ORG_ID" ] || [ -z "$VERCEL_PROJECT_ID" ]; then
+            echo "::error::VERCEL_ORG_ID and VERCEL_PROJECT_ID must be set as repository secrets."
+            exit 1
+          fi
+
+      - name: Link Vercel project (CI)
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          mkdir -p .vercel
+          printf '%s\n' "{\"orgId\":\"$VERCEL_ORG_ID\",\"projectId\":\"$VERCEL_PROJECT_ID\"}" > .vercel/project.json
+
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
@@ -273,7 +322,11 @@ jobs:
         run: npm install -g vercel@latest
 
       - name: Pull Vercel environment
-        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
 
       - name: Install dependencies
         working-directory: frontend
@@ -301,8 +354,12 @@ jobs:
 
       - name: Deploy to Vercel (Production)
         id: deploy
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
-          URL=$(vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }})
+          URL=$(vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN")
           echo "url=${URL}" >> "$GITHUB_OUTPUT"
           echo "Production deployed to: ${URL}"
 
