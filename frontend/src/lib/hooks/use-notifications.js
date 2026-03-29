@@ -2,6 +2,12 @@ import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from '@tansta
 import { useAuth } from '../../features/iam/hooks/useAuth.js'
 import { queryKeys } from '../query-keys.js'
 import { getNotifications, getUnreadCount, markAsRead, markAllAsRead } from '../../api/notifications.js'
+import {
+  getStaffNotifications,
+  getStaffUnreadCount,
+  markStaffNotificationRead,
+  markAllStaffNotificationsRead,
+} from '../../api/staff-notifications.js'
 
 export function useNotifications(page = 0, size = 20) {
   const { token } = useAuth()
@@ -67,6 +73,50 @@ export function useMarkAllAsRead() {
     },
     onSettled: () => {
       qc.invalidateQueries({ queryKey: queryKeys.notifications.all })
+    },
+  })
+}
+
+// === Staff (admin) notifications ===
+
+export function useStaffNotifications(page = 0, size = 20) {
+  const { token } = useAuth()
+  return useQuery({
+    queryKey: queryKeys.staffNotifications.list(page),
+    queryFn: () => getStaffNotifications(token, page, size),
+    enabled: !!token,
+    staleTime: 30_000,
+  })
+}
+
+export function useStaffUnreadCount() {
+  const { token } = useAuth()
+  return useQuery({
+    queryKey: queryKeys.staffNotifications.unreadCount(),
+    queryFn: () => getStaffUnreadCount(token),
+    enabled: !!token,
+    refetchInterval: 60_000,
+  })
+}
+
+export function useStaffMarkAsRead() {
+  const { token } = useAuth()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (notificationId) => markStaffNotificationRead(token, notificationId),
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.staffNotifications.all })
+    },
+  })
+}
+
+export function useStaffMarkAllAsRead() {
+  const { token } = useAuth()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: () => markAllStaffNotificationsRead(token),
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.staffNotifications.all })
     },
   })
 }

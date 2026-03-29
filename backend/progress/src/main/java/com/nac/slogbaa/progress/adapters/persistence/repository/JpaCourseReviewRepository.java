@@ -10,6 +10,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.time.Instant;
 
 public interface JpaCourseReviewRepository extends JpaRepository<CourseReviewEntity, UUID> {
 
@@ -25,4 +28,15 @@ public interface JpaCourseReviewRepository extends JpaRepository<CourseReviewEnt
     long countByCourseId(UUID courseId);
 
     List<CourseReviewEntity> findByTraineeIdOrderByCreatedAtDesc(UUID traineeId);
+
+    @Query("SELECT r.rating, COUNT(r) FROM CourseReviewEntity r GROUP BY r.rating")
+    List<Object[]> countGroupedByRating();
+
+    @Query(value = """
+            SELECT CAST(date_trunc('day', created_at AT TIME ZONE 'UTC') AS date) AS d, COUNT(*)
+            FROM course_review
+            WHERE created_at >= :since
+            GROUP BY d ORDER BY d
+            """, nativeQuery = true)
+    List<Object[]> countCreatedPerUtcDaySince(@Param("since") Instant since);
 }

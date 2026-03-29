@@ -2,7 +2,9 @@
 
 /* Admin sidebar: light mode hover — soft orange surface */
 [data-theme='light'] .admin-sidebar a:hover,
-[data-theme='light'] .admin-sidebar button:hover {
+[data-theme='light'] .admin-sidebar button:hover,
+[data-theme='light'] .trainee-sidebar a:hover,
+[data-theme='light'] .trainee-sidebar button:hover {
   background: rgba(245, 130, 32, 0.06);
 }
 

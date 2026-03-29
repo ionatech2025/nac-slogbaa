@@ -37,7 +37,8 @@ export function useSubmitReview() {
           id: `temp-${Date.now()}`,
           rating,
           reviewText,
-          traineeName: 'You',
+          authorDisplayName: 'You',
+          authorType: 'TRAINEE',
           createdAt: new Date().toISOString(),
           _pending: true,
         }

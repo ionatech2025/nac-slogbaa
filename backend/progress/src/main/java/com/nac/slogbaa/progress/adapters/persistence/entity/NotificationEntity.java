@@ -12,8 +12,11 @@ public class NotificationEntity {
     @Column(name = "id", updatable = false, nullable = false)
     private UUID id;
 
-    @Column(name = "trainee_id", nullable = false, updatable = false)
+    @Column(name = "trainee_id", updatable = false)
     private UUID traineeId;
+
+    @Column(name = "staff_user_id", updatable = false)
+    private UUID staffUserId;
 
     @Column(name = "type", nullable = false, length = 50)
     private String type;
@@ -43,6 +46,8 @@ public class NotificationEntity {
     public void setId(UUID id) { this.id = id; }
     public UUID getTraineeId() { return traineeId; }
     public void setTraineeId(UUID traineeId) { this.traineeId = traineeId; }
+    public UUID getStaffUserId() { return staffUserId; }
+    public void setStaffUserId(UUID staffUserId) { this.staffUserId = staffUserId; }
     public String getType() { return type; }
     public void setType(String type) { this.type = type; }
     public String getTitle() { return title; }

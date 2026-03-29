@@ -21,4 +21,10 @@ public interface NotificationPort {
     Optional<NotificationEntity> findById(UUID id);
 
     void markAllRead(UUID traineeId);
+
+    Page<NotificationEntity> findByStaffUser(UUID staffUserId, Pageable pageable);
+
+    long countUnreadStaff(UUID staffUserId);
+
+    void markAllReadStaff(UUID staffUserId);
 }

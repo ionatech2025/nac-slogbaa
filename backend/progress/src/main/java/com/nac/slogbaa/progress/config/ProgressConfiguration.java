@@ -2,6 +2,7 @@ package com.nac.slogbaa.progress.config;
 
 import com.nac.slogbaa.iam.application.port.in.GetStaffByIdUseCase;
 import com.nac.slogbaa.iam.application.port.in.GetTraineeByIdUseCase;
+import com.nac.slogbaa.iam.application.port.out.StaffUserRepositoryPort;
 import com.nac.slogbaa.learning.application.port.out.CourseDetailsQueryPort;
 import com.nac.slogbaa.learning.application.port.out.CoursePublicationPort;
 import com.nac.slogbaa.learning.application.port.out.CourseSummaryQueryPort;
@@ -15,9 +16,11 @@ import com.nac.slogbaa.progress.application.port.in.EnrollTraineeUseCase;
 import com.nac.slogbaa.progress.application.port.in.UnenrollTraineeUseCase;
 import com.nac.slogbaa.progress.application.port.in.GetCourseReviewsUseCase;
 import com.nac.slogbaa.progress.application.port.in.GetDiscussionThreadsUseCase;
+import com.nac.slogbaa.progress.application.port.in.GetEngagementAnalyticsUseCase;
 import com.nac.slogbaa.progress.application.port.in.GetEnrolledCoursesUseCase;
 import com.nac.slogbaa.progress.application.port.in.GetBookmarksUseCase;
 import com.nac.slogbaa.progress.application.port.in.GetNotificationsUseCase;
+import com.nac.slogbaa.progress.application.port.in.GetStaffNotificationsUseCase;
 import com.nac.slogbaa.progress.application.port.in.CreateNotificationUseCase;
 import com.nac.slogbaa.progress.application.port.in.GetLeaderboardUseCase;
 import com.nac.slogbaa.progress.application.port.in.GetTraineeAchievementsUseCase;
@@ -33,9 +36,11 @@ import com.nac.slogbaa.progress.application.port.in.ResolveThreadUseCase;
 import com.nac.slogbaa.progress.application.port.in.RevokeCertificateUseCase;
 import com.nac.slogbaa.progress.application.port.in.RecordProgressUseCase;
 import com.nac.slogbaa.progress.application.port.in.SubmitCourseReviewUseCase;
+import com.nac.slogbaa.progress.application.port.in.SubmitStaffCourseReviewUseCase;
 import com.nac.slogbaa.progress.application.port.in.UpdateDailyGoalUseCase;
 import com.nac.slogbaa.progress.application.port.out.CertificateRepositoryPort;
 import com.nac.slogbaa.progress.application.port.out.CourseReviewPort;
+import com.nac.slogbaa.progress.application.port.out.CourseStaffReviewPort;
 import com.nac.slogbaa.progress.application.port.out.DiscussionPort;
 import com.nac.slogbaa.progress.application.port.out.BadgePort;
 import com.nac.slogbaa.progress.application.port.out.BookmarkPort;
@@ -44,14 +49,17 @@ import com.nac.slogbaa.progress.application.port.out.ModuleCompletionPort;
 import com.nac.slogbaa.progress.application.port.out.StreakPort;
 import com.nac.slogbaa.progress.application.port.out.TraineeProgressRepositoryPort;
 import com.nac.slogbaa.progress.application.port.out.XpPort;
+import com.nac.slogbaa.progress.application.service.CourseReviewStaffNotificationService;
 import com.nac.slogbaa.progress.application.service.CreateDiscussionThreadService;
 import com.nac.slogbaa.progress.application.service.EnrollTraineeService;
 import com.nac.slogbaa.progress.application.service.UnenrollTraineeService;
+import com.nac.slogbaa.progress.application.service.EngagementAnalyticsService;
 import com.nac.slogbaa.progress.application.service.GetCourseReviewsService;
 import com.nac.slogbaa.progress.application.service.GetDiscussionThreadsService;
 import com.nac.slogbaa.progress.application.service.CheckAndAwardBadgesService;
 import com.nac.slogbaa.progress.application.service.GetBookmarksService;
 import com.nac.slogbaa.progress.application.service.GetNotificationsService;
+import com.nac.slogbaa.progress.application.service.GetStaffNotificationsService;
 import com.nac.slogbaa.progress.application.service.CreateNotificationService;
 import com.nac.slogbaa.progress.application.service.GetLeaderboardService;
 import com.nac.slogbaa.progress.application.service.GetTraineeAchievementsService;
@@ -68,6 +76,7 @@ import com.nac.slogbaa.progress.application.service.GetResumePointService;
 import com.nac.slogbaa.progress.application.service.RecordModuleCompletionService;
 import com.nac.slogbaa.progress.application.service.RecordProgressService;
 import com.nac.slogbaa.progress.application.service.SubmitCourseReviewService;
+import com.nac.slogbaa.progress.application.service.SubmitStaffCourseReviewService;
 import com.nac.slogbaa.progress.application.service.UpdateDailyGoalService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -83,6 +92,20 @@ public class ProgressConfiguration {
     @Bean
     public GetNotificationsUseCase getNotificationsUseCase(NotificationPort notificationPort) {
         return new GetNotificationsService(notificationPort);
+    }
+
+    @Bean
+    public GetStaffNotificationsUseCase getStaffNotificationsUseCase(NotificationPort notificationPort) {
+        return new GetStaffNotificationsService(notificationPort);
+    }
+
+    @Bean
+    public CourseReviewStaffNotificationService courseReviewStaffNotificationService(
+            StaffUserRepositoryPort staffUserRepository,
+            CreateNotificationUseCase createNotificationUseCase,
+            CoursePublicationPort coursePublicationPort) {
+        return new CourseReviewStaffNotificationService(
+                staffUserRepository, createNotificationUseCase, coursePublicationPort);
     }
 
     @Bean
@@ -203,23 +226,54 @@ public class ProgressConfiguration {
     public SubmitCourseReviewUseCase submitCourseReviewUseCase(
             CourseReviewPort courseReviewPort,
             TraineeProgressRepositoryPort traineeProgressRepository,
-            CheckAndAwardBadgesUseCase checkAndAwardBadgesUseCase) {
-        return new SubmitCourseReviewService(courseReviewPort, traineeProgressRepository, checkAndAwardBadgesUseCase);
+            CheckAndAwardBadgesUseCase checkAndAwardBadgesUseCase,
+            CourseReviewStaffNotificationService courseReviewStaffNotificationService) {
+        return new SubmitCourseReviewService(
+                courseReviewPort, traineeProgressRepository, checkAndAwardBadgesUseCase, courseReviewStaffNotificationService);
+    }
+
+    @Bean
+    public SubmitStaffCourseReviewUseCase submitStaffCourseReviewUseCase(
+            CourseStaffReviewPort courseStaffReviewPort,
+            CoursePublicationPort coursePublicationPort,
+            CourseReviewStaffNotificationService courseReviewStaffNotificationService) {
+        return new SubmitStaffCourseReviewService(
+                courseStaffReviewPort, coursePublicationPort, courseReviewStaffNotificationService);
     }
 
     @Bean
     public GetCourseReviewsUseCase getCourseReviewsUseCase(
             CourseReviewPort courseReviewPort,
-            GetTraineeByIdUseCase getTraineeByIdUseCase) {
-        return new GetCourseReviewsService(courseReviewPort, getTraineeByIdUseCase);
+            CourseStaffReviewPort courseStaffReviewPort,
+            GetTraineeByIdUseCase getTraineeByIdUseCase,
+            GetStaffByIdUseCase getStaffByIdUseCase) {
+        return new GetCourseReviewsService(
+                courseReviewPort, courseStaffReviewPort, getTraineeByIdUseCase, getStaffByIdUseCase);
+    }
+
+    @Bean
+    public GetEngagementAnalyticsUseCase getEngagementAnalyticsUseCase(
+            CourseReviewPort courseReviewPort,
+            CourseStaffReviewPort courseStaffReviewPort,
+            DiscussionPort discussionPort) {
+        return new EngagementAnalyticsService(courseReviewPort, courseStaffReviewPort, discussionPort);
     }
 
     @Bean
     public CreateDiscussionThreadUseCase createDiscussionThreadUseCase(
             DiscussionPort discussionPort,
             GetTraineeByIdUseCase getTraineeByIdUseCase,
-            GetStaffByIdUseCase getStaffByIdUseCase) {
-        return new CreateDiscussionThreadService(discussionPort, getTraineeByIdUseCase, getStaffByIdUseCase);
+            GetStaffByIdUseCase getStaffByIdUseCase,
+            CreateNotificationUseCase createNotificationUseCase,
+            StaffUserRepositoryPort staffUserRepositoryPort,
+            CoursePublicationPort coursePublicationPort) {
+        return new CreateDiscussionThreadService(
+                discussionPort,
+                getTraineeByIdUseCase,
+                getStaffByIdUseCase,
+                createNotificationUseCase,
+                staffUserRepositoryPort,
+                coursePublicationPort);
     }
 
     @Bean

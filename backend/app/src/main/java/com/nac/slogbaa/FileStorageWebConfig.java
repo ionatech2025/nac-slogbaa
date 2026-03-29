@@ -15,7 +15,8 @@ import java.time.Duration;
  * Serves uploaded files from local storage with security headers.
  * In production, files should be served via CDN/S3 presigned URLs instead.
  * <p>
- * Note: /uploads/** is NOT in permitAll — authenticated users only.
+ * Note: read access (GET/HEAD) for /uploads/** is permitAll in IamSecurityConfiguration
+ * so &lt;img src&gt; and direct links work (browsers do not send JWT). Uploads use POST /api/files/upload (admin-only).
  * Security headers (nosniff, cache-control) are applied here.
  */
 @Configuration

@@ -66,7 +66,7 @@ public class DiscussionController {
     }
 
     @PostMapping
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('TRAINEE')")
     public ResponseEntity<ThreadResult> createThread(
             @AuthenticationPrincipal AuthenticatedIdentity identity,
             @PathVariable UUID courseId,
@@ -86,17 +86,17 @@ public class DiscussionController {
     }
 
     @PostMapping("/{threadId}/replies")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     public ResponseEntity<ReplyResult> replyToThread(
             @AuthenticationPrincipal AuthenticatedIdentity identity,
             @PathVariable UUID courseId,
             @PathVariable UUID threadId,
             @RequestBody ReplyRequest request) {
-        String authorType = identity.isStaff() ? "STAFF" : "TRAINEE";
         ReplyResult result = replyToThreadUseCase.reply(
+                courseId,
                 threadId,
                 identity.getUserId(),
-                authorType,
+                "STAFF",
                 request.body()
         );
         return ResponseEntity.created(

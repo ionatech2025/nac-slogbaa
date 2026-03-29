@@ -5,6 +5,7 @@ import com.nac.slogbaa.progress.application.dto.CourseRatingSummary;
 import com.nac.slogbaa.progress.application.dto.CourseReviewResult;
 import com.nac.slogbaa.progress.application.port.in.GetCourseReviewsUseCase;
 import com.nac.slogbaa.progress.application.port.in.SubmitCourseReviewUseCase;
+import com.nac.slogbaa.progress.application.port.in.SubmitStaffCourseReviewUseCase;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -24,26 +25,38 @@ import java.util.UUID;
 public class CourseReviewController {
 
     private final SubmitCourseReviewUseCase submitCourseReviewUseCase;
+    private final com.nac.slogbaa.progress.application.port.in.SubmitStaffCourseReviewUseCase submitStaffCourseReviewUseCase;
     private final GetCourseReviewsUseCase getCourseReviewsUseCase;
 
     public CourseReviewController(SubmitCourseReviewUseCase submitCourseReviewUseCase,
+                                  SubmitStaffCourseReviewUseCase submitStaffCourseReviewUseCase,
                                   GetCourseReviewsUseCase getCourseReviewsUseCase) {
         this.submitCourseReviewUseCase = submitCourseReviewUseCase;
+        this.submitStaffCourseReviewUseCase = submitStaffCourseReviewUseCase;
         this.getCourseReviewsUseCase = getCourseReviewsUseCase;
     }
 
     @PostMapping("/{courseId}/reviews")
-    @PreAuthorize("hasRole('TRAINEE')")
+    @PreAuthorize("hasAnyRole('TRAINEE','ADMIN','SUPER_ADMIN')")
     public ResponseEntity<Void> submitReview(
             @AuthenticationPrincipal AuthenticatedIdentity identity,
             @PathVariable UUID courseId,
             @RequestBody SubmitReviewRequest request) {
-        submitCourseReviewUseCase.submit(
-                identity.getUserId(),
-                courseId,
-                request.rating(),
-                request.reviewText()
-        );
+        if (identity.isStaff()) {
+            submitStaffCourseReviewUseCase.submit(
+                    identity.getUserId(),
+                    courseId,
+                    request.rating(),
+                    request.reviewText()
+            );
+        } else {
+            submitCourseReviewUseCase.submit(
+                    identity.getUserId(),
+                    courseId,
+                    request.rating(),
+                    request.reviewText()
+            );
+        }
         return ResponseEntity.noContent().build();
     }
 
@@ -66,11 +79,15 @@ public class CourseReviewController {
     }
 
     @DeleteMapping("/{courseId}/reviews/mine")
-    @PreAuthorize("hasRole('TRAINEE')")
+    @PreAuthorize("hasAnyRole('TRAINEE','ADMIN','SUPER_ADMIN')")
     public ResponseEntity<Void> deleteMyReview(
             @AuthenticationPrincipal AuthenticatedIdentity identity,
             @PathVariable UUID courseId) {
-        getCourseReviewsUseCase.deleteReview(identity.getUserId(), courseId);
+        if (identity.isStaff()) {
+            getCourseReviewsUseCase.deleteStaffReview(identity.getUserId(), courseId);
+        } else {
+            getCourseReviewsUseCase.deleteReview(identity.getUserId(), courseId);
+        }
         return ResponseEntity.noContent().build();
     }
 

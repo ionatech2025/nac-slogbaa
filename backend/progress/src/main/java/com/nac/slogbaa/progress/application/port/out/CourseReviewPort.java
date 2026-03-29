@@ -29,4 +29,10 @@ public interface CourseReviewPort {
     void delete(CourseReviewEntity entity);
 
     List<CourseReviewEntity> findByTraineeId(UUID traineeId);
+
+    List<Object[]> countGroupedByRating();
+
+    List<Object[]> countCreatedPerUtcDaySince(java.time.Instant since);
+
+    long countAll();
 }

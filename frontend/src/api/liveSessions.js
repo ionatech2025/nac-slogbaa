@@ -1,23 +1,52 @@
-import { apiClient } from './client.js'
+import { apiClient, assertToken, parseResponse } from './client.js'
 
-/** Trainee: get active live sessions */
-export async function getLiveSessions(token) {
-  return apiClient(token).get('/api/v1/live-sessions')
+async function parseListResponse(res) {
+  const data = await parseResponse(res)
+  return Array.isArray(data) ? data : []
 }
 
-/** Admin: get all live sessions */
+/** Trainee: active live sessions (authenticated). */
+export async function getLiveSessions(token) {
+  assertToken(token)
+  const res = await apiClient(token).get('/api/v1/live-sessions')
+  return parseListResponse(res)
+}
+
+/** Admin: all live sessions */
 export async function getAdminLiveSessions(token) {
-  return apiClient(token).get('/api/v1/admin/live-sessions')
+  assertToken(token)
+  const res = await apiClient(token).get('/api/v1/admin/live-sessions')
+  return parseListResponse(res)
 }
 
 export async function createLiveSession(token, data) {
-  return apiClient(token).post('/api/v1/admin/live-sessions', data)
+  assertToken(token)
+  const res = await apiClient(token).post('/api/v1/admin/live-sessions', data)
+  return parseResponse(res)
 }
 
 export async function updateLiveSession(token, id, data) {
-  return apiClient(token).put(`/api/v1/admin/live-sessions/${id}`, data)
+  assertToken(token)
+  const res = await apiClient(token).put(`/api/v1/admin/live-sessions/${id}`, data)
+  return parseResponse(res)
 }
 
 export async function deleteLiveSession(token, id) {
-  return apiClient(token).delete(`/api/v1/admin/live-sessions/${id}`)
+  assertToken(token)
+  const res = await apiClient(token).delete(`/api/v1/admin/live-sessions/${id}`)
+  return parseResponse(res)
+}
+
+/** Trainee: register for a session (204). */
+export async function registerForLiveSession(token, sessionId) {
+  assertToken(token)
+  const res = await apiClient(token).post(`/api/v1/live-sessions/${sessionId}/register`)
+  return parseResponse(res)
+}
+
+/** Trainee: cancel registration (204). */
+export async function unregisterFromLiveSession(token, sessionId) {
+  assertToken(token)
+  const res = await apiClient(token).delete(`/api/v1/live-sessions/${sessionId}/register`)
+  return parseResponse(res)
 }

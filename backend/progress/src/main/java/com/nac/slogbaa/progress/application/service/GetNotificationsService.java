@@ -41,7 +41,7 @@ public final class GetNotificationsService implements GetNotificationsUseCase {
     @Override
     public boolean markAsRead(UUID traineeId, UUID notificationId) {
         return notificationPort.findById(notificationId)
-                .filter(n -> n.getTraineeId().equals(traineeId))
+                .filter(n -> n.getTraineeId() != null && n.getTraineeId().equals(traineeId))
                 .map(n -> {
                     if (!n.isRead()) {
                         n.setRead(true);

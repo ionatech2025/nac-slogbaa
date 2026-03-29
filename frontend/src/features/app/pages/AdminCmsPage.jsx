@@ -4,6 +4,7 @@ import { useOutletContext } from 'react-router-dom'
 import { Icon, icons } from '../../../shared/icons.jsx'
 import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle.js'
 import { Breadcrumbs } from '../../../shared/components/Breadcrumbs.jsx'
+import { AdminNavigatePills } from '../components/admin/AdminNavigatePills.jsx'
 import { ConfirmModal } from '../../../shared/components/ConfirmModal.jsx'
 import { queryKeys } from '../../../lib/query-keys.js'
 import * as api from '../../../api/homepage.js'
@@ -147,6 +148,7 @@ export function AdminCmsPage() {
           { key: 'publishedDate', label: 'Published Date', type: 'date' },
         ]}
       />
+      <AdminNavigatePills />
     </>
   )
 }

@@ -9,6 +9,7 @@ import com.nac.slogbaa.shared.util.FrontendAppBaseUrl;
 
 import com.nac.slogbaa.iam.application.port.in.AuthenticateUserUseCase;
 import com.nac.slogbaa.iam.application.port.in.ChangeStaffPasswordUseCase;
+import com.nac.slogbaa.iam.application.port.in.ChangeTraineePasswordUseCase;
 import com.nac.slogbaa.iam.application.port.in.CreateStaffUseCase;
 import com.nac.slogbaa.iam.application.port.in.DeleteStaffUseCase;
 import com.nac.slogbaa.iam.application.port.in.DeleteTraineeUseCase;
@@ -32,6 +33,7 @@ import com.nac.slogbaa.iam.application.port.out.PasswordResetTokenRepositoryPort
 import com.nac.slogbaa.iam.application.port.out.TraineeRepositoryPort;
 import com.nac.slogbaa.iam.application.service.AuthenticateUserService;
 import com.nac.slogbaa.iam.application.service.ChangeStaffPasswordService;
+import com.nac.slogbaa.iam.application.service.ChangeTraineePasswordService;
 import com.nac.slogbaa.iam.application.service.CreateStaffService;
 import com.nac.slogbaa.iam.application.service.DeleteStaffService;
 import com.nac.slogbaa.iam.application.service.DeleteTraineeService;
@@ -123,6 +125,13 @@ public class IamConfiguration {
             StaffUserRepositoryPort staffUserRepository,
             PasswordHasherPort passwordHasher) {
         return new ChangeStaffPasswordService(staffUserRepository, passwordHasher);
+    }
+
+    @Bean
+    public ChangeTraineePasswordUseCase changeTraineePasswordUseCase(
+            TraineeRepositoryPort traineeRepository,
+            PasswordHasherPort passwordHasher) {
+        return new ChangeTraineePasswordService(traineeRepository, passwordHasher);
     }
 
     @Bean

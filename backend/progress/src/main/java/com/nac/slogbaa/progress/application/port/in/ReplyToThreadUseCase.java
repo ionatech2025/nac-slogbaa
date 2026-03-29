@@ -18,5 +18,5 @@ public interface ReplyToThreadUseCase {
      * @param body       reply body text
      * @return the created reply result
      */
-    ReplyResult reply(UUID threadId, UUID authorId, String authorType, String body);
+    ReplyResult reply(UUID courseId, UUID threadId, UUID authorId, String authorType, String body);
 }

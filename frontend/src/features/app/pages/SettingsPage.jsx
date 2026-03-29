@@ -1,9 +1,9 @@
 import { useState, useCallback } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { Icon, icons } from '../../../shared/icons.jsx'
+import { useNavigate, useOutletContext } from 'react-router-dom'
+import { Icon, icons, FontAwesomeIcon } from '../../../shared/icons.jsx'
 import { useTheme } from '../../../contexts/ThemeContext.jsx'
 import { useAuth } from '../../iam/hooks/useAuth.js'
-import { useTraineeSettings, useUpdateTraineeSettings } from '../../../lib/hooks/use-trainee.js'
+import { useTraineeSettings, useUpdateTraineeSettings, useUpdateTraineePassword } from '../../../lib/hooks/use-trainee.js'
 import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle.js'
 import { useToast } from '../../../shared/hooks/useToast.js'
 import { LoadingButton } from '../../../shared/components/LoadingButton.jsx'
@@ -302,6 +302,36 @@ export function SettingsPage() {
   const [deleting, setDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState(null)
 
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [passwordError, setPasswordError] = useState(null)
+  const [passwordSuccess, setPasswordSuccess] = useState(false)
+
+  const updatePasswordMutation = useUpdateTraineePassword()
+
+  const handleUpdatePassword = async (e) => {
+    e.preventDefault()
+    setPasswordError(null)
+    setPasswordSuccess(false)
+    if (!currentPassword) { setPasswordError('Current password is required.'); return }
+    if (newPassword.length < 6) { setPasswordError('New password must be at least 6 characters.'); return }
+    if (newPassword !== confirmPassword) { setPasswordError('Passwords do not match.'); return }
+    
+    try {
+      await updatePasswordMutation.mutateAsync({ currentPassword, newPassword })
+      setPasswordSuccess(true)
+      setCurrentPassword('')
+      setNewPassword('')
+      setConfirmPassword('')
+    } catch (err) {
+      setPasswordError(err?.message ?? 'Failed to update password.')
+    }
+  }
+
+  const { onEditProfile } = useOutletContext() || {}
+
   const handleToggleCertificateEmail = useCallback(
     (checked) => {
       updateSettings.mutate(
@@ -439,11 +469,74 @@ export function SettingsPage() {
           <button
             type="button"
             style={styles.profileLink}
-            onClick={() => navigate('/dashboard')}
+            onClick={onEditProfile}
           >
             <Icon icon={icons.editProfile} size="1rem" />
             Edit Profile
           </button>
+        </section>
+
+        {/* Security */}
+        <section style={styles.card} aria-labelledby="settings-security">
+          <h2 id="settings-security" style={styles.cardTitle}>
+            <Icon icon={icons.changePassword} size="1.125rem" />
+            Security
+          </h2>
+          <p style={styles.cardDescription}>
+            Update your password to keep your account secure.
+          </p>
+          <form onSubmit={handleUpdatePassword}>
+            <div style={{ marginBottom: '1rem' }}>
+              <label style={styles.fieldLabel}>Current Password *</label>
+              <input
+                type={showPassword ? 'text' : 'password'}
+                style={styles.deleteInput}
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                autoComplete="current-password"
+              />
+            </div>
+            <div style={{ marginBottom: '1rem' }}>
+              <label style={styles.fieldLabel}>New Password *</label>
+              <input
+                type={showPassword ? 'text' : 'password'}
+                style={styles.deleteInput}
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                autoComplete="new-password"
+              />
+              <p style={{ margin: '0.25rem 0 0', fontSize: '0.8125rem', color: 'var(--slogbaa-text-muted)' }}>Minimum 6 characters</p>
+            </div>
+            <div style={{ marginBottom: '1rem' }}>
+              <label style={styles.fieldLabel}>Confirm New Password *</label>
+              <input
+                type={showPassword ? 'text' : 'password'}
+                style={styles.deleteInput}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                autoComplete="new-password"
+              />
+            </div>
+            <div style={{ marginBottom: '0.75rem' }}>
+              <button
+                type="button"
+                style={{ position: 'static', display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.8125rem', color: 'var(--slogbaa-text-muted)', cursor: 'pointer', border: 'none', background: 'none', padding: 0 }}
+                onClick={() => setShowPassword((v) => !v)}
+              >
+                <FontAwesomeIcon icon={showPassword ? icons.eyeSlash : icons.eye} />
+                {showPassword ? 'Hide password' : 'Show password'}
+              </button>
+            </div>
+            <LoadingButton
+              type="submit"
+              loading={updatePasswordMutation.isPending}
+              style={styles.btnPrimary}
+            >
+              Update Password
+            </LoadingButton>
+            {passwordError && <p style={{ marginTop: '0.75rem', marginBottom: 0, fontSize: '0.875rem', color: 'var(--slogbaa-error)' }}>{passwordError}</p>}
+            {passwordSuccess && <p style={{ marginTop: '0.75rem', marginBottom: 0, fontSize: '0.875rem', color: 'var(--slogbaa-green)' }}>Password updated successfully.</p>}
+          </form>
         </section>
 
         {/* Privacy & Data */}

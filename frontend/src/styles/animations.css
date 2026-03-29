@@ -91,7 +91,8 @@
 }
 
 /* Mobile slide-out animation */
-.admin-sidebar-mobile {
+.admin-sidebar-mobile,
+.trainee-sidebar-mobile {
   animation: sidebar-slide-in 0.2s ease-out;
 }
 @keyframes sidebar-slide-in {

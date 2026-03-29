@@ -1,6 +1,7 @@
 package com.nac.slogbaa.assessment.adapters.rest.controller;
 
 import com.nac.slogbaa.assessment.application.dto.*;
+import com.nac.slogbaa.assessment.application.port.in.GetLatestPassedQuizReviewUseCase;
 import com.nac.slogbaa.assessment.application.port.in.GetQuizForAttemptUseCase;
 import com.nac.slogbaa.assessment.application.port.in.StartAttemptUseCase;
 import com.nac.slogbaa.assessment.application.port.in.SubmitAttemptUseCase;
@@ -24,15 +25,18 @@ import java.util.UUID;
 public class TraineeQuizController {
 
     private final GetQuizForAttemptUseCase getQuizForAttemptUseCase;
+    private final GetLatestPassedQuizReviewUseCase getLatestPassedQuizReviewUseCase;
     private final StartAttemptUseCase startAttemptUseCase;
     private final SubmitAttemptUseCase submitAttemptUseCase;
     private final CheckAndAwardBadgesUseCase checkAndAwardBadgesUseCase;
 
     public TraineeQuizController(GetQuizForAttemptUseCase getQuizForAttemptUseCase,
+                                GetLatestPassedQuizReviewUseCase getLatestPassedQuizReviewUseCase,
                                 StartAttemptUseCase startAttemptUseCase,
                                 SubmitAttemptUseCase submitAttemptUseCase,
                                 CheckAndAwardBadgesUseCase checkAndAwardBadgesUseCase) {
         this.getQuizForAttemptUseCase = getQuizForAttemptUseCase;
+        this.getLatestPassedQuizReviewUseCase = getLatestPassedQuizReviewUseCase;
         this.startAttemptUseCase = startAttemptUseCase;
         this.submitAttemptUseCase = submitAttemptUseCase;
         this.checkAndAwardBadgesUseCase = checkAndAwardBadgesUseCase;
@@ -44,6 +48,17 @@ public class TraineeQuizController {
             @PathVariable UUID moduleId) {
         return getQuizForAttemptUseCase.getByModuleId(moduleId)
                 .map(TraineeQuizController::toResponse)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/last-passed-result")
+    public ResponseEntity<SubmittedAttemptResponse> getLastPassedResult(
+            @AuthenticationPrincipal AuthenticatedIdentity identity,
+            @PathVariable UUID courseId,
+            @PathVariable UUID moduleId) {
+        return getLatestPassedQuizReviewUseCase.getReview(identity.getUserId(), courseId, moduleId)
+                .map(TraineeQuizController::toSubmittedResponse)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
@@ -145,6 +160,30 @@ public class TraineeQuizController {
                 dto.attemptNumber(),
                 dto.startedAt().toString(),
                 toResponse(dto.quiz())
+        );
+    }
+
+    private static SubmittedAttemptResponse toSubmittedResponse(SubmittedAttemptDto dto) {
+        List<SubmittedAnswerResponse> answerResponses = dto.answers() == null ? List.of() :
+                dto.answers().stream().map(a -> new SubmittedAnswerResponse(
+                        a.questionId() != null ? a.questionId().toString() : null,
+                        a.questionText(),
+                        a.selectedOptionId() != null ? a.selectedOptionId().toString() : null,
+                        a.selectedOptionText(),
+                        a.correctOptionId() != null ? a.correctOptionId().toString() : null,
+                        a.correctOptionText(),
+                        a.correct(),
+                        a.pointsAwarded(),
+                        a.totalPoints()
+                )).toList();
+        return new SubmittedAttemptResponse(
+                dto.attemptId().toString(),
+                dto.pointsEarned(),
+                dto.totalPoints(),
+                dto.percentScore(),
+                dto.passed(),
+                dto.completedAt().toString(),
+                answerResponses
         );
     }
 

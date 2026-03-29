@@ -14,6 +14,7 @@ import { Avatar } from '../../../shared/components/Avatar.jsx'
 import { Badge } from '../../../shared/components/Badge.jsx'
 import { Input } from '../../../shared/components/Input.jsx'
 import { Breadcrumbs } from '../../../shared/components/Breadcrumbs.jsx'
+import { AdminNavigatePills } from '../components/admin/AdminNavigatePills.jsx'
 import { useToast } from '../../../shared/hooks/useToast.js'
 
 const styles = {
@@ -493,6 +494,7 @@ export function AdminUserDetailPage() {
           { label: '...' },
         ]} />
         <p style={styles.loading}>Loading user…</p>
+        <AdminNavigatePills />
       </div>
     )
   }
@@ -506,6 +508,7 @@ export function AdminUserDetailPage() {
           { label: '...' },
         ]} />
         <p style={styles.error}>{error}</p>
+        <AdminNavigatePills />
       </div>
     )
   }
@@ -519,6 +522,7 @@ export function AdminUserDetailPage() {
           { label: '...' },
         ]} />
         <p style={styles.error}>User not found.</p>
+        <AdminNavigatePills />
       </div>
     )
   }
@@ -527,7 +531,7 @@ export function AdminUserDetailPage() {
   const roleDisplay = isStaff ? roleLabel(user.role) : 'Trainee'
   const active = isStaff ? user.active : true
   const canDelete = isSuperAdmin && (isStaff ? user.id !== currentUserId : true)
-  const canEdit = isTrainee || (isStaff && isSuperAdmin)
+  const canEdit = isSuperAdmin
   const canChangePassword = isSuperAdmin
   const canToggleActive = isStaff && isSuperAdmin && user.id !== currentUserId
 
@@ -932,6 +936,7 @@ export function AdminUserDetailPage() {
           disabled={actionLoading}
         />
       )}
+      <AdminNavigatePills />
     </div>
   )
 }

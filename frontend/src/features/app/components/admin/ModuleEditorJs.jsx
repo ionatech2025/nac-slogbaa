@@ -10,11 +10,15 @@ import Delimiter from '@editorjs/delimiter'
 import Warning from '@editorjs/warning'
 import Table from '@editorjs/table'
 import CodeTool from '@editorjs/code'
+import { uploadFile } from '../../../../api/files.js'
 
 /**
  * Editor.js wrapper for module content. Saves only when the parent calls save() (e.g. via Save button).
  * Exposes save() via ref so the parent can trigger save.
  * Uses static imports so the editor initializes quickly without async import delays.
+ *
+ * @param {string | null} [uploadToken] - JWT for image uploads. When set, images go to /api/files/upload
+ *   (same as module thumbnails). Without it, falls back to base64 data URLs (trainees cannot see those — getAssetUrl strips data:).
  */
 export const ModuleEditorJs = forwardRef(function ModuleEditorJs({
   initialData,
@@ -23,6 +27,7 @@ export const ModuleEditorJs = forwardRef(function ModuleEditorJs({
   readOnly = false,
   holderId = 'module-editor-js',
   minHeight = 280,
+  uploadToken = null,
 }, ref) {
   const editorRef = useRef(null)
   const holderRef = useRef(null)
@@ -132,6 +137,15 @@ export const ModuleEditorJs = forwardRef(function ModuleEditorJs({
               buttonContent: 'Select image',
               uploader: {
                 uploadByFile(file) {
+                  if (uploadToken) {
+                    return uploadFile(uploadToken, file, 'modules').then(
+                      ({ url }) => ({ success: 1, file: { url } }),
+                      (err) => {
+                        console.error('Editor image upload failed', err)
+                        return { success: 0, error: err?.message ?? 'Upload failed' }
+                      }
+                    )
+                  }
                   return new Promise((resolve) => {
                     const reader = new FileReader()
                     reader.onload = () => resolve({ success: 1, file: { url: reader.result } })
@@ -213,7 +227,7 @@ export const ModuleEditorJs = forwardRef(function ModuleEditorJs({
         editorRef.current = null
       }
     }
-  }, [holderId, readOnly, initialData])
+  }, [holderId, readOnly, initialData, uploadToken])
 
   return (
     <div

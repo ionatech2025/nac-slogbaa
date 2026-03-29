@@ -56,34 +56,55 @@ export function StatsSkeleton({ count = 4 }) {
 
 export function CourseDetailSkeleton() {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-      {/* Back link placeholder */}
-      <Skeleton height={14} width={120} />
-
-      {/* Header: image + title area */}
-      <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
-        <Skeleton height={80} width={120} style={{ borderRadius: 8, flexShrink: 0 }} />
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <Skeleton height={22} width="60%" />
-          <Skeleton height={14} width="80%" />
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 0, flex: 1, minHeight: 220 }}>
+      {/* Sub-header (course title + progress) */}
+      <div
+        style={{
+          padding: '1rem 0',
+          marginBottom: '1rem',
+          borderBottom: '1px solid var(--slogbaa-border)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 12,
+        }}
+      >
+        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
+          <Skeleton height={56} width={56} style={{ borderRadius: 10, flexShrink: 0 }} />
+          <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <Skeleton height={12} width={100} />
+            <Skeleton height={22} width="55%" />
+            <Skeleton height={12} width="85%" />
+          </div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <Skeleton height={44} width={44} style={{ borderRadius: '50%', flexShrink: 0 }} />
+          <Skeleton height={14} width={120} />
         </div>
       </div>
 
-      {/* Content: sidebar + article */}
-      <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
-        {/* Sidebar — module list */}
-        <div style={{ flex: '0 0 240px', display: 'flex', flexDirection: 'column', gap: 6 }}>
-          {Array.from({ length: 5 }, (_, i) => (
-            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem', borderRadius: 8, border: '1px solid var(--slogbaa-border)', background: 'var(--slogbaa-surface)' }}>
-              <Skeleton height={36} width={36} style={{ borderRadius: 6, flexShrink: 0 }} />
-              <Skeleton height={14} width={i === 0 ? '70%' : `${55 + i * 5}%`} />
+      {/* TOC + lesson column */}
+      <div style={{ display: 'flex', gap: 0, flex: 1, minHeight: 0, alignItems: 'stretch' }}>
+        <div
+          style={{
+            flex: '0 0 300px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 8,
+            paddingRight: '1rem',
+            borderRight: '1px solid var(--slogbaa-border)',
+          }}
+        >
+          <Skeleton height={14} width="70%" style={{ marginBottom: 4 }} />
+          <Skeleton height={28} width="100%" style={{ borderRadius: 8 }} />
+          {Array.from({ length: 4 }, (_, i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.65rem', borderRadius: 10, border: '1px solid var(--slogbaa-border)', background: 'var(--slogbaa-surface)' }}>
+              <Skeleton height={30} width={30} style={{ borderRadius: '50%', flexShrink: 0 }} />
+              <Skeleton height={14} width={i === 0 ? '75%' : `${60 + i * 5}%`} />
             </div>
           ))}
         </div>
-
-        {/* Article area — text lines */}
-        <div style={{ flex: '1 1 280px', minWidth: 0 }}>
-          <Skeleton height={20} width="45%" style={{ marginBottom: 12 }} />
+        <div style={{ flex: '1 1 0', minWidth: 0, paddingLeft: '1.25rem', overflow: 'hidden' }}>
+          <Skeleton height={28} width="50%" style={{ marginBottom: 16 }} />
           <SkeletonText lines={4} style={{ marginBottom: 20 }} />
           <SkeletonText lines={3} style={{ marginBottom: 20 }} />
           <SkeletonText lines={5} />

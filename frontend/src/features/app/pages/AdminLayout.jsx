@@ -15,12 +15,14 @@ import { CommandPalette } from '../../../shared/components/CommandPalette.jsx'
 import { useToast } from '../../../shared/hooks/useToast.js'
 
 const MODULES_SUPER_ADMIN = [
-  { path: 'homepage', label: 'Homepage', icon: icons.home },
+  { path: 'homepage', label: 'Landing page', icon: icons.home },
   { path: 'overview', label: 'Overview', icon: icons.overview },
   { path: 'learning', label: 'Learning', icon: icons.learning },
   { path: 'coursemanagement', label: 'Course Management', icon: icons.course },
   { path: 'library', label: 'Library', icon: icons.library },
   { path: 'assessment', label: 'Assessment', icon: icons.assessment },
+  { path: 'live-sessions', label: 'Live sessions', icon: icons.blockVideo },
+  { path: 'reports', label: 'Reports & Analytics', icon: icons.reports },
 ]
 
 const MODULES_ADMIN = [
@@ -28,6 +30,8 @@ const MODULES_ADMIN = [
   { path: 'learning', label: 'Learning', icon: icons.learning },
   { path: 'library', label: 'Library', icon: icons.library },
   { path: 'assessment', label: 'Assessment', icon: icons.assessment },
+  { path: 'live-sessions', label: 'Live sessions', icon: icons.blockVideo },
+  { path: 'reports', label: 'Reports & Analytics', icon: icons.reports },
 ]
 
 const baseStyles = {
@@ -105,7 +109,7 @@ export function AdminLayout() {
       if (gPressed) {
         gPressed = false
         clearTimeout(gTimer)
-        const routes = { o: '/admin/overview', l: '/admin/learning', b: '/admin/library', a: '/admin/assessment', c: '/admin/coursemanagement' }
+        const routes = { o: '/admin/overview', r: '/admin/reports', l: '/admin/learning', b: '/admin/library', a: '/admin/assessment', c: '/admin/coursemanagement', v: '/admin/live-sessions' }
         if (routes[e.key]) { e.preventDefault(); navigate(routes[e.key]) }
       }
     }
@@ -176,9 +180,12 @@ export function AdminLayout() {
 
   const STATIC_COMMANDS = [
     { label: 'Go to Overview', group: 'Navigation', onSelect: () => navigate('/admin/overview'), shortcut: 'G O' },
+    { label: 'Go to Reports & Analytics', group: 'Navigation', onSelect: () => navigate('/admin/reports'), shortcut: 'G R' },
+    ...(isSuperAdmin ? [{ label: 'Go to Landing page', group: 'Navigation', onSelect: () => navigate('/admin/homepage') }] : []),
     { label: 'Go to Learning', group: 'Navigation', onSelect: () => navigate('/admin/learning'), shortcut: 'G L' },
     { label: 'Go to Library', group: 'Navigation', onSelect: () => navigate('/admin/library') },
     { label: 'Go to Assessment', group: 'Navigation', onSelect: () => navigate('/admin/assessment') },
+    { label: 'Go to Live sessions', group: 'Navigation', onSelect: () => navigate('/admin/live-sessions'), shortcut: 'G V' },
     { label: 'Go to Course Management', group: 'Navigation', onSelect: () => navigate('/admin/coursemanagement') },
     ...(isSuperAdmin ? [
       { label: 'Create Staff', group: 'Actions', onSelect: () => setModal('createStaff') },

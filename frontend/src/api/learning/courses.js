@@ -99,6 +99,19 @@ export async function getResumePoint(token, courseId) {
 }
 
 /**
+ * GET /api/courses/:courseId/completed-modules — trainee's completed module IDs for this course.
+ * Returns { completedModuleIds: string[] }.
+ */
+export async function getCompletedModuleIds(token, courseId) {
+  if (!token || !courseId) return { completedModuleIds: [] }
+  const res = await apiClient(token).get(`/api/courses/${courseId}/completed-modules`)
+  if (!res.ok) return { completedModuleIds: [] }
+  const data = await res.json().catch(() => ({}))
+  const ids = data.completedModuleIds
+  return { completedModuleIds: Array.isArray(ids) ? ids : [] }
+}
+
+/**
  * Fetch course details with modules and content blocks (GET /api/courses/:id). Requires auth token.
  * Returns full course object or throws on 404/error.
  */

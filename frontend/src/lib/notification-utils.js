@@ -22,7 +22,12 @@ export function notificationIcon(type) {
     case 'COURSE_COMPLETED':
       return icons.checkCircle
     case 'DISCUSSION_REPLY':
+    case 'DISCUSSION_QUESTION':
       return icons.messageSquare
+    case 'COURSE_REVIEW_SUBMITTED':
+      return icons.star
+    case 'LIVE_SESSION_UPCOMING':
+      return icons.blockVideo
     default:
       return icons.bell
   }

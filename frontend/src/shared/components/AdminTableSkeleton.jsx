@@ -43,7 +43,7 @@ const s = {
   },
 }
 
-/** Skeleton for KPI stat cards (AdminHomePage / AdminOverviewPage) */
+/** Skeleton for KPI stat cards (AdminReportsAnalyticsPage / AdminOverviewPage) */
 export function KpiGridSkeleton({ count = 4 }) {
   return (
     <div role="status" aria-label="Loading statistics" aria-busy="true">

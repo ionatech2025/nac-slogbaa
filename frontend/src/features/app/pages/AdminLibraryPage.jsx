@@ -11,6 +11,7 @@ import { Pagination, usePagination } from '../../../shared/components/Pagination
 import { TableSkeleton, SearchBarSkeleton } from '../../../shared/components/AdminTableSkeleton.jsx'
 import { exportToCsv } from '../../../shared/utils/csvExport.js'
 import { Breadcrumbs } from '../../../shared/components/Breadcrumbs.jsx'
+import { AdminNavigatePills } from '../components/admin/AdminNavigatePills.jsx'
 
 const RESOURCE_TYPES = [
   { value: 'DOCUMENT', label: 'Document' },
@@ -446,6 +447,7 @@ export function AdminLibraryPage() {
         <h1 style={styles.pageTitle}>Library resources</h1>
         <SearchBarSkeleton />
         <TableSkeleton rows={6} columns={isSuperAdmin ? 5 : 4} />
+        <AdminNavigatePills />
       </>
     )
   }
@@ -818,6 +820,7 @@ export function AdminLibraryPage() {
           </form>
         </Modal>
       )}
+      <AdminNavigatePills />
     </>
   )
 }
