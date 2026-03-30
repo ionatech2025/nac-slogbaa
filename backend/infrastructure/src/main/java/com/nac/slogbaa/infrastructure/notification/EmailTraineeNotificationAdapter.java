@@ -55,7 +55,10 @@ public class EmailTraineeNotificationAdapter implements TraineeNotificationPort 
         emailService.sendEmailWithAttachment(toEmail, "Your SLOGBAA Certificate", body, pdfBytes, filename);
     }
 
-    @Async
+    /**
+     * Not async: superadmin password reset must complete the send in-request so failures surface
+     * to the API (and the admin is not told "success" when mail never sent).
+     */
     @Override
     public void sendPasswordChangedByAdmin(String toEmail, String fullName, String newPassword) {
         String loginUrl = frontendBaseUrl + "/auth/login";

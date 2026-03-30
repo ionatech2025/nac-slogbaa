@@ -58,7 +58,10 @@ public class EmailStaffNotificationAdapter implements StaffNotificationPort {
         emailService.sendHtmlEmail(toEmail, "Your SLOGBAA staff account", htmlContent);
     }
 
-    @Async
+    /**
+     * Not async: superadmin password reset must complete the send in-request so failures surface
+     * to the API (and the admin is not told "success" when mail never sent).
+     */
     @Override
     public void sendPasswordChangedByAdmin(String toEmail, String fullName, String newPassword) {
         String loginUrl = frontendBaseUrl + "/auth/login";

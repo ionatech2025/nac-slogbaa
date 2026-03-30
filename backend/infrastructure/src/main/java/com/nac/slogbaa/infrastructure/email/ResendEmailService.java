@@ -107,9 +107,10 @@ public class ResendEmailService extends EmailService {
             if (response.statusCode() >= 200 && response.statusCode() < 300) {
                 log.info("Resend: sent email to {} subject='{}' status={}", sanitizeForLog(to), sanitizeForLog(subject), response.statusCode()); // nosemgrep
             } else {
+                String body = response.body();
                 log.error("Resend: failed to send email to {} subject='{}' status={} body={}",
-                        sanitizeForLog(to), sanitizeForLog(subject), response.statusCode(), sanitizeForLog(response.body())); // nosemgrep
-                throw new EmailSendException("Resend API error: " + response.statusCode(), null);
+                        sanitizeForLog(to), sanitizeForLog(subject), response.statusCode(), sanitizeForLog(body)); // nosemgrep
+                throw new EmailSendException(resendFailureMessage(response.statusCode(), body), null);
             }
         } catch (EmailSendException e) {
             throw e;
@@ -117,6 +118,22 @@ public class ResendEmailService extends EmailService {
             log.error("Resend: failed to send email to {} subject='{}': {}", sanitizeForLog(to), sanitizeForLog(subject), sanitizeForLog(e.getMessage())); // nosemgrep
             throw new EmailSendException("Failed to send email via Resend: " + e.getMessage(), e);
         }
+    }
+
+    /**
+     * Resend returns JSON such as {@code {"message":"...","name":"validation_error"}}.
+     * Surface it so admins see why 403 happened (domain / from address / test-only recipient).
+     */
+    private static String resendFailureMessage(int statusCode, String body) {
+        String base = "Resend API error: " + statusCode;
+        if (body == null || body.isBlank()) {
+            return base;
+        }
+        String oneLine = body.replace('\r', ' ').replace('\n', ' ').trim();
+        if (oneLine.length() > 500) {
+            oneLine = oneLine.substring(0, 500) + "…";
+        }
+        return base + " — " + oneLine;
     }
 
     private static String escapeJson(String s) {

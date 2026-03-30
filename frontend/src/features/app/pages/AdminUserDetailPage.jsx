@@ -745,7 +745,12 @@ export function AdminUserDetailPage() {
                   <FontAwesomeIcon icon={icons.changePassword} /> Update Password
                 </LoadingButton>
                 {passwordError && <p style={styles.error}>{passwordError}</p>}
-                {passwordSuccess && <p style={styles.success}>Password updated.</p>}
+                {passwordSuccess && (
+                  <p style={styles.success}>
+                    Password updated. The new login details were sent to{' '}
+                    <strong>{user?.email ?? 'their email'}</strong>.
+                  </p>
+                )}
               </form>
             </div>
           )}
