@@ -1,5 +1,6 @@
 package com.nac.slogbaa.controller;
 
+import com.nac.slogbaa.infrastructure.email.EmailSendException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.annotation.Order;
@@ -38,6 +39,17 @@ public class GlobalExceptionHandler {
         ProblemDetail detail = ProblemDetail.forStatus(HttpStatus.NOT_FOUND);
         detail.setTitle("Not Found");
         detail.setDetail("The requested resource was not found.");
+        return detail;
+    }
+
+    /**
+     * Password was likely already persisted; admin should verify SMTP/Resend and may need to resend credentials manually.
+     */
+    @ExceptionHandler(EmailSendException.class)
+    public ProblemDetail handleEmailDeliveryFailure(EmailSendException ex) {
+        log.warn("Email send failed: {}", ex.getMessage());
+        ProblemDetail detail = ProblemDetail.forStatusAndDetail(HttpStatus.SERVICE_UNAVAILABLE, ex.getMessage());
+        detail.setTitle("Email delivery failed");
         return detail;
     }
 
