@@ -7,6 +7,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
@@ -31,6 +32,19 @@ public class GlobalExceptionHandler {
                 .map(fe -> fe.getField() + ": " + fe.getDefaultMessage())
                 .orElse("Invalid request body");
         detail.setDetail(firstError);
+        return detail;
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ProblemDetail handlePayloadError(HttpMessageNotReadableException ex) {
+        log.warn("Payload read failed: {}", ex.getMessage());
+        ProblemDetail detail = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
+        detail.setTitle("Invalid Request Content");
+        detail.setDetail("The request body could not be read. Ensure correct JSON format and field names.");
+        // In dev, provide more detail. In prod, keep it generic but descriptive.
+        if (ex.getMessage() != null && ex.getMessage().contains("Required request body is missing")) {
+            detail.setDetail("Required request body is missing.");
+        }
         return detail;
     }
 
