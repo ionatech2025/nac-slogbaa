@@ -8,6 +8,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.stereotype.Service;
+import org.springframework.context.annotation.Profile;
 
 /**
  * SMTP-based email service (default). When {@code app.email.provider=resend},
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @Slf4j
+@org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(name = "app.email.provider", havingValue = "smtp", matchIfMissing = true)
 public class EmailService {
 
     private final JavaMailSender mailSender;
