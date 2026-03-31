@@ -23,7 +23,7 @@ import org.springframework.context.annotation.Profile;
 @Service
 @Primary
 @ConditionalOnProperty(name = "app.email.provider", havingValue = "resend")
-@Profile("prod")
+// @Profile("prod")
 public class ResendEmailService extends EmailService {
 
     private static final Logger log = LoggerFactory.getLogger(ResendEmailService.class);

@@ -16,7 +16,7 @@ import org.springframework.context.annotation.Profile;
  */
 @Service
 @Slf4j
-@Profile("!prod")
+@org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(name = "app.email.provider", havingValue = "smtp", matchIfMissing = true)
 public class EmailService {
 
     private final JavaMailSender mailSender;
