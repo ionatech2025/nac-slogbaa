@@ -9,6 +9,7 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.stereotype.Service;
 import org.springframework.context.annotation.Profile;
+import com.nac.slogbaa.shared.ports.DebugNotificationPort;
 
 /**
  * SMTP-based email service (default). When {@code app.email.provider=resend},
@@ -17,7 +18,7 @@ import org.springframework.context.annotation.Profile;
 @Service
 @Slf4j
 @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(name = "app.email.provider", havingValue = "smtp", matchIfMissing = true)
-public class EmailService {
+public class EmailService implements DebugNotificationPort {
 
     private final JavaMailSender mailSender;
 
@@ -26,6 +27,11 @@ public class EmailService {
 
     public EmailService(org.springframework.beans.factory.ObjectProvider<JavaMailSender> mailSenderProvider) {
         this.mailSender = mailSenderProvider.getIfAvailable();
+    }
+
+    @Override
+    public void sendDebugEmail(String toEmail, String subject, String htmlContent) {
+        this.sendHtmlEmail(toEmail, subject, htmlContent);
     }
 
     /**
