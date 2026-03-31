@@ -13,6 +13,8 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 
+import org.springframework.context.annotation.Profile;
+
 /**
  * Email service using Resend HTTP API (https://resend.com).
  * Activated when {@code app.email.provider=resend} is set.
@@ -21,6 +23,7 @@ import java.time.Duration;
 @Service
 @Primary
 @ConditionalOnProperty(name = "app.email.provider", havingValue = "resend")
+// @Profile("prod")
 public class ResendEmailService extends EmailService {
 
     private static final Logger log = LoggerFactory.getLogger(ResendEmailService.class);
