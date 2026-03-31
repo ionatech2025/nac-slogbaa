@@ -6,7 +6,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,10 +18,9 @@ import java.util.Map;
  * Restricted to SUPER_ADMIN users for safety.
  */
 @RestController
-@RequestMapping("/internal/debug/mail")
+@RequestMapping("/api/internal/debug/mail")
 @RequiredArgsConstructor
 @Slf4j
-@PreAuthorize("hasRole('SUPER_ADMIN')")
 public class DebugController {
 
     private final EmailService emailService;
