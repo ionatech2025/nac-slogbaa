@@ -1,12 +1,11 @@
 package com.nac.slogbaa.iam.adapters.rest.controller;
 
 import com.nac.slogbaa.iam.adapters.rest.dto.request.TestEmailRequest;
-import com.nac.slogbaa.infrastructure.email.EmailService;
+import com.nac.slogbaa.shared.ports.DebugNotificationPort;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,13 +18,12 @@ import java.util.Map;
  * Restricted to SUPER_ADMIN users for safety.
  */
 @RestController
-@RequestMapping("/internal/debug/mail")
+@RequestMapping("/api/internal/debug/mail")
 @RequiredArgsConstructor
 @Slf4j
-@PreAuthorize("hasRole('SUPER_ADMIN')")
 public class DebugController {
 
-    private final EmailService emailService;
+    private final DebugNotificationPort debugNotificationPort;
 
     /**
      * Send a test email via SMTP or the current active provider.
@@ -36,7 +34,7 @@ public class DebugController {
         log.info("Debugging: trigger test email to {} (subject: {})", request.getTo(), request.getSubject());
         
         try {
-            emailService.sendHtmlEmail(request.getTo(), request.getSubject(), request.getContent());
+            debugNotificationPort.sendDebugEmail(request.getTo(), request.getSubject(), request.getContent());
             return ResponseEntity.ok(Map.of(
                 "message", "Test email sequence initiated successfully",
                 "to", request.getTo(),
