@@ -13,8 +13,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 
-import org.springframework.context.annotation.Profile;
-
 /**
  * Email service using Resend HTTP API (https://resend.com).
  * Activated when {@code app.email.provider=resend} is set.
@@ -31,6 +29,7 @@ public class ResendEmailService extends EmailService {
 
     private final String apiKey;
     private final String from;
+    private final boolean enabled;
     private final HttpClient httpClient;
 
     private static String sanitizeForLog(String value) {
@@ -42,14 +41,16 @@ public class ResendEmailService extends EmailService {
     public ResendEmailService(
             org.springframework.beans.factory.ObjectProvider<org.springframework.mail.javamail.JavaMailSender> mailSenderProvider,
             @Value("${app.email.resend.api-key}") String apiKey,
-            @Value("${app.email.resend.from:SLOGBAA <onboarding@resend.dev>}") String from) {
-        super(mailSenderProvider); // not used — all methods overridden
+            @Value("${app.email.resend.from:SLOGBAA <onboarding@resend.dev>}") String from,
+            @Value("${app.email.enabled:true}") boolean enabled) {
+        super(mailSenderProvider, enabled); // not used — all methods overridden
         this.apiKey = apiKey;
         this.from = from;
+        this.enabled = enabled;
         this.httpClient = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(10))
                 .build();
-        log.info("Resend email service initialized — from={}", sanitizeForLog(from)); // nosemgrep
+        log.info("Resend email service initialized — from={}, enabled={}", sanitizeForLog(from), enabled); // nosemgrep
     }
 
     @Override
@@ -96,6 +97,11 @@ public class ResendEmailService extends EmailService {
     }
 
     private void doPost(String json, String to, String subject) {
+        if (!enabled) {
+            log.info("[PAUSED] Email sending is DISABLED (app.email.enabled=false). Would have sent email to '{}' with subject '{}'", 
+                sanitizeForLog(to), sanitizeForLog(subject));
+            return;
+        }
         try {
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(RESEND_API_URL))
