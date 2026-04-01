@@ -21,12 +21,17 @@ import com.nac.slogbaa.shared.ports.DebugNotificationPort;
 public class EmailService implements DebugNotificationPort {
 
     private final JavaMailSender mailSender;
+    private final boolean enabled;
 
     @Value("${spring.mail.username:}")
     private String from;
 
-    public EmailService(org.springframework.beans.factory.ObjectProvider<JavaMailSender> mailSenderProvider) {
+    public EmailService(
+            org.springframework.beans.factory.ObjectProvider<JavaMailSender> mailSenderProvider,
+            @Value("${app.email.enabled:true}") boolean enabled) {
         this.mailSender = mailSenderProvider.getIfAvailable();
+        this.enabled = enabled;
+        log.info("Email service initialized — enabled={}, provider={}", enabled, (mailSender != null ? "smtp" : "none"));
     }
 
     @Override
@@ -38,6 +43,11 @@ public class EmailService implements DebugNotificationPort {
      * Send an HTML email.
      */
     public void sendHtmlEmail(String to, String subject, String htmlContent) {
+        if (!enabled) {
+            log.info("[PAUSED] Email sending is DISABLED (app.email.enabled=false). Would have sent HTML email to '{}' with subject '{}'", 
+                sanitizeForLog(to), sanitizeForLog(subject));
+            return;
+        }
         requireMailSender();
         String sender = resolveSender();
         try {
@@ -59,6 +69,11 @@ public class EmailService implements DebugNotificationPort {
      * Send a simple plain-text email. Used when a trainee registers or a new staff is created by a super admin.
      */
     public void sendSimpleEmail(String to, String subject, String body) {
+        if (!enabled) {
+            log.info("[PAUSED] Email sending is DISABLED (app.email.enabled=false). Would have sent simple email to '{}' with subject '{}'", 
+                sanitizeForLog(to), sanitizeForLog(subject));
+            return;
+        }
         requireMailSender();
         String sender = resolveSender();
         try {
@@ -80,6 +95,11 @@ public class EmailService implements DebugNotificationPort {
      * Send an email with an attachment.
      */
     public void sendEmailWithAttachment(String to, String subject, String body, byte[] attachment, String fileName) {
+        if (!enabled) {
+            log.info("[PAUSED] Email sending is DISABLED (app.email.enabled=false). Would have sent email with attachment to '{}' with subject '{}'", 
+                sanitizeForLog(to), sanitizeForLog(subject));
+            return;
+        }
         requireMailSender();
         String sender = resolveSender();
         try {
