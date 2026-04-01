@@ -64,6 +64,9 @@ public class IamConfiguration {
     @Value("${app.jwt.expiry-seconds:86400}")
     private long tokenExpirySeconds;
 
+    @Value("${app.email.verification-required:true}")
+    private boolean verificationRequired;
+
     private static String resolveFrontendBaseUrl(Environment env) {
         String raw = env.getProperty("app.password-reset.base-url", "http://localhost:5173");
         boolean prod = FrontendAppBaseUrl.isProductionProfile(env.getProperty("spring.profiles.active", ""));
@@ -81,7 +84,8 @@ public class IamConfiguration {
                 staffUserRepository,
                 passwordHasher,
                 authTokenPort,
-                tokenExpirySeconds
+                tokenExpirySeconds,
+                verificationRequired
         );
     }
 
@@ -109,7 +113,8 @@ public class IamConfiguration {
                 traineeRepository,
                 staffUserRepository,
                 passwordHasher,
-                verifyEmailUseCase
+                verifyEmailUseCase,
+                verificationRequired
         );
     }
 
