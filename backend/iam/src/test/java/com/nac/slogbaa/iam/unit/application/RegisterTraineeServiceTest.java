@@ -38,7 +38,7 @@ class RegisterTraineeServiceTest {
             @Override public String hash(String raw) { return "hashed:" + raw; }
             @Override public boolean matches(String raw, String hashed) { return hashed.equals("hashed:" + raw); }
         };
-        service = new RegisterTraineeService(traineeRepo, staffRepo, hasher, verifyEmail);
+        service = new RegisterTraineeService(traineeRepo, staffRepo, hasher, verifyEmail, true);
     }
 
     @Test

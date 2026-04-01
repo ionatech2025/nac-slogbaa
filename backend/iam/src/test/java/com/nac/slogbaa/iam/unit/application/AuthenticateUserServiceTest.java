@@ -38,7 +38,7 @@ class AuthenticateUserServiceTest {
         staffRepo = new StubStaffRepository();
         passwordHasher = new StubPasswordHasher();
         authTokenPort = new StubAuthTokenPort();
-        service = new AuthenticateUserService(traineeRepo, staffRepo, passwordHasher, authTokenPort, 86400);
+        service = new AuthenticateUserService(traineeRepo, staffRepo, passwordHasher, authTokenPort, 86400, true);
     }
 
     @Test
