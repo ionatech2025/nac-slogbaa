@@ -32,15 +32,18 @@ public final class RegisterTraineeService implements RegisterTraineeUseCase {
     private final StaffUserRepositoryPort staffUserRepository;
     private final PasswordHasherPort passwordHasher;
     private final VerifyEmailUseCase verifyEmailUseCase;
+    private final boolean verificationRequired;
 
     public RegisterTraineeService(TraineeRepositoryPort traineeRepository,
                                   StaffUserRepositoryPort staffUserRepository,
                                   PasswordHasherPort passwordHasher,
-                                  VerifyEmailUseCase verifyEmailUseCase) {
+                                  VerifyEmailUseCase verifyEmailUseCase,
+                                  boolean verificationRequired) {
         this.traineeRepository = traineeRepository;
         this.staffUserRepository = staffUserRepository;
         this.passwordHasher = passwordHasher;
         this.verifyEmailUseCase = verifyEmailUseCase;
+        this.verificationRequired = verificationRequired;
     }
 
     @Override
@@ -71,6 +74,7 @@ public final class RegisterTraineeService implements RegisterTraineeUseCase {
         Profile profile = new Profile(fullName, gender, district, command.getRegion(), category, address, phone);
 
         TraineeId id = new TraineeId(UUID.randomUUID());
+        boolean isVerified = !verificationRequired; // If verification not required, set to true
         Trainee trainee = new Trainee(
                 id,
                 email,
@@ -78,7 +82,7 @@ public final class RegisterTraineeService implements RegisterTraineeUseCase {
                 profile,
                 true,
                 Instant.now(),
-                false
+                isVerified
         );
         traineeRepository.save(trainee);
 

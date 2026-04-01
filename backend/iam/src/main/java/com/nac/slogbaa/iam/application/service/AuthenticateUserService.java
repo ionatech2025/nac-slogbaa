@@ -26,17 +26,20 @@ public final class AuthenticateUserService implements AuthenticateUserUseCase {
     private final PasswordHasherPort passwordHasher;
     private final AuthTokenPort authTokenPort;
     private final long tokenExpirySeconds;
+    private final boolean verificationRequired;
 
     public AuthenticateUserService(TraineeRepositoryPort traineeRepository,
                                    StaffUserRepositoryPort staffUserRepository,
                                    PasswordHasherPort passwordHasher,
                                    AuthTokenPort authTokenPort,
-                                   long tokenExpirySeconds) {
+                                   long tokenExpirySeconds,
+                                   boolean verificationRequired) {
         this.traineeRepository = traineeRepository;
         this.staffUserRepository = staffUserRepository;
         this.passwordHasher = passwordHasher;
         this.authTokenPort = authTokenPort;
         this.tokenExpirySeconds = tokenExpirySeconds > 0 ? tokenExpirySeconds : 86400L;
+        this.verificationRequired = verificationRequired;
     }
 
     @Override
@@ -88,7 +91,7 @@ public final class AuthenticateUserService implements AuthenticateUserUseCase {
         if (!passwordHasher.matches(rawPassword, user.getPasswordHash())) {
             throw new InvalidCredentialsException();
         }
-        if (!user.isEmailVerified()) {
+        if (verificationRequired && !user.isEmailVerified()) {
             throw new EmailNotVerifiedException();
         }
         AuthenticatedIdentity identity = new AuthenticatedIdentity(
