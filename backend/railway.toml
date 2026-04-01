@@ -15,7 +15,7 @@
 #   CORS_ALLOWED_ORIGINS   = https://nac-slogbaa.vercel.app
 #   PASSWORD_RESET_BASE_URL = https://nac-slogbaa.vercel.app
 #   SMTP_HOST              = smtp.gmail.com
-#   SMTP_PORT              = 587
+#   SMTP_PORT              = 465 (Recommended for production)
 #   SMTP_USERNAME          = <set-in-dashboard>
 #   SMTP_PASSWORD          = <set-in-dashboard>
 # =============================================================================
