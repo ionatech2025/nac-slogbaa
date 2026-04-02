@@ -17,6 +17,8 @@ public interface JpaCertificateRepository extends JpaRepository<CertificateEntit
 
     boolean existsByTraineeIdAndCourseId(UUID traineeId, UUID courseId);
 
+    Optional<CertificateEntity> findByTraineeIdAndCourseId(UUID traineeId, UUID courseId);
+
     List<CertificateEntity> findByTraineeIdAndRevokedFalseOrderByIssuedDateDesc(UUID traineeId);
 
     @Query(value = """

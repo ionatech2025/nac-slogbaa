@@ -25,6 +25,7 @@ public class EntityToDomainMapper {
                 .toList();
         String categoryName = course.getCategory() != null ? course.getCategory().getName() : null;
         String categorySlug = course.getCategory() != null ? course.getCategory().getSlug() : null;
+        java.util.UUID categoryId = course.getCategory() != null ? course.getCategory().getId() : null;
         return new CourseWithModules(
                 new CourseId(course.getId()),
                 course.getTitle(),
@@ -33,6 +34,7 @@ public class EntityToDomainMapper {
                 course.isPublished(),
                 categoryName,
                 categorySlug,
+                categoryId,
                 modules
         );
     }

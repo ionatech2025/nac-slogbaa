@@ -82,6 +82,7 @@ public class IamSecurityConfiguration {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/api/**", config);
         source.registerCorsConfiguration("/api/v1/**", config);
+        source.registerCorsConfiguration("/uploads/**", config);
         return source;
     }
 

@@ -57,10 +57,40 @@ const styles = {
   },
   moduleList: {
     margin: '0 0 1.25rem',
-    paddingLeft: '1.25rem',
+    padding: 0,
+    listStyle: 'none',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.75rem',
+  },
+  moduleItem: {
+    display: 'flex',
+    gap: '0.875rem',
+    alignItems: 'flex-start',
+    padding: '0.75rem',
+    borderRadius: 8,
+    background: 'rgba(39, 129, 191, 0.04)',
+    border: '1px solid var(--slogbaa-border)',
+  },
+  moduleThumb: {
+    width: 64,
+    height: 48,
+    borderRadius: 4,
+    objectFit: 'cover',
+    flexShrink: 0,
+    background: 'var(--slogbaa-border)',
+  },
+  moduleTitle: {
+    margin: '0 0 0.15rem',
     fontSize: '0.9375rem',
-    lineHeight: 1.5,
+    fontWeight: 600,
     color: 'var(--slogbaa-text)',
+  },
+  moduleDesc: {
+    margin: 0,
+    fontSize: '0.8125rem',
+    color: 'var(--slogbaa-text-muted)',
+    lineHeight: 1.4,
   },
   videoWrap: {
     marginBottom: '1.25rem',
@@ -137,15 +167,39 @@ export function CoursePreviewModal({ course, onClose, onEnroll, prerequisiteMet 
             <p style={styles.description}>{details.description}</p>
           )}
           <p style={styles.meta}>
-            <FontAwesomeIcon icon={icons.course} style={{ marginRight: '0.35rem', opacity: 0.8 }} />
             {details.modules?.length ?? 0} module{(details.modules?.length ?? 0) !== 1 ? 's' : ''}
+            {details.reviewCount > 0 && (
+              <>
+                <span style={{ margin: '0 0.5rem', opacity: 0.3 }}>|</span>
+                <FontAwesomeIcon icon={icons.star} style={{ marginRight: '0.35rem', color: '#f59e0b' }} />
+                <span style={{ fontWeight: 600, color: 'var(--slogbaa-text)' }}>{details.averageRating?.toFixed(1)}</span>
+                <span style={{ marginLeft: '0.25rem' }}>({details.reviewCount} {details.reviewCount === 1 ? 'review' : 'reviews'})</span>
+              </>
+            )}
           </p>
           {details.modules?.length > 0 && (
             <>
-              <h3 style={styles.sectionTitle}>What you&apos;ll learn</h3>
+              <h3 style={styles.sectionTitle}>Curriculum ({details.modules.length} module{details.modules.length !== 1 ? 's' : ''})</h3>
               <ul style={styles.moduleList}>
                 {details.modules.map((m) => (
-                  <li key={m.id}>{m.title}</li>
+                  <li key={m.id} style={styles.moduleItem}>
+                    {m.imageUrl ? (
+                      <img
+                        src={getAssetUrl(m.imageUrl)}
+                        alt=""
+                        style={styles.moduleThumb}
+                        onError={(e) => { e.target.style.display = 'none' }}
+                      />
+                    ) : (
+                      <div style={{ ...styles.moduleThumb, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem', color: 'var(--slogbaa-text-muted)', opacity: 0.5 }}>
+                        <FontAwesomeIcon icon={icons.modules} />
+                      </div>
+                    )}
+                    <div style={{ flex: 1 }}>
+                      <h4 style={styles.moduleTitle}>{m.title}</h4>
+                      {m.description && <p style={styles.moduleDesc}>{m.description}</p>}
+                    </div>
+                  </li>
                 ))}
               </ul>
             </>

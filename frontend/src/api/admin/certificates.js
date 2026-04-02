@@ -21,3 +21,23 @@ export async function revokeCertificate(token, certificateId) {
   }
   return parseResponse(res)
 }
+
+/**
+ * POST /api/admin/certificates/upload — manually upload a certificate (SuperAdmin only).
+ */
+export async function uploadManualCertificate(token, { traineeId, courseId, certificateNumber, file }) {
+  assertToken(token)
+  const formData = new FormData()
+  formData.append('traineeId', traineeId)
+  formData.append('courseId', courseId)
+  formData.append('certificateNumber', certificateNumber)
+  formData.append('file', file)
+
+  const res = await apiClient(token).post('/api/admin/certificates/upload', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  })
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({}))
+    throw new Error(error.message || 'Failed to upload certificate.')
+  }
+}

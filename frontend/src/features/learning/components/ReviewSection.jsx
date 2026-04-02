@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { StarRating } from '../../../shared/components/StarRating.jsx'
 import { useCourseReviews, useCourseRating, useSubmitReview, useDeleteReview } from '../../../lib/hooks/use-reviews.js'
+import { useAuth } from '../../iam/hooks/useAuth.js'
 
 const sectionStyles = {
   wrapper: {
@@ -153,6 +154,9 @@ function formatDate(isoString) {
 export function ReviewSection({ courseId }) {
   const { data: reviews = [], isLoading: reviewsLoading } = useCourseReviews(courseId)
   const { data: ratingSummary } = useCourseRating(courseId)
+  const { user } = useAuth()
+  const isSuperAdmin = user?.role === 'SUPER_ADMIN'
+
   const submitMutation = useSubmitReview()
   const deleteMutation = useDeleteReview()
 
@@ -195,49 +199,51 @@ export function ReviewSection({ courseId }) {
         {avgRating > 0 && <StarRating value={avgRating} readOnly showLabel={false} size="md" />}
       </div>
 
-      {/* Review form */}
-      <form onSubmit={handleSubmit} style={sectionStyles.formCard}>
-        <label style={sectionStyles.formLabel}>Your rating</label>
-        <StarRating value={rating} onChange={setRating} size="lg" />
+      {/* Review form (hidden for superadmins) */}
+      {!isSuperAdmin && (
+        <form onSubmit={handleSubmit} style={sectionStyles.formCard}>
+          <label style={sectionStyles.formLabel}>Your rating</label>
+          <StarRating value={rating} onChange={setRating} size="lg" />
 
-        <label style={{ ...sectionStyles.formLabel, marginTop: '0.75rem' }}>Review (optional)</label>
-        <textarea
-          style={sectionStyles.textarea}
-          value={reviewText}
-          onChange={(e) => setReviewText(e.target.value)}
-          placeholder="Share your experience with this course..."
-          maxLength={2000}
-          rows={3}
-        />
+          <label style={{ ...sectionStyles.formLabel, marginTop: '0.75rem' }}>Review (optional)</label>
+          <textarea
+            style={sectionStyles.textarea}
+            value={reviewText}
+            onChange={(e) => setReviewText(e.target.value)}
+            placeholder="Share your experience with this course..."
+            maxLength={2000}
+            rows={3}
+          />
 
-        <div style={sectionStyles.buttonRow}>
-          <button
-            type="submit"
-            disabled={rating < 1 || submitMutation.isPending}
-            style={{
-              ...sectionStyles.submitBtn,
-              opacity: rating < 1 || submitMutation.isPending ? 0.5 : 1,
-            }}
-          >
-            {submitMutation.isPending ? 'Submitting...' : 'Submit Review'}
-          </button>
-          <button
-            type="button"
-            onClick={handleDelete}
-            disabled={deleteMutation.isPending}
-            style={sectionStyles.deleteBtn}
-          >
-            {deleteMutation.isPending ? 'Deleting...' : 'Delete My Review'}
-          </button>
-        </div>
+          <div style={sectionStyles.buttonRow}>
+            <button
+              type="submit"
+              disabled={rating < 1 || submitMutation.isPending}
+              style={{
+                ...sectionStyles.submitBtn,
+                opacity: rating < 1 || submitMutation.isPending ? 0.5 : 1,
+              }}
+            >
+              {submitMutation.isPending ? 'Submitting...' : 'Submit Review'}
+            </button>
+            <button
+              type="button"
+              onClick={handleDelete}
+              disabled={deleteMutation.isPending}
+              style={sectionStyles.deleteBtn}
+            >
+              {deleteMutation.isPending ? 'Deleting...' : 'Delete My Review'}
+            </button>
+          </div>
 
-        {submitMutation.isError && (
-          <p style={sectionStyles.errorText}>{submitMutation.error?.message ?? 'Failed to submit review.'}</p>
-        )}
-        {deleteMutation.isError && (
-          <p style={sectionStyles.errorText}>{deleteMutation.error?.message ?? 'Failed to delete review.'}</p>
-        )}
-      </form>
+          {submitMutation.isError && (
+            <p style={sectionStyles.errorText}>{submitMutation.error?.message ?? 'Failed to submit review.'}</p>
+          )}
+          {deleteMutation.isError && (
+            <p style={sectionStyles.errorText}>{deleteMutation.error?.message ?? 'Failed to delete review.'}</p>
+          )}
+        </form>
+      )}
 
       {/* Review list */}
       {reviewsLoading ? (

@@ -11,4 +11,6 @@ public interface JpaStaffUserRepository extends JpaRepository<StaffUserEntity, U
     Optional<StaffUserEntity> findByEmail(String email);
 
     long countByStaffRole(StaffUserEntity.StaffRoleEnum staffRole);
+
+    java.util.List<StaffUserEntity> findByStaffRole(StaffUserEntity.StaffRoleEnum staffRole);
 }

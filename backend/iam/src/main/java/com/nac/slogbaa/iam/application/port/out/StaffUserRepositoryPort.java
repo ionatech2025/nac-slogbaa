@@ -19,6 +19,8 @@ public interface StaffUserRepositoryPort {
     Optional<StaffUser> findById(StaffUserId id);
 
     List<StaffUser> findAll();
+    
+    List<StaffUser> findAllByRole(StaffRole role);
 
     long count();
 

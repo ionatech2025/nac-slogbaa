@@ -21,10 +21,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
+import com.nac.slogbaa.shared.ports.GetCourseReviewSummaryPort;
+
 /**
  * Retrieves merged trainee + staff course reviews and combined rating summary.
  */
-public final class GetCourseReviewsService implements GetCourseReviewsUseCase {
+public final class GetCourseReviewsService implements GetCourseReviewsUseCase, GetCourseReviewSummaryPort {
 
     private final CourseReviewPort courseReviewPort;
     private final CourseStaffReviewPort courseStaffReviewPort;
@@ -67,6 +69,12 @@ public final class GetCourseReviewsService implements GetCourseReviewsUseCase {
         double sum = courseReviewPort.getAverageRating(courseId) * cntTrainee
                 + courseStaffReviewPort.getAverageRating(courseId) * cntStaff;
         return new CourseRatingSummary(sum / total, total);
+    }
+
+    @Override
+    public ReviewSummary getSummary(UUID courseId) {
+        CourseRatingSummary s = getRatingSummary(courseId);
+        return new ReviewSummary(s.averageRating(), s.totalReviews());
     }
 
     @Override

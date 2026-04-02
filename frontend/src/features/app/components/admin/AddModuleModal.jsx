@@ -83,7 +83,9 @@ const styles = {
 }
 
 export function AddModuleModal({ token, course, onClose, onSubmit }) {
-  const nextOrder = (course?.modules?.length ?? 0)
+  // Use max order + 1 rather than length to avoid collisions if modules were deleted
+  const maxOrder = course?.modules?.reduce((max, m) => Math.max(max, m.moduleOrder ?? 0), -1) ?? -1
+  const nextOrder = maxOrder + 1
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [imageUrl, setImageUrl] = useState(null)

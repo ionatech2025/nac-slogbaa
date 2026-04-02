@@ -24,11 +24,14 @@ public class AdminCertificateController {
 
     private final ListCertificatesUseCase listCertificatesUseCase;
     private final RevokeCertificateUseCase revokeCertificateUseCase;
+    private final com.nac.slogbaa.progress.application.port.in.UploadManualCertificateUseCase uploadManualCertificateUseCase;
 
     public AdminCertificateController(ListCertificatesUseCase listCertificatesUseCase,
-                                      RevokeCertificateUseCase revokeCertificateUseCase) {
+                                      RevokeCertificateUseCase revokeCertificateUseCase,
+                                      com.nac.slogbaa.progress.application.port.in.UploadManualCertificateUseCase uploadManualCertificateUseCase) {
         this.listCertificatesUseCase = listCertificatesUseCase;
         this.revokeCertificateUseCase = revokeCertificateUseCase;
+        this.uploadManualCertificateUseCase = uploadManualCertificateUseCase;
     }
 
     @GetMapping
@@ -60,6 +63,30 @@ public class AdminCertificateController {
             return ResponseEntity.noContent().build();
         } catch (IllegalArgumentException e) {
             return ResponseEntity.notFound().build();
+        }
+    }
+
+    @PostMapping("/upload")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    public ResponseEntity<Void> upload(
+            @RequestParam("traineeId") UUID traineeId,
+            @RequestParam("courseId") UUID courseId,
+            @RequestParam("certificateNumber") String certificateNumber,
+            @RequestParam("file") org.springframework.web.multipart.MultipartFile file) {
+        try {
+            if (file.isEmpty() || !org.springframework.util.StringUtils.getFilenameExtension(file.getOriginalFilename()).equalsIgnoreCase("pdf")) {
+                return ResponseEntity.badRequest().build();
+            }
+            uploadManualCertificateUseCase.upload(
+                    traineeId,
+                    courseId,
+                    certificateNumber,
+                    file.getBytes(),
+                    file.getOriginalFilename()
+            );
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
         }
     }
 

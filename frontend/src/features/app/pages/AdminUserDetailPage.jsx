@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { Link, useParams, useNavigate, useOutletContext } from 'react-router-dom'
 import { FontAwesomeIcon, icons } from '../../../shared/icons.jsx'
-import {
-  useStaffProfile, useTraineeAdminProfile, useTraineeEnrolledCourses, useTraineeCertificates,
+import { useStaffProfile, useTraineeAdminProfile, useTraineeEnrolledCourses, useTraineeCertificates,
   useSetStaffPassword, useSetTraineePassword, useSetStaffActive,
   useDeleteStaff, useDeleteTrainee, useUpdateStaffProfile, useUpdateTraineeAdminProfile,
+  useUploadManualCertificate,
 } from '../../../lib/hooks/use-admin-users.js'
+import { usePublishedCourses } from '../../../lib/hooks/use-courses.js'
 import { getAssetUrl } from '../../../api/client.js'
 import { Modal } from '../../../shared/components/Modal.jsx'
 import { ConfirmModal } from '../../../shared/components/ConfirmModal.jsx'
@@ -421,6 +422,9 @@ export function AdminUserDetailPage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
   const [showStaffEditModal, setShowStaffEditModal] = useState(false)
+  const [showUploadModal, setShowUploadModal] = useState(false)
+
+  const uploadMutation = useUploadManualCertificate()
 
   const handleUpdatePassword = async (e) => {
     e.preventDefault()
@@ -571,6 +575,16 @@ export function AdminUserDetailPage() {
               disabled={actionLoading}
             >
               <FontAwesomeIcon icon={icons.edit} /> Edit
+            </button>
+          )}
+          {isTrainee && (
+            <button
+              type="button"
+              style={{ ...styles.actionBtn, ...styles.actionBtnActivate }}
+              onClick={() => setShowUploadModal(true)}
+              disabled={actionLoading}
+            >
+              <FontAwesomeIcon icon={icons.certificate} /> Manual certificate
             </button>
           )}
           {canToggleActive && (
@@ -939,6 +953,22 @@ export function AdminUserDetailPage() {
           onClose={() => setShowStaffEditModal(false)}
           onSave={handleStaffEditSave}
           disabled={actionLoading}
+        />
+      )}
+      {showUploadModal && isTrainee && (
+        <ManualCertificateUploadModal
+          traineeId={userId}
+          onClose={() => setShowUploadModal(false)}
+          onUpload={async (payload) => {
+            try {
+              await uploadMutation.mutateAsync(payload)
+              setShowUploadModal(false)
+              toast.success('Certificate uploaded successfully.')
+            } catch (e) {
+              toast.error(e?.message ?? 'Failed to upload certificate.')
+            }
+          }}
+          disabled={uploadMutation.isPending}
         />
       )}
       <AdminNavigatePills />

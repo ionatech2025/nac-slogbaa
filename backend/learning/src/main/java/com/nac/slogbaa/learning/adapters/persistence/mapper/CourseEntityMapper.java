@@ -5,6 +5,8 @@ import com.nac.slogbaa.learning.core.aggregate.Course;
 import com.nac.slogbaa.learning.core.valueobject.CourseId;
 import org.springframework.stereotype.Component;
 
+import java.util.UUID;
+
 @Component
 public class CourseEntityMapper {
 
@@ -20,6 +22,7 @@ public class CourseEntityMapper {
         if (entity == null) return null;
         String categoryName = entity.getCategory() != null ? entity.getCategory().getName() : null;
         String categorySlug = entity.getCategory() != null ? entity.getCategory().getSlug() : null;
+        UUID categoryId = entity.getCategory() != null ? entity.getCategory().getId() : null;
         return new Course(
                 new CourseId(entity.getId()),
                 entity.getTitle(),
@@ -30,6 +33,7 @@ public class CourseEntityMapper {
                 totalEstimatedMinutes,
                 categoryName,
                 categorySlug,
+                categoryId,
                 entity.getPrerequisiteCourseId(),
                 prerequisiteCourseName
         );

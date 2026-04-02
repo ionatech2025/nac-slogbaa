@@ -22,6 +22,8 @@ public interface CertificateRepositoryPort {
 
     boolean existsByTraineeIdAndCourseId(UUID traineeId, UUID courseId);
 
+    void deleteByTraineeIdAndCourseId(UUID traineeId, UUID courseId);
+
     void save(NewCertificateData data);
 
     void saveRevoked(UUID id, boolean revoked);
