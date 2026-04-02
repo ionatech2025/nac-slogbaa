@@ -107,6 +107,7 @@ public final class GetCourseReviewsService implements GetCourseReviewsUseCase, G
                 .orElse("Trainee");
         return new CourseReviewResult(
                 entity.getId(),
+                entity.getTraineeId(),
                 displayName,
                 "TRAINEE",
                 entity.getRating(),
@@ -121,6 +122,7 @@ public final class GetCourseReviewsService implements GetCourseReviewsUseCase, G
                 .orElse("Staff");
         return new CourseReviewResult(
                 entity.getId(),
+                entity.getStaffUserId(),
                 displayName,
                 "STAFF",
                 entity.getRating(),

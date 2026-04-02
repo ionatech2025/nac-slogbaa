@@ -156,6 +156,9 @@ export function ReviewSection({ courseId }) {
   const { data: ratingSummary } = useCourseRating(courseId)
   const { user } = useAuth()
   const isSuperAdmin = user?.role === 'SUPER_ADMIN'
+  const currentUserId = user?.userId
+
+  const hasMyReview = reviews.some(r => r.authorId === currentUserId)
 
   const submitMutation = useSubmitReview()
   const deleteMutation = useDeleteReview()
@@ -199,8 +202,8 @@ export function ReviewSection({ courseId }) {
         {avgRating > 0 && <StarRating value={avgRating} readOnly showLabel={false} size="md" />}
       </div>
 
-      {/* Review form (hidden for superadmins) */}
-      {!isSuperAdmin && (
+      {/* Review form (hidden for superadmins or if already reviewed) */}
+      {!isSuperAdmin && !hasMyReview && (
         <form onSubmit={handleSubmit} style={sectionStyles.formCard}>
           <label style={sectionStyles.formLabel}>Your rating</label>
           <StarRating value={rating} onChange={setRating} size="lg" />

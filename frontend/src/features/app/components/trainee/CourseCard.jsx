@@ -34,12 +34,14 @@ function ProgressRing({ percent = 0, size = 44, strokeWidth = 3.5 }) {
 
 const styles = {
   card: {
-    background: 'var(--slogbaa-surface)',
+    background: 'var(--slogbaa-glass-bg)',
+    backdropFilter: 'var(--slogbaa-glass-blur)',
+    WebkitBackdropFilter: 'var(--slogbaa-glass-blur)',
     borderRadius: 10,
     overflow: 'hidden',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+    boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
     border: '1px solid var(--slogbaa-border)',
-    transition: 'box-shadow 0.2s',
+    transition: 'all 0.3s ease',
   },
   cardHorizontal: {
     display: 'flex',
@@ -54,13 +56,12 @@ const styles = {
     position: 'relative',
   },
   imageWrapHorizontal: {
-    width: 'clamp(200px, 30%, 280px)',
-    minWidth: 200,
+    width: 240,
+    minWidth: 240,
     flexShrink: 0,
-    flexGrow: 1,
-    height: 'auto',
-    minHeight: 180,
+    height: '100%',
     position: 'relative',
+    borderRight: '1px solid var(--slogbaa-border)',
   },
   image: {
     width: '100%',
@@ -96,9 +97,10 @@ const styles = {
   },
   bodyHorizontal: {
     flex: 1,
-    padding: '1.25rem 1.5rem',
+    padding: '1.25rem 1.75rem',
     display: 'flex',
     flexDirection: 'column',
+    justifyContent: 'center',
     minWidth: 0,
   },
   title: {
@@ -290,8 +292,8 @@ export function CourseCard({ course, enrolled, completionPercentage, onEnroll, o
   }
 
   const articleStyle = onCardClick
-    ? { ...cardStyle, cursor: 'pointer' }
-    : cardStyle
+    ? { ...cardStyle, cursor: 'pointer', maxWidth: isHorizontal ? '100%' : 'auto' }
+    : { ...cardStyle, maxWidth: isHorizontal ? '100%' : 'auto' }
 
   return (
     <article
