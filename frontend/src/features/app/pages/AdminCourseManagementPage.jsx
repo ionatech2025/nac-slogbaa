@@ -10,6 +10,7 @@ import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle.js'
 import { Breadcrumbs } from '../../../shared/components/Breadcrumbs.jsx'
 import { AdminNavigatePills } from '../components/admin/AdminNavigatePills.jsx'
 import { Skeleton } from '../../../shared/components/Skeleton.jsx'
+import { Pagination } from '../../../shared/components/Pagination.jsx'
 
 const styles = {
   page: {
@@ -372,7 +373,12 @@ const ExpandedCourseDetail = memo(function ExpandedCourseDetail({ courseId, cour
 export function AdminCourseManagementPage() {
   useDocumentTitle('Course Management')
   const { token, isSuperAdmin } = useOutletContext()
-  const { data: courses = [], isLoading: loading, error: queryError } = useAdminCourses()
+  const [page, setPage] = useState(1)
+  const pageSize = 10
+  const { data: pagedData, isLoading: loading, error: queryError } = useAdminCourses(page - 1, pageSize)
+  const courses = pagedData?.content ?? []
+  const totalItems = pagedData?.totalElements ?? 0
+
   const deleteCourseMutation = useDeleteCourse()
   const deleteModuleMutation = useDeleteModule()
   const [error, setError] = useState(null)
@@ -593,6 +599,16 @@ export function AdminCourseManagementPage() {
           )
         })
       )}
+
+      {totalItems > pageSize && (
+        <Pagination
+          currentPage={page}
+          totalItems={totalItems}
+          pageSize={pageSize}
+          onPageChange={setPage}
+        />
+      )}
+
       <AdminNavigatePills />
     </div>
   )

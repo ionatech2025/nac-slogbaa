@@ -15,11 +15,11 @@ import {
 } from '../../api/learning/courses.js'
 import { getLeaderboard } from '../../api/leaderboard.js'
 
-export function usePublishedCourses() {
+export function usePublishedCourses(page = 0, size = 10) {
   const { token } = useAuth()
   return useQuery({
-    queryKey: queryKeys.courses.published(),
-    queryFn: () => getPublishedCourses(token),
+    queryKey: [...queryKeys.courses.published(), { page, size }],
+    queryFn: () => getPublishedCourses(token, page, size),
     enabled: !!token,
     staleTime: 5 * 60_000, // 5 min — course catalog changes infrequently
   })

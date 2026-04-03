@@ -496,7 +496,8 @@ export function AdminReportsAnalyticsPage() {
 
   useDocumentTitle('Reports & Analytics')
 
-  const { data: courses = [], isLoading: coursesLoading } = useAdminCourses()
+  const { data: pagedData, isLoading: coursesLoading } = useAdminCourses(0, 1000)
+  const courses = pagedData?.content ?? []
   const { data: certificates = [], isLoading: certsLoading } = useAdminCertificates()
   const { data: attempts = [], isLoading: attemptsLoading } = useAdminQuizAttempts()
   const { data: library = [], isLoading: libraryLoading } = useAdminLibrary()

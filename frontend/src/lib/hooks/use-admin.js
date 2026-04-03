@@ -29,11 +29,11 @@ export function useAdminCourseCount() {
 }
 
 // === Admin courses ===
-export function useAdminCourses() {
+export function useAdminCourses(page = 0, size = 10) {
   const { token } = useAuth()
   return useQuery({
-    queryKey: queryKeys.admin.courses.list(),
-    queryFn: () => getAdminCourses(token),
+    queryKey: [...queryKeys.admin.courses.list(), { page, size }],
+    queryFn: () => getAdminCourses(token, page, size),
     enabled: !!token,
     staleTime: 5 * 60_000,   // admin course list rarely changes mid-session
   })
@@ -269,12 +269,13 @@ export function useAdminQuizModules() {
   return useQuery({
     queryKey: [...queryKeys.admin.courses.all(), 'quizModules'],
     queryFn: async () => {
-      const courses = await getAdminCourses(token)
+      const data = await getAdminCourses(token, 0, 1000)
+      const coursesContent = Array.isArray(data) ? data : data?.content ?? []
       const details = await Promise.all(
-        (courses || []).map((c) => getAdminCourseDetails(token, c.id).catch(() => null))
+        coursesContent.map((c) => getAdminCourseDetails(token, c.id).catch(() => null))
       )
       const modules = []
-      ;(courses || []).forEach((course, i) => {
+      coursesContent.forEach((course, i) => {
         const detail = details[i]
         if (!detail?.modules) return
         detail.modules

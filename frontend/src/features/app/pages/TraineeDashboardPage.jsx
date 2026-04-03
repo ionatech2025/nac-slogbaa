@@ -193,7 +193,8 @@ export function TraineeDashboardPage() {
 
   // TanStack Query hooks — shared cache, no duplicated fetches
   const { data: enrolledCourses = [], isLoading: enrolledLoading } = useEnrolledCourses()
-  const { data: publishedCourses = [], isLoading: publishedLoading, error: coursesError } = usePublishedCourses()
+  const { data: pagedData, isLoading: publishedLoading, error: coursesError } = usePublishedCourses(0, 100)
+  const publishedCourses = pagedData?.content ?? []
   const enrollMutation = useEnrollInCourse()
 
   useDocumentTitle('Dashboard')
