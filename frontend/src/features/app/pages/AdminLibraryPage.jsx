@@ -3,6 +3,7 @@ import { useOutletContext } from 'react-router-dom'
 import { FontAwesomeIcon, icons } from '../../../shared/icons.jsx'
 import { useAdminLibrary, useCreateLibraryResource, useUpdateLibraryResource, usePublishLibraryResource, useUnpublishLibraryResource, useAdminCourses } from '../../../lib/hooks/use-admin.js'
 import { uploadFile } from '../../../api/files.js'
+import { getAssetUrl } from '../../../api/client.js'
 import { Modal } from '../../../shared/components/Modal.jsx'
 import { useToast } from '../../../shared/hooks/useToast.js'
 import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle.js'
@@ -727,9 +728,12 @@ export function AdminLibraryPage() {
                   const file = e.target.files?.[0]
                   if (!file) return
                   try {
-                    setForm((f) => ({ ...f, fileType: file.name.split('.').pop()?.toUpperCase() || '' }))
-                    const result = await uploadFile(token, file, 'library')
-                    setForm((f) => ({ ...f, fileUrl: result.url, fileType: result.contentType?.split('/')?.pop()?.toUpperCase() || f.fileType }))
+                    const { url, contentType } = await uploadFile(token, file, 'library')
+                    setForm((f) => ({ 
+                      ...f, 
+                      fileUrl: url, 
+                      fileType: contentType?.split('/')?.pop()?.toUpperCase() || file.name.split('.').pop()?.toUpperCase() || f.fileType 
+                    }))
                   } catch (err) {
                     setError(err?.message ?? 'Upload failed.')
                   }
@@ -739,6 +743,11 @@ export function AdminLibraryPage() {
               <p style={{ margin: '0.25rem 0 0', fontSize: '0.75rem', color: 'var(--slogbaa-text-muted)' }}>
                 Upload a new file to replace the current one, or edit the URL below.
               </p>
+              {error && (error.toLowerCase().includes('size') || error.toLowerCase().includes('large')) && (
+                <p style={{ margin: '0.5rem 0 0', fontSize: '0.8125rem', color: 'var(--slogbaa-red)', fontWeight: 600 }}>
+                  <FontAwesomeIcon icon={icons.error} style={{ marginRight: 4 }} /> {error}
+                </p>
+              )}
             </div>
             <div style={styles.formRow}>
               <label style={styles.label}>Associated course</label>
@@ -848,9 +857,12 @@ export function AdminLibraryPage() {
                   const file = e.target.files?.[0]
                   if (!file) return
                   try {
-                    setForm((f) => ({ ...f, fileType: file.name.split('.').pop()?.toUpperCase() || '' }))
-                    const result = await uploadFile(token, file, 'library')
-                    setForm((f) => ({ ...f, fileUrl: result.url, fileType: result.contentType?.split('/')?.pop()?.toUpperCase() || f.fileType }))
+                    const { url, contentType } = await uploadFile(token, file, 'library')
+                    setForm((f) => ({ 
+                      ...f, 
+                      fileUrl: url, 
+                      fileType: contentType?.split('/')?.pop()?.toUpperCase() || file.name.split('.').pop()?.toUpperCase() || f.fileType 
+                    }))
                   } catch (err) {
                     setError(err?.message ?? 'Upload failed.')
                   }
@@ -860,6 +872,11 @@ export function AdminLibraryPage() {
               <p style={{ margin: '0.25rem 0 0', fontSize: '0.75rem', color: 'var(--slogbaa-text-muted)' }}>
                 Or enter a URL manually below.
               </p>
+              {error && (error.toLowerCase().includes('size') || error.toLowerCase().includes('large')) && (
+                <p style={{ margin: '0.5rem 0 0', fontSize: '0.8125rem', color: 'var(--slogbaa-red)', fontWeight: 600 }}>
+                  <FontAwesomeIcon icon={icons.error} style={{ marginRight: 4 }} /> {error}
+                </p>
+              )}
             </div>
             <div style={styles.formRow}>
               <label style={styles.label}>Associated course</label>

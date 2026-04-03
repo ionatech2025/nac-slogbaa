@@ -121,7 +121,8 @@ export async function parseResponse(res) {
   if (res.status === 204) return null
   if (!res.ok) {
     const body = await res.json().catch(() => ({}))
-    throw new Error(body.detail ?? body.message ?? `Request failed (${res.status})`)
+    const msg = body.detail ?? body.message ?? body.error ?? `Request failed (${res.status})`
+    throw new Error(msg)
   }
   return res.json()
 }
