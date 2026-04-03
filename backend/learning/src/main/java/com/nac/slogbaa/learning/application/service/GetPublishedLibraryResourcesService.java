@@ -5,6 +5,7 @@ import com.nac.slogbaa.learning.application.port.in.GetPublishedLibraryResources
 import com.nac.slogbaa.learning.application.port.out.LibraryResourceQueryPort;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Application service: list published library resources.
@@ -20,5 +21,10 @@ public final class GetPublishedLibraryResourcesService implements GetPublishedLi
     @Override
     public List<LibraryResourceSummary> getPublishedResources() {
         return libraryResourceQueryPort.findPublished();
+    }
+
+    @Override
+    public List<LibraryResourceSummary> getPublishedResources(List<UUID> courseIds) {
+        return libraryResourceQueryPort.findPublished(courseIds);
     }
 }

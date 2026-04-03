@@ -19,6 +19,16 @@ const RESOURCE_TYPES = [
   { value: 'READING_MATERIAL', label: 'Reading material' },
 ]
 
+const FILE_TYPES = [
+  { value: 'PDF', label: 'PDF' },
+  { value: 'DOCX', label: 'Word (DOCX)' },
+  { value: 'XLSX', label: 'Excel (XLSX)' },
+  { value: 'PPTX', label: 'PowerPoint (PPTX)' },
+  { value: 'ZIP', label: 'Archive (ZIP)' },
+  { value: 'LINK', label: 'Web Link' },
+  { value: 'OTHER', label: 'Other' },
+]
+
 const STATUS_FILTERS = [
   { value: 'all', label: 'All' },
   { value: 'published', label: 'Published' },
@@ -548,7 +558,7 @@ export function AdminLibraryPage() {
                 onClick={() => handleSort('resourceType')}
                 aria-sort={sortKey === 'resourceType' ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'}
               >
-                Type {getSortIndicator(sortKey, sortDir, 'resourceType')}
+                Category {getSortIndicator(sortKey, sortDir, 'resourceType')}
               </th>
               <th
                 style={styles.th}
@@ -558,6 +568,7 @@ export function AdminLibraryPage() {
                 Status {getSortIndicator(sortKey, sortDir, 'published')}
               </th>
               <th style={{ ...styles.th, ...styles.thNotSortable }}>Course</th>
+              <th style={{ ...styles.th, ...styles.thNotSortable }}>Format</th>
               <th style={{ ...styles.th, ...styles.thNotSortable }}>Link</th>
               {isSuperAdmin && <th style={{ ...styles.th, ...styles.thNotSortable }}>Actions</th>}
             </tr>
@@ -599,6 +610,17 @@ export function AdminLibraryPage() {
                       </span>
                     ) : (
                       <span style={{ color: 'var(--slogbaa-text-muted)', fontSize: '0.875rem' }}>General</span>
+                    )}
+                  </td>
+                  <td style={styles.td}>
+                    {r.fileType === 'LINK' ? (
+                      <span style={{ ...styles.badge, background: 'rgba(39, 129, 191, 0.1)', color: 'var(--slogbaa-blue)' }}>
+                        <FontAwesomeIcon icon={icons.link} style={{ marginRight: 4 }} /> Link
+                      </span>
+                    ) : (
+                      <span style={{ ...styles.badge, background: 'rgba(128,128,128,0.1)', color: 'var(--slogbaa-text)' }}>
+                        {r.fileType || 'File'}
+                      </span>
                     )}
                   </td>
                   <td style={styles.td}>
@@ -743,15 +765,32 @@ export function AdminLibraryPage() {
               />
             </div>
             <div style={styles.formRow}>
-              <label style={styles.label}>File type (e.g. PDF)</label>
-              <input
-                type="text"
-                value={form.fileType}
+              <label style={styles.label}>Format / File type *</label>
+              <select
+                value={FILE_TYPES.some(t => t.value === form.fileType) ? form.fileType : (form.fileType ? 'OTHER' : '')}
                 onChange={(e) => setForm((f) => ({ ...f, fileType: e.target.value }))}
                 style={styles.input}
-                placeholder="PDF, DOCX, etc."
-              />
+                required
+              >
+                <option value="">Select type...</option>
+                {FILE_TYPES.map((t) => (
+                  <option key={t.value} value={t.value}>{t.label}</option>
+                ))}
+              </select>
             </div>
+            {form.fileType === 'OTHER' && (
+              <div style={styles.formRow}>
+                <label style={styles.label}>Specify other type</label>
+                <input
+                  type="text"
+                  value={form.fileType === 'OTHER' ? '' : form.fileType}
+                  onChange={(e) => setForm((f) => ({ ...f, fileType: e.target.value.toUpperCase() }))}
+                  style={styles.input}
+                  placeholder="e.g. MP4, KEYNOTE"
+                  required
+                />
+              </div>
+            )}
             <div style={styles.formActions}>
               <button type="button" style={styles.btnSecondary} onClick={closeEditModal}>
                 Cancel
@@ -847,15 +886,32 @@ export function AdminLibraryPage() {
               />
             </div>
             <div style={styles.formRow}>
-              <label style={styles.label}>File type (e.g. PDF)</label>
-              <input
-                type="text"
-                value={form.fileType}
+              <label style={styles.label}>Format / File type *</label>
+              <select
+                value={FILE_TYPES.some(t => t.value === form.fileType) ? form.fileType : (form.fileType ? 'OTHER' : '')}
                 onChange={(e) => setForm((f) => ({ ...f, fileType: e.target.value }))}
                 style={styles.input}
-                placeholder="PDF, DOCX, etc."
-              />
+                required
+              >
+                <option value="">Select type...</option>
+                {FILE_TYPES.map((t) => (
+                  <option key={t.value} value={t.value}>{t.label}</option>
+                ))}
+              </select>
             </div>
+            {form.fileType === 'OTHER' && (
+              <div style={styles.formRow}>
+                <label style={styles.label}>Specify other type</label>
+                <input
+                  type="text"
+                  value={form.fileType === 'OTHER' ? '' : form.fileType}
+                  onChange={(e) => setForm((f) => ({ ...f, fileType: e.target.value.toUpperCase() }))}
+                  style={styles.input}
+                  placeholder="e.g. MP4, KEYNOTE"
+                  required
+                />
+              </div>
+            )}
             <div style={styles.formActions}>
               <button type="button" style={styles.btnSecondary} onClick={() => setModalOpen(false)}>
                 Cancel
