@@ -48,6 +48,7 @@ public class LibraryResourceWriteAdapter implements LibraryResourceWritePort {
         e.setFileUrl(command.getFileUrl());
         e.setFileType(command.getFileType());
         e.setUploadedBy(command.getUploadedBy());
+        e.setCourseId(command.getCourseId());
         e.setPublished(false);
         Instant now = Instant.now();
         e.setCreatedAt(now);
@@ -74,6 +75,7 @@ public class LibraryResourceWriteAdapter implements LibraryResourceWritePort {
         }
         e.setFileUrl(command.getFileUrl());
         e.setFileType(command.getFileType());
+        e.setCourseId(command.getCourseId());
         jpaRepository.save(e);
     }
 
@@ -113,7 +115,8 @@ public class LibraryResourceWriteAdapter implements LibraryResourceWritePort {
                 e.getFileUrl(),
                 e.getFileType(),
                 e.getUploadedBy(),
-                e.isPublished()
+                e.isPublished(),
+                e.getCourseId()
         );
     }
 }

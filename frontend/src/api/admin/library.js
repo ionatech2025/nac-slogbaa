@@ -13,7 +13,7 @@ export async function getAdminLibraryResources(token) {
 /**
  * POST /api/admin/library/resources — create library resource (draft). SuperAdmin only.
  */
-export async function createLibraryResource(token, { title, description, resourceType, fileUrl, fileType }) {
+export async function createLibraryResource(token, { title, description, resourceType, fileUrl, fileType, courseId }) {
   assertToken(token)
   const res = await apiClient(token).post('/api/admin/library/resources', {
     title: title?.trim(),
@@ -21,6 +21,7 @@ export async function createLibraryResource(token, { title, description, resourc
     resourceType: resourceType || 'DOCUMENT',
     fileUrl: fileUrl?.trim(),
     fileType: fileType?.trim() || undefined,
+    courseId: courseId || null,
   })
   return parseResponse(res)
 }
@@ -28,7 +29,7 @@ export async function createLibraryResource(token, { title, description, resourc
 /**
  * PUT /api/admin/library/resources/:id — update resource metadata. SuperAdmin only.
  */
-export async function updateLibraryResource(token, resourceId, { title, description, resourceType, fileUrl, fileType }) {
+export async function updateLibraryResource(token, resourceId, { title, description, resourceType, fileUrl, fileType, courseId }) {
   assertToken(token)
   const res = await apiClient(token).put(`/api/admin/library/resources/${resourceId}`, {
     title: title?.trim(),
@@ -36,6 +37,7 @@ export async function updateLibraryResource(token, resourceId, { title, descript
     resourceType: resourceType || 'DOCUMENT',
     fileUrl: fileUrl?.trim(),
     fileType: fileType?.trim() || undefined,
+    courseId: courseId || null,
   })
   return parseResponse(res)
 }

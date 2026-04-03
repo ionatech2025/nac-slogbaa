@@ -36,7 +36,8 @@ public class LibraryResourceQueryAdapter implements LibraryResourceQueryPort {
                 e.getDescription(),
                 e.getResourceType() != null ? e.getResourceType().name() : "DOCUMENT",
                 e.getFileUrl(),
-                e.getFileType()
+                e.getFileType(),
+                e.getCourseId()
         );
     }
 }

@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { FontAwesomeIcon, icons } from '../../../shared/icons.jsx'
-import { useAdminLibrary, useCreateLibraryResource, useUpdateLibraryResource, usePublishLibraryResource, useUnpublishLibraryResource } from '../../../lib/hooks/use-admin.js'
+import { useAdminLibrary, useCreateLibraryResource, useUpdateLibraryResource, usePublishLibraryResource, useUnpublishLibraryResource, useAdminCourses } from '../../../lib/hooks/use-admin.js'
 import { uploadFile } from '../../../api/files.js'
 import { Modal } from '../../../shared/components/Modal.jsx'
 import { useToast } from '../../../shared/hooks/useToast.js'
@@ -30,11 +30,12 @@ const BREADCRUMB_ITEMS = [
   { label: 'Library' },
 ]
 
-const CSV_COLUMNS = ['title', 'description', 'resourceType', 'published', 'fileType', 'fileUrl']
+const CSV_COLUMNS = ['title', 'description', 'resourceType', 'courseTitle', 'published', 'fileType', 'fileUrl']
 const CSV_HEADERS = {
   title: 'Title',
   description: 'Description',
   resourceType: 'Type',
+  courseTitle: 'Course',
   published: 'Status',
   fileType: 'File Type',
   fileUrl: 'File URL',
@@ -261,6 +262,9 @@ export function AdminLibraryPage() {
   useDocumentTitle('Library')
   const { token, isSuperAdmin } = useOutletContext()
   const { data: resources = [], isLoading: loading, error: queryError } = useAdminLibrary()
+  const { data: pagedCourses } = useAdminCourses(0, 1000)
+  const courses = pagedCourses?.content ?? []
+
   const createMutation = useCreateLibraryResource()
   const updateMutation = useUpdateLibraryResource()
   const publishMutation = usePublishLibraryResource()
@@ -268,7 +272,7 @@ export function AdminLibraryPage() {
   const [error, setError] = useState(queryError?.message ?? null)
   const [modalOpen, setModalOpen] = useState(false)
   const [editResource, setEditResource] = useState(null)
-  const [form, setForm] = useState({ title: '', description: '', resourceType: 'DOCUMENT', fileUrl: '', fileType: '' })
+  const [form, setForm] = useState({ title: '', description: '', resourceType: 'DOCUMENT', fileUrl: '', fileType: '', courseId: '' })
   const [savingEditId, setSavingEditId] = useState(null)
 
   // Search, filter, sort state
@@ -348,14 +352,18 @@ export function AdminLibraryPage() {
 
   // CSV export
   const handleExportCsv = useCallback(() => {
-    const exportData = filteredResources.map((r) => ({
-      title: r.title || '',
-      description: r.description || '',
-      resourceType: (r.resourceType || '').replace(/_/g, ' '),
-      published: r.published ? 'Published' : 'Draft',
-      fileType: r.fileType || '',
-      fileUrl: r.fileUrl || '',
-    }))
+    const exportData = filteredResources.map((r) => {
+      const course = courses.find((c) => c.id === r.courseId)
+      return {
+        title: r.title || '',
+        description: r.description || '',
+        resourceType: (r.resourceType || '').replace(/_/g, ' '),
+        courseTitle: course ? course.title : 'General',
+        published: r.published ? 'Published' : 'Draft',
+        fileType: r.fileType || '',
+        fileUrl: r.fileUrl || '',
+      }
+    })
     exportToCsv(exportData, {
       filename: 'library-resources',
       columns: CSV_COLUMNS,
@@ -374,9 +382,10 @@ export function AdminLibraryPage() {
         resourceType: form.resourceType,
         fileUrl: form.fileUrl.trim(),
         fileType: form.fileType?.trim() || undefined,
+        courseId: form.courseId || null,
       })
       setModalOpen(false)
-      setForm({ title: '', description: '', resourceType: 'DOCUMENT', fileUrl: '', fileType: '' })
+      setForm({ title: '', description: '', resourceType: 'DOCUMENT', fileUrl: '', fileType: '', courseId: '' })
       toast.success('Resource created.')
     } catch (e) {
       toast.error(e?.message ?? 'Failed to create resource.')
@@ -409,12 +418,13 @@ export function AdminLibraryPage() {
       resourceType: r.resourceType ?? 'DOCUMENT',
       fileUrl: r.fileUrl ?? '',
       fileType: r.fileType ?? '',
+      courseId: r.courseId ?? '',
     })
   }
 
   const closeEditModal = () => {
     setEditResource(null)
-    setForm({ title: '', description: '', resourceType: 'DOCUMENT', fileUrl: '', fileType: '' })
+    setForm({ title: '', description: '', resourceType: 'DOCUMENT', fileUrl: '', fileType: '', courseId: '' })
   }
 
   const handleEditSubmit = async (e) => {
@@ -429,6 +439,7 @@ export function AdminLibraryPage() {
         resourceType: form.resourceType,
         fileUrl: form.fileUrl.trim(),
         fileType: form.fileType?.trim() || undefined,
+        courseId: form.courseId || null,
       })
       closeEditModal()
       toast.success('Resource updated.')
@@ -546,6 +557,7 @@ export function AdminLibraryPage() {
               >
                 Status {getSortIndicator(sortKey, sortDir, 'published')}
               </th>
+              <th style={{ ...styles.th, ...styles.thNotSortable }}>Course</th>
               <th style={{ ...styles.th, ...styles.thNotSortable }}>Link</th>
               {isSuperAdmin && <th style={{ ...styles.th, ...styles.thNotSortable }}>Actions</th>}
             </tr>
@@ -579,6 +591,15 @@ export function AdminLibraryPage() {
                     <span style={{ ...styles.badge, ...(r.published ? styles.badgePublished : styles.badgeDraft) }}>
                       {r.published ? 'Published' : 'Draft'}
                     </span>
+                  </td>
+                  <td style={styles.td}>
+                    {r.courseId ? (
+                      <span style={{ fontSize: '0.875rem' }}>
+                        {courses.find(c => c.id === r.courseId)?.title || 'Assigned Course'}
+                      </span>
+                    ) : (
+                      <span style={{ color: 'var(--slogbaa-text-muted)', fontSize: '0.875rem' }}>General</span>
+                    )}
                   </td>
                   <td style={styles.td}>
                     <a href={r.fileUrl} target="_blank" rel="noopener noreferrer" style={styles.link}>
@@ -698,9 +719,22 @@ export function AdminLibraryPage() {
               </p>
             </div>
             <div style={styles.formRow}>
+              <label style={styles.label}>Associated course</label>
+              <select
+                value={form.courseId}
+                onChange={(e) => setForm((f) => ({ ...f, courseId: e.target.value }))}
+                style={styles.input}
+              >
+                <option value="">General resource (no course)</option>
+                {courses.map((c) => (
+                  <option key={c.id} value={c.id}>{c.title}</option>
+                ))}
+              </select>
+            </div>
+            <div style={styles.formRow}>
               <label style={styles.label}>File URL *</label>
               <input
-                type="url"
+                type="text"
                 value={form.fileUrl}
                 onChange={(e) => setForm((f) => ({ ...f, fileUrl: e.target.value }))}
                 style={styles.input}
@@ -789,9 +823,22 @@ export function AdminLibraryPage() {
               </p>
             </div>
             <div style={styles.formRow}>
+              <label style={styles.label}>Associated course</label>
+              <select
+                value={form.courseId}
+                onChange={(e) => setForm((f) => ({ ...f, courseId: e.target.value }))}
+                style={styles.input}
+              >
+                <option value="">General resource (no course)</option>
+                {courses.map((c) => (
+                  <option key={c.id} value={c.id}>{c.title}</option>
+                ))}
+              </select>
+            </div>
+            <div style={styles.formRow}>
               <label style={styles.label}>File URL {form.fileUrl ? '' : '*'}</label>
               <input
-                type="url"
+                type="text"
                 value={form.fileUrl}
                 onChange={(e) => setForm((f) => ({ ...f, fileUrl: e.target.value }))}
                 style={styles.input}

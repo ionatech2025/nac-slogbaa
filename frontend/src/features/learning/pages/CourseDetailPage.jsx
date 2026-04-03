@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { ArrowLeft, CheckCircle, List, Menu, PlayCircle, X } from 'lucide-react'
+import { ArrowLeft, CheckCircle, List, Menu, PlayCircle, X, Download } from 'lucide-react'
 import { getAssetUrl } from '../../../api/client.js'
 import { getEnrolledCourses, recordModuleCompletion } from '../../../api/learning/courses.js'
 import defaultCourseImg from '../../../assets/images/courses/course1.jpg'
@@ -26,6 +26,7 @@ import { DiscussionPanel } from '../components/DiscussionPanel.jsx'
 import { CourseReviewModal } from '../components/CourseReviewModal.jsx'
 import { BookmarkButton } from '../../../shared/components/BookmarkButton.jsx'
 import { useBookmarks } from '../../../lib/hooks/use-bookmarks.js'
+import { usePublishedLibrary } from '../../../lib/hooks/use-library.js'
 import { Icon, icons } from '../../../shared/icons.jsx'
 
 const TOC_BREAKPOINT = '(max-width: 900px)'
@@ -755,6 +756,34 @@ function ContentBlockRenderer({ block }) {
   return null
 }
 
+function CourseResources({ courseId }) {
+  const { data: resources = [], isLoading } = usePublishedLibrary()
+  const courseResources = resources.filter(r => r.courseId === courseId)
+
+  if (isLoading || courseResources.length === 0) return null
+
+  return (
+    <div style={{ marginTop: '3rem', padding: '2rem', borderRadius: 20, background: 'var(--slogbaa-surface)', border: '1px solid var(--slogbaa-border)' }}>
+      <h3 style={{ margin: '0 0 1.25rem', fontSize: '1.25rem', fontWeight: 800, color: 'var(--slogbaa-text)' }}>
+        Library Resources for this Course
+      </h3>
+      <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        {courseResources.map(r => (
+          <li key={r.id} style={{ padding: '1rem', borderRadius: 12, background: 'var(--slogbaa-bg)', border: '1px solid var(--slogbaa-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <div style={{ fontWeight: 600, color: 'var(--slogbaa-text)' }}>{r.title}</div>
+              {r.description && <div style={{ fontSize: '0.8125rem', color: 'var(--slogbaa-text-muted)', marginTop: '0.25rem' }}>{r.description}</div>}
+            </div>
+            <a href={r.fileUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', color: 'var(--slogbaa-blue)', fontWeight: 600, textDecoration: 'none', fontSize: '0.875rem' }}>
+              <Download size={16} /> Open
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
 export function CourseDetailPage() {
   const { courseId, moduleId } = useParams()
   const navigate = useNavigate()
@@ -1452,6 +1481,7 @@ export function CourseDetailPage() {
                     </div>
                   )}
 
+                  <CourseResources courseId={courseId} />
                   <DiscussionPanel courseId={courseId} moduleId={selectedModule?.id} />
                 </>
               ) : (

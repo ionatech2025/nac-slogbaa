@@ -15,9 +15,10 @@ public final class AdminLibraryResourceSummary {
     private final String fileUrl;
     private final String fileType;
     private final boolean published;
+    private final UUID courseId;
 
     public AdminLibraryResourceSummary(UUID id, String title, String description,
-                                       String resourceType, String fileUrl, String fileType, boolean published) {
+                                       String resourceType, String fileUrl, String fileType, boolean published, UUID courseId) {
         this.id = Objects.requireNonNull(id);
         this.title = Objects.requireNonNull(title);
         this.description = description;
@@ -25,6 +26,7 @@ public final class AdminLibraryResourceSummary {
         this.fileUrl = Objects.requireNonNull(fileUrl);
         this.fileType = fileType;
         this.published = published;
+        this.courseId = courseId;
     }
 
     public UUID getId() { return id; }
@@ -34,4 +36,5 @@ public final class AdminLibraryResourceSummary {
     public String getFileUrl() { return fileUrl; }
     public String getFileType() { return fileType; }
     public boolean isPublished() { return published; }
+    public UUID getCourseId() { return courseId; }
 }

@@ -43,6 +43,9 @@ public class LibraryResourceEntity {
     @Column(name = "is_published", nullable = false)
     private boolean published = false;
 
+    @Column(name = "course_id")
+    private UUID courseId;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -88,6 +91,8 @@ public class LibraryResourceEntity {
     public void setUploadedAt(Instant uploadedAt) { this.uploadedAt = uploadedAt; }
     public boolean isPublished() { return published; }
     public void setPublished(boolean published) { this.published = published; }
+    public UUID getCourseId() { return courseId; }
+    public void setCourseId(UUID courseId) { this.courseId = courseId; }
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
