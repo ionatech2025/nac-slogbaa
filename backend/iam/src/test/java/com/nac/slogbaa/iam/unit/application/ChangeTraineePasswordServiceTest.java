@@ -7,6 +7,7 @@ import com.nac.slogbaa.iam.application.service.ChangeTraineePasswordService;
 import com.nac.slogbaa.iam.core.aggregate.Trainee;
 import com.nac.slogbaa.iam.core.exception.InvalidCurrentPasswordException;
 import com.nac.slogbaa.iam.core.valueobject.*;
+import com.nac.slogbaa.iam.core.entity.Profile;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -17,66 +18,82 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class ChangeTraineePasswordServiceTest {
 
-//    private StubTraineeRepo traineeRepo;
-//    private ChangeTraineePasswordService service;
-//    private UUID traineeId;
-//
-//    @BeforeEach
-//    void setUp() {
-//        traineeRepo = new StubTraineeRepo();
-//        traineeId = UUID.randomUUID();
-//        traineeRepo.add(traineeId, "hashed:current-pw");
-//        PasswordHasherPort hasher = new PasswordHasherPort() {
-//            @Override
-//            public String hash(String raw) {
-//                return "hashed:" + raw;
-//            }
-//
-//            @Override
-//            public boolean matches(String raw, String hashed) {
-//                return hashed.equals("hashed:" + raw);
-//            }
-//        };
-//        service = new ChangeTraineePasswordService(traineeRepo, hasher);
-//    }
-//
-//    @Test
-//    void changePasswordSucceeds() {
-//        service.changePassword(new ChangeTraineePasswordCommand(traineeId, "current-pw", "new-password"));
-//        assertEquals("hashed:new-password", traineeRepo.updatedHash);
-//    }
-//
-//    @Test
-//    void wrongCurrentPasswordThrows() {
-//        assertThrows(InvalidCurrentPasswordException.class,
-//                () -> service.changePassword(new ChangeTraineePasswordCommand(traineeId, "wrong-pw", "new-password")));
-//    }
-//
-//    @Test
-//    void nonExistentTraineeThrows() {
-//        assertThrows(InvalidCurrentPasswordException.class,
-//                () -> service.changePassword(new ChangeTraineePasswordCommand(UUID.randomUUID(), "pw", "new")));
-//    }
-//
-//    // --- Stub ---
-//
-//    private static class StubTraineeRepo implements TraineeRepositoryPort {
-//        final Map<UUID, Trainee> store = new HashMap<>();
-//        String updatedHash;
-//
-//        void add(UUID id, String passwordHash) {
-//            store.put(id, new Trainee(new TraineeId(id), new Email("trainee@test.com"),
-//                    passwordHash, new Profile(new ProfileId(id), "Trainee User"), false, Instant.now(), 
-//                    false));
-//        }
-//
-//        @Override
-//        public long count() {
-//            return store.size();
-//        }
-//
-//        // @Override
-//        // public void updateProfileImage(TraineeId id, String url) {
-//        // }
-//    }
+    private StubTraineeRepo traineeRepo;
+    private ChangeTraineePasswordService service;
+    private UUID traineeId;
+
+    @BeforeEach
+    void setUp() {
+        traineeRepo = new StubTraineeRepo();
+        traineeId = UUID.randomUUID();
+        traineeRepo.add(traineeId, "hashed:current-pw");
+        PasswordHasherPort hasher = new PasswordHasherPort() {
+            @Override
+            public String hash(String raw) {
+                return "hashed:" + raw;
+            }
+
+            @Override
+            public boolean matches(String raw, String hashed) {
+                return hashed.equals("hashed:" + raw);
+            }
+        };
+        service = new ChangeTraineePasswordService(traineeRepo, hasher);
+    }
+
+    @Test
+    void changePasswordSucceeds() {
+        service.changePassword(new ChangeTraineePasswordCommand(traineeId, "current-pw", "new-password"));
+        assertEquals("hashed:new-password", traineeRepo.updatedHash);
+    }
+
+    @Test
+    void wrongCurrentPasswordThrows() {
+        assertThrows(InvalidCurrentPasswordException.class,
+                () -> service.changePassword(new ChangeTraineePasswordCommand(traineeId, "wrong-pw", "new-password")));
+    }
+
+    @Test
+    void nonExistentTraineeThrows() {
+        assertThrows(InvalidCurrentPasswordException.class,
+                () -> service.changePassword(new ChangeTraineePasswordCommand(UUID.randomUUID(), "pw", "new")));
+    }
+
+    // --- Stub ---
+
+    private static class StubTraineeRepo implements TraineeRepositoryPort {
+        final Map<UUID, Trainee> store = new HashMap<>();
+        String updatedHash;
+
+        void add(UUID id, String passwordHash) {
+            store.put(id, new Trainee(
+                    new TraineeId(id), 
+                    new Email("trainee@test.com"),
+                    passwordHash, 
+                    new Profile(
+                        new FullName("Trainee", "User"), 
+                        Gender.MALE, 
+                        new District("D"), 
+                        "R", 
+                        TraineeCategory.LEADER, 
+                        new PhysicalAddress("S", "C", "Z"), 
+                        null
+                    ), 
+                    true, 
+                    Instant.now(), 
+                    false
+            ));
+        }
+
+        @Override public Trainee save(Trainee trainee) { store.put(trainee.getId().getValue(), trainee); return trainee; }
+        @Override public Optional<Trainee> findByEmail(Email email) { return Optional.empty(); }
+        @Override public Optional<Trainee> findById(UUID id) { return Optional.ofNullable(store.get(id)); }
+        @Override public List<Trainee> findAll() { return List.of(); }
+        @Override public void deleteById(UUID id) {}
+        @Override public long count() { return store.size(); }
+        @Override public void updatePasswordHash(UUID traineeId, String newPasswordHash) { updatedHash = newPasswordHash; }
+        @Override public void setEmailVerified(UUID traineeId, boolean verified) {}
+        @Override public void softDelete(UUID traineeId, String reason) {}
+        @Override public void updateProfileImage(UUID traineeId, String profileImageUrl) {}
+    }
 }

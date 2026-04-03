@@ -86,7 +86,10 @@ class DeleteStaffServiceTest {
             return Optional.ofNullable(store.get(id.getValue()));
         }
         @Override public void deleteById(StaffUserId id) { deletedIds.add(id); store.remove(id.getValue()); }
-        @Override public long countByRole(StaffRole role) { return superAdminCount; }
+        @Override public long countByRole(StaffRole role) { 
+            return role == StaffRole.SUPER_ADMIN ? superAdminCount : store.values().stream().filter(s -> s.getStaffRole() == role).count(); 
+        }
+        @Override public List<StaffUser> findAllByRole(StaffRole role) { return List.of(); }
         @Override public Optional<StaffUser> findByEmail(Email email) { return Optional.empty(); }
         @Override public void save(StaffUser user) {}
         @Override public List<StaffUser> findAll() { return List.of(); }
