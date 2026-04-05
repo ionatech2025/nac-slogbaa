@@ -625,7 +625,7 @@ export function AdminLibraryPage() {
                     )}
                   </td>
                   <td style={styles.td}>
-                    <a href={r.fileUrl} target="_blank" rel="noopener noreferrer" style={styles.link}>
+                    <a href={getAssetUrl(r.fileUrl)} target="_blank" rel="noopener noreferrer" style={styles.link}>
                       Open
                     </a>
                   </td>
@@ -731,7 +731,7 @@ export function AdminLibraryPage() {
                     const { url, contentType } = await uploadFile(token, file, 'library')
                     setForm((f) => ({ 
                       ...f, 
-                      fileUrl: url, 
+                      fileUrl: getAssetUrl(url), 
                       fileType: contentType?.split('/')?.pop()?.toUpperCase() || file.name.split('.').pop()?.toUpperCase() || f.fileType 
                     }))
                   } catch (err) {
@@ -743,7 +743,7 @@ export function AdminLibraryPage() {
               <p style={{ margin: '0.25rem 0 0', fontSize: '0.75rem', color: 'var(--slogbaa-text-muted)' }}>
                 Upload a new file to replace the current one, or edit the URL below.
               </p>
-              {error && (error.toLowerCase().includes('size') || error.toLowerCase().includes('large')) && (
+              {error && (
                 <p style={{ margin: '0.5rem 0 0', fontSize: '0.8125rem', color: 'var(--slogbaa-red)', fontWeight: 600 }}>
                   <FontAwesomeIcon icon={icons.error} style={{ marginRight: 4 }} /> {error}
                 </p>
@@ -860,7 +860,7 @@ export function AdminLibraryPage() {
                     const { url, contentType } = await uploadFile(token, file, 'library')
                     setForm((f) => ({ 
                       ...f, 
-                      fileUrl: url, 
+                      fileUrl: getAssetUrl(url), 
                       fileType: contentType?.split('/')?.pop()?.toUpperCase() || file.name.split('.').pop()?.toUpperCase() || f.fileType 
                     }))
                   } catch (err) {
@@ -872,7 +872,7 @@ export function AdminLibraryPage() {
               <p style={{ margin: '0.25rem 0 0', fontSize: '0.75rem', color: 'var(--slogbaa-text-muted)' }}>
                 Or enter a URL manually below.
               </p>
-              {error && (error.toLowerCase().includes('size') || error.toLowerCase().includes('large')) && (
+              {error && (
                 <p style={{ margin: '0.5rem 0 0', fontSize: '0.8125rem', color: 'var(--slogbaa-red)', fontWeight: 600 }}>
                   <FontAwesomeIcon icon={icons.error} style={{ marginRight: 4 }} /> {error}
                 </p>

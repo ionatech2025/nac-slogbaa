@@ -122,7 +122,7 @@ export function EditCourseModal({ token, course, onClose, onSubmit }) {
     try {
       const { url } = await uploadFile(token, file, 'courses')
       URL.revokeObjectURL(objectUrl)
-      setImageUrl(url)
+      setImageUrl(getAssetUrl(url))
     } catch (err) {
       URL.revokeObjectURL(objectUrl)
       setImageUrl(course?.imageUrl ?? null)
