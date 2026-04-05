@@ -23,19 +23,22 @@ public final class RecordModuleCompletionService implements RecordModuleCompleti
     private final IssueCertificateUseCase issueCertificateUseCase;
     private final CheckAndAwardBadgesUseCase checkAndAwardBadgesUseCase;
     private final CreateNotificationUseCase createNotificationUseCase;
+    private final CourseCompletionStaffNotificationService staffNotificationService;
 
     public RecordModuleCompletionService(TraineeProgressRepositoryPort traineeProgressRepository,
                                          ModuleCompletionPort moduleCompletionPort,
                                          CourseDetailsQueryPort courseDetailsQueryPort,
                                          IssueCertificateUseCase issueCertificateUseCase,
                                          CheckAndAwardBadgesUseCase checkAndAwardBadgesUseCase,
-                                         CreateNotificationUseCase createNotificationUseCase) {
+                                         CreateNotificationUseCase createNotificationUseCase,
+                                         CourseCompletionStaffNotificationService staffNotificationService) {
         this.traineeProgressRepository = traineeProgressRepository;
         this.moduleCompletionPort = moduleCompletionPort;
         this.courseDetailsQueryPort = courseDetailsQueryPort;
         this.issueCertificateUseCase = issueCertificateUseCase;
         this.checkAndAwardBadgesUseCase = checkAndAwardBadgesUseCase;
         this.createNotificationUseCase = createNotificationUseCase;
+        this.staffNotificationService = staffNotificationService;
     }
 
     @Override
@@ -86,6 +89,11 @@ public final class RecordModuleCompletionService implements RecordModuleCompleti
                 );
             } catch (Exception ignored) {
                 // Notification must never break the main completion flow
+            }
+            try {
+                staffNotificationService.notifyCourseCompleted(traineeId, courseId);
+            } catch (Exception ignored) {
+                // staff notifications must never break the main completion flow
             }
         }
     }

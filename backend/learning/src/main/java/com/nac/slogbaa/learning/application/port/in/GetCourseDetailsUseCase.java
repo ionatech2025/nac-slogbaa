@@ -2,6 +2,7 @@ package com.nac.slogbaa.learning.application.port.in;
 
 import com.nac.slogbaa.learning.application.dto.result.CourseDetails;
 
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -9,5 +10,5 @@ import java.util.UUID;
  */
 public interface GetCourseDetailsUseCase {
 
-    CourseDetails getById(UUID courseId);
+    Optional<CourseDetails> getById(UUID courseId);
 }

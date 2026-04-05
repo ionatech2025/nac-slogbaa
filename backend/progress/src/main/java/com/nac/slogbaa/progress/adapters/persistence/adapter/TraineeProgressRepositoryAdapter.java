@@ -7,13 +7,14 @@ import com.nac.slogbaa.progress.adapters.persistence.repository.JpaTraineeProgre
 import com.nac.slogbaa.progress.application.dto.ResumePoint;
 import com.nac.slogbaa.progress.application.port.out.TraineeProgressRepositoryPort;
 import com.nac.slogbaa.progress.core.aggregate.TraineeProgress;
+import com.nac.slogbaa.shared.ports.TraineeEnrollmentQueryPort;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
 
 @Component
-public class TraineeProgressRepositoryAdapter implements TraineeProgressRepositoryPort {
+public class TraineeProgressRepositoryAdapter implements TraineeProgressRepositoryPort, TraineeEnrollmentQueryPort {
 
     private final JpaTraineeProgressRepository jpaRepository;
     private final JpaModuleProgressRepository moduleProgressRepository;
@@ -108,6 +109,13 @@ public class TraineeProgressRepositoryAdapter implements TraineeProgressReposito
             return true;
         }
         return false;
+    }
+
+    @Override
+    public List<UUID> getEnrolledCourseIds(UUID traineeId) {
+        return findByTraineeId(traineeId).stream()
+                .map(TraineeProgress::getCourseId)
+                .toList();
     }
 
     private TraineeProgressEntity toEntity(TraineeProgress domain) {

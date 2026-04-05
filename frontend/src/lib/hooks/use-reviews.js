@@ -23,7 +23,8 @@ export function useCourseRating(courseId) {
 }
 
 export function useSubmitReview() {
-  const { token } = useAuth()
+  const { token, user } = useAuth()
+  const isStaff = user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN'
   const qc = useQueryClient()
   return useMutation({
     mutationFn: ({ courseId, rating, reviewText }) =>
@@ -37,8 +38,8 @@ export function useSubmitReview() {
           id: `temp-${Date.now()}`,
           rating,
           reviewText,
-          authorDisplayName: 'You',
-          authorType: 'TRAINEE',
+          authorDisplayName: user?.fullName || 'You',
+          authorType: isStaff ? 'STAFF' : 'TRAINEE',
           createdAt: new Date().toISOString(),
           _pending: true,
         }

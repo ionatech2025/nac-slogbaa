@@ -51,6 +51,14 @@ public class StaffUserRepositoryAdapter implements StaffUserRepositoryPort {
     }
 
     @Override
+    public List<StaffUser> findAllByRole(StaffRole role) {
+        return jpaRepository.findByStaffRole(StaffUserEntity.StaffRoleEnum.valueOf(role.name()))
+                .stream()
+                .map(mapper::toDomain)
+                .toList();
+    }
+
+    @Override
     public long count() {
         return jpaRepository.count();
     }

@@ -17,11 +17,12 @@ import { recordModuleCompletion } from '../../../api/learning/courses.js'
 
 const styles = {
   card: {
-    margin: '0 0 1.25rem',
-    padding: '1rem 1.25rem',
-    borderRadius: 12,
+    margin: '3rem 0',
+    padding: '2.5rem',
+    borderRadius: 20,
     background: 'var(--slogbaa-surface)',
     border: '1px solid var(--slogbaa-border)',
+    boxShadow: 'var(--slogbaa-glass-shadow-lg)',
   },
   headerRow: {
     display: 'flex',
@@ -32,14 +33,16 @@ const styles = {
   },
   title: {
     margin: 0,
-    fontSize: '1rem',
-    fontWeight: 700,
+    fontSize: '1.25rem',
+    fontWeight: 800,
     color: 'var(--slogbaa-text)',
+    letterSpacing: '-0.02em',
   },
   meta: {
-    margin: '0.25rem 0 0',
+    margin: '0.5rem 0 0',
     color: 'var(--slogbaa-text-muted)',
-    fontSize: '0.875rem',
+    fontSize: '0.9375rem',
+    lineHeight: 1.5,
   },
   button: (variant = 'primary', disabled = false) => ({
     display: 'inline-flex',
@@ -153,14 +156,17 @@ const styles = {
     marginBottom: '0.25rem',
   },
   doneBanner: {
-    marginTop: '0.75rem',
-    padding: '0.65rem 0.85rem',
-    borderRadius: 10,
+    marginTop: '1.5rem',
+    padding: '1rem 1.25rem',
+    borderRadius: 12,
     background: 'rgba(52, 211, 153, 0.08)',
     border: '1px solid rgba(52, 211, 153, 0.35)',
-    fontSize: '0.875rem',
-    fontWeight: 600,
+    fontSize: '0.9375rem',
+    fontWeight: 700,
     color: 'var(--slogbaa-green)',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.6rem',
   },
 }
 

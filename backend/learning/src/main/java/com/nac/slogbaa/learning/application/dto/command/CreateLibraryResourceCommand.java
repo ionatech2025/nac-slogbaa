@@ -14,15 +14,17 @@ public final class CreateLibraryResourceCommand {
     private final String fileUrl;
     private final String fileType;
     private final UUID uploadedBy;
+    private final UUID courseId;
 
     public CreateLibraryResourceCommand(String title, String description, String resourceType,
-                                        String fileUrl, String fileType, UUID uploadedBy) {
+                                        String fileUrl, String fileType, UUID uploadedBy, UUID courseId) {
         this.title = Objects.requireNonNull(title, "title");
         this.description = description;
         this.resourceType = resourceType != null && !resourceType.isBlank() ? resourceType : "DOCUMENT";
         this.fileUrl = Objects.requireNonNull(fileUrl, "fileUrl");
         this.fileType = fileType;
         this.uploadedBy = Objects.requireNonNull(uploadedBy, "uploadedBy");
+        this.courseId = courseId;
     }
 
     public String getTitle() { return title; }
@@ -31,4 +33,5 @@ public final class CreateLibraryResourceCommand {
     public String getFileUrl() { return fileUrl; }
     public String getFileType() { return fileType; }
     public UUID getUploadedBy() { return uploadedBy; }
+    public UUID getCourseId() { return courseId; }
 }

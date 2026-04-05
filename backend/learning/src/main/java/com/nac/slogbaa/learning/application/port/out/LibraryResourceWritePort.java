@@ -27,5 +27,5 @@ public interface LibraryResourceWritePort {
     Page<LibraryResourceRecord> findAll(Pageable pageable);
 
     record LibraryResourceRecord(UUID id, String title, String description, String resourceType,
-                                 String fileUrl, String fileType, UUID uploadedBy, boolean published) {}
+                                 String fileUrl, String fileType, UUID uploadedBy, boolean published, UUID courseId) {}
 }

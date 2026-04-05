@@ -10,15 +10,20 @@ import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import com.nac.slogbaa.shared.ports.GetCourseReviewSummaryPort;
+
 /**
  * Application service: list published courses.
  */
 public final class GetPublishedCoursesService implements GetPublishedCoursesUseCase {
 
     private final CourseRepositoryPort courseRepository;
+    private final GetCourseReviewSummaryPort getCourseReviewSummaryPort;
 
-    public GetPublishedCoursesService(CourseRepositoryPort courseRepository) {
+    public GetPublishedCoursesService(CourseRepositoryPort courseRepository,
+                                      GetCourseReviewSummaryPort getCourseReviewSummaryPort) {
         this.courseRepository = courseRepository;
+        this.getCourseReviewSummaryPort = getCourseReviewSummaryPort;
     }
 
     @Override
@@ -35,6 +40,9 @@ public final class GetPublishedCoursesService implements GetPublishedCoursesUseC
     }
 
     private CourseSummary toSummary(Course c) {
+        GetCourseReviewSummaryPort.ReviewSummary rs = getCourseReviewSummaryPort.getSummary(c.getId().getValue());
+        double avg = rs != null ? rs.averageRating() : 0.0;
+        long total = rs != null ? rs.totalReviews() : 0;
         return new CourseSummary(
                 c.getId().getValue(),
                 c.getTitle(),
@@ -44,8 +52,11 @@ public final class GetPublishedCoursesService implements GetPublishedCoursesUseC
                 c.getTotalEstimatedMinutes(),
                 c.getCategoryName(),
                 c.getCategorySlug(),
+                c.getCategoryId(),
                 c.getPrerequisiteCourseId(),
-                c.getPrerequisiteCourseName()
+                c.getPrerequisiteCourseName(),
+                avg,
+                total
         );
     }
 }

@@ -73,7 +73,8 @@ public class AdminLibraryResourceController {
                 request.resourceType(),
                 request.fileUrl(),
                 request.fileType(),
-                identity.getUserId()
+                identity.getUserId(),
+                request.courseId()
         );
         AdminLibraryResourceSummary created = createLibraryResourceUseCase.create(command);
         return ResponseEntity.status(HttpStatus.CREATED).body(AdminLibraryResourceSummaryResponse.from(created));
@@ -88,7 +89,8 @@ public class AdminLibraryResourceController {
                 request.description(),
                 request.resourceType(),
                 request.fileUrl(),
-                request.fileType()
+                request.fileType(),
+                request.courseId()
         );
         updateLibraryResourceUseCase.update(id, command);
         return ResponseEntity.noContent().build();

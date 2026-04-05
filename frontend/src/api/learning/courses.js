@@ -1,14 +1,14 @@
 import { apiClient, assertToken, parseResponse, parseResponseOrDefault } from '../client.js'
 
 /**
- * Fetch published courses (GET /api/courses). Requires auth token (TRAINEE or STAFF).
- * Returns array of course summaries.
+ * Fetch published courses (GET /api/courses/paged). Requires auth token (TRAINEE or STAFF).
+ * Returns paged course summaries.
  */
-export async function getPublishedCourses(token) {
+export async function getPublishedCourses(token, page = 0, size = 10) {
   assertToken(token)
-  const res = await apiClient(token).get('/api/courses')
+  const res = await apiClient(token).get(`/api/courses/paged?page=${page}&size=${size}`)
   const data = await parseResponse(res)
-  return data?.content ?? data
+  return data
 }
 
 /**

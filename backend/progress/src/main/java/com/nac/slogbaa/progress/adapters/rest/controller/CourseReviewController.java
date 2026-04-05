@@ -37,7 +37,7 @@ public class CourseReviewController {
     }
 
     @PostMapping("/{courseId}/reviews")
-    @PreAuthorize("hasAnyRole('TRAINEE','ADMIN','SUPER_ADMIN')")
+    @PreAuthorize("hasAnyRole('TRAINEE','ADMIN')")
     public ResponseEntity<Void> submitReview(
             @AuthenticationPrincipal AuthenticatedIdentity identity,
             @PathVariable UUID courseId,
@@ -79,7 +79,7 @@ public class CourseReviewController {
     }
 
     @DeleteMapping("/{courseId}/reviews/mine")
-    @PreAuthorize("hasAnyRole('TRAINEE','ADMIN','SUPER_ADMIN')")
+    @PreAuthorize("hasAnyRole('TRAINEE','ADMIN')")
     public ResponseEntity<Void> deleteMyReview(
             @AuthenticationPrincipal AuthenticatedIdentity identity,
             @PathVariable UUID courseId) {

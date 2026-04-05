@@ -82,7 +82,8 @@ export function AdminLayout() {
   const deleteStaffMutation = useDeleteStaff()
   const deleteTraineeMutation = useDeleteTrainee()
 
-  const { data: courses = [] } = useAdminCourses()
+  const { data: pagedData } = useAdminCourses(0, 100)
+  const courses = pagedData?.content ?? []
 
   const staff = overviewData?.data?.staff ?? []
   const trainees = overviewData?.data?.trainees ?? []

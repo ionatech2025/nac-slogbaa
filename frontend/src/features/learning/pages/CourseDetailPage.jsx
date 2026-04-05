@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { ArrowLeft, CheckCircle, List, Menu, PlayCircle, X } from 'lucide-react'
+import { ArrowLeft, CheckCircle, List, Menu, PlayCircle, X, Download } from 'lucide-react'
 import { getAssetUrl } from '../../../api/client.js'
-import { getEnrolledCourses } from '../../../api/learning/courses.js'
+import { getEnrolledCourses, recordModuleCompletion } from '../../../api/learning/courses.js'
+import defaultCourseImg from '../../../assets/images/courses/course1.jpg'
 import { useAuth } from '../../iam/hooks/useAuth.js'
 import { useQueryClient } from '@tanstack/react-query'
 import {
@@ -22,9 +23,11 @@ import { SafeHtml } from '../../../shared/components/SafeHtml.jsx'
 import { CourseDetailSkeleton } from '../../../shared/components/ContentSkeletons.jsx'
 import { CompletionCelebration } from '../components/CompletionCelebration.jsx'
 import { DiscussionPanel } from '../components/DiscussionPanel.jsx'
-import { ReviewSection } from '../components/ReviewSection.jsx'
+import { CourseReviewModal } from '../components/CourseReviewModal.jsx'
 import { BookmarkButton } from '../../../shared/components/BookmarkButton.jsx'
 import { useBookmarks } from '../../../lib/hooks/use-bookmarks.js'
+import { usePublishedLibrary } from '../../../lib/hooks/use-library.js'
+import { Icon, icons } from '../../../shared/icons.jsx'
 
 const TOC_BREAKPOINT = '(max-width: 900px)'
 
@@ -45,42 +48,58 @@ function useMediaQuery(query) {
 /** Circular progress (OpenClassrooms-style) for course completion. */
 function CourseProgressIndicator({ percent }) {
   const p = Math.min(100, Math.max(0, Number(percent) || 0))
-  const size = 44
-  const stroke = 3.5
+  const size = 52
+  const stroke = 4
   const r = (size - stroke) / 2
   const c = 2 * Math.PI * r
   const offset = c - (p / 100) * c
   const label = `${Math.round(p)}% completed`
   return (
     <div
-      style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '0.875rem',
+        padding: '0.5rem 0.875rem',
+        borderRadius: 14,
+        background: 'var(--orange-surface)',
+        border: '1px solid var(--orange-border-subtle)',
+        width: 'fit-content'
+      }}
       role="img"
       aria-label={label}
     >
-      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} aria-hidden>
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={r}
-          fill="none"
-          stroke="var(--slogbaa-border)"
-          strokeWidth={stroke}
-        />
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={r}
-          fill="none"
-          stroke="var(--slogbaa-blue)"
-          strokeWidth={stroke}
-          strokeDasharray={c}
-          strokeDashoffset={offset}
-          strokeLinecap="round"
-          transform={`rotate(-90 ${size / 2} ${size / 2})`}
-        />
-      </svg>
-      <span style={{ fontSize: '0.9375rem', fontWeight: 600, color: 'var(--slogbaa-text)' }}>{Math.round(p)}%</span>
-      <span style={{ fontSize: '0.875rem', color: 'var(--slogbaa-text-muted)' }}>completed</span>
+      <div style={{ position: 'relative', width: size, height: size, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} aria-hidden style={{ position: 'absolute' }}>
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={r}
+            fill="none"
+            stroke="var(--slogbaa-border)"
+            strokeWidth={stroke}
+            opacity="0.3"
+          />
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={r}
+            fill="none"
+            stroke="var(--slogbaa-blue)"
+            strokeWidth={stroke}
+            strokeDasharray={c}
+            strokeDashoffset={offset}
+            strokeLinecap="round"
+            transform={`rotate(-90 ${size / 2} ${size / 2})`}
+            style={{ transition: 'stroke-dashoffset 0.5s ease' }}
+          />
+        </svg>
+        <span style={{ fontSize: '0.8125rem', fontWeight: 800, color: 'var(--slogbaa-text)', zIndex: 1 }}>{Math.round(p)}%</span>
+      </div>
+      <div>
+        <p style={{ margin: 0, fontSize: '0.875rem', fontWeight: 700, color: 'var(--slogbaa-text)' }}>Course Progress</p>
+        <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--slogbaa-text-muted)' }}>{p >= 100 ? 'Course completed!' : 'Keep going!'}</p>
+      </div>
     </div>
   )
 }
@@ -107,101 +126,131 @@ const styles = {
   /** Sub-header: back + course title + progress (OpenClassrooms-style). */
   courseSubHeader: {
     flexShrink: 0,
-    padding: '1rem clamp(1rem, 3vw, 1.75rem)',
+    padding: '1.25rem clamp(1rem, 3vw, 2rem)',
     borderBottom: '1px solid var(--slogbaa-border)',
     background: 'var(--slogbaa-surface)',
     display: 'flex',
     flexDirection: 'column',
-    gap: '0.75rem',
+    gap: '1.25rem',
+    zIndex: 10,
+    boxShadow: '0 4px 12px rgba(0,0,0,0.02)',
   },
   courseSubHeaderTop: {
     display: 'flex',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    gap: '1rem',
+    gap: '1.5rem',
     flexWrap: 'wrap',
   },
   courseSubHeaderLeft: {
     display: 'flex',
-    alignItems: 'flex-start',
-    gap: '0.75rem',
+    alignItems: 'center',
+    gap: '1.25rem',
     minWidth: 0,
-    flex: '1 1 200px',
+    flex: '1 1 300px',
   },
   courseThumb: {
-    width: 56,
-    height: 56,
-    borderRadius: 10,
+    width: 64,
+    height: 64,
+    borderRadius: 14,
     objectFit: 'cover',
     flexShrink: 0,
     background: 'var(--slogbaa-border)',
+    boxShadow: 'var(--slogbaa-glass-shadow)',
   },
   courseThumbPh: {
-    width: 56,
-    height: 56,
-    borderRadius: 10,
+    width: 64,
+    height: 64,
+    borderRadius: 14,
     background: 'var(--slogbaa-border)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    fontSize: '1.35rem',
+    fontSize: '1.5rem',
     flexShrink: 0,
   },
   backToCourses: {
     display: 'inline-flex',
     alignItems: 'center',
-    gap: '0.35rem',
-    fontSize: '0.8125rem',
+    gap: '0.5rem',
+    fontSize: '0.875rem',
     fontWeight: 600,
     color: 'var(--slogbaa-blue)',
     textDecoration: 'none',
-    marginBottom: '0.35rem',
+    marginBottom: '0.5rem',
+    transition: 'transform 0.2s ease',
   },
   courseTitleLms: {
     margin: 0,
-    fontSize: 'clamp(1.125rem, 2.5vw, 1.35rem)',
-    fontWeight: 700,
+    fontSize: 'clamp(1.25rem, 3vw, 1.625rem)',
+    fontWeight: 800,
     color: 'var(--slogbaa-text)',
-    lineHeight: 1.3,
+    lineHeight: 1.2,
+    letterSpacing: '-0.02em',
   },
   courseDescLms: {
-    margin: '0.25rem 0 0',
-    fontSize: '0.8125rem',
+    margin: '0.35rem 0 0',
+    fontSize: '0.875rem',
     color: 'var(--slogbaa-text-muted)',
-    lineHeight: 1.45,
+    lineHeight: 1.5,
+    maxWidth: 600,
     display: '-webkit-box',
-    WebkitLineClamp: 2,
+    WebkitLineClamp: 1,
     WebkitBoxOrient: 'vertical',
     overflow: 'hidden',
   },
   courseSubHeaderActions: {
     display: 'flex',
     alignItems: 'center',
-    gap: '0.5rem',
+    gap: '0.75rem',
     flexShrink: 0,
   },
   iconBtn: {
     display: 'inline-flex',
     alignItems: 'center',
     justifyContent: 'center',
-    width: 40,
-    height: 40,
+    width: 42,
+    height: 42,
     padding: 0,
-    borderRadius: 10,
+    borderRadius: 12,
     border: '1px solid var(--slogbaa-border)',
     background: 'var(--slogbaa-bg)',
     color: 'var(--slogbaa-text)',
     cursor: 'pointer',
+    transition: 'all 0.2s ease',
   },
   leaveLink: {
-    padding: '0.4rem 0.75rem',
-    borderRadius: 8,
+    padding: '0.6rem 1rem',
+    borderRadius: 10,
     border: '1px solid var(--slogbaa-border)',
     background: 'transparent',
     color: 'var(--slogbaa-text-muted)',
-    fontSize: '0.8125rem',
-    fontWeight: 500,
+    fontSize: '0.875rem',
+    fontWeight: 600,
     cursor: 'pointer',
+    transition: 'all 0.2s ease',
+  },
+  rateBtn: {
+    padding: '0.6rem 1.125rem',
+    borderRadius: 10,
+    border: 'none',
+    background: 'var(--slogbaa-blue)',
+    color: '#fff',
+    fontSize: '0.875rem',
+    fontWeight: 700,
+    cursor: 'pointer',
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '0.5rem',
+    transition: 'all 0.2s ease',
+    boxShadow: '0 4px 12px rgba(245, 130, 32, 0.25)',
+  },
+  rateBtnDisabled: {
+    background: 'var(--slogbaa-border)',
+    color: 'var(--slogbaa-text-muted)',
+    cursor: 'not-allowed',
+    opacity: 0.6,
+    boxShadow: 'none',
   },
   /** Row: TOC + scrollable lesson (flex chain + article overflow = full module content visible). */
   content: {
@@ -224,45 +273,46 @@ const styles = {
     paddingTop: '0.75rem',
   },
   sidebar: {
-    flex: '0 0 300px',
-    width: 300,
+    flex: '0 0 320px',
+    width: 320,
     minHeight: 0,
     display: 'flex',
     flexDirection: 'column',
     borderRight: '1px solid var(--slogbaa-border)',
     background: 'var(--slogbaa-surface)',
+    zIndex: 5,
   },
   tocHeader: {
     flexShrink: 0,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: '0.875rem 1rem',
+    padding: '1.25rem 1.25rem',
     borderBottom: '1px solid var(--slogbaa-border)',
-    fontSize: '0.75rem',
-    fontWeight: 700,
-    letterSpacing: '0.06em',
+    fontSize: '0.8125rem',
+    fontWeight: 800,
+    letterSpacing: '0.04em',
     textTransform: 'uppercase',
     color: 'var(--slogbaa-text-muted)',
   },
   tocSectionBanner: {
-    margin: '0.75rem 0.75rem 0.5rem',
-    padding: '0.5rem 0.75rem',
-    borderRadius: 8,
-    fontSize: '0.6875rem',
-    fontWeight: 700,
-    letterSpacing: '0.05em',
+    margin: '1.25rem 1.25rem 0.75rem',
+    padding: '0.625rem 1rem',
+    borderRadius: 10,
+    fontSize: '0.75rem',
+    fontWeight: 800,
+    letterSpacing: '0.04em',
     textTransform: 'uppercase',
     color: 'var(--slogbaa-blue)',
-    background: 'rgba(37, 99, 235, 0.12)',
-    border: '1px solid rgba(37, 99, 235, 0.2)',
+    background: 'var(--orange-surface)',
+    border: '1px solid var(--orange-border-subtle)',
   },
   tocScroll: {
     flex: 1,
     minHeight: 0,
     overflowY: 'auto',
     WebkitOverflowScrolling: 'touch',
-    padding: '0 0.5rem 0.75rem',
+    padding: '0 0.75rem 1.25rem',
   },
   moduleList: {
     listStyle: 'none',
@@ -270,60 +320,59 @@ const styles = {
     padding: 0,
   },
   moduleItem: {
-    marginBottom: '0.35rem',
+    marginBottom: '0.5rem',
   },
   moduleLink: {
     display: 'flex',
-    alignItems: 'flex-start',
-    gap: '0.65rem',
-    padding: '0.65rem 0.65rem',
-    minHeight: 48,
-    borderRadius: 10,
-    fontSize: '0.875rem',
+    alignItems: 'center',
+    gap: '0.875rem',
+    padding: '0.75rem 1rem',
+    minHeight: 56,
+    borderRadius: 12,
+    fontSize: '0.9375rem',
     color: 'var(--slogbaa-text)',
     textDecoration: 'none',
     border: '1px solid transparent',
-    transition: 'background 0.15s ease, border-color 0.15s ease',
+    transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
   },
   moduleLinkThumb: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
+    width: 36,
+    height: 36,
+    borderRadius: 10,
     objectFit: 'cover',
     flexShrink: 0,
     background: 'var(--slogbaa-border)',
-    marginTop: 2,
   },
   moduleIndexBadge: {
-    width: 30,
-    height: 30,
-    borderRadius: '50%',
+    width: 32,
+    height: 32,
+    borderRadius: 10,
     flexShrink: 0,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    fontSize: '0.75rem',
-    fontWeight: 700,
-    border: '2px solid var(--slogbaa-border)',
+    fontSize: '0.875rem',
+    fontWeight: 800,
+    border: '1px solid var(--slogbaa-border)',
     color: 'var(--slogbaa-text-muted)',
-    background: 'transparent',
-    marginTop: 1,
+    background: 'var(--slogbaa-bg)',
   },
   moduleLinkActive: {
-    background: 'rgba(37, 99, 235, 0.1)',
-    borderColor: 'rgba(37, 99, 235, 0.35)',
+    background: 'var(--orange-surface)',
+    borderColor: 'var(--orange-border-subtle)',
     color: 'var(--slogbaa-text)',
+    boxShadow: '0 2px 8px rgba(245, 130, 32, 0.08)',
   },
   moduleTitle: {
-    fontWeight: 600,
-    lineHeight: 1.35,
+    fontWeight: 700,
+    lineHeight: 1.3,
   },
   moduleMeta: {
     display: 'block',
-    marginTop: '0.2rem',
+    marginTop: '0.25rem',
     fontSize: '0.75rem',
     color: 'var(--slogbaa-text-muted)',
-    fontWeight: 400,
+    fontWeight: 500,
   },
   sidebarBackLinks: {
     flexShrink: 0,
@@ -350,48 +399,50 @@ const styles = {
     overflowY: 'auto',
     WebkitOverflowScrolling: 'touch',
     background: 'var(--slogbaa-bg)',
+    scrollBehavior: 'smooth',
   },
   articleInner: {
-    maxWidth: 900,
+    maxWidth: 820,
     margin: '0 auto',
     width: '100%',
-    padding: 'clamp(1.25rem, 3vw, 2rem) clamp(1rem, 3vw, 2rem) 3rem',
+    padding: 'clamp(2rem, 5vw, 4rem) clamp(1.25rem, 5vw, 3rem) 6rem',
     boxSizing: 'border-box',
   },
-  /** Nested scroll: full scroll → Start quiz unlocks. Bounded height so outer page can scroll to quiz/reviews. */
-  notesScrollRegion: {
-    maxHeight: 'min(560px, 58vh)',
-    minHeight: 220,
-    overflowY: 'auto',
-    overflowX: 'hidden',
-    WebkitOverflowScrolling: 'touch',
-    marginTop: '0.25rem',
-    marginBottom: '1rem',
-    padding: '0.75rem 1rem 1rem',
-    borderRadius: 12,
-    border: '1px solid var(--slogbaa-border)',
-    background: 'var(--slogbaa-surface)',
+  /** OpenClassrooms style: no constrained scroll box for main content text. */
+  notesContentRegion: {
+    marginTop: '1.5rem',
+    marginBottom: '2.5rem',
     boxSizing: 'border-box',
   },
   scrollHint: {
-    marginTop: '0.75rem',
-    fontSize: '0.8125rem',
-    color: 'var(--slogbaa-text-muted)',
-    fontStyle: 'italic',
+    marginTop: '2rem',
+    padding: '1.25rem',
+    borderRadius: 14,
+    background: 'var(--orange-surface)',
+    border: '1px solid var(--orange-border-subtle)',
+    fontSize: '0.9375rem',
+    color: 'var(--slogbaa-text)',
+    fontWeight: 600,
     textAlign: 'center',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '0.5rem',
   },
   lessonTitle: {
-    margin: '0 0 1rem',
-    fontSize: 'clamp(1.5rem, 3vw, 1.85rem)',
-    fontWeight: 700,
+    margin: '0 0 1.25rem',
+    fontSize: 'clamp(1.75rem, 5vw, 2.75rem)',
+    fontWeight: 800,
     color: 'var(--slogbaa-text)',
-    lineHeight: 1.25,
+    lineHeight: 1.15,
+    letterSpacing: '-0.03em',
   },
   lessonDescription: {
-    margin: '0 0 1.5rem',
-    fontSize: '1rem',
-    lineHeight: 1.55,
+    margin: '0 0 2.5rem',
+    fontSize: '1.125rem',
+    lineHeight: 1.6,
     color: 'var(--slogbaa-text-muted)',
+    fontWeight: 500,
   },
   backLink: {
     display: 'inline-flex',
@@ -491,13 +542,47 @@ const styles = {
     border: '1px solid var(--slogbaa-border)',
   },
   activityBlock: {
-    padding: '1.25rem 1.5rem',
-    background: 'var(--slogbaa-glass-bg)',
-    backdropFilter: 'blur(8px)',
-    WebkitBackdropFilter: 'blur(8px)',
-    border: '1px solid var(--slogbaa-glass-border)',
-    borderRadius: 14,
-    borderLeft: '4px solid var(--slogbaa-blue)',
+    padding: '1.75rem 2rem',
+    background: 'var(--orange-surface)',
+    border: '1px solid var(--orange-border-subtle)',
+    borderRadius: 18,
+    borderLeft: '5px solid var(--slogbaa-blue)',
+  },
+  nextStepCard: {
+    marginTop: '4rem',
+    padding: '2.5rem',
+    borderRadius: 20,
+    background: 'var(--slogbaa-surface)',
+    border: '1px solid var(--slogbaa-border)',
+    textAlign: 'center',
+    boxShadow: 'var(--slogbaa-glass-shadow-lg)',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '1.25rem',
+  },
+  nextStepTitle: {
+    margin: 0,
+    fontSize: '1.375rem',
+    fontWeight: 800,
+    color: 'var(--slogbaa-text)',
+    letterSpacing: '-0.02em',
+  },
+  nextStepBtn: {
+    padding: '0.875rem 2rem',
+    borderRadius: 12,
+    border: 'none',
+    background: 'var(--slogbaa-blue)',
+    color: '#fff',
+    fontSize: '1rem',
+    fontWeight: 700,
+    cursor: 'pointer',
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '0.75rem',
+    transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+    boxShadow: '0 8px 24px rgba(245, 130, 32, 0.3)',
+    textDecoration: 'none',
   },
   loading: {
     textAlign: 'center',
@@ -671,6 +756,34 @@ function ContentBlockRenderer({ block }) {
   return null
 }
 
+function CourseResources({ courseId }) {
+  const { data: resources = [], isLoading } = usePublishedLibrary()
+  const courseResources = resources.filter(r => r.courseId === courseId)
+
+  if (isLoading || courseResources.length === 0) return null
+
+  return (
+    <div style={{ marginTop: '3rem', padding: '2rem', borderRadius: 20, background: 'var(--slogbaa-surface)', border: '1px solid var(--slogbaa-border)' }}>
+      <h3 style={{ margin: '0 0 1.25rem', fontSize: '1.25rem', fontWeight: 800, color: 'var(--slogbaa-text)' }}>
+        Library Resources for this Course
+      </h3>
+      <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        {courseResources.map(r => (
+          <li key={r.id} style={{ padding: '1rem', borderRadius: 12, background: 'var(--slogbaa-bg)', border: '1px solid var(--slogbaa-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <div style={{ fontWeight: 600, color: 'var(--slogbaa-text)' }}>{r.title}</div>
+              {r.description && <div style={{ fontSize: '0.8125rem', color: 'var(--slogbaa-text-muted)', marginTop: '0.25rem' }}>{r.description}</div>}
+            </div>
+            <a href={r.fileUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', color: 'var(--slogbaa-blue)', fontWeight: 600, textDecoration: 'none', fontSize: '0.875rem' }}>
+              <Download size={16} /> Open
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
 export function CourseDetailPage() {
   const { courseId, moduleId } = useParams()
   const navigate = useNavigate()
@@ -707,6 +820,7 @@ export function CourseDetailPage() {
   }, [enrolled, course, resumePoint, moduleId, courseId, navigate])
 
   const selectedModule = course?.modules?.find((m) => m.id === moduleId) ?? course?.modules?.[0]
+  const modules = course?.modules ?? []
   const selectedModuleCompleted =
     Boolean(selectedModule?.id) && completedModuleIdSet.has(String(selectedModule.id))
   const selectedModuleHasQuiz = Boolean(
@@ -744,6 +858,7 @@ export function CourseDetailPage() {
 
   const [showCelebration, setShowCelebration] = useState(false)
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false)
+  const [showReviewModal, setShowReviewModal] = useState(false)
   const isNarrow = useMediaQuery(TOC_BREAKPOINT)
   const [tocCollapsed, setTocCollapsed] = useState(false)
   const [mobileTocOpen, setMobileTocOpen] = useState(false)
@@ -808,16 +923,21 @@ export function CourseDetailPage() {
       setNotesReadThrough(true)
       return
     }
-    if (!selectedModuleHasQuiz) return
+    if (!selectedModuleHasQuiz) {
+      setNotesReadThrough(true)
+      return
+    }
     if (blocks.length === 0) {
       setNotesReadThrough(true)
       return
     }
     if (!notesVisible) return
-    const el = notesScrollRef.current
+    
+    // In OpenClassrooms-style, we use the main article scroll
+    const el = articleRef.current
     if (!el) return
     const { scrollTop, scrollHeight, clientHeight } = el
-    const threshold = 56
+    const threshold = 100 // larger threshold for whole page scroll
     if (scrollHeight <= clientHeight + threshold) {
       setNotesReadThrough(true)
       return
@@ -831,8 +951,9 @@ export function CourseDetailPage() {
     evaluateNotesScrollReadThrough()
   }, [selectedModule?.id, blocks.length, notesVisible, selectedModuleHasQuiz, evaluateNotesScrollReadThrough])
 
+  const articleRef = useRef(null)
   useEffect(() => {
-    const el = notesScrollRef.current
+    const el = articleRef.current
     if (!el || !selectedModule) return
     const onScroll = () => evaluateNotesScrollReadThrough()
     el.addEventListener('scroll', onScroll, { passive: true })
@@ -844,16 +965,65 @@ export function CourseDetailPage() {
     }
   }, [selectedModule?.id, evaluateNotesScrollReadThrough, selectedModule])
 
-  const handleStartQuiz = useCallback(() => setNotesVisible(false), [])
+  const handleStartQuiz = useCallback(() => {
+    setNotesVisible(false)
+    // Scroll to top of quiz
+    articleRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [])
   const handleRereadNotes = useCallback(() => {
     maxBlockOrderRecordedRef.current = -1
-    // Reset scroll synchronously before re-render so evaluateNotesScrollReadThrough does not
-    // immediately re-lock (still scrolled to bottom) and re-enable Start quiz.
-    const el = notesScrollRef.current
-    if (el) el.scrollTop = 0
+    if (articleRef.current) articleRef.current.scrollTop = 0
     setNotesReadThrough(false)
     setNotesVisible(true)
   }, [])
+
+  const currentIndex = modules.findIndex((m) => String(m.id) === String(selectedModule?.id))
+  const nextModule = modules[currentIndex + 1]
+
+  // Sequential Access: A module is locked if any preceding module in the array is not completed.
+  const isModuleLocked = useMemo(() => {
+    if (!modules.length || currentIndex <= 0) return false
+    for (let i = 0; i < currentIndex; i++) {
+      if (!completedModuleIdSet.has(String(modules[i].id))) return true
+    }
+    return false
+  }, [modules, currentIndex, completedModuleIdSet])
+
+  const handleNextModule = useCallback(async () => {
+    if (!selectedModule) return
+    
+    // Explicitly record completion of current module when "Next" is clicked
+    try {
+      await recordModuleCompletion(token, courseId, selectedModule.id)
+      // Await invalidations to ensure the next module is "unlocked" before we navigate/redirect
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: queryKeys.courses.completedModules(courseId) }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.courses.enrolled() })
+      ])
+    } catch (err) {
+      console.error('Failed to record module completion:', err)
+    }
+
+    if (nextModule) {
+      navigate(`/dashboard/courses/${courseId}/modules/${nextModule.id}`)
+      // Scroll article to top for the new module
+      setTimeout(() => {
+        if (articleRef.current) articleRef.current.scrollTop = 0
+      }, 0)
+    } else {
+      setShowCelebration(true)
+    }
+  }, [nextModule, navigate, courseId, selectedModule, token, queryClient])
+
+  // Guard: If current module is locked, redirect to the first uncompleted module
+  useEffect(() => {
+    if (!loading && enrolled && isModuleLocked && modules.length > 0) {
+      const firstIncomplete = modules.find(m => !completedModuleIdSet.has(String(m.id))) || modules[0]
+      if (firstIncomplete.id !== selectedModule?.id) {
+        navigate(`/dashboard/courses/${courseId}/modules/${firstIncomplete.id}`, { replace: true })
+      }
+    }
+  }, [isModuleLocked, loading, enrolled, modules, completedModuleIdSet, selectedModule?.id, courseId, navigate])
 
   useEffect(() => {
     if (!notesScrollRoot) return
@@ -886,12 +1056,12 @@ export function CourseDetailPage() {
     }
   }, [token, courseId, queryClient])
 
-  // Record progress for modules with no content blocks (use module id as block id)
+  // Record progress for modules with no content blocks
   useEffect(() => {
     if (!courseId || !selectedModule || !enrolled || selectedModuleCompleted) return
     const blocks = selectedModule.contentBlocks
     if (blocks && blocks.length > 0) return // blocks case handled by BlockWithProgressObserver
-    progressMutation.mutate({ courseId, moduleId: selectedModule.id, contentBlockId: selectedModule.id })
+    progressMutation.mutate({ courseId, moduleId: selectedModule.id })
   }, [courseId, selectedModule?.id, enrolled, progressMutation, selectedModuleCompleted])
 
   if (loading) {
@@ -949,7 +1119,6 @@ export function CourseDetailPage() {
     )
   }
 
-  const modules = course.modules ?? []
 
   const tocInner = (
     <>
@@ -981,17 +1150,38 @@ export function CourseDetailPage() {
           {modules.map((m, idx) => {
             const active = selectedModule?.id === m.id
             const modDone = completedModuleIdSet.has(String(m.id))
+            
+            // Check if this module is locked (not the first module and previous one isn't done)
+            let isLocked = false
+            if (idx > 0) {
+              for (let j = 0; j < idx; j++) {
+                if (!completedModuleIdSet.has(String(modules[j].id))) {
+                  isLocked = true
+                  break
+                }
+              }
+            }
+
             return (
               <li key={m.id} style={styles.moduleItem}>
                 <Link
-                  to={`/dashboard/courses/${courseId}/modules/${m.id}`}
-                  onClick={closeMobileToc}
+                  to={isLocked ? '#' : `/dashboard/courses/${courseId}/modules/${m.id}`}
+                  onClick={(e) => {
+                    if (isLocked) {
+                      e.preventDefault()
+                      return
+                    }
+                    closeMobileToc()
+                  }}
                   style={{
                     ...styles.moduleLink,
                     ...(active ? styles.moduleLinkActive : {}),
+                    ...(isLocked ? { opacity: 0.5, cursor: 'not-allowed' } : {}),
                   }}
                 >
-                  {active ? (
+                  {isLocked ? (
+                    <Icon icon={icons.lock} size={20} style={{ flexShrink: 0, color: 'var(--slogbaa-text-muted)', marginTop: 3 }} />
+                  ) : active ? (
                     <PlayCircle size={22} strokeWidth={2} style={{ flexShrink: 0, color: 'var(--slogbaa-blue)', marginTop: 3 }} aria-hidden />
                   ) : modDone ? (
                     <CheckCircle size={22} strokeWidth={2} style={{ flexShrink: 0, color: 'var(--slogbaa-green)', marginTop: 3 }} aria-hidden title="Completed" />
@@ -1032,11 +1222,12 @@ export function CourseDetailPage() {
         <div style={styles.courseSubHeader}>
           <div style={styles.courseSubHeaderTop}>
             <div style={styles.courseSubHeaderLeft}>
-              {course.imageUrl ? (
-                <img src={getAssetUrl(course.imageUrl)} alt="" style={styles.courseThumb} onError={(e) => { e.target.style.display = 'none' }} />
-              ) : (
-                <div style={styles.courseThumbPh} aria-hidden>📚</div>
-              )}
+              <img
+                src={course.imageUrl ? getAssetUrl(course.imageUrl) : defaultCourseImg}
+                alt=""
+                style={styles.courseThumb}
+                onError={(e) => { e.target.onerror = null; e.target.src = defaultCourseImg }}
+              />
               <div style={{ minWidth: 0 }}>
                 <Link to="/dashboard/courses" style={styles.backToCourses}>
                   <ArrowLeft size={14} aria-hidden /> Back to courses
@@ -1056,6 +1247,20 @@ export function CourseDetailPage() {
                   <List size={20} aria-hidden />
                 </button>
               )}
+              <button
+                type="button"
+                className={completionPct >= 100 ? 'rate-review-pulse' : ''}
+                style={{
+                  ...styles.rateBtn,
+                  ...(completionPct < 100 ? styles.rateBtnDisabled : {}),
+                }}
+                disabled={completionPct < 100}
+                onClick={() => setShowReviewModal(true)}
+                title={completionPct < 100 ? 'Complete the course to leave a review.' : 'Rate & Review'}
+              >
+                <Icon icon={icons.star} size={15} />
+                Rate & Review
+              </button>
               <button
                 type="button"
                 style={styles.leaveLink}
@@ -1118,7 +1323,7 @@ export function CourseDetailPage() {
             </>
           )}
 
-          <article style={styles.article}>
+          <article ref={articleRef} style={styles.article}>
             <div style={styles.articleInner}>
               {selectedModule ? (
                 <>
@@ -1162,12 +1367,7 @@ export function CourseDetailPage() {
                       </div>
                     )}
                   </div>
-                  <div
-                    ref={notesScrollRefCallback}
-                    style={styles.notesScrollRegion}
-                    tabIndex={0}
-                    aria-label="Module notes"
-                  >
+                  <div style={styles.notesContentRegion}>
                     {notesVisible ? (
                       <>
                         {selectedModule.contentBlocks?.map((block) => (
@@ -1189,9 +1389,11 @@ export function CourseDetailPage() {
                           <p style={{ color: 'var(--slogbaa-text-muted)' }}>No content in this module yet.</p>
                         )}
                         {selectedModuleHasQuiz && !selectedModuleCompleted && !notesReadThrough && blocks.length > 0 && (
-                          <p style={styles.scrollHint}>
-                            ↓ Scroll to the bottom of this box to unlock Start quiz.
-                          </p>
+                          <div style={styles.scrollHint}>
+                            <Icon icon={icons.enrolled} size={24} style={{ color: 'var(--slogbaa-blue)' }} />
+                            <span>Continue reading to unlock the quiz</span>
+                            <span style={{ fontSize: '0.8125rem', fontWeight: 500, color: 'var(--slogbaa-text-muted)' }}>Scroll to the very bottom</span>
+                          </div>
                         )}
                       </>
                     ) : (
@@ -1244,7 +1446,42 @@ export function CourseDetailPage() {
                       onModuleCompleted={handleModuleCompleted}
                     />
                   )}
-                  <ReviewSection courseId={courseId} />
+
+                  {/* NEXT MODULE CTA */}
+                  {notesReadThrough && (
+                    <div style={styles.nextStepCard}>
+                      <Icon 
+                        icon={selectedModuleCompleted ? icons.enrolled : icons.loader} 
+                        size={48} 
+                        style={{ color: selectedModuleCompleted ? 'var(--slogbaa-green)' : 'var(--slogbaa-blue)', opacity: 0.8 }} 
+                      />
+                      <h3 style={styles.nextStepTitle}>
+                        {selectedModuleCompleted 
+                          ? (nextModule ? 'Ready for the next one?' : 'You\'ve completed the course!')
+                          : (selectedModuleHasQuiz ? 'Almost there! Pass the quiz to continue.' : 'Great job reading through!')}
+                      </h3>
+                      
+                      {(!selectedModuleHasQuiz || selectedModuleCompleted) ? (
+                        <button
+                          type="button"
+                          onClick={handleNextModule}
+                          style={styles.nextStepBtn}
+                        >
+                          {nextModule ? (
+                            <>Next Module: {nextModule.title} <Icon icon={icons.arrowRight} size={18} /></>
+                          ) : (
+                            <>Complete Course <Icon icon={icons.partyPopper} size={18} /></>
+                          )}
+                        </button>
+                      ) : (
+                        <p style={{ color: 'var(--slogbaa-text-muted)', fontSize: '0.9375rem' }}>
+                          Please complete the quiz above to unlock the next module.
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  <CourseResources courseId={courseId} />
                   <DiscussionPanel courseId={courseId} moduleId={selectedModule?.id} />
                 </>
               ) : (
@@ -1265,6 +1502,13 @@ export function CourseDetailPage() {
           message="Are you sure you want to leave this course? Your progress will be preserved."
           onContinue={handleLeaveCourse}
           onCancel={() => setShowLeaveConfirm(false)}
+        />
+      )}
+      {showReviewModal && (
+        <CourseReviewModal
+          courseId={courseId}
+          courseTitle={course.title}
+          onClose={() => setShowReviewModal(false)}
         />
       )}
     </div>

@@ -1,7 +1,9 @@
 import { FontAwesomeIcon, icons } from '../../../shared/icons.jsx'
 import { usePublishedLibrary } from '../../../lib/hooks/use-library.js'
+import { usePublishedCourses } from '../../../lib/hooks/use-courses.js'
 import { LibraryListSkeleton } from '../../../shared/components/ContentSkeletons.jsx'
 import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle.js'
+import { useMemo } from 'react'
 
 const RESOURCE_TYPE_LABELS = {
   DOCUMENT: 'Document',
@@ -101,7 +103,52 @@ const styles = {
 
 export function LibraryPage() {
   useDocumentTitle('Library')
-  const { data: resources = [], isLoading, error } = usePublishedLibrary()
+  const { data: resources = [], isLoading: libLoading, error: libError } = usePublishedLibrary()
+  const { data: pagedCourses, isLoading: coursesLoading } = usePublishedCourses(0, 1000)
+  const courses = pagedCourses?.content ?? []
+
+  const isLoading = libLoading || coursesLoading
+  const error = libError
+
+  const groupedResources = useMemo(() => {
+    if (!resources.length) return { general: [], byCourse: [] }
+
+    const general = resources.filter(r => !r.courseId)
+    const courseIds = [...new Set(resources.filter(r => r.courseId).map(r => r.courseId))]
+
+    const byCourse = courseIds.map(courseId => {
+      const course = courses.find(c => c.id === courseId)
+      return {
+        courseId,
+        courseTitle: course ? course.title : 'Associated Course',
+        resources: resources.filter(r => r.courseId === courseId)
+      }
+    })
+
+    return { general, byCourse }
+  }, [resources, courses])
+
+  const ResourceItem = ({ r }) => (
+    <li key={r.id} style={styles.card}>
+      <h2 style={styles.cardTitle}>{r.title}</h2>
+      <div style={styles.cardMeta}>
+        {RESOURCE_TYPE_LABELS[r.resourceType] ?? r.resourceType}
+        {r.fileType && ` · ${r.fileType}`}
+      </div>
+      {r.description && (
+        <p style={styles.cardDescription}>{r.description}</p>
+      )}
+      <a
+        href={r.fileUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        style={styles.link}
+      >
+        <FontAwesomeIcon icon={icons.download} />
+        Open / download
+      </a>
+    </li>
+  )
 
   return (
     <div style={styles.layout}>
@@ -119,29 +166,29 @@ export function LibraryPage() {
           <p style={styles.empty}>No library resources published yet.</p>
         )}
         {!isLoading && !error && resources.length > 0 && (
-          <ul style={styles.list}>
-            {resources.map((r) => (
-              <li key={r.id} style={styles.card}>
-                <h2 style={styles.cardTitle}>{r.title}</h2>
-                <div style={styles.cardMeta}>
-                  {RESOURCE_TYPE_LABELS[r.resourceType] ?? r.resourceType}
-                  {r.fileType && ` · ${r.fileType}`}
-                </div>
-                {r.description && (
-                  <p style={styles.cardDescription}>{r.description}</p>
-                )}
-                <a
-                  href={r.fileUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={styles.link}
-                >
-                  <FontAwesomeIcon icon={icons.download} />
-                  Open / download
-                </a>
-              </li>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
+            {groupedResources.general.length > 0 && (
+              <section>
+                <h2 style={{ ...styles.subtitle, color: 'var(--slogbaa-text)', fontWeight: 700, fontSize: '1.125rem', marginBottom: '1rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  General Resources
+                </h2>
+                <ul style={styles.list}>
+                  {groupedResources.general.map(r => <ResourceItem key={r.id} r={r} />)}
+                </ul>
+              </section>
+            )}
+
+            {groupedResources.byCourse.map(group => (
+              <section key={group.courseId}>
+                <h2 style={{ ...styles.subtitle, color: 'var(--slogbaa-text)', fontWeight: 700, fontSize: '1.125rem', marginBottom: '1rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  {group.courseTitle}
+                </h2>
+                <ul style={styles.list}>
+                  {group.resources.map(r => <ResourceItem key={r.id} r={r} />)}
+                </ul>
+              </section>
             ))}
-          </ul>
+          </div>
         )}
       </main>
     </div>

@@ -11,6 +11,7 @@ import java.util.UUID;
  */
 public record CourseReviewResult(
         UUID id,
+        UUID authorId,
         @JsonProperty("authorDisplayName")
         @JsonAlias("traineeDisplayName")
         String authorDisplayName,

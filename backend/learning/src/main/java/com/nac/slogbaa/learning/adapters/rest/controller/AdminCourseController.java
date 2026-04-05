@@ -140,7 +140,8 @@ public class AdminCourseController {
                         s.getModuleCount(),
                         s.getCreatedAt() != null ? s.getCreatedAt().toString() : null,
                         s.getCategoryName(),
-                        s.getCategorySlug()
+                        s.getCategorySlug(),
+                        s.getCategoryId()
                 ));
         return ResponseEntity.ok(result);
     }
@@ -338,6 +339,9 @@ public class AdminCourseController {
                 d.getTotalEstimatedMinutes(),
                 d.getCategoryName(),
                 d.getCategorySlug(),
+                d.getCategoryId(),
+                d.getAverageRating(),
+                d.getReviewCount(),
                 modules
         );
     }

@@ -23,12 +23,15 @@ import com.nac.slogbaa.learning.application.service.UpdateLibraryResourceService
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import com.nac.slogbaa.shared.ports.GetCourseReviewSummaryPort;
+
 @Configuration
 public class LearningConfiguration {
 
     @Bean
-    public GetPublishedCoursesUseCase getPublishedCoursesUseCase(CourseRepositoryPort courseRepository) {
-        return new GetPublishedCoursesService(courseRepository);
+    public GetPublishedCoursesUseCase getPublishedCoursesUseCase(CourseRepositoryPort courseRepository,
+                                                                 GetCourseReviewSummaryPort getCourseReviewSummaryPort) {
+        return new GetPublishedCoursesService(courseRepository, getCourseReviewSummaryPort);
     }
 
     @Bean
