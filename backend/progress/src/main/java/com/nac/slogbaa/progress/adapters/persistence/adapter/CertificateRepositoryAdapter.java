@@ -63,6 +63,12 @@ public class CertificateRepositoryAdapter implements CertificateRepositoryPort {
     }
 
     @Override
+    public void deleteByTraineeIdAndCourseId(UUID traineeId, UUID courseId) {
+        jpaRepository.findByTraineeIdAndCourseId(traineeId, courseId)
+                .ifPresent(jpaRepository::delete);
+    }
+
+    @Override
     public void save(NewCertificateData data) {
         CertificateEntity entity = new CertificateEntity();
         entity.setId(UUID.randomUUID());

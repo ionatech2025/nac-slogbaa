@@ -3,8 +3,8 @@ package com.nac.slogbaa.learning.application.service;
 import com.nac.slogbaa.learning.application.dto.result.CourseDetails;
 import com.nac.slogbaa.learning.application.port.in.GetCourseDetailsUseCase;
 import com.nac.slogbaa.learning.application.port.out.CourseDetailsQueryPort;
-import com.nac.slogbaa.learning.core.exception.CourseNotFoundException;
 
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -19,8 +19,7 @@ public final class GetCourseDetailsService implements GetCourseDetailsUseCase {
     }
 
     @Override
-    public CourseDetails getById(UUID courseId) {
-        return courseDetailsQueryPort.findCourseDetailsById(courseId)
-                .orElseThrow(() -> new CourseNotFoundException(courseId));
+    public Optional<CourseDetails> getById(UUID courseId) {
+        return courseDetailsQueryPort.findCourseDetailsById(courseId);
     }
 }

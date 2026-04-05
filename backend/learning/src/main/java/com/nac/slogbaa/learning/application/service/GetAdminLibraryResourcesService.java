@@ -24,7 +24,7 @@ public final class GetAdminLibraryResourcesService implements GetAdminLibraryRes
         return libraryResourceWritePort.findAll().stream()
                 .map(r -> new AdminLibraryResourceSummary(
                         r.id(), r.title(), r.description(), r.resourceType(),
-                        r.fileUrl(), r.fileType(), r.published()))
+                        r.fileUrl(), r.fileType(), r.published(), r.courseId()))
                 .toList();
     }
 
@@ -33,6 +33,6 @@ public final class GetAdminLibraryResourcesService implements GetAdminLibraryRes
         return libraryResourceWritePort.findAll(pageable)
                 .map(r -> new AdminLibraryResourceSummary(
                         r.id(), r.title(), r.description(), r.resourceType(),
-                        r.fileUrl(), r.fileType(), r.published()));
+                        r.fileUrl(), r.fileType(), r.published(), r.courseId()));
     }
 }

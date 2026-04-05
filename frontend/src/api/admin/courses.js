@@ -7,11 +7,12 @@ import { apiClient, assertToken, parseResponse } from '../client.js'
 /**
  * GET /api/admin/courses — list all courses (including unpublished).
  */
-export async function getAdminCourses(token) {
+export async function getAdminCourses(token, page = 0, size = 10) {
   assertToken(token)
-  const res = await apiClient(token).get('/api/admin/courses?size=200')
+  const res = await apiClient(token).get(`/api/admin/courses?page=${page}&size=${size}`)
   const data = await parseResponse(res)
-  return Array.isArray(data) ? data : data?.content ?? []
+  // If it's a paged response, return the whole object so we have pagination info
+  return data
 }
 
 /**

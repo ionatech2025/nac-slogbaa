@@ -1,6 +1,5 @@
 package com.nac.slogbaa.learning.adapters.persistence.adapter;
 
-import com.nac.slogbaa.learning.adapters.persistence.entity.ContentBlockEntity;
 import com.nac.slogbaa.learning.adapters.persistence.entity.CourseEntity;
 import com.nac.slogbaa.learning.adapters.persistence.entity.ModuleEntity;
 import com.nac.slogbaa.learning.adapters.persistence.mapper.EntityToDomainMapper;
@@ -30,6 +29,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
+import com.nac.slogbaa.shared.ports.GetCourseReviewSummaryPort;
+
 @Component
 public class CourseDetailsQueryAdapter implements CourseDetailsQueryPort, CourseSummaryQueryPort, AdminCourseQueryPort {
 
@@ -37,16 +38,19 @@ public class CourseDetailsQueryAdapter implements CourseDetailsQueryPort, Course
     private final JpaModuleRepository jpaModuleRepository;
     private final JpaContentBlockRepository jpaContentBlockRepository;
     private final EntityToDomainMapper entityToDomainMapper;
+    private final GetCourseReviewSummaryPort getCourseReviewSummaryPort;
 
     public CourseDetailsQueryAdapter(
             JpaCourseRepository jpaCourseRepository,
             JpaModuleRepository jpaModuleRepository,
             JpaContentBlockRepository jpaContentBlockRepository,
-            EntityToDomainMapper entityToDomainMapper) {
+            EntityToDomainMapper entityToDomainMapper,
+            GetCourseReviewSummaryPort getCourseReviewSummaryPort) {
         this.jpaCourseRepository = jpaCourseRepository;
         this.jpaModuleRepository = jpaModuleRepository;
         this.jpaContentBlockRepository = jpaContentBlockRepository;
         this.entityToDomainMapper = entityToDomainMapper;
+        this.getCourseReviewSummaryPort = getCourseReviewSummaryPort;
     }
 
     @Override
@@ -84,6 +88,7 @@ public class CourseDetailsQueryAdapter implements CourseDetailsQueryPort, Course
                     int moduleCount = moduleCounts.getOrDefault(c.getId(), 0);
                     String categoryName = c.getCategory() != null ? c.getCategory().getName() : null;
                     String categorySlug = c.getCategory() != null ? c.getCategory().getSlug() : null;
+                    UUID categoryId = c.getCategory() != null ? c.getCategory().getId() : null;
                     return new AdminCourseSummary(
                             c.getId(),
                             c.getTitle(),
@@ -93,7 +98,8 @@ public class CourseDetailsQueryAdapter implements CourseDetailsQueryPort, Course
                             moduleCount,
                             c.getCreatedAt(),
                             categoryName,
-                            categorySlug
+                            categorySlug,
+                            categoryId
                     );
                 })
                 .toList();
@@ -123,7 +129,8 @@ public class CourseDetailsQueryAdapter implements CourseDetailsQueryPort, Course
                         moduleCounts.getOrDefault(c.getId(), 0),
                         c.getCreatedAt(),
                         c.getCategory() != null ? c.getCategory().getName() : null,
-                        c.getCategory() != null ? c.getCategory().getSlug() : null
+                        c.getCategory() != null ? c.getCategory().getSlug() : null,
+                        c.getCategory() != null ? c.getCategory().getId() : null
                 ))
                 .toList();
 
@@ -161,9 +168,12 @@ public class CourseDetailsQueryAdapter implements CourseDetailsQueryPort, Course
                                 .map(CourseEntity::getTitle)
                                 .orElse(null);
                     }
+                    GetCourseReviewSummaryPort.ReviewSummary rs = getCourseReviewSummaryPort.getSummary(courseId);
+                    double avg = rs != null ? rs.averageRating() : 0.0;
+                    long total = rs != null ? rs.totalReviews() : 0;
                     return new CourseSummary(d.getId(), d.getTitle(), d.getDescription(), d.getImageUrl(),
-                            d.getModules().size(), d.getTotalEstimatedMinutes(), d.getCategoryName(), d.getCategorySlug(),
-                            prereqId, prereqName);
+                            d.getModules().size(), d.getTotalEstimatedMinutes(), d.getCategoryName(), d.getCategorySlug(), d.getCategoryId(),
+                            prereqId, prereqName, avg, total);
                 });
     }
 
@@ -187,6 +197,9 @@ public class CourseDetailsQueryAdapter implements CourseDetailsQueryPort, Course
         if (totalEstimatedMinutes == 0 && modules.stream().noneMatch(m -> m.getEstimatedMinutes() != null)) {
             totalEstimatedMinutes = null;
         }
+        GetCourseReviewSummaryPort.ReviewSummary rs = getCourseReviewSummaryPort.getSummary(domain.getId().getValue());
+        double avg = rs != null ? rs.averageRating() : 0.0;
+        long total = rs != null ? rs.totalReviews() : 0;
         return new CourseDetails(
                 domain.getId().getValue(),
                 domain.getTitle(),
@@ -196,7 +209,10 @@ public class CourseDetailsQueryAdapter implements CourseDetailsQueryPort, Course
                 totalEstimatedMinutes,
                 domain.getCategoryName(),
                 domain.getCategorySlug(),
-                modules
+                domain.getCategoryId(),
+                modules,
+                avg,
+                total
         );
     }
 

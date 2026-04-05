@@ -99,6 +99,7 @@ class CreateStaffServiceTest {
         @Override public long countByRole(StaffRole role) {
             return role == StaffRole.SUPER_ADMIN ? superAdminCount : adminCount;
         }
+        @Override public List<StaffUser> findAllByRole(StaffRole role) { return List.of(); }
         @Override public void updatePasswordHash(StaffUserId id, String hash) {}
     }
 

@@ -71,5 +71,6 @@ class ChangeStaffPasswordServiceTest {
         @Override public void deleteById(StaffUserId id) {}
         @Override public long count() { return store.size(); }
         @Override public long countByRole(StaffRole role) { return 0; }
+        @Override public List<StaffUser> findAllByRole(StaffRole role) { return List.of(); }
     }
 }

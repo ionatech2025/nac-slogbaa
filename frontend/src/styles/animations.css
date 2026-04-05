@@ -430,3 +430,24 @@
     }
   }
 }
+
+/* --- 14. Rate & Review Pulse: Attention-grabbing blink/pulse --- */
+@keyframes rate-review-pulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 4px 12px rgba(245, 130, 32, 0.25);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 8px 24px rgba(245, 130, 32, 0.5), 0 0 0 4px rgba(245, 130, 32, 0.2);
+    background-color: #ff914d; /* Slightly brighter orange */
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 4px 12px rgba(245, 130, 32, 0.25);
+  }
+}
+
+.rate-review-pulse {
+  animation: rate-review-pulse 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}

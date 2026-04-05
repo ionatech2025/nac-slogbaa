@@ -18,14 +18,15 @@ public final class Course {
     private final Integer totalEstimatedMinutes;
     private final String categoryName;
     private final String categorySlug;
+    private final UUID categoryId;
     private final UUID prerequisiteCourseId;
     private final String prerequisiteCourseName;
 
-    public Course(CourseId id, String title, String description, String imageUrl, boolean published, int moduleCount, Integer totalEstimatedMinutes, String categoryName, String categorySlug) {
-        this(id, title, description, imageUrl, published, moduleCount, totalEstimatedMinutes, categoryName, categorySlug, null, null);
+    public Course(CourseId id, String title, String description, String imageUrl, boolean published, int moduleCount, Integer totalEstimatedMinutes, String categoryName, String categorySlug, UUID categoryId) {
+        this(id, title, description, imageUrl, published, moduleCount, totalEstimatedMinutes, categoryName, categorySlug, categoryId, null, null);
     }
 
-    public Course(CourseId id, String title, String description, String imageUrl, boolean published, int moduleCount, Integer totalEstimatedMinutes, String categoryName, String categorySlug, UUID prerequisiteCourseId, String prerequisiteCourseName) {
+    public Course(CourseId id, String title, String description, String imageUrl, boolean published, int moduleCount, Integer totalEstimatedMinutes, String categoryName, String categorySlug, UUID categoryId, UUID prerequisiteCourseId, String prerequisiteCourseName) {
         this.id = Objects.requireNonNull(id);
         this.title = Objects.requireNonNull(title);
         this.description = description;
@@ -35,6 +36,7 @@ public final class Course {
         this.totalEstimatedMinutes = totalEstimatedMinutes;
         this.categoryName = categoryName;
         this.categorySlug = categorySlug;
+        this.categoryId = categoryId;
         this.prerequisiteCourseId = prerequisiteCourseId;
         this.prerequisiteCourseName = prerequisiteCourseName;
     }
@@ -48,6 +50,7 @@ public final class Course {
     public Integer getTotalEstimatedMinutes() { return totalEstimatedMinutes; }
     public String getCategoryName() { return categoryName; }
     public String getCategorySlug() { return categorySlug; }
+    public UUID getCategoryId() { return categoryId; }
     public UUID getPrerequisiteCourseId() { return prerequisiteCourseId; }
     public String getPrerequisiteCourseName() { return prerequisiteCourseName; }
 }

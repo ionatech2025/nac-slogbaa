@@ -3,7 +3,7 @@ import { useAuth } from '../../features/iam/hooks/useAuth.js'
 import { queryKeys } from '../query-keys.js'
 import { getStaffProfile, setStaffPassword, setStaffActive, deleteStaff, updateStaffProfile } from '../../api/admin/staff.js'
 import { getTraineeProfile, getTraineeEnrolledCourses, setTraineePassword, deleteTrainee, updateTraineeProfile } from '../../api/admin/trainees.js'
-import { getAdminCertificates } from '../../api/admin/certificates.js'
+import { getAdminCertificates, uploadManualCertificate } from '../../api/admin/certificates.js'
 
 export function useStaffProfile(staffId) {
   const { token } = useAuth()
@@ -117,6 +117,19 @@ export function useUpdateTraineeAdminProfile() {
     mutationFn: ({ traineeId, ...payload }) => updateTraineeProfile(token, traineeId, payload),
     onSuccess: (_, { traineeId }) => {
       qc.invalidateQueries({ queryKey: queryKeys.admin.users.trainee(traineeId) })
+    },
+  })
+}
+
+export function useUploadManualCertificate() {
+  const { token } = useAuth()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (payload) => uploadManualCertificate(token, payload),
+    onSuccess: (_, { traineeId }) => {
+      qc.invalidateQueries({ queryKey: [...queryKeys.admin.assessment.certificates(), 'trainee', traineeId] })
+      qc.invalidateQueries({ queryKey: queryKeys.admin.users.traineeEnrolled(traineeId) })
+      qc.invalidateQueries({ queryKey: queryKeys.admin.overview() })
     },
   })
 }

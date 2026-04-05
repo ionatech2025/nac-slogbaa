@@ -233,7 +233,8 @@ export function AdminLearningPage() {
   useDocumentTitle('Learning')
   const { token, isSuperAdmin } = useOutletContext()
   const navigate = useNavigate()
-  const { data: courses = [], isLoading: loading, error: queryError, refetch: refreshCourses } = useAdminCourses()
+  const { data: pagedData, isLoading: loading, error: queryError, refetch: refreshCourses } = useAdminCourses(0, 1000)
+  const courses = pagedData?.content ?? []
   const publishMutation = usePublishCourse()
   const unpublishMutation = useUnpublishCourse()
   const [error, setError] = useState(null)

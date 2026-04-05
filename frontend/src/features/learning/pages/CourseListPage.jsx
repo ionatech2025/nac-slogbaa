@@ -12,6 +12,7 @@ import { FilterSortBar } from '../../../shared/components/FilterSortBar.jsx'
 import { EmptyState } from '../../../shared/components/EmptyState.jsx'
 import { ConfirmModal } from '../../../shared/components/ConfirmModal.jsx'
 import { filterAndSortItems } from '../../../shared/utils/filterSort.js'
+import { Pagination } from '../../../shared/components/Pagination.jsx'
 
 const styles = {
   layout: {
@@ -122,7 +123,12 @@ const SORT_OPTIONS = [
 
 export function CourseListPage() {
   const navigate = useNavigate()
-  const { data: courses = [], isLoading: coursesLoading, error: coursesError, refetch } = usePublishedCourses()
+  const [page, setPage] = useState(1)
+  const pageSize = 10
+  const { data: pagedData, isLoading: coursesLoading, error: coursesError, refetch } = usePublishedCourses(page - 1, pageSize)
+  const courses = pagedData?.content ?? []
+  const totalItems = pagedData?.totalElements ?? 0
+
   const { data: enrolled = [], isLoading: enrolledLoading } = useEnrolledCourses()
   const { data: categories = [] } = useCategories()
   const enrollMutation = useEnrollInCourse()
@@ -257,9 +263,9 @@ export function CourseListPage() {
         <div style={styles.header}>
           <h1 style={styles.title}>Courses</h1>
           <p style={styles.subtitle}>
-            {courses.length === 0
+            {totalItems === 0
               ? 'No courses available yet.'
-              : `${filteredCourses.length} of ${courses.length} course${courses.length === 1 ? '' : 's'}`}
+              : `${courses.length} of ${totalItems} course${totalItems === 1 ? '' : 's'}`}
           </p>
         </div>
         {courses.length > 0 && (
@@ -357,6 +363,14 @@ export function CourseListPage() {
                 )
               })}
             </div>
+            {totalItems > pageSize && (
+              <Pagination
+                currentPage={page}
+                totalItems={totalItems}
+                pageSize={pageSize}
+                onPageChange={setPage}
+              />
+            )}
           </>
         )}
         {previewCourse && (() => {

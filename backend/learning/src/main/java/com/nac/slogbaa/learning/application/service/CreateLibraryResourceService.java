@@ -22,6 +22,6 @@ public final class CreateLibraryResourceService implements CreateLibraryResource
         var r = libraryResourceWritePort.findById(id).orElseThrow();
         return new AdminLibraryResourceSummary(
                 r.id(), r.title(), r.description(), r.resourceType(),
-                r.fileUrl(), r.fileType(), r.published());
+                r.fileUrl(), r.fileType(), r.published(), r.courseId());
     }
 }

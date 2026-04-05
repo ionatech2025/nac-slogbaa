@@ -12,7 +12,8 @@ public record AdminLibraryResourceSummaryResponse(
         String resourceType,
         String fileUrl,
         String fileType,
-        boolean published
+        boolean published,
+        String courseId
 ) {
     public static AdminLibraryResourceSummaryResponse from(AdminLibraryResourceSummary s) {
         return new AdminLibraryResourceSummaryResponse(
@@ -22,7 +23,8 @@ public record AdminLibraryResourceSummaryResponse(
                 s.getResourceType(),
                 s.getFileUrl(),
                 s.getFileType(),
-                s.isPublished()
+                s.isPublished(),
+                s.getCourseId() != null ? s.getCourseId().toString() : null
         );
     }
 }

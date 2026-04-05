@@ -21,10 +21,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
+import com.nac.slogbaa.shared.ports.GetCourseReviewSummaryPort;
+
 /**
  * Retrieves merged trainee + staff course reviews and combined rating summary.
  */
-public final class GetCourseReviewsService implements GetCourseReviewsUseCase {
+public final class GetCourseReviewsService implements GetCourseReviewsUseCase, GetCourseReviewSummaryPort {
 
     private final CourseReviewPort courseReviewPort;
     private final CourseStaffReviewPort courseStaffReviewPort;
@@ -70,6 +72,12 @@ public final class GetCourseReviewsService implements GetCourseReviewsUseCase {
     }
 
     @Override
+    public ReviewSummary getSummary(UUID courseId) {
+        CourseRatingSummary s = getRatingSummary(courseId);
+        return new ReviewSummary(s.averageRating(), s.totalReviews());
+    }
+
+    @Override
     public void deleteReview(UUID traineeId, UUID courseId) {
         courseReviewPort.findByTraineeAndCourse(traineeId, courseId)
                 .ifPresent(courseReviewPort::delete);
@@ -99,6 +107,7 @@ public final class GetCourseReviewsService implements GetCourseReviewsUseCase {
                 .orElse("Trainee");
         return new CourseReviewResult(
                 entity.getId(),
+                entity.getTraineeId(),
                 displayName,
                 "TRAINEE",
                 entity.getRating(),
@@ -113,6 +122,7 @@ public final class GetCourseReviewsService implements GetCourseReviewsUseCase {
                 .orElse("Staff");
         return new CourseReviewResult(
                 entity.getId(),
+                entity.getStaffUserId(),
                 displayName,
                 "STAFF",
                 entity.getRating(),

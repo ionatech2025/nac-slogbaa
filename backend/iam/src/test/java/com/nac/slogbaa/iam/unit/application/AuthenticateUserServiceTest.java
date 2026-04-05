@@ -142,6 +142,7 @@ class AuthenticateUserServiceTest {
         @Override public void deleteById(StaffUserId id) {}
         @Override public long count() { return 0; }
         @Override public long countByRole(StaffRole role) { return 0; }
+        @Override public List<StaffUser> findAllByRole(StaffRole role) { return List.of(); }
         @Override public void updatePasswordHash(StaffUserId id, String newPasswordHash) {}
     }
 

@@ -17,8 +17,9 @@ public final class AdminCourseSummary {
     private final Instant createdAt;
     private final String categoryName;
     private final String categorySlug;
+    private final UUID categoryId;
 
-    public AdminCourseSummary(UUID id, String title, String description, String imageUrl, boolean published, int moduleCount, Instant createdAt, String categoryName, String categorySlug) {
+    public AdminCourseSummary(UUID id, String title, String description, String imageUrl, boolean published, int moduleCount, Instant createdAt, String categoryName, String categorySlug, UUID categoryId) {
         this.id = Objects.requireNonNull(id);
         this.title = Objects.requireNonNull(title);
         this.description = description;
@@ -28,6 +29,7 @@ public final class AdminCourseSummary {
         this.createdAt = createdAt;
         this.categoryName = categoryName;
         this.categorySlug = categorySlug;
+        this.categoryId = categoryId;
     }
 
     public UUID getId() { return id; }
@@ -39,4 +41,5 @@ public final class AdminCourseSummary {
     public Instant getCreatedAt() { return createdAt; }
     public String getCategoryName() { return categoryName; }
     public String getCategorySlug() { return categorySlug; }
+    public UUID getCategoryId() { return categoryId; }
 }

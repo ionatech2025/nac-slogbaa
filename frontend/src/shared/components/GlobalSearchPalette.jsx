@@ -43,7 +43,8 @@ const PAGE_COMMANDS = [
  */
 export function GlobalSearchPalette({ open, onClose }) {
   const navigate = useNavigate()
-  const { data: courses = [] } = usePublishedCourses()
+  const { data: pagedData } = usePublishedCourses(0, 100)
+  const courses = pagedData?.content ?? []
 
   // Build commands list: courses + pages
   const allCommands = useMemo(() => {

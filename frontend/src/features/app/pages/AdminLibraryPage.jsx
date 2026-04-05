@@ -1,8 +1,9 @@
 import { useState, useCallback, useMemo } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { FontAwesomeIcon, icons } from '../../../shared/icons.jsx'
-import { useAdminLibrary, useCreateLibraryResource, useUpdateLibraryResource, usePublishLibraryResource, useUnpublishLibraryResource } from '../../../lib/hooks/use-admin.js'
+import { useAdminLibrary, useCreateLibraryResource, useUpdateLibraryResource, usePublishLibraryResource, useUnpublishLibraryResource, useAdminCourses } from '../../../lib/hooks/use-admin.js'
 import { uploadFile } from '../../../api/files.js'
+import { getAssetUrl } from '../../../api/client.js'
 import { Modal } from '../../../shared/components/Modal.jsx'
 import { useToast } from '../../../shared/hooks/useToast.js'
 import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle.js'
@@ -19,6 +20,16 @@ const RESOURCE_TYPES = [
   { value: 'READING_MATERIAL', label: 'Reading material' },
 ]
 
+const FILE_TYPES = [
+  { value: 'PDF', label: 'PDF' },
+  { value: 'DOCX', label: 'Word (DOCX)' },
+  { value: 'XLSX', label: 'Excel (XLSX)' },
+  { value: 'PPTX', label: 'PowerPoint (PPTX)' },
+  { value: 'ZIP', label: 'Archive (ZIP)' },
+  { value: 'LINK', label: 'Web Link' },
+  { value: 'OTHER', label: 'Other' },
+]
+
 const STATUS_FILTERS = [
   { value: 'all', label: 'All' },
   { value: 'published', label: 'Published' },
@@ -30,11 +41,12 @@ const BREADCRUMB_ITEMS = [
   { label: 'Library' },
 ]
 
-const CSV_COLUMNS = ['title', 'description', 'resourceType', 'published', 'fileType', 'fileUrl']
+const CSV_COLUMNS = ['title', 'description', 'resourceType', 'courseTitle', 'published', 'fileType', 'fileUrl']
 const CSV_HEADERS = {
   title: 'Title',
   description: 'Description',
   resourceType: 'Type',
+  courseTitle: 'Course',
   published: 'Status',
   fileType: 'File Type',
   fileUrl: 'File URL',
@@ -261,6 +273,9 @@ export function AdminLibraryPage() {
   useDocumentTitle('Library')
   const { token, isSuperAdmin } = useOutletContext()
   const { data: resources = [], isLoading: loading, error: queryError } = useAdminLibrary()
+  const { data: pagedCourses } = useAdminCourses(0, 1000)
+  const courses = pagedCourses?.content ?? []
+
   const createMutation = useCreateLibraryResource()
   const updateMutation = useUpdateLibraryResource()
   const publishMutation = usePublishLibraryResource()
@@ -268,7 +283,7 @@ export function AdminLibraryPage() {
   const [error, setError] = useState(queryError?.message ?? null)
   const [modalOpen, setModalOpen] = useState(false)
   const [editResource, setEditResource] = useState(null)
-  const [form, setForm] = useState({ title: '', description: '', resourceType: 'DOCUMENT', fileUrl: '', fileType: '' })
+  const [form, setForm] = useState({ title: '', description: '', resourceType: 'DOCUMENT', fileUrl: '', fileType: '', courseId: '' })
   const [savingEditId, setSavingEditId] = useState(null)
 
   // Search, filter, sort state
@@ -348,14 +363,18 @@ export function AdminLibraryPage() {
 
   // CSV export
   const handleExportCsv = useCallback(() => {
-    const exportData = filteredResources.map((r) => ({
-      title: r.title || '',
-      description: r.description || '',
-      resourceType: (r.resourceType || '').replace(/_/g, ' '),
-      published: r.published ? 'Published' : 'Draft',
-      fileType: r.fileType || '',
-      fileUrl: r.fileUrl || '',
-    }))
+    const exportData = filteredResources.map((r) => {
+      const course = courses.find((c) => c.id === r.courseId)
+      return {
+        title: r.title || '',
+        description: r.description || '',
+        resourceType: (r.resourceType || '').replace(/_/g, ' '),
+        courseTitle: course ? course.title : 'General',
+        published: r.published ? 'Published' : 'Draft',
+        fileType: r.fileType || '',
+        fileUrl: r.fileUrl || '',
+      }
+    })
     exportToCsv(exportData, {
       filename: 'library-resources',
       columns: CSV_COLUMNS,
@@ -374,9 +393,10 @@ export function AdminLibraryPage() {
         resourceType: form.resourceType,
         fileUrl: form.fileUrl.trim(),
         fileType: form.fileType?.trim() || undefined,
+        courseId: form.courseId || null,
       })
       setModalOpen(false)
-      setForm({ title: '', description: '', resourceType: 'DOCUMENT', fileUrl: '', fileType: '' })
+      setForm({ title: '', description: '', resourceType: 'DOCUMENT', fileUrl: '', fileType: '', courseId: '' })
       toast.success('Resource created.')
     } catch (e) {
       toast.error(e?.message ?? 'Failed to create resource.')
@@ -409,12 +429,13 @@ export function AdminLibraryPage() {
       resourceType: r.resourceType ?? 'DOCUMENT',
       fileUrl: r.fileUrl ?? '',
       fileType: r.fileType ?? '',
+      courseId: r.courseId ?? '',
     })
   }
 
   const closeEditModal = () => {
     setEditResource(null)
-    setForm({ title: '', description: '', resourceType: 'DOCUMENT', fileUrl: '', fileType: '' })
+    setForm({ title: '', description: '', resourceType: 'DOCUMENT', fileUrl: '', fileType: '', courseId: '' })
   }
 
   const handleEditSubmit = async (e) => {
@@ -429,6 +450,7 @@ export function AdminLibraryPage() {
         resourceType: form.resourceType,
         fileUrl: form.fileUrl.trim(),
         fileType: form.fileType?.trim() || undefined,
+        courseId: form.courseId || null,
       })
       closeEditModal()
       toast.success('Resource updated.')
@@ -537,7 +559,7 @@ export function AdminLibraryPage() {
                 onClick={() => handleSort('resourceType')}
                 aria-sort={sortKey === 'resourceType' ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'}
               >
-                Type {getSortIndicator(sortKey, sortDir, 'resourceType')}
+                Category {getSortIndicator(sortKey, sortDir, 'resourceType')}
               </th>
               <th
                 style={styles.th}
@@ -546,6 +568,8 @@ export function AdminLibraryPage() {
               >
                 Status {getSortIndicator(sortKey, sortDir, 'published')}
               </th>
+              <th style={{ ...styles.th, ...styles.thNotSortable }}>Course</th>
+              <th style={{ ...styles.th, ...styles.thNotSortable }}>Format</th>
               <th style={{ ...styles.th, ...styles.thNotSortable }}>Link</th>
               {isSuperAdmin && <th style={{ ...styles.th, ...styles.thNotSortable }}>Actions</th>}
             </tr>
@@ -579,6 +603,26 @@ export function AdminLibraryPage() {
                     <span style={{ ...styles.badge, ...(r.published ? styles.badgePublished : styles.badgeDraft) }}>
                       {r.published ? 'Published' : 'Draft'}
                     </span>
+                  </td>
+                  <td style={styles.td}>
+                    {r.courseId ? (
+                      <span style={{ fontSize: '0.875rem' }}>
+                        {courses.find(c => c.id === r.courseId)?.title || 'Assigned Course'}
+                      </span>
+                    ) : (
+                      <span style={{ color: 'var(--slogbaa-text-muted)', fontSize: '0.875rem' }}>General</span>
+                    )}
+                  </td>
+                  <td style={styles.td}>
+                    {r.fileType === 'LINK' ? (
+                      <span style={{ ...styles.badge, background: 'rgba(39, 129, 191, 0.1)', color: 'var(--slogbaa-blue)' }}>
+                        <FontAwesomeIcon icon={icons.link} style={{ marginRight: 4 }} /> Link
+                      </span>
+                    ) : (
+                      <span style={{ ...styles.badge, background: 'rgba(128,128,128,0.1)', color: 'var(--slogbaa-text)' }}>
+                        {r.fileType || 'File'}
+                      </span>
+                    )}
                   </td>
                   <td style={styles.td}>
                     <a href={r.fileUrl} target="_blank" rel="noopener noreferrer" style={styles.link}>
@@ -684,9 +728,12 @@ export function AdminLibraryPage() {
                   const file = e.target.files?.[0]
                   if (!file) return
                   try {
-                    setForm((f) => ({ ...f, fileType: file.name.split('.').pop()?.toUpperCase() || '' }))
-                    const result = await uploadFile(token, file, 'library')
-                    setForm((f) => ({ ...f, fileUrl: result.url, fileType: result.contentType?.split('/')?.pop()?.toUpperCase() || f.fileType }))
+                    const { url, contentType } = await uploadFile(token, file, 'library')
+                    setForm((f) => ({ 
+                      ...f, 
+                      fileUrl: url, 
+                      fileType: contentType?.split('/')?.pop()?.toUpperCase() || file.name.split('.').pop()?.toUpperCase() || f.fileType 
+                    }))
                   } catch (err) {
                     setError(err?.message ?? 'Upload failed.')
                   }
@@ -696,11 +743,29 @@ export function AdminLibraryPage() {
               <p style={{ margin: '0.25rem 0 0', fontSize: '0.75rem', color: 'var(--slogbaa-text-muted)' }}>
                 Upload a new file to replace the current one, or edit the URL below.
               </p>
+              {error && (error.toLowerCase().includes('size') || error.toLowerCase().includes('large')) && (
+                <p style={{ margin: '0.5rem 0 0', fontSize: '0.8125rem', color: 'var(--slogbaa-red)', fontWeight: 600 }}>
+                  <FontAwesomeIcon icon={icons.error} style={{ marginRight: 4 }} /> {error}
+                </p>
+              )}
+            </div>
+            <div style={styles.formRow}>
+              <label style={styles.label}>Associated course</label>
+              <select
+                value={form.courseId}
+                onChange={(e) => setForm((f) => ({ ...f, courseId: e.target.value }))}
+                style={styles.input}
+              >
+                <option value="">General resource (no course)</option>
+                {courses.map((c) => (
+                  <option key={c.id} value={c.id}>{c.title}</option>
+                ))}
+              </select>
             </div>
             <div style={styles.formRow}>
               <label style={styles.label}>File URL *</label>
               <input
-                type="url"
+                type="text"
                 value={form.fileUrl}
                 onChange={(e) => setForm((f) => ({ ...f, fileUrl: e.target.value }))}
                 style={styles.input}
@@ -709,15 +774,32 @@ export function AdminLibraryPage() {
               />
             </div>
             <div style={styles.formRow}>
-              <label style={styles.label}>File type (e.g. PDF)</label>
-              <input
-                type="text"
-                value={form.fileType}
+              <label style={styles.label}>Format / File type *</label>
+              <select
+                value={FILE_TYPES.some(t => t.value === form.fileType) ? form.fileType : (form.fileType ? 'OTHER' : '')}
                 onChange={(e) => setForm((f) => ({ ...f, fileType: e.target.value }))}
                 style={styles.input}
-                placeholder="PDF, DOCX, etc."
-              />
+                required
+              >
+                <option value="">Select type...</option>
+                {FILE_TYPES.map((t) => (
+                  <option key={t.value} value={t.value}>{t.label}</option>
+                ))}
+              </select>
             </div>
+            {form.fileType === 'OTHER' && (
+              <div style={styles.formRow}>
+                <label style={styles.label}>Specify other type</label>
+                <input
+                  type="text"
+                  value={form.fileType === 'OTHER' ? '' : form.fileType}
+                  onChange={(e) => setForm((f) => ({ ...f, fileType: e.target.value.toUpperCase() }))}
+                  style={styles.input}
+                  placeholder="e.g. MP4, KEYNOTE"
+                  required
+                />
+              </div>
+            )}
             <div style={styles.formActions}>
               <button type="button" style={styles.btnSecondary} onClick={closeEditModal}>
                 Cancel
@@ -775,9 +857,12 @@ export function AdminLibraryPage() {
                   const file = e.target.files?.[0]
                   if (!file) return
                   try {
-                    setForm((f) => ({ ...f, fileType: file.name.split('.').pop()?.toUpperCase() || '' }))
-                    const result = await uploadFile(token, file, 'library')
-                    setForm((f) => ({ ...f, fileUrl: result.url, fileType: result.contentType?.split('/')?.pop()?.toUpperCase() || f.fileType }))
+                    const { url, contentType } = await uploadFile(token, file, 'library')
+                    setForm((f) => ({ 
+                      ...f, 
+                      fileUrl: url, 
+                      fileType: contentType?.split('/')?.pop()?.toUpperCase() || file.name.split('.').pop()?.toUpperCase() || f.fileType 
+                    }))
                   } catch (err) {
                     setError(err?.message ?? 'Upload failed.')
                   }
@@ -787,11 +872,29 @@ export function AdminLibraryPage() {
               <p style={{ margin: '0.25rem 0 0', fontSize: '0.75rem', color: 'var(--slogbaa-text-muted)' }}>
                 Or enter a URL manually below.
               </p>
+              {error && (error.toLowerCase().includes('size') || error.toLowerCase().includes('large')) && (
+                <p style={{ margin: '0.5rem 0 0', fontSize: '0.8125rem', color: 'var(--slogbaa-red)', fontWeight: 600 }}>
+                  <FontAwesomeIcon icon={icons.error} style={{ marginRight: 4 }} /> {error}
+                </p>
+              )}
+            </div>
+            <div style={styles.formRow}>
+              <label style={styles.label}>Associated course</label>
+              <select
+                value={form.courseId}
+                onChange={(e) => setForm((f) => ({ ...f, courseId: e.target.value }))}
+                style={styles.input}
+              >
+                <option value="">General resource (no course)</option>
+                {courses.map((c) => (
+                  <option key={c.id} value={c.id}>{c.title}</option>
+                ))}
+              </select>
             </div>
             <div style={styles.formRow}>
               <label style={styles.label}>File URL {form.fileUrl ? '' : '*'}</label>
               <input
-                type="url"
+                type="text"
                 value={form.fileUrl}
                 onChange={(e) => setForm((f) => ({ ...f, fileUrl: e.target.value }))}
                 style={styles.input}
@@ -800,15 +903,32 @@ export function AdminLibraryPage() {
               />
             </div>
             <div style={styles.formRow}>
-              <label style={styles.label}>File type (e.g. PDF)</label>
-              <input
-                type="text"
-                value={form.fileType}
+              <label style={styles.label}>Format / File type *</label>
+              <select
+                value={FILE_TYPES.some(t => t.value === form.fileType) ? form.fileType : (form.fileType ? 'OTHER' : '')}
                 onChange={(e) => setForm((f) => ({ ...f, fileType: e.target.value }))}
                 style={styles.input}
-                placeholder="PDF, DOCX, etc."
-              />
+                required
+              >
+                <option value="">Select type...</option>
+                {FILE_TYPES.map((t) => (
+                  <option key={t.value} value={t.value}>{t.label}</option>
+                ))}
+              </select>
             </div>
+            {form.fileType === 'OTHER' && (
+              <div style={styles.formRow}>
+                <label style={styles.label}>Specify other type</label>
+                <input
+                  type="text"
+                  value={form.fileType === 'OTHER' ? '' : form.fileType}
+                  onChange={(e) => setForm((f) => ({ ...f, fileType: e.target.value.toUpperCase() }))}
+                  style={styles.input}
+                  placeholder="e.g. MP4, KEYNOTE"
+                  required
+                />
+              </div>
+            )}
             <div style={styles.formActions}>
               <button type="button" style={styles.btnSecondary} onClick={() => setModalOpen(false)}>
                 Cancel

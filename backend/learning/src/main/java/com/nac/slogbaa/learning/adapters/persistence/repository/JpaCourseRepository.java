@@ -9,12 +9,24 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface JpaCourseRepository extends JpaRepository<CourseEntity, UUID> {
 
+    @org.springframework.data.jpa.repository.EntityGraph(attributePaths = "category")
+    List<CourseEntity> findAll();
+
+    @org.springframework.data.jpa.repository.EntityGraph(attributePaths = "category")
+    Page<CourseEntity> findAll(Pageable pageable);
+
+    @org.springframework.data.jpa.repository.EntityGraph(attributePaths = "category")
+    Optional<CourseEntity> findById(UUID id);
+
+    @org.springframework.data.jpa.repository.EntityGraph(attributePaths = "category")
     List<CourseEntity> findByPublishedTrue();
 
+    @org.springframework.data.jpa.repository.EntityGraph(attributePaths = "category")
     Page<CourseEntity> findByPublishedTrue(Pageable pageable);
 
     /**

@@ -49,6 +49,7 @@ import com.nac.slogbaa.progress.application.port.out.ModuleCompletionPort;
 import com.nac.slogbaa.progress.application.port.out.StreakPort;
 import com.nac.slogbaa.progress.application.port.out.TraineeProgressRepositoryPort;
 import com.nac.slogbaa.progress.application.port.out.XpPort;
+import com.nac.slogbaa.progress.application.service.CourseCompletionStaffNotificationService;
 import com.nac.slogbaa.progress.application.service.CourseReviewStaffNotificationService;
 import com.nac.slogbaa.progress.application.service.CreateDiscussionThreadService;
 import com.nac.slogbaa.progress.application.service.EnrollTraineeService;
@@ -78,6 +79,8 @@ import com.nac.slogbaa.progress.application.service.RecordProgressService;
 import com.nac.slogbaa.progress.application.service.SubmitCourseReviewService;
 import com.nac.slogbaa.progress.application.service.SubmitStaffCourseReviewService;
 import com.nac.slogbaa.progress.application.service.UpdateDailyGoalService;
+import com.nac.slogbaa.progress.application.service.UploadManualCertificateService;
+import com.nac.slogbaa.progress.application.port.in.UploadManualCertificateUseCase;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -106,6 +109,16 @@ public class ProgressConfiguration {
             CoursePublicationPort coursePublicationPort) {
         return new CourseReviewStaffNotificationService(
                 staffUserRepository, createNotificationUseCase, coursePublicationPort);
+    }
+
+    @Bean
+    public CourseCompletionStaffNotificationService courseCompletionStaffNotificationService(
+            StaffUserRepositoryPort staffUserRepository,
+            CreateNotificationUseCase createNotificationUseCase,
+            CoursePublicationPort coursePublicationPort,
+            GetTraineeByIdUseCase getTraineeByIdUseCase) {
+        return new CourseCompletionStaffNotificationService(
+                staffUserRepository, createNotificationUseCase, coursePublicationPort, getTraineeByIdUseCase);
     }
 
     @Bean
@@ -146,8 +159,9 @@ public class ProgressConfiguration {
             CourseDetailsQueryPort courseDetailsQueryPort,
             IssueCertificateUseCase issueCertificateUseCase,
             CheckAndAwardBadgesUseCase checkAndAwardBadgesUseCase,
-            CreateNotificationUseCase createNotificationUseCase) {
-        return new RecordModuleCompletionService(traineeProgressRepository, moduleCompletionPort, courseDetailsQueryPort, issueCertificateUseCase, checkAndAwardBadgesUseCase, createNotificationUseCase);
+            CreateNotificationUseCase createNotificationUseCase,
+            CourseCompletionStaffNotificationService staffNotificationService) {
+        return new RecordModuleCompletionService(traineeProgressRepository, moduleCompletionPort, courseDetailsQueryPort, issueCertificateUseCase, checkAndAwardBadgesUseCase, createNotificationUseCase, staffNotificationService);
     }
 
     @Bean
@@ -209,6 +223,17 @@ public class ProgressConfiguration {
     }
 
     @Bean
+    public UploadManualCertificateUseCase uploadManualCertificateUseCase(
+            CertificateRepositoryPort certificateRepository,
+            FileStoragePort fileStorage,
+            CreateNotificationUseCase createNotificationUseCase,
+            CoursePublicationPort coursePublicationPort,
+            TraineeProgressRepositoryPort traineeProgressRepository) {
+        return new UploadManualCertificateService(
+                certificateRepository, fileStorage, createNotificationUseCase, coursePublicationPort, traineeProgressRepository);
+    }
+
+    @Bean
     public GetLeaderboardUseCase getLeaderboardUseCase(
             TraineeProgressRepositoryPort traineeProgressRepository,
             GetTraineeByIdUseCase getTraineeByIdUseCase) {
@@ -242,7 +267,7 @@ public class ProgressConfiguration {
     }
 
     @Bean
-    public GetCourseReviewsUseCase getCourseReviewsUseCase(
+    public GetCourseReviewsService getCourseReviewsUseCase(
             CourseReviewPort courseReviewPort,
             CourseStaffReviewPort courseStaffReviewPort,
             GetTraineeByIdUseCase getTraineeByIdUseCase,

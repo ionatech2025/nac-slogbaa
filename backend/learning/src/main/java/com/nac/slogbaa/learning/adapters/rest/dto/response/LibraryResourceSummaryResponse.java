@@ -11,7 +11,8 @@ public record LibraryResourceSummaryResponse(
         String description,
         String resourceType,
         String fileUrl,
-        String fileType
+        String fileType,
+        String courseId
 ) {
     public static LibraryResourceSummaryResponse from(LibraryResourceSummary s) {
         return new LibraryResourceSummaryResponse(
@@ -20,7 +21,8 @@ public record LibraryResourceSummaryResponse(
                 s.getDescription(),
                 s.getResourceType(),
                 s.getFileUrl(),
-                s.getFileType()
+                s.getFileType(),
+                s.getCourseId() != null ? s.getCourseId().toString() : null
         );
     }
 }

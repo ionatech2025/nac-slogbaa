@@ -10,6 +10,7 @@ import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -59,6 +60,19 @@ public class LearningExceptionHandler {
     public ProblemDetail handleModuleHasCompletions(ModuleHasCompletionsException e) {
         ProblemDetail detail = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, e.getMessage());
         detail.setTitle("Module cannot be deleted");
+        return detail;
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ProblemDetail handleDataIntegrityViolation(DataIntegrityViolationException e) {
+        ProblemDetail detail = ProblemDetail.forStatus(HttpStatus.CONFLICT);
+        detail.setTitle("Conflict");
+        String msg = e.getMessage();
+        if (msg != null && (msg.contains("uq_module_course_order") || msg.contains("uq_module_order"))) {
+            detail.setDetail("A module with this order index already exists in this course.");
+        } else {
+            detail.setDetail("A database constraint violation occurred. Please check your data.");
+        }
         return detail;
     }
 }

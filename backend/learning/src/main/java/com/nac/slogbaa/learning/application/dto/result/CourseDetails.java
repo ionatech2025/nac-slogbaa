@@ -17,10 +17,19 @@ public final class CourseDetails {
     private final Integer totalEstimatedMinutes;
     private final String categoryName;
     private final String categorySlug;
+    private final UUID categoryId;
     private final List<ModuleSummary> modules;
+    private final double averageRating;
+    private final long reviewCount;
 
     public CourseDetails(UUID id, String title, String description, String imageUrl, boolean published,
-                         Integer totalEstimatedMinutes, String categoryName, String categorySlug, List<ModuleSummary> modules) {
+                         Integer totalEstimatedMinutes, String categoryName, String categorySlug, UUID categoryId, List<ModuleSummary> modules) {
+        this(id, title, description, imageUrl, published, totalEstimatedMinutes, categoryName, categorySlug, categoryId, modules, 0.0, 0);
+    }
+
+    public CourseDetails(UUID id, String title, String description, String imageUrl, boolean published,
+                         Integer totalEstimatedMinutes, String categoryName, String categorySlug, UUID categoryId,
+                         List<ModuleSummary> modules, double averageRating, long reviewCount) {
         this.id = Objects.requireNonNull(id);
         this.title = Objects.requireNonNull(title);
         this.description = description;
@@ -29,7 +38,10 @@ public final class CourseDetails {
         this.totalEstimatedMinutes = totalEstimatedMinutes;
         this.categoryName = categoryName;
         this.categorySlug = categorySlug;
+        this.categoryId = categoryId;
         this.modules = modules != null ? List.copyOf(modules) : List.of();
+        this.averageRating = averageRating;
+        this.reviewCount = reviewCount;
     }
 
     public UUID getId() { return id; }
@@ -40,5 +52,8 @@ public final class CourseDetails {
     public Integer getTotalEstimatedMinutes() { return totalEstimatedMinutes; }
     public String getCategoryName() { return categoryName; }
     public String getCategorySlug() { return categorySlug; }
+    public UUID getCategoryId() { return categoryId; }
     public List<ModuleSummary> getModules() { return modules; }
+    public double getAverageRating() { return averageRating; }
+    public long getReviewCount() { return reviewCount; }
 }
