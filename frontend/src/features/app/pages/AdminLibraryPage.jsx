@@ -431,11 +431,13 @@ export function AdminLibraryPage() {
       fileType: r.fileType ?? '',
       courseId: r.courseId ?? '',
     })
+    setError(null)
   }
 
   const closeEditModal = () => {
     setEditResource(null)
     setForm({ title: '', description: '', resourceType: 'DOCUMENT', fileUrl: '', fileType: '', courseId: '' })
+    setError(null)
   }
 
   const handleEditSubmit = async (e) => {
@@ -503,7 +505,10 @@ export function AdminLibraryPage() {
             <button
               type="button"
               style={styles.btnPrimary}
-              onClick={() => setModalOpen(true)}
+              onClick={() => {
+                setModalOpen(true)
+                setError(null)
+              }}
             >
               <FontAwesomeIcon icon={icons.addBlock} />
               Add resource
@@ -692,7 +697,10 @@ export function AdminLibraryPage() {
               <input
                 type="text"
                 value={form.title}
-                onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
+                onChange={(e) => {
+                  setForm((f) => ({ ...f, title: e.target.value }))
+                  setError(null)
+                }}
                 style={styles.input}
                 placeholder="Resource title"
                 required
@@ -727,6 +735,7 @@ export function AdminLibraryPage() {
                 onChange={async (e) => {
                   const file = e.target.files?.[0]
                   if (!file) return
+                  setError(null)
                   try {
                     const { url, contentType } = await uploadFile(token, file, 'library')
                     setForm((f) => ({ 
@@ -767,7 +776,10 @@ export function AdminLibraryPage() {
               <input
                 type="text"
                 value={form.fileUrl}
-                onChange={(e) => setForm((f) => ({ ...f, fileUrl: e.target.value }))}
+                onChange={(e) => {
+                  setForm((f) => ({ ...f, fileUrl: e.target.value }))
+                  setError(null)
+                }}
                 style={styles.input}
                 placeholder="https://..."
                 required
@@ -814,14 +826,17 @@ export function AdminLibraryPage() {
 
       {/* Create resource modal */}
       {modalOpen && (
-        <Modal title="Add library resource" onClose={() => setModalOpen(false)} maxWidth={480}>
+        <Modal title="Add library resource" onClose={() => { setModalOpen(false); setError(null); }} maxWidth={480}>
           <form onSubmit={handleCreate}>
             <div style={styles.formRow}>
               <label style={styles.label}>Title *</label>
               <input
                 type="text"
                 value={form.title}
-                onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
+                onChange={(e) => {
+                  setForm((f) => ({ ...f, title: e.target.value }))
+                  setError(null)
+                }}
                 style={styles.input}
                 placeholder="Resource title"
                 required
@@ -856,6 +871,7 @@ export function AdminLibraryPage() {
                 onChange={async (e) => {
                   const file = e.target.files?.[0]
                   if (!file) return
+                  setError(null)
                   try {
                     const { url, contentType } = await uploadFile(token, file, 'library')
                     setForm((f) => ({ 
@@ -896,7 +912,10 @@ export function AdminLibraryPage() {
               <input
                 type="text"
                 value={form.fileUrl}
-                onChange={(e) => setForm((f) => ({ ...f, fileUrl: e.target.value }))}
+                onChange={(e) => {
+                  setForm((f) => ({ ...f, fileUrl: e.target.value }))
+                  setError(null)
+                }}
                 style={styles.input}
                 placeholder="https://... (auto-filled after upload)"
                 required

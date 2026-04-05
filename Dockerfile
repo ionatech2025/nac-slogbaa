@@ -26,12 +26,12 @@ LABEL org.opencontainers.image.title="slogbaa-backend" \
 
 WORKDIR /app
 
-COPY --link --from=extract /build/extracted/dependencies/ ./
-COPY --link --from=extract /build/extracted/spring-boot-loader/ ./
-COPY --link --from=extract /build/extracted/snapshot-dependencies/ ./
-COPY --link --from=extract /build/extracted/application/ ./
+COPY --link --from=extract --chown=65532:65532 /build/extracted/dependencies/ ./
+COPY --link --from=extract --chown=65532:65532 /build/extracted/spring-boot-loader/ ./
+COPY --link --from=extract --chown=65532:65532 /build/extracted/snapshot-dependencies/ ./
+COPY --link --from=extract --chown=65532:65532 /build/extracted/application/ ./
 
-# Ensure uploads directory is writable by the nonroot user (UID 65532)
+# Create and ensure uploads directory is writable by the nonroot user (UID 65532)
 COPY --from=extract --chown=65532:65532 /build/uploads ./uploads
 
 EXPOSE 8080
