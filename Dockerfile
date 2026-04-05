@@ -15,7 +15,8 @@ RUN chmod +x gradlew && ./gradlew :app:bootJar --no-daemon -q
 FROM docker.io/library/eclipse-temurin:21-jdk-alpine AS extract
 WORKDIR /build
 COPY --from=build /build/app/build/libs/*.jar app.jar
-RUN java -Djarmode=tools -jar app.jar extract --layers --launcher --destination extracted
+RUN java -Djarmode=tools -jar app.jar extract --layers --launcher --destination extracted && \
+    mkdir -p /build/uploads
 
 FROM gcr.io/distroless/java21-debian12:nonroot
 
@@ -29,6 +30,9 @@ COPY --link --from=extract /build/extracted/dependencies/ ./
 COPY --link --from=extract /build/extracted/spring-boot-loader/ ./
 COPY --link --from=extract /build/extracted/snapshot-dependencies/ ./
 COPY --link --from=extract /build/extracted/application/ ./
+
+# Ensure uploads directory is writable by the nonroot user (UID 65532)
+COPY --from=extract --chown=65532:65532 /build/uploads ./uploads
 
 EXPOSE 8080
 

@@ -100,7 +100,7 @@ export function CreateCourseModal({ token, onClose, onSubmit }) {
     setUploading(true)
     try {
       const { url } = await uploadFile(token, file, 'courses')
-      setImageUrl(url)
+      setImageUrl(getAssetUrl(url))
     } catch (err) {
       setError(err?.message ?? 'Image upload failed.')
     } finally {
