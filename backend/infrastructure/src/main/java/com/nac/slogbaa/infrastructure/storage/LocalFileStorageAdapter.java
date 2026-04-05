@@ -52,10 +52,24 @@ public class LocalFileStorageAdapter implements FileStoragePort {
         Path targetFile = targetDir.resolve(filename);
 
         try {
-            Files.createDirectories(targetDir);
+            if (!Files.exists(targetDir)) {
+                Files.createDirectories(targetDir);
+            }
+            if (!Files.isWritable(targetDir)) {
+                // Diagnostic check to see which parent is not writable
+                Path p = targetDir;
+                StringBuilder diag = new StringBuilder();
+                while (p != null) {
+                    diag.append(p).append("[exists=").append(Files.exists(p))
+                        .append(",writable=").append(Files.isWritable(p)).append("] ");
+                    p = p.getParent();
+                }
+                throw new FileStorageException("Target directory not writable. Diagnostic trace: " + diag);
+            }
             Files.write(targetFile, content);
         } catch (IOException e) {
-            throw new FileStorageException("Failed to store file: " + sanitizeForLog(e.getMessage()), e); // nosemgrep
+            String msg = "Failed to store file in " + targetDir + ": " + e.getClass().getSimpleName() + " - " + sanitizeForLog(e.getMessage());
+            throw new FileStorageException(msg, e);
         }
 
         String url = "/uploads/" + subdir + "/" + filename;
