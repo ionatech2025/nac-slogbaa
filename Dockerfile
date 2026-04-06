@@ -18,7 +18,7 @@ COPY --from=build /build/app/build/libs/*.jar app.jar
 RUN java -Djarmode=tools -jar app.jar extract --layers --launcher --destination extracted && \
     mkdir -p /build/uploads
 
-FROM gcr.io/distroless/java21-debian12:nonroot
+FROM docker.io/library/eclipse-temurin:21-jre-alpine
 
 LABEL org.opencontainers.image.title="slogbaa-backend" \
       org.opencontainers.image.description="NAC SLOGBAA Learning Platform - Spring Boot Backend" \
@@ -26,19 +26,21 @@ LABEL org.opencontainers.image.title="slogbaa-backend" \
 
 WORKDIR /app
 
-COPY --link --from=extract --chown=65532:65532 /build/extracted/dependencies/ ./
-COPY --link --from=extract --chown=65532:65532 /build/extracted/spring-boot-loader/ ./
-COPY --link --from=extract --chown=65532:65532 /build/extracted/snapshot-dependencies/ ./
-COPY --link --from=extract --chown=65532:65532 /build/extracted/application/ ./
+# Copy extracted layers from the 'extract' stage
+COPY --from=extract /build/extracted/dependencies/ ./
+COPY --from=extract /build/extracted/spring-boot-loader/ ./
+COPY --from=extract /build/extracted/snapshot-dependencies/ ./
+COPY --from=extract /build/extracted/application/ ./
 
-# Create and ensure uploads directory is writable by the nonroot user (UID 65532)
-COPY --from=extract --chown=65532:65532 /build/uploads ./uploads
+# Ensure the uploads directory exists
+RUN mkdir -p /app/uploads
 
 EXPOSE 8080
 
 ENV JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=75.0 -XX:+UseG1GC -XX:+ExitOnOutOfMemoryError"
 
-# Distroless :nonroot image already runs as UID 65532; explicit USER satisfies Semgrep rule
-USER nonroot
+# Running as root to ensure we can write to the Railway volume mounted at /app/uploads.
+# Railway volumes are often mounted with root ownership.
+USER root
 
 ENTRYPOINT ["java", "org.springframework.boot.loader.launch.JarLauncher"]
