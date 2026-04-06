@@ -88,8 +88,9 @@ function safeImageSrc(url) {
   if (!u) return ''
   // Blob URLs are safe for <img> previews.
   if (u.startsWith('blob:')) return u
-  // Only allow relative and http(s) URLs.
-  if (u.startsWith('/') || u.startsWith('http://') || u.startsWith('https://')) return getAssetUrl(u)
+  // Relative URLs (stored in DB) need resolution. Absolute ones skip it.
+  if (u.startsWith('/')) return getAssetUrl(u)
+  if (u.startsWith('http://') || u.startsWith('https://')) return u
   return ''
 }
 
@@ -122,7 +123,9 @@ export function EditCourseModal({ token, course, onClose, onSubmit }) {
     try {
       const { url } = await uploadFile(token, file, 'courses')
       URL.revokeObjectURL(objectUrl)
-      setImageUrl(getAssetUrl(url))
+      // Store only the relative path (e.g. /uploads/courses/uuid.png)
+      // safeImageSrc will resolve it for the preview below.
+      setImageUrl(url)
     } catch (err) {
       URL.revokeObjectURL(objectUrl)
       setImageUrl(course?.imageUrl ?? null)
