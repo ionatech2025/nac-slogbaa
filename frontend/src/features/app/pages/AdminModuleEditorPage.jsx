@@ -433,8 +433,8 @@ export function AdminModuleEditorPage() {
     setImageUploading(true)
     try {
       const { url } = await uploadFile(token, file, 'courses')
-      setModule((m) => (m ? { ...m, imageUrl: getAssetUrl(url) } : m))
-      await updateModule(token, courseId, moduleId, { title: module?.title ?? '', description: module?.description ?? '', imageUrl: getAssetUrl(url), estimatedMinutes: module?.estimatedMinutes ?? undefined })
+      setModule((m) => (m ? { ...m, imageUrl: url } : m))
+      await updateModule(token, courseId, moduleId, { title: module?.title ?? '', description: module?.description ?? '', imageUrl: url, estimatedMinutes: module?.estimatedMinutes ?? undefined })
       await refresh()
     } catch (e) { toast.error(e?.message ?? 'Failed to upload image.') }
     finally {

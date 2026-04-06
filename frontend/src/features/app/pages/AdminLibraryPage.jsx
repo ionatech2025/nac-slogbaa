@@ -740,7 +740,7 @@ export function AdminLibraryPage() {
                     const { url, contentType } = await uploadFile(token, file, 'library')
                     setForm((f) => ({ 
                       ...f, 
-                      fileUrl: getAssetUrl(url), 
+                      fileUrl: url, 
                       fileType: contentType?.split('/')?.pop()?.toUpperCase() || file.name.split('.').pop()?.toUpperCase() || f.fileType 
                     }))
                   } catch (err) {
@@ -876,7 +876,7 @@ export function AdminLibraryPage() {
                     const { url, contentType } = await uploadFile(token, file, 'library')
                     setForm((f) => ({ 
                       ...f, 
-                      fileUrl: getAssetUrl(url), 
+                      fileUrl: url, 
                       fileType: contentType?.split('/')?.pop()?.toUpperCase() || file.name.split('.').pop()?.toUpperCase() || f.fileType 
                     }))
                   } catch (err) {
