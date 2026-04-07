@@ -1,10 +1,6 @@
 package com.nac.slogbaa.app.cms.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.NullNode;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -14,8 +10,6 @@ import java.util.UUID;
 @Entity
 @Table(name = "live_session")
 public class LiveSession {
-
-    private static final ObjectMapper JSON = new ObjectMapper();
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -54,9 +48,9 @@ public class LiveSession {
 
     private boolean active = true;
 
-    @Column(name = "speakers_json", columnDefinition = "TEXT")
-    @JsonIgnore
-    private String speakersJson;
+    @OneToMany(mappedBy = "liveSession", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("displayOrder ASC")
+    private java.util.List<LiveSessionSpeaker> speakers = new java.util.ArrayList<>();
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     @Column(name = "created_by")
@@ -78,25 +72,6 @@ public class LiveSession {
     @PreUpdate
     void onUpdate() {
         updatedAt = Instant.now();
-    }
-
-    @Transient
-    @JsonProperty("speakers")
-    public JsonNode getSpeakers() {
-        if (speakersJson == null || speakersJson.isBlank()) {
-            return NullNode.getInstance();
-        }
-        try {
-            return JSON.readTree(speakersJson);
-        } catch (Exception e) {
-            return NullNode.getInstance();
-        }
-    }
-
-    @Transient
-    @JsonProperty("speakers")
-    public void setSpeakers(JsonNode node) {
-        this.speakersJson = (node == null || node.isNull() || node.isArray() && node.isEmpty()) ? null : node.toString();
     }
 
     public UUID getId() {
@@ -191,12 +166,12 @@ public class LiveSession {
         this.active = active;
     }
 
-    public String getSpeakersJson() {
-        return speakersJson;
+    public java.util.List<LiveSessionSpeaker> getSpeakers() {
+        return speakers;
     }
 
-    public void setSpeakersJson(String speakersJson) {
-        this.speakersJson = speakersJson;
+    public void setSpeakers(java.util.List<LiveSessionSpeaker> speakers) {
+        this.speakers = speakers;
     }
 
     public UUID getCreatedBy() {
