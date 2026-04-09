@@ -1,13 +1,13 @@
 package com.nac.slogbaa.app.cms.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.NullNode;
 import com.nac.slogbaa.app.cms.dto.LiveSessionDtos.LiveSessionAdminResponse;
 import com.nac.slogbaa.app.cms.dto.LiveSessionDtos.LiveSessionCredentialsResponse;
+import com.nac.slogbaa.app.cms.dto.LiveSessionDtos.LiveSessionSpeakerDto;
 import com.nac.slogbaa.app.cms.dto.LiveSessionDtos.LiveSessionTraineeResponse;
 import com.nac.slogbaa.app.cms.dto.LiveSessionDtos.LiveSessionUpsertRequest;
 import com.nac.slogbaa.app.cms.entity.LiveSession;
 import com.nac.slogbaa.app.cms.entity.LiveSessionRegistration;
+import com.nac.slogbaa.app.cms.entity.LiveSessionSpeaker;
 import com.nac.slogbaa.app.cms.repository.LiveSessionRegistrationRepository;
 import com.nac.slogbaa.app.cms.repository.LiveSessionRepository;
 import com.nac.slogbaa.iam.adapters.persistence.repository.JpaTraineeRepository;
@@ -16,6 +16,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
@@ -93,8 +94,21 @@ public class LiveSessionApplicationService {
         target.setScheduledAt(req.scheduledAt());
         target.setDurationMinutes(req.durationMinutes());
         target.setActive(req.active());
-        if (isCreate || req.speakers() != null) {
-            target.setSpeakers(req.speakers() == null ? null : req.speakers());
+
+        if (req.speakers() != null) {
+            // Simple approach: clear and re-add for simplicity, or smart update.
+            // Let's do clear and re-add since it's a small list.
+            target.getSpeakers().clear();
+            for (LiveSessionSpeakerDto sDto : req.speakers()) {
+                LiveSessionSpeaker s = new LiveSessionSpeaker();
+                s.setLiveSession(target);
+                s.setName(sDto.name());
+                s.setRole(sDto.role());
+                s.setBio(sDto.bio());
+                s.setPhotoUrl(sDto.photoUrl());
+                s.setDisplayOrder(sDto.displayOrder());
+                target.getSpeakers().add(s);
+            }
         }
     }
 
@@ -166,7 +180,7 @@ public class LiveSessionApplicationService {
                 s.getDescription(),
                 s.getSessionDetails(),
                 s.getBannerImageUrl(),
-                speakersNode(s),
+                mapSpeakers(s.getSpeakers()),
                 s.getProvider(),
                 s.getMeetingUrl(),
                 s.getMeetingId(),
@@ -193,7 +207,7 @@ public class LiveSessionApplicationService {
                 s.getDescription(),
                 s.getSessionDetails(),
                 s.getBannerImageUrl(),
-                speakersNode(s),
+                mapSpeakers(s.getSpeakers()),
                 s.getProvider(),
                 s.getScheduledAt(),
                 s.getDurationMinutes(),
@@ -202,9 +216,18 @@ public class LiveSessionApplicationService {
                 creds);
     }
 
-    private static JsonNode speakersNode(LiveSession s) {
-        JsonNode n = s.getSpeakers();
-        return n == null || n.isNull() ? NullNode.getInstance() : n;
+    private List<LiveSessionSpeakerDto> mapSpeakers(List<LiveSessionSpeaker> speakers) {
+        if (speakers == null) return new ArrayList<>();
+        return speakers.stream()
+                .map(sp -> new LiveSessionSpeakerDto(
+                        sp.getId(),
+                        sp.getName(),
+                        sp.getRole(),
+                        sp.getBio(),
+                        sp.getPhotoUrl(),
+                        sp.getDisplayOrder()
+                ))
+                .toList();
     }
 
     public static String phase(Instant scheduledAt, int durationMinutes) {
