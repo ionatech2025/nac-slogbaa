@@ -1,15 +1,12 @@
-# syntax=docker/dockerfile:1
-# =============================================================================
-# SLOGBAA Backend — monorepo root build (Railway default source = repo root)
+# SLOGBAA Backend — monorepo root build
 #
 # Local backend-only build (faster layer cache):  docker build -t slogbaa-backend ./backend
-# Root build (Railway / full-repo context):      docker build -t slogbaa-backend .
+# Root build (CI / full-repo context):            docker build -t slogbaa-backend .
 # =============================================================================
 
 FROM docker.io/library/eclipse-temurin:21-jdk-alpine AS build
 WORKDIR /build
 COPY backend/ .
-# No BuildKit cache mounts: Railway requires id=s/<service-id>-… which is not portable in git.
 RUN chmod +x gradlew && ./gradlew :app:bootJar --no-daemon -q
 
 FROM docker.io/library/eclipse-temurin:21-jdk-alpine AS extract
@@ -39,8 +36,7 @@ EXPOSE 8080
 
 ENV JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=75.0 -XX:+UseG1GC -XX:+ExitOnOutOfMemoryError"
 
-# Running as root to ensure we can write to the Railway volume mounted at /app/uploads.
-# Railway volumes are often mounted with root ownership.
+# Running as root to ensure we can write to the volume mounted at /app/uploads.
 USER root
 
 ENTRYPOINT ["java", "org.springframework.boot.loader.launch.JarLauncher"]
