@@ -12,9 +12,9 @@ on:
   workflow_dispatch:
     inputs:
       environment:
-        description: 'Deployment environment'
+        description: "Deployment environment"
         required: true
-        default: 'staging'
+        default: "staging"
         type: choice
         options:
           - staging
@@ -22,12 +22,12 @@ on:
   push:
     branches: [main, dev]
     paths-ignore:
-      - 'docs/**'
-      - '*.md'
+      - "docs/**"
+      - "*.md"
   pull_request:
     branches: [main, dev]
     paths:
-      - 'backend/**'
+      - "backend/**"
 
 concurrency:
   group: deploy-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.number) || github.ref_name }}
@@ -41,7 +41,6 @@ permissions:
 env:
   REGISTRY: ghcr.io
   IMAGE_PREFIX: ${{ github.repository }}
-  RAILWAY_BACKEND_URL: https://slogbaa-backend-production-ef59.up.railway.app
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
@@ -111,77 +110,7 @@ jobs:
           cache-from: type=gha,scope=frontend
           cache-to: type=gha,mode=max,scope=frontend
 
-  # ─────────────────────────────────────────────
-  # Deploy backend to Railway (CLI + project token)
-  # Requires: RAILWAY_TOKEN, RAILWAY_BACKEND_SERVICE_NAME (GitHub secrets/env)
-  # ─────────────────────────────────────────────
-  deploy-backend:
-    name: Deploy Backend to Railway
-    needs: [build-images]
-    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
 
-    environment:
-      name: ${{ (github.ref_name == 'main' || github.event.inputs.environment == 'production') && 'production' || 'staging' }}
-      url: ${{ env.RAILWAY_BACKEND_URL }}
-
-    env:
-      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-      RAILWAY_SERVICE: ${{ secrets.RAILWAY_BACKEND_SERVICE_NAME }}
-
-    steps:
-      - name: Install Railway CLI
-        run: |
-          set -euo pipefail
-          if ! command -v railway >/dev/null 2>&1; then
-            echo "Installing Railway CLI..."
-            bash <(curl -fsSL https://cli.new)
-          fi
-          if ! command -v railway >/dev/null 2>&1; then
-            # Installer may place the binary under a custom bin dir.
-            if [ -x "$HOME/.railway/bin/railway" ]; then
-              export PATH="$HOME/.railway/bin:$PATH"
-            fi
-          fi
-          command -v railway
-          railway --version
-
-      - name: List Railway services (diagnostic)
-        run: |
-          echo "Available services in this environment:"
-          railway service status --all 2>&1 || true
-
-      - name: Trigger Railway redeploy
-        run: |
-          echo "Triggering Railway redeploy for service: ${RAILWAY_SERVICE}..."
-          railway redeploy -y --service "$RAILWAY_SERVICE"
-          echo "Railway deploy triggered successfully"
-
-      - name: Wait for deploy
-        run: |
-          echo "Waiting 90s for Railway to build and deploy..."
-          sleep 90
-
-      - name: Health check
-        run: |
-          echo "Running health check against ${{ env.RAILWAY_BACKEND_URL }}..."
-          for i in $(seq 1 12); do
-            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
-              "${{ env.RAILWAY_BACKEND_URL }}/actuator/health/readiness" || echo "000")
-            if [ "$HTTP_CODE" != "200" ]; then
-              HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
-                "${{ env.RAILWAY_BACKEND_URL }}/actuator/health/liveness" || echo "000")
-            fi
-            echo "  Attempt $i/12: HTTP $HTTP_CODE"
-            if [ "$HTTP_CODE" = "200" ]; then
-              echo "Health check passed!"
-              exit 0
-            fi
-            sleep 15
-          done
-          echo "::error::Health check failed after 12 attempts (3 minutes)"
-          exit 1
 
   # ─────────────────────────────────────────────
   # PR build check (no deploy)

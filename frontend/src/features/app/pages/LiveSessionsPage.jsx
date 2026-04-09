@@ -47,15 +47,50 @@ const s = {
   speakerPhoto: { width: 44, height: 44, borderRadius: '50%', objectFit: 'cover', flexShrink: 0, background: 'var(--slogbaa-border)' },
 }
 
-function SpeakersList({ speakers }) {
+function SpeakersList({ speakers, variant = 'default' }) {
   const list = Array.isArray(speakers) ? speakers : []
   if (list.length === 0) return null
+
+  if (variant === 'flyer') {
+    return (
+      <div style={{ display: 'flex', gap: '1.25rem', flexWrap: 'wrap', marginTop: '1.5rem' }}>
+        {list.map((sp, i) => (
+          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '1rem', background: 'rgba(255,255,255,0.06)', padding: '0.75rem 1.25rem', borderRadius: 20, border: '1px solid rgba(255,255,255,0.12)', backdropFilter: 'blur(10px)', boxShadow: '0 8px 32px rgba(0,0,0,0.2)' }}>
+            <div style={{ position: 'relative', width: 64, height: 64, borderRadius: 18, overflow: 'hidden', border: '2px solid rgba(255,255,255,0.2)', flexShrink: 0, background: 'linear-gradient(135deg, var(--slogbaa-blue), #6366f1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              {sp.photoUrl ? (
+                <img 
+                  src={getAssetUrl(sp.photoUrl)} 
+                  alt={sp.name} 
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                  onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex' }}
+                />
+              ) : null}
+              <div style={{ display: sp.photoUrl ? 'none' : 'flex', width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '1.5rem', fontWeight: 800 }}>
+                {sp.name?.[0] || 'S'}
+              </div>
+            </div>
+            <div>
+              <div style={{ fontWeight: 800, fontSize: '1rem', color: '#fff', marginBottom: '0.125rem' }}>{sp.name}</div>
+              <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.7)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{sp.role || 'Guest Speaker'}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    )
+  }
+
   return (
     <div style={{ marginTop: '0.75rem' }}>
-      <p style={{ margin: '0 0 0.25rem', fontSize: '0.75rem', fontWeight: 700, color: 'var(--slogbaa-text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Speakers</p>
+      <p style={{ margin: '0 0 0.5rem', fontSize: '0.75rem', fontWeight: 700, color: 'var(--slogbaa-text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Featured Speakers</p>
       {list.map((sp, i) => (
         <div key={i} style={s.speaker}>
-          {sp.photoUrl ? <img src={getAssetUrl(sp.photoUrl)} alt="" style={s.speakerPhoto} /> : <div style={s.speakerPhoto} aria-hidden />}
+          {sp.photoUrl ? (
+            <img src={getAssetUrl(sp.photoUrl)} alt="" style={s.speakerPhoto} />
+          ) : (
+            <div style={{ ...s.speakerPhoto, background: 'var(--slogbaa-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--slogbaa-text-muted)', fontWeight: 700 }}>
+              {sp.name?.[0] || '?'}
+            </div>
+          )}
           <div>
             <div style={{ fontWeight: 700, fontSize: '0.9375rem', color: 'var(--slogbaa-text)' }}>{sp.name || 'Speaker'}</div>
             {sp.role && <div style={{ fontSize: '0.8125rem', color: 'var(--slogbaa-blue)' }}>{sp.role}</div>}
@@ -71,63 +106,88 @@ function ActiveSessionCard({ session, regMut }) {
   const banner = getAssetUrl(session.bannerImageUrl)
   const creds = session.credentials
   const canRegister = session.phase === 'UPCOMING' || session.phase === 'LIVE'
+  
   return (
-    <div style={s.card}>
-      {banner ? <img src={banner} alt="" style={s.banner} /> : null}
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
-        <div style={{ flex: '1 1 200px' }}>
-          <h3 style={{ margin: '0 0 0.35rem', fontSize: '1.0625rem', fontWeight: 700, color: 'var(--slogbaa-text)' }}>{session.title}</h3>
-          <span style={s.badge(session.provider)}>{session.provider === 'GOOGLE_MEET' ? 'Google Meet' : 'Zoom'}</span>
-          {session.phase === 'LIVE' && <span style={s.phasePill('LIVE')}>Live now</span>}
-          {session.phase === 'UPCOMING' && <span style={s.phasePill('UPCOMING')}>Upcoming</span>}
-          <span style={{ marginLeft: '0.5rem', fontSize: '0.875rem', color: 'var(--slogbaa-text-muted)' }}>
-            {new Date(session.scheduledAt).toLocaleString('en-UG', { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-            {' '}&middot; {session.durationMinutes} min
-          </span>
-          {session.description && <p style={{ margin: '0.5rem 0 0', fontSize: '0.875rem', color: 'var(--slogbaa-text-muted)', lineHeight: 1.5 }}>{session.description}</p>}
-          {session.sessionDetails && (
-            <pre style={{ margin: '0.5rem 0 0', fontSize: '0.8125rem', color: 'var(--slogbaa-text)', whiteSpace: 'pre-wrap', fontFamily: 'inherit', lineHeight: 1.45 }}>{session.sessionDetails}</pre>
-          )}
-          <SpeakersList speakers={session.speakers} />
+    <div style={{ ...s.card, padding: 0, overflow: 'hidden', border: '1px solid var(--slogbaa-border)', position: 'relative', background: 'var(--slogbaa-surface)' }}>
+      {/* Banner / Poster Section */}
+      <div style={{ position: 'relative', width: '100%', height: 260, overflow: 'hidden' }}>
+        {banner ? (
+          <img src={banner} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        ) : (
+          <div style={{ width: '100%', height: '100%', background: 'linear-gradient(225deg, #1e293b 0%, #0f172a 100%)' }} />
+        )}
+        
+        {/* Glass Overlay for Details */}
+        <div style={{ 
+          position: 'absolute', bottom: 0, left: 0, right: 0, padding: '1.5rem',
+          background: 'linear-gradient(transparent, rgba(0,0,0,0.85))',
+          color: '#fff'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', marginBottom: '0.5rem' }}>
+            <span style={{ ...s.badge(session.provider), background: 'rgba(255,255,255,0.15)', color: '#fff', border: '1px solid rgba(255,255,255,0.2)' }}>
+              {session.provider === 'GOOGLE_MEET' ? 'Google Meet' : 'Zoom'}
+            </span>
+            {session.phase === 'LIVE' && <span style={{ ...s.phasePill('LIVE'), background: '#ef4444', color: '#fff' }}>LIVE NOW</span>}
+          </div>
+          <h2 style={{ margin: 0, fontSize: '1.75rem', fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1.1 }}>{session.title}</h2>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginTop: '0.5rem', opacity: 0.9, fontSize: '0.875rem', fontWeight: 500 }}>
+             <Icon icon={icons.enroll} size={14} />
+             {new Date(session.scheduledAt).toLocaleString('en-UG', { weekday: 'long', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+             {' '}&middot; {session.durationMinutes} minutes
+          </div>
+          
+          <SpeakersList speakers={session.speakers} variant="flyer" />
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'stretch' }}>
+      </div>
+
+      {/* Action / Context Section */}
+      <div style={{ padding: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+        <div style={{ flex: 1, minWidth: 280 }}>
+          {session.description && <p style={{ margin: 0, fontSize: '0.9375rem', color: 'var(--slogbaa-text)', fontWeight: 500 }}>{session.description}</p>}
+          {session.sessionDetails && (
+            <p style={{ margin: '0.5rem 0 0', fontSize: '0.875rem', color: 'var(--slogbaa-text-muted)', lineHeight: 1.5 }}>
+              {session.sessionDetails}
+            </p>
+          )}
+        </div>
+        
+        <div style={{ display: 'flex', gap: '0.75rem' }}>
           {canRegister && (
             session.registered ? (
               <button
                 type="button"
-                style={s.ghostBtn}
+                style={{ ...s.ghostBtn, borderRadius: 12 }}
                 disabled={regMut.isPending}
                 onClick={() => regMut.mutate({ id: session.id, register: false })}
               >
-                Unregister
+                Cancel Registration
               </button>
             ) : (
               <button
                 type="button"
-                style={{ ...s.joinBtn, background: 'var(--slogbaa-green)', justifyContent: 'center' }}
+                style={{ ...s.joinBtn, background: 'var(--slogbaa-green)', borderRadius: 12, padding: '0.625rem 1.5rem' }}
                 disabled={regMut.isPending}
                 onClick={() => regMut.mutate({ id: session.id, register: true })}
               >
-                Register
+                Register for Event
               </button>
             )
           )}
-          {creds?.meetingUrl ? (
-            <a href={creds.meetingUrl} target="_blank" rel="noopener noreferrer" style={{ ...s.joinBtn, justifyContent: 'center' }}>
-              <Icon icon={icons.externalLink} size={16} /> Join session
+          {creds?.meetingUrl && (
+            <a href={creds.meetingUrl} target="_blank" rel="noopener noreferrer" style={{ ...s.joinBtn, borderRadius: 12, padding: '0.625rem 1.5rem' }}>
+              <Icon icon={icons.externalLink} size={16} /> Join Event
             </a>
-          ) : session.registered ? (
-            <span style={{ fontSize: '0.8125rem', color: 'var(--slogbaa-text-muted)' }}>Join link will appear here when available.</span>
-          ) : null}
+          )}
         </div>
       </div>
+
       {session.registered && creds && (creds.meetingId || creds.meetingPassword) && (
-        <div style={s.credBox}>
+        <div style={{ margin: '0 1.5rem 1.5rem', padding: '1rem', borderRadius: 12, background: 'rgba(37,99,235,0.05)', border: '1px solid rgba(37,99,235,0.1)', display: 'flex', gap: '2rem' }}>
           {creds.meetingId && (
-            <div><strong>Meeting ID:</strong> {creds.meetingId}</div>
+            <div><div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--slogbaa-blue)', textTransform: 'uppercase' }}>Meeting ID</div><div style={{ fontSize: '1rem', fontWeight: 600 }}>{creds.meetingId}</div></div>
           )}
           {creds.meetingPassword && (
-            <div style={{ marginTop: '0.35rem' }}><strong>Passcode:</strong> {creds.meetingPassword}</div>
+            <div><div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--slogbaa-blue)', textTransform: 'uppercase' }}>Passcode</div><div style={{ fontSize: '1rem', fontWeight: 600 }}>{creds.meetingPassword}</div></div>
           )}
         </div>
       )}

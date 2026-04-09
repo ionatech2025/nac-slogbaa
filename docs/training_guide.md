@@ -86,7 +86,7 @@ The frontend is organized using a **Feature-Based Architecture**.
 | **Workflow / CI** | CI/CD pipelines, YAML syntax | `deploy.yml`, `ci.yml`, `security_scan.yml`, `pr_check.yml`, `release.yml` |
 | **DB / Migrations** | Schema versioning, SQL scripts | `V1__init.sql`, `V2__add_iam.sql`, `V3__courses.sql`, `V14__email_verification.sql`, `V30__live_sessions.sql` |
 | **Environment** | Secrets management, fallbacks | `.env`, `.env.example`, `.env.test`, `.env.docker`, `.env.production` |
-| **Configs / Meta** | Build systems, Linting, Metadata | `build.gradle.kts`, `settings.gradle.kts`, `vite.config.js`, `package.json`, `railway.toml` |
+| **Configs / Meta** | Build systems, Linting, Metadata | `build.gradle.kts`, `settings.gradle.kts`, `vite.config.js`, `package.json`, `render.yaml` |
 
 ---
 *Created for the NAC SLOGBAA Engineering Training Program – March 2026*

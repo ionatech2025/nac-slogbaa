@@ -5,10 +5,13 @@
   "framework": "vite",
   "build": {
     "env": {
-      "VITE_API_BASE_URL": "https://slogbaa-backend-production-ef59.up.railway.app"
+      "VITE_API_BASE_URL": "https://rachel-spelling-generation-differential.trycloudflare.com"
     }
   },
   "rewrites": [
-    { "source": "/((?!api|uploads).*)", "destination": "/index.html" }
+    {
+      "source": "/((?!api|uploads).*)",
+      "destination": "/index.html"
+    }
   ]
 }
