@@ -7,11 +7,11 @@ name: Keep Alive
 
 on:
   schedule:
-    - cron: '*/10 * * * *'
+    - cron: "*/10 * * * *"
   workflow_dispatch:
     inputs:
       reason:
-        description: 'Reason for manual ping'
+        description: "Reason for manual ping"
         required: false
         type: string
 
@@ -20,7 +20,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  BACKEND_URL: https://slogbaa-backend-production-ef59.up.railway.app
+  BACKEND_URL: https://rachel-spelling-generation-differential.trycloudflare.com
   HEALTH_ENDPOINT: /actuator/health/readiness
   MAX_RETRIES: 3
   RETRY_DELAY: 15
