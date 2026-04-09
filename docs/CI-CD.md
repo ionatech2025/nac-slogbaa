@@ -8,7 +8,7 @@ Complete reference for automated build, test, security scanning, and deployment.
 
 **Semgrep** (`security.yml`) — job is **`if: false`**. Restore by removing that line and adding `semgrep` back to `security-pass` → `needs: [preflight, semgrep, trufflehog, trivy]`.
 
-**Deploy** (`deploy.yml` → Railway) is **not** dependent on CodeQL or Semgrep; pushes to `main`/`dev` still build and run `deploy-backend` the same as before (except pushes that change *only* `docs/**` or root `*.md` are still ignored).
+**Deploy** (`deploy.yml` → Render) is **independent** of CodeQL or Semgrep; pushes to `main`/`dev` trigger builds and deployment. Pushes that change *only* `docs/**` or root `*.md` are ignored to save build minutes.
 
 ---
 
