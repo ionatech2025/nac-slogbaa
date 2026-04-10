@@ -59,6 +59,10 @@ public class IamSecurityConfiguration {
         List<String> origins = Arrays.asList(allowedOrigins.split(",\\s*"));
         // In prod, enforce HTTPS-only origins
         boolean isProd = Arrays.asList(environment.getActiveProfiles()).contains("prod");
+        
+        // Always allow Vercel origins as they are used for both preview and production
+        config.addAllowedOriginPattern("https://*.vercel.app");
+        
         if (isProd) {
             origins = origins.stream()
                     .filter(o -> o.startsWith("https://"))
@@ -67,13 +71,18 @@ public class IamSecurityConfiguration {
                 throw new IllegalStateException(
                         "Production CORS requires at least one HTTPS origin in app.cors.allowed-origins");
             }
-            // Vercel preview deploys use unique hosts (*.vercel.app). Exact origins alone block them.
-            // Pattern allows any https subdomain of vercel.app (still HTTPS-only in prod).
-            config.addAllowedOriginPattern("https://*.vercel.app");
         }
         config.setAllowedOrigins(origins);
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "X-Request-ID"));
+        // Add sentry-trace and baggage for distributed tracing (standard in 2026)
+        config.setAllowedHeaders(List.of(
+            "Authorization", 
+            "Content-Type", 
+            "Accept", 
+            "X-Request-ID",
+            "sentry-trace",
+            "baggage"
+        ));
         config.setExposedHeaders(List.of("Authorization", "X-Request-ID", "Content-Disposition"));
         config.setAllowCredentials(true);
         // Short max-age in dev for faster iteration; longer in prod
