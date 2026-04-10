@@ -2,14 +2,14 @@ import { apiClient, assertToken, parseResponse } from './client.js'
 
 /** Public: fetch all active homepage content (no auth required) */
 export async function getHomepageContent() {
-  const res = await apiClient(null).get('/api/v1/public/homepage')
+  const res = await apiClient(null).get('/api/public/homepage')
   return parseResponse(res)
 }
 
 /** Public: record a page visit (fire-and-forget) */
 export async function recordVisit() {
   try {
-    const res = await apiClient(null).post('/api/v1/public/homepage/visit', {})
+    const res = await apiClient(null).post('/api/public/homepage/visit', {})
     if (res.ok) await res.json().catch(() => {})
   } catch {
     // fire-and-forget, ignore errors
