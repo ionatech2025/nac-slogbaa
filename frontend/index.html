@@ -1,60 +1,67 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <!-- connect-src: API (Render, Cloudflare Tunnel), Sentry, Vercel, same-origin -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://*.sentry.io https://vercel.live https://*.vercel.live; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; connect-src 'self' https://*.sentry.io https://*.ingest.sentry.io https://slogbaa-backend.onrender.com https://*.trycloudflare.com https://vercel.live https://*.vercel.live; font-src 'self'; frame-src 'self' https://www.youtube-nocookie.com https://www.youtube.com https://vercel.live https://*.vercel.live https://*.vercel.app; object-src 'none'; base-uri 'self'; form-action 'self';">
-    <script>
-      (function () {
-        var t = null;
-        try {
-          var stored = localStorage.getItem('slogbaa-ui');
-          if (stored) t = JSON.parse(stored).state.theme;
-        } catch (e) {}
-        if (t !== 'light' && t !== 'dark') {
-          t = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-        }
-        document.documentElement.dataset.theme = t;
-      })();
-    </script>
 
-    <!-- Favicon — SVG for modern browsers -->
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<head>
+  <meta charset="UTF-8" />
+  <!-- connect-src: API (Render, Cloudflare Tunnel), Sentry, Vercel, same-origin -->
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src 'self'; script-src 'self' 'unsafe-inline' https://*.sentry.io https://vercel.live https://*.vercel.live; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; connect-src 'self' https://*.sentry.io https://*.ingest.sentry.io https://slogbaa-backend.onrender.com https://slogbaa.ionatec.com https://vercel.live https://*.vercel.live; font-src 'self'; frame-src 'self' https://www.youtube-nocookie.com https://www.youtube.com https://vercel.live https://*.vercel.live https://*.vercel.app; object-src 'none'; base-uri 'self'; form-action 'self';">
+  <script>
+    (function () {
+      var t = null;
+      try {
+        var stored = localStorage.getItem('slogbaa-ui');
+        if (stored) t = JSON.parse(stored).state.theme;
+      } catch (e) { }
+      if (t !== 'light' && t !== 'dark') {
+        t = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+      document.documentElement.dataset.theme = t;
+    })();
+  </script>
 
-    <!-- Apple touch icon for iOS home screen (must be PNG — Safari ignores SVG) -->
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+  <!-- Favicon — SVG for modern browsers -->
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 
-    <!-- PWA manifest -->
-    <link rel="manifest" href="/manifest.json" />
+  <!-- Apple touch icon for iOS home screen (must be PNG — Safari ignores SVG) -->
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="SLOGBAA" />
-    <meta name="description" content="SLOGBAA Online Learning Platform — empowering active citizens through structured courses, assessments, and certificates. Network for Active Citizens (NAC)." />
+  <!-- PWA manifest -->
+  <link rel="manifest" href="/manifest.json" />
 
-    <!-- Open Graph -->
-    <meta property="og:title" content="SLOGBAA — Online Learning Platform" />
-    <meta property="og:description" content="Empowering active citizens through structured courses, assessments, and certificates. Network for Active Citizens (NAC)." />
-    <meta property="og:type" content="website" />
-    <meta property="og:image" content="/favicon.svg" />
-    <meta property="og:image:width" content="512" />
-    <meta property="og:image:height" content="512" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="SLOGBAA" />
+  <meta name="description"
+    content="SLOGBAA Online Learning Platform — empowering active citizens through structured courses, assessments, and certificates. Network for Active Citizens (NAC)." />
 
-    <!-- Twitter Card -->
-    <meta name="twitter:card" content="summary" />
-    <meta name="twitter:title" content="SLOGBAA — Online Learning Platform" />
-    <meta name="twitter:description" content="Empowering active citizens through structured courses, assessments, and certificates." />
-    <meta name="twitter:image" content="/favicon.svg" />
+  <!-- Open Graph -->
+  <meta property="og:title" content="SLOGBAA — Online Learning Platform" />
+  <meta property="og:description"
+    content="Empowering active citizens through structured courses, assessments, and certificates. Network for Active Citizens (NAC)." />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="/favicon.svg" />
+  <meta property="og:image:width" content="512" />
+  <meta property="og:image:height" content="512" />
 
-    <meta name="theme-color" content="#2563eb" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)" />
-    <meta name="color-scheme" content="light dark" />
-    <title>SLOGBAA — Online Learning Platform</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="SLOGBAA — Online Learning Platform" />
+  <meta name="twitter:description"
+    content="Empowering active citizens through structured courses, assessments, and certificates." />
+  <meta name="twitter:image" content="/favicon.svg" />
+
+  <meta name="theme-color" content="#2563eb" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)" />
+  <meta name="color-scheme" content="light dark" />
+  <title>SLOGBAA — Online Learning Platform</title>
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.jsx"></script>
+</body>
+
 </html>

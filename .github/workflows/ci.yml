@@ -44,7 +44,7 @@ jobs:
       - name: Block merge conflict markers in frontend
         run: |
           set -e
-          if grep -RInE '^<<<<<<< |^>>>>>>> ' frontend/src/ 2>/dev/null; then
+          if grep -RInE '^<<<<<<< |^>>>>>>> ' src/ 2>/dev/null; then
             echo "::error::Remove Git merge markers (<<<<<<< / >>>>>>>) from frontend/src before pushing."
             exit 1
           fi
