@@ -5,7 +5,7 @@
   "framework": "vite",
   "build": {
     "env": {
-      "VITE_API_BASE_URL": "https://rachel-spelling-generation-differential.trycloudflare.com"
+      "VITE_API_BASE_URL": "@vite_api_base_url"
     }
   },
   "rewrites": [

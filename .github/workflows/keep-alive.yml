@@ -20,7 +20,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  BACKEND_URL: https://rachel-spelling-generation-differential.trycloudflare.com
+  BACKEND_URL: https://slogbaa.ionatec.com
   HEALTH_ENDPOINT: /actuator/health/readiness
   MAX_RETRIES: 3
   RETRY_DELAY: 15

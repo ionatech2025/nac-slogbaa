@@ -120,8 +120,7 @@ jobs:
       - name: Build
         run: bun run build
         env:
-          VITE_API_BASE_URL: https://rachel-spelling-generation-differential.trycloudflare.com
-
+          VITE_API_BASE_URL: https://slogbaa.ionatec.com
       - name: Bundle size check
         run: |
           echo "── Bundle Analysis ──"
@@ -196,7 +195,7 @@ jobs:
           fi
 
       # Vercel project root is frontend/ (vercel.json lives here). Link + deploy run from frontend/.
-     - name: Link Vercel project
+      - name: Link Vercel project
         working-directory: frontend
         shell: bash
         run: |
