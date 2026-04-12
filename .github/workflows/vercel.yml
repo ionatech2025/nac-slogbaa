@@ -178,8 +178,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Remove stale frontend/.vercel (if ever committed — avoids wrong team link)
-        run: rm -rf frontend/.vercel
+      - name: Remove stale .vercel directories (prevents link conflicts)
+        run: rm -rf .vercel frontend/.vercel
 
       - name: Verify Vercel secrets
         env:
@@ -195,8 +195,7 @@ jobs:
           fi
 
       # Vercel project root is frontend/ (vercel.json lives here). Link + deploy run from frontend/.
-      - name: Link Vercel project
-        working-directory: frontend
+      - name: Link Vercel project (Root)
         shell: bash
         run: |
           mkdir -p .vercel
@@ -212,11 +211,11 @@ jobs:
         run: npm install -g vercel@latest
 
       - name: Prepare Vercel output
-        working-directory: frontend
         run: |
-          mkdir -p .vercel/output/static
-          cp -r dist/* .vercel/output/static/
-          cat > .vercel/output/config.json << 'CONF'
+          # Vercel enters 'frontend' directory; put .vercel output there
+          mkdir -p frontend/.vercel/output/static
+          cp -r frontend/dist/* frontend/.vercel/output/static/
+          cat > frontend/.vercel/output/config.json << 'CONF'
           {
             "version": 3,
             "routes": [
@@ -228,11 +227,10 @@ jobs:
 
       - name: Deploy to Vercel (Preview)
         id: deploy
-        working-directory: frontend
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
-          # Use --scope with your Org ID to force the CLI into the right account context
+          # Run from root; CLI will enter 'frontend' and find .vercel/output there
           URL=$(vercel deploy --prebuilt --token="$VERCEL_TOKEN" --scope="${{ secrets.VERCEL_ORG_ID }}")
           echo "url=${URL}" >> "$GITHUB_OUTPUT"
 
@@ -300,8 +298,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Remove stale frontend/.vercel (if ever committed)
-        run: rm -rf frontend/.vercel
+      - name: Remove stale .vercel directories
+        run: rm -rf .vercel frontend/.vercel
 
       - name: Verify Vercel secrets
         env:
@@ -314,8 +312,7 @@ jobs:
             exit 1
           fi
 
-      - name: Link Vercel project (CI)
-        working-directory: frontend
+      - name: Link Vercel project (Root)
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
@@ -333,11 +330,10 @@ jobs:
         run: npm install -g vercel@50.37.3
 
       - name: Prepare Vercel output
-        working-directory: frontend
         run: |
-          mkdir -p .vercel/output/static
-          cp -r dist/* .vercel/output/static/
-          cat > .vercel/output/config.json << 'CONF'
+          mkdir -p frontend/.vercel/output/static
+          cp -r frontend/dist/* frontend/.vercel/output/static/
+          cat > frontend/.vercel/output/config.json << 'CONF'
           {
             "version": 3,
             "routes": [
@@ -349,13 +345,12 @@ jobs:
 
       - name: Deploy to Vercel (Production)
         id: deploy
-        working-directory: frontend
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
-          URL=$(vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN")
+          URL=$(vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN" --scope="${{ secrets.VERCEL_ORG_ID }}")
           echo "url=${URL}" >> "$GITHUB_OUTPUT"
           echo "Production deployed to: ${URL}"
 
