@@ -212,10 +212,9 @@ jobs:
 
       - name: Prepare Vercel output
         run: |
-          # Vercel enters 'frontend' directory; put .vercel output there
-          mkdir -p frontend/.vercel/output/static
-          cp -r frontend/dist/* frontend/.vercel/output/static/
-          cat > frontend/.vercel/output/config.json << 'CONF'
+          mkdir -p .vercel/output/static
+          cp -r frontend/dist/* .vercel/output/static/
+          cat > .vercel/output/config.json << 'CONF'
           {
             "version": 3,
             "routes": [
@@ -331,9 +330,9 @@ jobs:
 
       - name: Prepare Vercel output
         run: |
-          mkdir -p frontend/.vercel/output/static
-          cp -r frontend/dist/* frontend/.vercel/output/static/
-          cat > frontend/.vercel/output/config.json << 'CONF'
+          mkdir -p .vercel/output/static
+          cp -r frontend/dist/* .vercel/output/static/
+          cat > .vercel/output/config.json << 'CONF'
           {
             "version": 3,
             "routes": [
