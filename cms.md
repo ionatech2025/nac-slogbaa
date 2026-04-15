@@ -26,13 +26,32 @@ This document outlines the content sections and data structures required for the
 | Field | Type | Description |
 | :--- | :--- | :--- |
 | `title` | String | Name of the training session |
-| `slug` | String | URL-friendly identifier |
+| `eyebrow` | String | Editorial category label (e.g., "Specialized Workshop") |
+| `slug` | String | URL-friendly identifier for detail pages |
 | `date` | DateTime | When the training starts |
-| `location` | String | Physical venue or districts covered |
-| `image_url` | URL | Featured image for the training card |
-| `excerpt` | Text | Short summary for the list view |
-| `content` | Markdown/HTML | Full description and logistics for the detail page |
-| `status` | Enum | `upcoming` or `past` |
+| `location` | String | Physical venue or district name |
+| `image_url` | URL | Featured high-resolution editorial image |
+| `excerpt` | Text | Short 2-3 sentence summary for cards/modals |
+| `thumbnail_url` | URL | Optimized image for the listing grid |
+| `status` | Enum | `upcoming` (shows in top section) or `past` (archives) |
+| `facilitators` | Array | List of lead facilitator names |
+| `tags` | Array | Category tags (e.g., "Governance", "Advocacy") |
+
+### Editorial Content (For Detail Pages)
+The `content` field should ideally be a structured JSON array of blocks to support the brochure-style layout:
+| Block Type | Fields | Description |
+| :--- | :--- | :--- |
+| `h2` | `value` | Section heading (renders in DM Serif Display) |
+| `p` | `value` | Body paragraph |
+| `quote` | `text`, `author` | Pull quote with attribution |
+
+### Logistics & Sidebar
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `duration` | String | e.g., "6 Hours (Intensive)" |
+| `requirements`| String | e.g., "Basic Governance Module (L1)" |
+| `materials` | String | e.g., "Printed Syllabus, Digital Toolkit" |
+
 
 ## 4. Impact Stories / Testimonials
 **Endpoint:** `/api/cms/stories`

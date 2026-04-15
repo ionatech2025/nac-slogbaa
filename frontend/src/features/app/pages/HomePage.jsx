@@ -751,6 +751,7 @@ export function HomePage() {
             <a href="#news" className="slg-nav-link">News</a>
             <a href="#inperson" className="slg-nav-link">In-Person Training</a>
             <a href="#public-library" className="slg-nav-link">Public Library</a>
+            <Link to="/inquiries" className="slg-nav-link">Inquiries</Link>
           </div>
           <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
             <button

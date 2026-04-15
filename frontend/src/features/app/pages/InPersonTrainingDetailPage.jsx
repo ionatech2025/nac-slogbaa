@@ -157,7 +157,7 @@ export function InPersonTrainingDetailPage() {
       <header className="slg-detail-hero">
         <span className="slg-detail-eyebrow">{data.eyebrow}</span>
         <h1 className="slg-detail-title slg-serif">{data.title}</h1>
-        
+
         <div className="slg-detail-meta-grid">
           <div className="slg-meta-box">
             <span className="slg-meta-label">Date & Time</span>
@@ -217,10 +217,6 @@ export function InPersonTrainingDetailPage() {
                 <span className="slg-meta-label">Materials Provided</span>
                 <span className="slg-meta-value">Digital Toolkit, Printed Syllabus</span>
               </li>
-              <li className="slg-sidebar-item">
-                <span className="slg-meta-label">Prerequisites</span>
-                <span className="slg-meta-value">Basic Governance Module (L1)</span>
-              </li>
             </ul>
           </div>
 
@@ -229,9 +225,9 @@ export function InPersonTrainingDetailPage() {
             <p style={{ fontSize: '0.875rem', marginBottom: '1.5rem', opacity: 0.9 }}>
               Interested in organizing a similar workshop for your district? Contact our field coordination team.
             </p>
-            <a href="mailto:support@nac.go.ug" style={{ color: '#fff', fontWeight: 700, textDecoration: 'none', borderBottom: '2px solid #fff' }}>
+            <Link to="/inquiries" style={{ color: '#fff', fontWeight: 700, textDecoration: 'none', borderBottom: '2px solid #fff' }}>
               Inquire Now
-            </a>
+            </Link>
           </div>
         </aside>
       </div>

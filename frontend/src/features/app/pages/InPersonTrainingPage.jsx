@@ -168,11 +168,56 @@ const PAGE_CSS = `
 
   .slg-footer { border-top: 1px solid var(--border); padding: 3rem 2rem; text-align: center; }
   .slg-copyright { font-size: 0.8125rem; color: var(--text-3); }
+
+  /* Pagination */
+  .slg-pagination {
+    display: flex; align-items: center; justify-content: center; gap: 0.5rem; margin-top: 4rem;
+  }
+  .slg-page-btn {
+    width: 40px; height: 40px; border-radius: 10px; border: 1px solid var(--border);
+    background: var(--surface); color: var(--text-2); font-size: 0.875rem; font-weight: 600;
+    cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;
+  }
+  .slg-page-btn:hover:not(:disabled) { border-color: var(--orange); color: var(--orange); background: var(--orange-dim); }
+  .slg-page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .slg-page-btn.active { background: var(--orange); color: #fff; border-color: var(--orange); }
+
+  /* Modal */
+  .slg-modal-overlay {
+    position: fixed; inset: 0; z-index: 1000;
+    background: rgba(0,0,0,0.4); backdrop-filter: blur(8px);
+    display: flex; align-items: center; justify-content: center;
+    padding: 1rem; animation: slg-fade-in 0.2s ease;
+  }
+  .slg-modal {
+    background: var(--bg); border: 1px solid var(--border); border-radius: 24px;
+    max-width: 580px; width: 100%; position: relative;
+    box-shadow: 0 40px 100px rgba(0,0,0,0.2);
+    animation: slg-scale-up 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .slg-modal-close {
+    position: absolute; top: 1.25rem; right: 1.25rem;
+    width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--border);
+    background: var(--bg-2); color: var(--text-2); cursor: pointer;
+    display: flex; align-items: center; justify-content: center; transition: all 0.2s;
+  }
+  .slg-modal-close:hover { background: var(--surface-2); color: var(--text); border-color: var(--border-hover); }
+  
+  .slg-modal-body { padding: 2.5rem; }
+  .slg-modal-img { width: 100%; aspect-ratio: 16/9; border-radius: 16px; object-fit: cover; margin-bottom: 2rem; }
+  
+  @keyframes slg-fade-in { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes slg-scale-up { from { opacity: 0; transform: scale(0.95) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
 `
 
 export function InPersonTrainingPage() {
-  const [theme, setTheme] = useState('light')
   const [scrolled, setScrolled] = useState(false)
+  const [theme, setTheme] = useState('light')
+  
+  const [upcomingPage, setUpcomingPage] = useState(1)
+  const [pastPage, setPastPage] = useState(1)
+  const [selectedTraining, setSelectedTraining] = useState(null)
+  const itemsPerPage = 6
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20)
@@ -180,8 +225,14 @@ export function InPersonTrainingPage() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  const upcoming = ALL_TRAININGS.filter(t => t.status === 'upcoming')
-  const past = ALL_TRAININGS.filter(t => t.status === 'past')
+  const upcomingAll = ALL_TRAININGS.filter(t => t.status === 'upcoming')
+  const pastAll = ALL_TRAININGS.filter(t => t.status === 'past')
+
+  const upcomingTotalPages = Math.ceil(upcomingAll.length / itemsPerPage)
+  const pastTotalPages = Math.ceil(pastAll.length / itemsPerPage)
+
+  const upcoming = upcomingAll.slice((upcomingPage - 1) * itemsPerPage, upcomingPage * itemsPerPage)
+  const past = pastAll.slice((pastPage - 1) * itemsPerPage, pastPage * itemsPerPage)
 
   return (
     <div className={`slg-page ${theme}-theme`}>
@@ -193,6 +244,8 @@ export function InPersonTrainingPage() {
           <Logo variant="full" size={28} color={theme === 'dark' ? 'white' : 'dark'} />
         </Link>
         <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+          <Link to="/inperson-training" className="slg-nav-link" style={{ marginLeft: '1rem' }}>Trainings</Link>
+          <Link to="/inquiries" className="slg-nav-link">Inquiries</Link>
           <button
             onClick={() => setTheme(t => t === 'dark' ? 'light' : 'dark')}
             className="slg-theme-toggle"
@@ -225,9 +278,21 @@ export function InPersonTrainingPage() {
             </div>
             <div className="slg-training-grid">
               {upcoming.map(t => (
-                <TrainingCard key={t.id} training={t} isUpcoming />
+                <TrainingCard 
+                  key={t.id} 
+                  training={t} 
+                  isUpcoming 
+                  onViewDetails={() => setSelectedTraining(t)}
+                />
               ))}
             </div>
+            {upcomingTotalPages > 1 && (
+              <Pagination 
+                current={upcomingPage} 
+                total={upcomingTotalPages} 
+                onChange={(p) => { setUpcomingPage(p); window.scrollTo(0, 0); }} 
+              />
+            )}
           </section>
         )}
 
@@ -241,8 +306,54 @@ export function InPersonTrainingPage() {
               <TrainingCard key={t.id} training={t} />
             ))}
           </div>
+          {pastTotalPages > 1 && (
+            <Pagination 
+              current={pastPage} 
+              total={pastTotalPages} 
+              onChange={(p) => { setPastPage(p); window.scrollTo(0, 400); }} 
+            />
+          )}
         </section>
       </main>
+
+      {/* Modal */}
+      {selectedTraining && (
+        <div className="slg-modal-overlay" onClick={() => setSelectedTraining(null)}>
+          <div className="slg-modal" onClick={e => e.stopPropagation()}>
+            <button className="slg-modal-close" onClick={() => setSelectedTraining(null)}>
+              <Icon icon={icons.x || icons.arrowRight} size={18} />
+            </button>
+            <div className="slg-modal-body">
+              <img src={selectedTraining.image} alt={selectedTraining.title} className="slg-modal-img" />
+              <div style={{ marginBottom: '1.5rem' }}>
+                <span className="slg-eyebrow" style={{ marginBottom: '1rem' }}>Upcoming Opportunity</span>
+                <h2 className="slg-section-title" style={{ fontSize: '2rem', marginTop: '0.5rem' }}>{selectedTraining.title}</h2>
+              </div>
+              
+              <div className="slg-meta-row" style={{ marginBottom: '2rem', padding: '1rem', background: 'var(--bg-2)', borderRadius: '12px' }}>
+                <div className="slg-meta-item">
+                  <Icon icon={icons.calendar} size={16} />
+                  <span>{selectedTraining.date}</span>
+                </div>
+                <div className="slg-meta-item">
+                  <Icon icon={icons.mapPin} size={16} />
+                  <span>{selectedTraining.location}</span>
+                </div>
+              </div>
+
+              <p className="slg-card-excerpt" style={{ fontSize: '1rem', marginBottom: '2.5rem' }}>
+                {selectedTraining.excerpt} This intensive regional workshop focuses on localized implementation and citizen oversight strategies.
+              </p>
+
+              <div style={{ display: 'flex', gap: '1rem' }}>
+                <Link to="/auth/register" className="slg-btn-orange" style={{ padding: '0.75rem 2rem', fontSize: '1rem', width: '100%', textAlign: 'center' }}>
+                  Register for this Slot
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Basic Footer */}
       <footer className="slg-footer" style={{ marginTop: 'auto' }}>
@@ -255,7 +366,41 @@ export function InPersonTrainingPage() {
   )
 }
 
-function TrainingCard({ training, isUpcoming }) {
+function Pagination({ current, total, onChange }) {
+  return (
+    <div className="slg-pagination">
+      <button 
+        className="slg-page-btn" 
+        disabled={current === 1} 
+        onClick={() => onChange(current - 1)}
+        aria-label="Previous page"
+      >
+        <Icon icon={icons.chevronLeft || icons.arrowRight} style={{ transform: 'rotate(180deg)' }} />
+      </button>
+      
+      {[...Array(total)].map((_, i) => (
+        <button 
+          key={i} 
+          className={`slg-page-btn ${current === i + 1 ? 'active' : ''}`}
+          onClick={() => onChange(i + 1)}
+        >
+          {i + 1}
+        </button>
+      ))}
+
+      <button 
+        className="slg-page-btn" 
+        disabled={current === total} 
+        onClick={() => onChange(current + 1)}
+        aria-label="Next page"
+      >
+        <Icon icon={icons.chevronRight || icons.arrowRight} />
+      </button>
+    </div>
+  )
+}
+
+function TrainingCard({ training, isUpcoming, onViewDetails }) {
   return (
     <div className="slg-training-card">
       <div className="slg-card-img-wrap">
@@ -266,7 +411,16 @@ function TrainingCard({ training, isUpcoming }) {
       </div>
       <div className="slg-card-body">
         <h3 className="slg-card-title">
-          <Link to={`/inperson-training/${training.slug}`}>{training.title}</Link>
+          {isUpcoming ? (
+            <button 
+              onClick={onViewDetails}
+              style={{ background: 'none', border: 'none', padding: 0, textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit' }}
+            >
+              <span className="slg-card-title">{training.title}</span>
+            </button>
+          ) : (
+            <Link to={`/inperson-training/${training.slug}`}>{training.title}</Link>
+          )}
         </h3>
         
         <div className="slg-meta-row">
@@ -283,10 +437,19 @@ function TrainingCard({ training, isUpcoming }) {
         <p className="slg-card-excerpt">{training.excerpt}</p>
 
         <div style={{ marginTop: 'auto', paddingTop: '1rem' }}>
-          <Link to={`/inperson-training/${training.slug}`} className="slg-link-more">
-            {isUpcoming ? 'Reserve Slot' : 'View Full Recap'}{' '}
-            <Icon icon={icons.arrowRight} size={14} />
-          </Link>
+          {isUpcoming ? (
+            <button 
+              onClick={onViewDetails} 
+              className="slg-link-more"
+              style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+            >
+              View Details <Icon icon={icons.arrowRight} size={14} />
+            </button>
+          ) : (
+            <Link to={`/inperson-training/${training.slug}`} className="slg-link-more">
+              View Full Recap <Icon icon={icons.arrowRight} size={14} />
+            </Link>
+          )}
         </div>
       </div>
     </div>
