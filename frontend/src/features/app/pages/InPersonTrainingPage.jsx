@@ -213,7 +213,7 @@ const PAGE_CSS = `
 export function InPersonTrainingPage() {
   const [scrolled, setScrolled] = useState(false)
   const [theme, setTheme] = useState('light')
-  
+
   const [upcomingPage, setUpcomingPage] = useState(1)
   const [pastPage, setPastPage] = useState(1)
   const [selectedTraining, setSelectedTraining] = useState(null)
@@ -278,19 +278,19 @@ export function InPersonTrainingPage() {
             </div>
             <div className="slg-training-grid">
               {upcoming.map(t => (
-                <TrainingCard 
-                  key={t.id} 
-                  training={t} 
-                  isUpcoming 
+                <TrainingCard
+                  key={t.id}
+                  training={t}
+                  isUpcoming
                   onViewDetails={() => setSelectedTraining(t)}
                 />
               ))}
             </div>
             {upcomingTotalPages > 1 && (
-              <Pagination 
-                current={upcomingPage} 
-                total={upcomingTotalPages} 
-                onChange={(p) => { setUpcomingPage(p); window.scrollTo(0, 0); }} 
+              <Pagination
+                current={upcomingPage}
+                total={upcomingTotalPages}
+                onChange={(p) => { setUpcomingPage(p); window.scrollTo(0, 0); }}
               />
             )}
           </section>
@@ -307,10 +307,10 @@ export function InPersonTrainingPage() {
             ))}
           </div>
           {pastTotalPages > 1 && (
-            <Pagination 
-              current={pastPage} 
-              total={pastTotalPages} 
-              onChange={(p) => { setPastPage(p); window.scrollTo(0, 400); }} 
+            <Pagination
+              current={pastPage}
+              total={pastTotalPages}
+              onChange={(p) => { setPastPage(p); window.scrollTo(0, 400); }}
             />
           )}
         </section>
@@ -329,7 +329,7 @@ export function InPersonTrainingPage() {
                 <span className="slg-eyebrow" style={{ marginBottom: '1rem' }}>Upcoming Opportunity</span>
                 <h2 className="slg-section-title" style={{ fontSize: '2rem', marginTop: '0.5rem' }}>{selectedTraining.title}</h2>
               </div>
-              
+
               <div className="slg-meta-row" style={{ marginBottom: '2rem', padding: '1rem', background: 'var(--bg-2)', borderRadius: '12px' }}>
                 <div className="slg-meta-item">
                   <Icon icon={icons.calendar} size={16} />
@@ -369,18 +369,18 @@ export function InPersonTrainingPage() {
 function Pagination({ current, total, onChange }) {
   return (
     <div className="slg-pagination">
-      <button 
-        className="slg-page-btn" 
-        disabled={current === 1} 
+      <button
+        className="slg-page-btn"
+        disabled={current === 1}
         onClick={() => onChange(current - 1)}
         aria-label="Previous page"
       >
         <Icon icon={icons.chevronLeft || icons.arrowRight} style={{ transform: 'rotate(180deg)' }} />
       </button>
-      
+
       {[...Array(total)].map((_, i) => (
-        <button 
-          key={i} 
+        <button
+          key={i}
           className={`slg-page-btn ${current === i + 1 ? 'active' : ''}`}
           onClick={() => onChange(i + 1)}
         >
@@ -388,9 +388,9 @@ function Pagination({ current, total, onChange }) {
         </button>
       ))}
 
-      <button 
-        className="slg-page-btn" 
-        disabled={current === total} 
+      <button
+        className="slg-page-btn"
+        disabled={current === total}
         onClick={() => onChange(current + 1)}
         aria-label="Next page"
       >
@@ -412,7 +412,7 @@ function TrainingCard({ training, isUpcoming, onViewDetails }) {
       <div className="slg-card-body">
         <h3 className="slg-card-title">
           {isUpcoming ? (
-            <button 
+            <button
               onClick={onViewDetails}
               style={{ background: 'none', border: 'none', padding: 0, textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit' }}
             >
@@ -422,7 +422,7 @@ function TrainingCard({ training, isUpcoming, onViewDetails }) {
             <Link to={`/inperson-training/${training.slug}`}>{training.title}</Link>
           )}
         </h3>
-        
+
         <div className="slg-meta-row">
           <div className="slg-meta-item">
             <Icon icon={icons.calendar} size={14} />
@@ -438,8 +438,8 @@ function TrainingCard({ training, isUpcoming, onViewDetails }) {
 
         <div style={{ marginTop: 'auto', paddingTop: '1rem' }}>
           {isUpcoming ? (
-            <button 
-              onClick={onViewDetails} 
+            <button
+              onClick={onViewDetails}
               className="slg-link-more"
               style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
             >

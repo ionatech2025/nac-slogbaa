@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { Icon, icons } from '../../../shared/icons.jsx'
 import { Logo } from '../../../shared/components/Logo.jsx'
+import { useTheme } from '../../../contexts/ThemeContext.jsx'
+import { Navbar } from '../../../shared/components/Navbar.jsx'
 import { getHomepageContent, recordVisit } from '../../../api/homepage.js'
 import { queryKeys } from '../../../lib/query-keys.js'
 
@@ -240,44 +242,6 @@ const GLOBAL_CSS = `
   .slg-page ::-webkit-scrollbar-track { background: var(--bg); }
   .slg-page ::-webkit-scrollbar-thumb { background: var(--surface-2); border-radius: 99px; }
 
-  /* Nav */
-  .slg-nav {
-    position: sticky; top: 0; z-index: 200;
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 0 2rem; height: 72px;
-    background: transparent;
-    border-bottom: 1px solid transparent;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-  .slg-nav.scrolled {
-    height: 64px;
-    background: var(--nav-bg);
-    backdrop-filter: blur(16px) saturate(180%);
-    -webkit-backdrop-filter: blur(16px) saturate(180%);
-    border-bottom: 1px solid var(--border);
-  }
-  .slg-nav-links { display: flex; align-items: center; gap: 0.5rem; }
-  .slg-nav-link {
-    position: relative;
-    padding: 0.45rem 0.9375rem; border-radius: 10px; font-size: 0.875rem; font-weight: 400;
-    color: var(--text-2); text-decoration: none; 
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    white-space: nowrap;
-  }
-  .slg-nav-link::after {
-    content: '';
-    position: absolute;
-    bottom: 4px; left: 1rem; right: 1rem;
-    height: 1.5px;
-    background: var(--orange);
-    transform: scaleX(0);
-    transform-origin: center;
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    border-radius: 4px;
-  }
-  .slg-nav-link:hover { color: var(--orange); background: var(--orange-dim); }
-  .slg-nav-link:hover::after { transform: scaleX(1); }
-  
   .slg-btn-ghost {
     padding: 0.45rem 1rem; border-radius: 10px; font-size: 0.875rem; font-weight: 500;
     color: var(--text-2); text-decoration: none; border: 1px solid var(--border);
@@ -711,15 +675,8 @@ export function HomePage() {
     retry: false,
   })
 
-  const [scrolled, setScrolled] = useState(false)
-  const [theme, setTheme] = useState('light')
-
-  useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 20)
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
-
+  const { theme } = useTheme()
+  
   useEffect(() => {
     if (!sessionStorage.getItem('slogbaa-visited')) {
       recordVisit()
@@ -737,34 +694,7 @@ export function HomePage() {
       <style>{GLOBAL_CSS}</style>
 
       <div className={`slg-page ${theme}-theme`}>
-
-        {/* ── Nav ── */}
-        <nav className={`slg-nav ${scrolled ? 'scrolled' : ''}`}>
-          <Link to="/" className="slg-logo-wrap" title="Go to home">
-            <Logo variant="full" size={30} color={theme === 'dark' ? 'white' : 'dark'} />
-          </Link>
-          <div className="slg-nav-links">
-            <a href="#about" className="slg-nav-link">About</a>
-            <a href="#features" className="slg-nav-link">Features</a>
-            <a href="#how" className="slg-nav-link">How it works</a>
-            <a href="#stories" className="slg-nav-link">Stories</a>
-            <a href="#news" className="slg-nav-link">News</a>
-            <a href="#inperson" className="slg-nav-link">In-Person Training</a>
-            <a href="#public-library" className="slg-nav-link">Public Library</a>
-            <Link to="/inquiries" className="slg-nav-link">Inquiries</Link>
-          </div>
-          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-            <button
-              onClick={() => setTheme(t => t === 'dark' ? 'light' : 'dark')}
-              className="slg-theme-toggle"
-              title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
-            >
-              <Icon icon={theme === 'dark' ? icons.sun : icons.moon} size={18} />
-            </button>
-            <Link to="/auth/login" className="slg-btn-ghost">Sign in</Link>
-            <Link to="/auth/register" className="slg-btn-orange">Register Free</Link>
-          </div>
-        </nav>
+        <Navbar />
 
         {/* ── Hero ── */}
         <HeroSection />
@@ -965,7 +895,7 @@ export function HomePage() {
               </div>
               <Link to="/inperson-training" className="slg-btn-ghost">View All Trainings</Link>
             </div>
-            
+
             <div className="slg-training-grid">
               {IN_PERSON_TRAININGS.map(training => (
                 <div key={training.id} className="slg-training-card">
@@ -1003,7 +933,7 @@ export function HomePage() {
             </div>
             <Link to="/dashboard/library" className="slg-btn-ghost">Enter Library</Link>
           </div>
-          
+
           <div className="slg-feature-grid">
             <Link to="/dashboard/library" className="slg-feature-card" style={{ textDecoration: 'none' }}>
               <div className="slg-feature-icon"><Icon icon={icons.library} /></div>

@@ -1,8 +1,100 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { Icon, icons } from '../../shared/icons.jsx'
 import { Logo } from './Logo.jsx'
 import { useTheme } from '../../contexts/ThemeContext.jsx'
+
+const NAV_CSS = `
+  .slg-nav {
+    position: sticky; top: 0; z-index: 500;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 4rem; height: 80px;
+    background: transparent;
+    border-bottom: 1px solid transparent;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  @media (max-width: 1200px) { .slg-nav { padding: 0 2rem; } }
+
+  .slg-nav.scrolled {
+    height: 64px;
+    background: var(--nav-bg);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border-bottom: 1px solid var(--border);
+    box-shadow: 0 4px 30px rgba(0,0,0,0.03);
+  }
+
+  .slg-nav-links { 
+    display: flex; align-items: center; gap: 0.5rem;
+    position: absolute; left: 50%; transform: translateX(-50%);
+  }
+  @media (max-width: 1200px) { 
+    .slg-nav-links { position: static; transform: none; margin: 0 1rem; flex: 1; justify-content: center; } 
+  }
+  @media (max-width: 900px) { .slg-nav-links { display: none; } }
+
+  /* Dropdown Grouping */
+  .slg-nav-group { position: relative; }
+  
+  .slg-nav-trigger {
+    display: flex; align-items: center; gap: 0.35rem; cursor: pointer;
+    padding: 0.5rem 0.875rem; border-radius: 8px; font-size: 0.8125rem; font-weight: 500;
+    color: var(--text-2); transition: all 0.2s; background: none; border: none; font-family: inherit;
+  }
+  .slg-nav-trigger:hover, .slg-nav-group:hover .slg-nav-trigger { color: var(--text); background: var(--orange-dim); }
+  .slg-nav-chevron { color: var(--text-3); transition: transform 0.2s; }
+  .slg-nav-group:hover .slg-nav-chevron { transform: rotate(180deg); color: var(--orange); }
+
+  .slg-nav-dropdown {
+    position: absolute; top: 100%; left: 0; min-width: 220px;
+    padding: 0.75rem; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; box-shadow: 0 20px 40px rgba(0,0,0,0.12);
+    opacity: 0; visibility: hidden; transform: translateY(10px);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .slg-nav-group:hover .slg-nav-dropdown { opacity: 1; visibility: visible; transform: translateY(4px); }
+
+  .slg-dropdown-link {
+    display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem;
+    border-radius: 8px; color: var(--text-2); text-decoration: none; transition: all 0.2s;
+  }
+  .slg-dropdown-link:hover { background: var(--bg-2); color: var(--orange); }
+  .slg-dropdown-icon { width: 32px; height: 32px; border-radius: 8px; background: var(--bg-3); display: flex; align-items: center; justify-content: center; color: var(--text-3); transition: all 0.2s; }
+  .slg-dropdown-link:hover .slg-dropdown-icon { background: var(--orange-dim); color: var(--orange); }
+  
+  .slg-dropdown-content { display: flex; flex-direction: column; }
+  .slg-dropdown-label { font-size: 0.8125rem; font-weight: 600; margin-bottom: 0.125rem; }
+  .slg-dropdown-desc { font-size: 0.6875rem; color: var(--text-3); line-height: 1.3; }
+
+  /* Standard Links */
+  .slg-nav-link {
+    padding: 0.5rem 0.875rem; border-radius: 8px; font-size: 0.8125rem; font-weight: 500;
+    color: var(--text-2); text-decoration: none; transition: all 0.2s;
+  }
+  .slg-nav-link:hover { color: var(--text); background: var(--orange-dim); }
+
+  .slg-nav-actions { display: flex; align-items: center; gap: 0.75rem; }
+  
+  .slg-theme-toggle {
+    width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--border);
+    background: var(--bg); color: var(--text-3); display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .slg-theme-toggle:hover { color: var(--orange); border-color: var(--orange); background: var(--orange-dim); }
+
+  .slg-btn-signin {
+    padding: 0.45rem 1.25rem; border-radius: 10px; font-size: 0.8125rem; font-weight: 600;
+    color: var(--text); text-decoration: none; border: 1px solid var(--border); transition: all 0.2s;
+  }
+  .slg-btn-signin:hover { background: var(--bg-2); border-color: var(--text-3); }
+
+  .slg-btn-register {
+    padding: 0.45rem 1.25rem; border-radius: 10px; font-size: 0.8125rem; font-weight: 700;
+    color: #fff; text-decoration: none; background: var(--orange);
+    transition: all 0.2s; box-shadow: 0 4px 12px rgba(245,130,32,0.2);
+  }
+  .slg-btn-register:hover { background: #ff933a; transform: translateY(-1px); box-shadow: 0 6px 16px rgba(245,130,32,0.3); }
+`
 
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false)
@@ -16,40 +108,83 @@ export function Navbar() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  const navLinks = [
-    { label: 'News', href: isHome ? '#news' : '/#news' },
-    { label: 'In-Person Training', href: '/inperson-training' },
-    { label: 'Public Library', href: isHome ? '#public-library' : '/#public-library' },
-    { label: 'Inquiries', href: '/inquiries' }
+  const groups = [
+    {
+      label: 'Explore',
+      items: [
+        { label: 'About', desc: 'Our mission and impact', icon: icons.users, href: isHome ? '#about' : '/#about' },
+        { label: 'Features', desc: 'Tools for leadership', icon: icons.layers || icons.grid, href: isHome ? '#features' : '/#features' },
+        { label: 'How it works', desc: 'Your learning journey', icon: icons.refreshCw || icons.sync, href: isHome ? '#how' : '/#how' },
+        { label: 'Impact Stories', desc: 'Voices from citizens', icon: icons.award || icons.star, href: isHome ? '#stories' : '/#stories' }
+      ]
+    },
+    {
+      label: 'Resources',
+      items: [
+        { label: 'In-Person Training', desc: 'Workshops in your region', icon: icons.graduationCap, href: '/inperson-training' },
+        { label: 'Public Library', desc: 'Policy and research guides', icon: icons.library, href: isHome ? '#public-library' : '/#public-library' },
+        { label: 'News & Updates', desc: 'Latest from SLOGBAA', icon: icons.fileText, href: isHome ? '#news' : '/#news' }
+      ]
+    }
   ]
 
+  const LinkOrAnchor = ({ item, isDropdown }) => {
+    const isExternal = item.href.startsWith('#') || item.href.startsWith('/#')
+    const className = isDropdown ? 'slg-dropdown-link' : 'slg-nav-link'
+
+    const content = isDropdown ? (
+      <>
+        <div className="slg-dropdown-icon">
+          <Icon icon={item.icon} size={16} />
+        </div>
+        <div className="slg-dropdown-content">
+          <span className="slg-dropdown-label">{item.label}</span>
+          <span className="slg-dropdown-desc">{item.desc}</span>
+        </div>
+      </>
+    ) : item.label
+
+    if (isExternal) return <a href={item.href} className={className}>{content}</a>
+    return <Link to={item.href} className={`${className} ${location.pathname === item.href ? 'active' : ''}`}>{content}</Link>
+  }
+
   return (
-    <nav className={`slg-nav ${scrolled ? 'scrolled' : ''}`}>
-      <Link to="/" className="slg-logo-wrap">
-        <Logo variant="full" size={28} color={theme === 'dark' ? 'white' : 'dark'} />
-      </Link>
+    <>
+      <style>{NAV_CSS}</style>
+      <nav className={`slg-nav ${scrolled ? 'scrolled' : ''}`}>
+        <Link to="/" className="slg-logo-wrap">
+          <Logo variant="full" size={28} color={theme === 'dark' ? 'white' : 'dark'} />
+        </Link>
 
-      <div className="slg-nav-links">
-        {navLinks.map(link => (
-          link.href.startsWith('#') || link.href.startsWith('/#') ? (
-            <a key={link.label} href={link.href} className="slg-nav-link">{link.label}</a>
-          ) : (
-            <Link key={link.label} to={link.href} className="slg-nav-link">{link.label}</Link>
-          )
-        ))}
-      </div>
+        <div className="slg-nav-links">
+          {groups.map(group => (
+            <div key={group.label} className="slg-nav-group">
+              <button className="slg-nav-trigger">
+                {group.label}
+                <Icon icon={icons.chevronDown || icons.arrowRight} size={12} className="slg-nav-chevron" />
+              </button>
+              <div className="slg-nav-dropdown">
+                {group.items.map(item => (
+                  <LinkOrAnchor key={item.label} item={item} isDropdown />
+                ))}
+              </div>
+            </div>
+          ))}
+          <LinkOrAnchor item={{ label: 'Support', href: '/inquiries' }} isDropdown={false} />
+        </div>
 
-      <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-        <button
-          onClick={toggleTheme}
-          className="slg-theme-toggle"
-          title="Toggle theme"
-        >
-          <Icon icon={theme === 'dark' ? icons.sun : icons.moon} size={16} />
-        </button>
-        <Link to="/auth/login" className="slg-btn-ghost">Login</Link>
-        <Link to="/auth/register" className="slg-btn-orange">Get Started</Link>
-      </div>
-    </nav>
+        <div className="slg-nav-actions">
+          <button
+            onClick={toggleTheme}
+            className="slg-theme-toggle"
+            title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+          >
+            <Icon icon={theme === 'dark' ? icons.sun : icons.moon} size={16} />
+          </button>
+          <Link to="/auth/login" className="slg-btn-signin">Sign in</Link>
+          <Link to="/auth/register" className="slg-btn-register">Register Free</Link>
+        </div>
+      </nav>
+    </>
   )
 }

@@ -76,11 +76,6 @@ const DETAIL_CSS = `
   .slg-sidebar-item { border-bottom: 1px solid var(--border); padding: 1rem 0; font-size: 0.875rem; }
   .slg-sidebar-item:last-child { border: none; }
   
-  .slg-detail-nav {
-    position: sticky; top: 0; z-index: 200; height: 64px;
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 0 2rem; background: var(--bg); border-bottom: 1px solid var(--border);
-  }
 `
 
 /* ─── Mock Data ───────────────────────────────────────────────────────────── */
