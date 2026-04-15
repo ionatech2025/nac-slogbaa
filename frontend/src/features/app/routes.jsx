@@ -42,6 +42,7 @@ const LiveSessionsPage = lazy(() => import('./pages/LiveSessionsPage.jsx').then(
 const TraineeCertificatesPage = lazy(() =>
   import('./pages/TraineeCertificatesPage.jsx').then((m) => ({ default: m.TraineeCertificatesPage })))
 const InPersonTrainingPage = lazy(() => import('./pages/InPersonTrainingPage.jsx').then((m) => ({ default: m.InPersonTrainingPage })))
+const InPersonTrainingDetailPage = lazy(() => import('./pages/InPersonTrainingDetailPage.jsx').then((m) => ({ default: m.InPersonTrainingDetailPage })))
 
 function Lazy({ children }) {
   return <Suspense fallback={<PageSkeleton />}>{children}</Suspense>
@@ -52,7 +53,7 @@ export function AppRoutes() {
     <Routes>
       <Route path="/" element={<HomePage />} />
       <Route path="/inperson-training" element={<Lazy><InPersonTrainingPage /></Lazy>} />
-      <Route path="/inperson-training/:slug" element={<Lazy><InPersonTrainingPage /></Lazy>} />
+      <Route path="/inperson-training/:slug" element={<Lazy><InPersonTrainingDetailPage /></Lazy>} />
       <Route path="/reset-password" element={<Lazy><ResetPasswordPage /></Lazy>} />
       <Route path="/auth/*" element={<Lazy><IamRoutes /></Lazy>} />
       <Route path="/dashboard" element={<RequireTrainee />}>
