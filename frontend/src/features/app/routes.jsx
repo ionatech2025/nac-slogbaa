@@ -46,6 +46,7 @@ const InPersonTrainingDetailPage = lazy(() => import('./pages/InPersonTrainingDe
 const InquiriesPage = lazy(() => import('./pages/InquiriesPage.jsx').then((m) => ({ default: m.InquiriesPage })))
 const ImpactStoriesPage = lazy(() => import('./pages/ImpactStoriesPage.jsx').then((m) => ({ default: m.ImpactStoriesPage })))
 const ImpactStoryDetailPage = lazy(() => import('./pages/ImpactStoryDetailPage.jsx').then((m) => ({ default: m.ImpactStoryDetailPage })))
+const PublicLibraryPage = lazy(() => import('./pages/PublicLibraryPage.jsx').then((m) => ({ default: m.PublicLibraryPage })))
 
 function Lazy({ children }) {
   return <Suspense fallback={<PageSkeleton />}>{children}</Suspense>
@@ -60,6 +61,7 @@ export function AppRoutes() {
       <Route path="/inquiries" element={<Lazy><InquiriesPage /></Lazy>} />
       <Route path="/stories" element={<Lazy><ImpactStoriesPage /></Lazy>} />
       <Route path="/stories/:id" element={<Lazy><ImpactStoryDetailPage /></Lazy>} />
+      <Route path="/public-library" element={<Lazy><PublicLibraryPage /></Lazy>} />
       <Route path="/reset-password" element={<Lazy><ResetPasswordPage /></Lazy>} />
       <Route path="/auth/*" element={<Lazy><IamRoutes /></Lazy>} />
       <Route path="/dashboard" element={<RequireTrainee />}>

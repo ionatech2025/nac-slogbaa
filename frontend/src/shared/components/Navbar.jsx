@@ -118,7 +118,7 @@ export function Navbar() {
         { label: 'About', desc: 'Our mission and impact', icon: icons.users, href: isHome ? '#about' : '/#about' },
         { label: 'Features', desc: 'Tools for leadership', icon: icons.layers || icons.grid, href: isHome ? '#features' : '/#features' },
         { label: 'How it works', desc: 'Your learning journey', icon: icons.refreshCw || icons.sync, href: isHome ? '#how' : '/#how' },
-        { label: 'Impact Stories', desc: 'Voices from citizens', icon: icons.award || icons.star, href: '/stories' }
+        { label: 'Impact Stories', desc: 'Voices from citizens', icon: icons.award || icons.star, href: isHome ? '#stories' : '/stories' }
       ]
     },
     {
@@ -134,7 +134,7 @@ export function Navbar() {
   const LinkOrAnchor = ({ item, isDropdown }) => {
     const isHash = item.href.startsWith('#') || item.href.startsWith('/#')
     const className = isDropdown ? 'slg-dropdown-link' : 'slg-nav-link'
-    
+
     const content = isDropdown ? (
       <>
         <div className="slg-dropdown-icon">

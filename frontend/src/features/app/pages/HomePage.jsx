@@ -137,6 +137,32 @@ const IMPACT_STORIES = [
   },
 ]
 
+const PUBLIC_LIBRARY_RESOURCES = [
+  {
+    id: 'gov-guide',
+    title: 'District Governance Guide',
+    tag: 'Report',
+    desc: 'Guidelines for effective local administration and community-led district planning.',
+    fullDesc: 'The District Governance Guide is a comprehensive manual designed for local council members and administrative staff. It outlines best practices for fiscal transparency, public consultation, and resource allocation to ensure that community needs are prioritized in every policy decision.',
+    image: '/governance_guide_cover_1776252013759.png'
+  },
+  {
+    id: 'leadership-101',
+    title: 'Civic Leadership 101',
+    tag: 'Manual',
+    desc: 'Foundation principles for emerging community leaders and grassroots advocates.',
+    fullDesc: 'Leadership 101 focuses on the core competencies required to organize and mobilize communities. From conflict resolution to public speaking and strategic planning, this manual serves as a roadmap for anyone looking to make a tangible impact at the local level.',
+    image: '/leadership_manual_cover_1776252040723.png'
+  },
+  {
+    id: 'acc-framework',
+    title: 'Accountability Framework',
+    tag: 'Policy',
+    desc: 'Standardized procedures for monitoring and evaluating public service delivery.',
+    fullDesc: 'This policy framework provides the technical tools needed to audit local service delivery. It includes standardized reporting templates, data verification protocols, and community monitoring checklists designed to hold local service providers accountable to the citizens.',
+    image: '/accountability_framework_cover_1776252057156.png'
+  }
+]
 const NEWS_ITEMS = [
   {
     date: 'Coming Soon',
@@ -500,6 +526,50 @@ const GLOBAL_CSS = `
   .slg-partner-initials { font-size: 1.0625rem; font-weight: 800; }
   .slg-partner-name { font-size: 0.5rem; color: var(--text-3); text-align: center; line-height: 1.3; max-width: 90px; }
 
+  /* Public Library Cards */
+  .slg-lib-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; }
+  .slg-lib-card {
+    background: var(--bg); border: 1px solid var(--border); border-radius: 20px;
+    padding: 1.75rem; display: flex; flex-direction: column; transition: all 0.3s ease;
+  }
+  .slg-lib-card:hover { transform: translateY(-5px); border-color: var(--orange-glow); box-shadow: 0 20px 40px -10px rgba(0,0,0,0.1); }
+  
+  .slg-lib-img-box {
+    aspect-ratio: 1; border-radius: 12px; overflow: hidden; margin-bottom: 1.5rem;
+    background: var(--bg-2); border: 1px solid var(--border);
+  }
+  .slg-lib-img-box img { width: 100%; height: 100%; object-fit: cover; }
+  
+  .slg-lib-actions { display: flex; gap: 0.75rem; margin-top: auto; padding-top: 1.5rem; }
+  .slg-btn-lib-main {
+    flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+    padding: 0.625rem; border-radius: 8px; font-size: 0.8125rem; font-weight: 700;
+    background: var(--orange); color: #fff; text-decoration: none; border: none; cursor: pointer;
+  }
+  .slg-btn-lib-outline {
+    flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+    padding: 0.625rem; border-radius: 8px; font-size: 0.8125rem; font-weight: 600;
+    background: transparent; color: var(--text); border: 1px solid var(--border);
+    text-decoration: none; cursor: pointer; transition: all 0.2s;
+  }
+  .slg-btn-lib-outline:hover { background: var(--bg-2); border-color: var(--text-3); }
+
+  /* Modal */
+  .slg-modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px);
+    z-index: 10001; display: flex; align-items: center; justify-content: center; padding: 2rem;
+  }
+  .slg-modal-box {
+    background: var(--bg); border-radius: 24px; padding: 3rem; max-width: 600px; width: 100%;
+    position: relative; border: 1px solid var(--border); border-radius: 12px;
+  }
+  .slg-modal-close {
+    position: absolute; top: 1.5rem; right: 1.5rem; background: var(--bg-2); border: 1px solid var(--border);
+    width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: var(--text-2);
+  }
+
+
   /* Stories Refined */
   .slg-stories-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2.5rem; }
   .slg-story-card {
@@ -705,6 +775,7 @@ function extractYoutubeId(url) {
 
 /* ─── Page ───────────────────────────────────────────────────────────────── */
 export function HomePage() {
+  const [modalResource, setModalResource] = useState(null)
   const { data: cms } = useQuery({
     queryKey: queryKeys.homepage.content(),
     queryFn: () => getHomepageContent(),
@@ -713,13 +784,13 @@ export function HomePage() {
   })
 
   const { theme } = useTheme()
-  
+
   useEffect(() => {
     if (!sessionStorage.getItem('slogbaa-visited')) {
-      recordVisit()
+      // recordVisit()
       sessionStorage.setItem('slogbaa-visited', '1')
     }
-    
+
     // Handle cross-page hash scroll
     const hash = window.location.hash
     if (hash) {
@@ -841,7 +912,7 @@ export function HomePage() {
             </div>
             <Link to="/stories" className="slg-btn-ghost">View All Stories</Link>
           </div>
-          
+
           <div className="slg-stories-grid">
             {IMPACT_STORIES.map((story) => (
               <article key={story.id} className="slg-story-card">
@@ -967,40 +1038,65 @@ export function HomePage() {
 
         <hr className="slg-section-divider" />
 
-        {/* ── Public Library ── */}
-        <section id="public-library" className="slg-section">
-          <div style={{ marginBottom: '3rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '1rem' }}>
+        <section id="public-library" className="slg-section slg-bg-3">
+          <div style={{ marginBottom: '3.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '1.5rem' }}>
             <div>
               <span className="slg-eyebrow">Resource Center</span>
               <h2 className="slg-section-title">Public <em>Library</em></h2>
-              <p className="slg-section-desc" style={{ marginTop: '0.875rem' }}>
-                Open-access materials, policy guides, and research documents for civic leaders.
+              <p className="slg-section-desc">
+                Fully open-access policy guides, administrative manuals, and governance research for all citizens.
               </p>
             </div>
-            <Link to="/dashboard/library" className="slg-btn-ghost">Enter Library</Link>
+            <Link to="/public-library" className="slg-btn-ghost">Enter Public Library</Link>
           </div>
 
-          <div className="slg-feature-grid">
-            <Link to="/dashboard/library" className="slg-feature-card" style={{ textDecoration: 'none' }}>
-              <div className="slg-feature-icon"><Icon icon={icons.library} /></div>
-              <span className="slg-feature-tag">Report</span>
-              <h3 className="slg-feature-title">District Governance Guide</h3>
-              <p className="slg-feature-text">Guidelines for effective local administration and citizen engagement.</p>
-            </Link>
-            <Link to="/dashboard/library" className="slg-feature-card" style={{ textDecoration: 'none' }}>
-              <div className="slg-feature-icon"><Icon icon={icons.bookMarked} /></div>
-              <span className="slg-feature-tag">Manual</span>
-              <h3 className="slg-feature-title">Civic Leadership 101</h3>
-              <p className="slg-feature-text">Foundation principles for emerging community leaders and advocates.</p>
-            </Link>
-            <Link to="/dashboard/library" className="slg-feature-card" style={{ textDecoration: 'none' }}>
-              <div className="slg-feature-icon"><Icon icon={icons.fileText} /></div>
-              <span className="slg-feature-tag">Policy</span>
-              <h3 className="slg-feature-title">Accountability Framework</h3>
-              <p className="slg-feature-text">Standardized procedures for monitoring public service delivery.</p>
-            </Link>
+          <div className="slg-lib-grid">
+            {PUBLIC_LIBRARY_RESOURCES.map(res => (
+              <article key={res.id} className="slg-lib-card">
+                <div className="slg-lib-img-box">
+                  <img src={res.image} alt={res.title} />
+                </div>
+                <span className="slg-feature-tag">{res.tag}</span>
+                <h3 className="slg-feature-title">{res.title}</h3>
+                <p className="slg-feature-text">{res.desc}</p>
+                <div className="slg-lib-actions">
+                  <button onClick={() => setModalResource(res)} className="slg-btn-lib-outline">View More</button>
+                  <a href="#" className="slg-btn-lib-main" onClick={e => e.preventDefault()}>
+                    Download <Icon icon={icons.download} size={14} />
+                  </a>
+                </div>
+              </article>
+            ))}
           </div>
         </section>
+
+        {/* Modal for Library Details */}
+        {modalResource && (
+          <div className="slg-modal-overlay" onClick={() => setModalResource(null)}>
+            <div className="slg-modal-box" onClick={e => e.stopPropagation()}>
+              <button className="slg-modal-close" onClick={() => setModalResource(null)}>
+                <Icon icon={icons.close} size={16} />
+              </button>
+              <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
+                <div style={{ width: '120px', borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--border)' }}>
+                  <img src={modalResource.image} alt="" style={{ width: '100%', height: 'auto' }} />
+                </div>
+                <div style={{ flex: 1, minWidth: '280px' }}>
+                  <span className="slg-feature-tag">{modalResource.tag}</span>
+                  <h2 className="slg-section-title" style={{ fontSize: '1.75rem', marginBottom: '1rem' }}>{modalResource.title}</h2>
+                  <p className="slg-article-p" style={{ fontSize: '0.9375rem', color: 'var(--text-2)', lineHeight: 1.7 }}>
+                    {modalResource.fullDesc}
+                  </p>
+                  <div style={{ marginTop: '2.5rem' }}>
+                    <button className="slg-btn-hero-primary" style={{ width: '100%', justifyContent: 'center' }}>
+                      Download Documentation <Icon icon={icons.download} size={16} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         <hr className="slg-section-divider" />
 
