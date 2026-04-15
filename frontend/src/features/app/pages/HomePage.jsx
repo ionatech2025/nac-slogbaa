@@ -106,25 +106,34 @@ const STEPS = [
 
 const IMPACT_STORIES = [
   {
+    id: 'sarah-namuli',
     name: 'Sarah Namuli',
-    role: 'Community Leader, Kampala',
-    quote: 'SLOGBAA gave me the knowledge and confidence to lead accountability initiatives in my community. The structured courses made complex governance topics accessible.',
-    color: '#F58220',
-    initials: 'SN',
+    location: 'Kampala District',
+    region: 'Central Uganda',
+    role: 'Community Leader',
+    title: 'Leading Accountability from the Frontline',
+    preview: 'How one leader used digital tools to monitor local service delivery and improve community outcomes...',
+    image: '/sarah_namuli_story_1776248245640.png',
   },
   {
+    id: 'james-okello',
     name: 'James Okello',
-    role: 'Civil Society Member, Gulu',
-    quote: 'The certificates I earned through SLOGBAA opened doors in governance advocacy. The platform is intuitive, well-organised, and genuinely impactful.',
-    color: '#059669',
-    initials: 'JO',
+    location: 'Gulu City',
+    region: 'Northern Uganda',
+    role: 'Civil Society Advocate',
+    title: 'Digital Literacy for Local Governance',
+    preview: 'James shares his journey of transitioning from traditional advocacy to data-driven civic engagement...',
+    image: '/james_okello_story_1776248275273.png',
   },
   {
+    id: 'grace-achieng',
     name: 'Grace Achieng',
-    role: 'Trainee, Mbarara',
-    quote: 'Progress tracking kept me motivated. I could see exactly how far I had come and what remained. Completing my first course felt like a real achievement.',
-    color: '#7c3aed',
-    initials: 'GA',
+    location: 'Mbarara District',
+    region: 'Western Uganda',
+    role: 'Civic Trainee',
+    title: 'Breaking Barriers in Civic Education',
+    preview: 'Grace explains how the SLOGBAA platform allowed her to pursue certification despite regional constraints...',
+    image: 'https://images.unsplash.com/photo-1531123897727-8f129e1688ce?q=80&w=600&auto=format&fit=crop', // Temporary until rerun
   },
 ]
 
@@ -491,6 +500,31 @@ const GLOBAL_CSS = `
   .slg-partner-initials { font-size: 1.0625rem; font-weight: 800; }
   .slg-partner-name { font-size: 0.5rem; color: var(--text-3); text-align: center; line-height: 1.3; max-width: 90px; }
 
+  /* Stories Refined */
+  .slg-stories-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2.5rem; }
+  .slg-story-card {
+    background: var(--bg); border: 1px solid var(--border); border-radius: 24px; overflow: hidden;
+    display: flex; flex-direction: column; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+  }
+  .slg-story-card:hover { transform: translateY(-8px); border-color: var(--orange-glow); box-shadow: 0 30px 60px -12px rgba(0,0,0,0.1); }
+  
+  .slg-story-img-wrap { aspect-ratio: 4/5; position: relative; overflow: hidden; background: var(--bg-3); }
+  .slg-story-img-wrap img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s ease; }
+  .slg-story-card:hover .slg-story-img-wrap img { transform: scale(1.05); }
+  
+  .slg-story-tag {
+    position: absolute; bottom: 1.5rem; left: 1.5rem; padding: 0.5rem 1rem;
+    background: rgba(var(--bg), 0.8); backdrop-filter: blur(10px); border: 1px solid var(--border);
+    border-radius: 100px; font-size: 0.75rem; font-weight: 700; color: var(--text);
+  }
+  .dark-theme .slg-story-tag { background: rgba(0,0,0,0.6); }
+
+  .slg-story-content { padding: 2rem; display: flex; flex-direction: column; flex-grow: 1; min-height: 280px; }
+  .slg-story-meta { font-size: 0.75rem; font-weight: 700; color: var(--orange); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.75rem; }
+  .slg-story-title { font-size: 1.5rem; font-weight: 500; line-height: 1.25; margin-bottom: 1rem; color: var(--text); font-family: 'DM Serif Display', serif; }
+  .slg-story-preview { font-size: 0.9375rem; color: var(--text-2); line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+
   /* CTA band */
   .slg-cta-band {
     position: relative; padding: clamp(3.5rem, 7vw, 6rem) 2rem; text-align: center;
@@ -794,41 +828,41 @@ export function HomePage() {
         <hr className="slg-section-divider" />
 
         {/* ── Impact Stories ── */}
-        <section className="slg-section" id="stories">
-          <div style={{ marginBottom: '2.5rem' }}>
-            <span className="slg-eyebrow">Impact Stories</span>
-            <h2 className="slg-section-title">
-              Voices from<br /><em>the community</em>
-            </h2>
-            <p className="slg-section-desc" style={{ marginTop: '0.875rem' }}>
-              How SLOGBAA is transforming civic participation across Uganda.
-            </p>
+        <section className="slg-section slg-bg-3" id="stories">
+          <div style={{ marginBottom: '3.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '1.5rem' }}>
+            <div>
+              <span className="slg-eyebrow">Impact Stories</span>
+              <h2 className="slg-section-title">
+                Voices from<br /><em>the community</em>
+              </h2>
+              <p className="slg-section-desc" style={{ marginTop: '0.875rem' }}>
+                Real citizen leaders sharing their journey of transformation through civic education.
+              </p>
+            </div>
+            <Link to="/stories" className="slg-btn-ghost">View All Stories</Link>
           </div>
+          
           <div className="slg-stories-grid">
-            {stories.map((story) => {
-              const name = story.authorName || story.name || 'Unknown'
-              const role = story.authorRole || story.role || ''
-              const quote = story.quoteText || story.quote || ''
-              const img = story.imageUrl || null
-              const color = story.color || '#F58220'
-              const initials = story.initials || name.split(' ').map((n) => n[0]).join('')
-              return (
-                <article key={name} className="slg-story-card">
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    {img ? (
-                      <img src={img} alt={name} style={{ width: 44, height: 44, borderRadius: '50%', objectFit: 'cover' }} />
-                    ) : (
-                      <div className="slg-story-avatar" style={{ background: color }}>{initials}</div>
-                    )}
-                    <div>
-                      <p className="slg-story-name">{name}</p>
-                      <p className="slg-story-role">{role}</p>
-                    </div>
+            {IMPACT_STORIES.map((story) => (
+              <article key={story.id} className="slg-story-card">
+                <div className="slg-story-img-wrap">
+                  <img src={story.image} alt={story.name} loading="lazy" />
+                  <div className="slg-story-tag">{story.location}</div>
+                </div>
+                <div className="slg-story-content">
+                  <header>
+                    <p className="slg-story-meta">{story.role} — {story.region}</p>
+                    <h3 className="slg-story-title">{story.title}</h3>
+                  </header>
+                  <p className="slg-story-preview">{story.preview}</p>
+                  <div style={{ marginTop: 'auto', paddingTop: '1.5rem' }}>
+                    <Link to={`/stories/${story.id}`} className="slg-link-more">
+                      Read the full story <Icon icon={icons.arrowRight} size={14} />
+                    </Link>
                   </div>
-                  <p className="slg-story-quote">{quote}</p>
-                </article>
-              )
-            })}
+                </div>
+              </article>
+            ))}
           </div>
         </section>
 

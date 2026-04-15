@@ -118,7 +118,7 @@ export function Navbar() {
         { label: 'About', desc: 'Our mission and impact', icon: icons.users, href: isHome ? '#about' : '/#about' },
         { label: 'Features', desc: 'Tools for leadership', icon: icons.layers || icons.grid, href: isHome ? '#features' : '/#features' },
         { label: 'How it works', desc: 'Your learning journey', icon: icons.refreshCw || icons.sync, href: isHome ? '#how' : '/#how' },
-        { label: 'Impact Stories', desc: 'Voices from citizens', icon: icons.award || icons.star, href: isHome ? '#stories' : '/#stories' }
+        { label: 'Impact Stories', desc: 'Voices from citizens', icon: icons.award || icons.star, href: '/stories' }
       ]
     },
     {

@@ -44,6 +44,8 @@ const TraineeCertificatesPage = lazy(() =>
 const InPersonTrainingPage = lazy(() => import('./pages/InPersonTrainingPage.jsx').then((m) => ({ default: m.InPersonTrainingPage })))
 const InPersonTrainingDetailPage = lazy(() => import('./pages/InPersonTrainingDetailPage.jsx').then((m) => ({ default: m.InPersonTrainingDetailPage })))
 const InquiriesPage = lazy(() => import('./pages/InquiriesPage.jsx').then((m) => ({ default: m.InquiriesPage })))
+const ImpactStoriesPage = lazy(() => import('./pages/ImpactStoriesPage.jsx').then((m) => ({ default: m.ImpactStoriesPage })))
+const ImpactStoryDetailPage = lazy(() => import('./pages/ImpactStoryDetailPage.jsx').then((m) => ({ default: m.ImpactStoryDetailPage })))
 
 function Lazy({ children }) {
   return <Suspense fallback={<PageSkeleton />}>{children}</Suspense>
@@ -56,6 +58,8 @@ export function AppRoutes() {
       <Route path="/inperson-training" element={<Lazy><InPersonTrainingPage /></Lazy>} />
       <Route path="/inperson-training/:slug" element={<Lazy><InPersonTrainingDetailPage /></Lazy>} />
       <Route path="/inquiries" element={<Lazy><InquiriesPage /></Lazy>} />
+      <Route path="/stories" element={<Lazy><ImpactStoriesPage /></Lazy>} />
+      <Route path="/stories/:id" element={<Lazy><ImpactStoryDetailPage /></Lazy>} />
       <Route path="/reset-password" element={<Lazy><ResetPasswordPage /></Lazy>} />
       <Route path="/auth/*" element={<Lazy><IamRoutes /></Lazy>} />
       <Route path="/dashboard" element={<RequireTrainee />}>
