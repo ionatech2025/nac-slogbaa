@@ -162,6 +162,30 @@ const SOCIAL_LINKS = [
   { label: 'YouTube', href: 'https://youtube.com', SvgIcon: YoutubeSvg },
 ]
 
+const IN_PERSON_TRAININGS = [
+  {
+    id: '1',
+    title: 'Three (3) Green Democratic Spaces in Yumbe, Mayuge, and Kampala',
+    date: 'Monday, July 1, 2024 - 00:00',
+    image: '/assets/images/homepage/banner_IMG.jpg',
+    slug: 'three-green-democratic-spaces'
+  },
+  {
+    id: '2',
+    title: 'The Parish Development Model Monitoring',
+    date: 'Monday, June 10, 2024 - 00:00',
+    image: '/assets/images/homepage/banner_IMG.jpg',
+    slug: 'parish-development-model-monitoring'
+  },
+  {
+    id: '3',
+    title: 'The Civil Society Strengthening Academy (CSSA)',
+    date: 'Tuesday, June 4, 2024 - 00:00',
+    image: '/assets/images/homepage/banner_IMG.jpg',
+    slug: 'civil-society-strengthening-academy'
+  }
+]
+
 /* ─── Global CSS injected once ────────────────────────────────────────────── */
 const GLOBAL_CSS = `
   @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap');
@@ -287,6 +311,26 @@ const GLOBAL_CSS = `
   .slg-logo-wrap:hover {
     transform: scale(1.03);
   }
+
+  /* In-Person Training Grid */
+  .slg-training-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 2rem;
+  }
+  .slg-training-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden;
+    display: flex; flex-direction: column; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .slg-training-card:hover { transform: translateY(-6px); box-shadow: 0 20px 40px rgba(0,0,0,0.06); border-color: var(--orange-glow); }
+  .slg-training-img-wrap { aspect-ratio: 16/10; overflow: hidden; background: var(--bg-3); }
+  .slg-training-img-wrap img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
+  .slg-training-card:hover .slg-training-img-wrap img { transform: scale(1.05); }
+  .slg-training-content { padding: 1.5rem; display: flex; flex-direction: column; flex-grow: 1; }
+  .slg-training-title { font-size: 1.125rem; font-weight: 700; line-height: 1.4; margin-bottom: 0.75rem; min-height: 3em; }
+  .slg-training-title a { color: #0066cc; text-decoration: none; transition: color 0.2s ease; }
+  .slg-training-title a:hover { color: var(--orange); }
+  .slg-training-date { font-size: 0.875rem; font-style: italic; color: var(--text-2); margin-bottom: 1rem; }
+  .slg-link-more { display: inline-flex; align-items: center; gap: 0.375rem; color: var(--orange); font-weight: 600; font-size: 0.875rem; text-decoration: none; }
+  .slg-link-more:hover { gap: 0.6rem; }
 
   .slg-theme-toggle {
     display: inline-flex; align-items: center; justify-content: center;
@@ -705,6 +749,8 @@ export function HomePage() {
             <a href="#how" className="slg-nav-link">How it works</a>
             <a href="#stories" className="slg-nav-link">Stories</a>
             <a href="#news" className="slg-nav-link">News</a>
+            <a href="#inperson" className="slg-nav-link">In-Person Training</a>
+            <a href="#public-library" className="slg-nav-link">Public Library</a>
           </div>
           <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
             <button
@@ -891,7 +937,7 @@ export function HomePage() {
           <div style={{ marginBottom: '2.5rem' }}>
             <span className="slg-eyebrow">News & Updates</span>
             <h2 className="slg-section-title">
-              Latest from<br /><em>NAC</em>
+              Latest from<br /><em>SLOGBAA</em>
             </h2>
           </div>
           <div className="slg-news-grid">
@@ -903,6 +949,79 @@ export function HomePage() {
                 <p className="slg-news-date">{item.publishedDate || item.date || ''}</p>
               </article>
             ))}
+          </div>
+        </section>
+
+        <hr className="slg-section-divider" />
+
+        {/* ── In-Person Training Section ── */}
+        <section id="inperson" className="slg-section slg-bg-2">
+          <div className="slg-container">
+            <div style={{ marginBottom: '3rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '1rem' }}>
+              <div>
+                <span className="slg-eyebrow">Training & Workshops</span>
+                <h2 className="slg-section-title">In-Person <em>Training</em></h2>
+              </div>
+              <Link to="/inperson-training" className="slg-btn-ghost">View All Trainings</Link>
+            </div>
+            
+            <div className="slg-training-grid">
+              {IN_PERSON_TRAININGS.map(training => (
+                <div key={training.id} className="slg-training-card">
+                  <div className="slg-training-img-wrap">
+                    <img src={training.image} alt={training.title} loading="lazy" />
+                  </div>
+                  <div className="slg-training-content">
+                    <h3 className="slg-training-title">
+                      <Link to={`/inperson-training/${training.slug}`}>{training.title}</Link>
+                    </h3>
+                    <p className="slg-training-date">{training.date}</p>
+                    <div style={{ marginTop: 'auto', paddingTop: '0.5rem' }}>
+                      <Link to={`/inperson-training/${training.slug}`} className="slg-link-more">
+                        Read More <Icon icon={icons.arrowRight} size={14} />
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <hr className="slg-section-divider" />
+
+        {/* ── Public Library ── */}
+        <section id="public-library" className="slg-section">
+          <div style={{ marginBottom: '3rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '1rem' }}>
+            <div>
+              <span className="slg-eyebrow">Resource Center</span>
+              <h2 className="slg-section-title">Public <em>Library</em></h2>
+              <p className="slg-section-desc" style={{ marginTop: '0.875rem' }}>
+                Open-access materials, policy guides, and research documents for civic leaders.
+              </p>
+            </div>
+            <Link to="/dashboard/library" className="slg-btn-ghost">Enter Library</Link>
+          </div>
+          
+          <div className="slg-feature-grid">
+            <Link to="/dashboard/library" className="slg-feature-card" style={{ textDecoration: 'none' }}>
+              <div className="slg-feature-icon"><Icon icon={icons.library} /></div>
+              <span className="slg-feature-tag">Report</span>
+              <h3 className="slg-feature-title">District Governance Guide</h3>
+              <p className="slg-feature-text">Guidelines for effective local administration and citizen engagement.</p>
+            </Link>
+            <Link to="/dashboard/library" className="slg-feature-card" style={{ textDecoration: 'none' }}>
+              <div className="slg-feature-icon"><Icon icon={icons.bookMarked} /></div>
+              <span className="slg-feature-tag">Manual</span>
+              <h3 className="slg-feature-title">Civic Leadership 101</h3>
+              <p className="slg-feature-text">Foundation principles for emerging community leaders and advocates.</p>
+            </Link>
+            <Link to="/dashboard/library" className="slg-feature-card" style={{ textDecoration: 'none' }}>
+              <div className="slg-feature-icon"><Icon icon={icons.fileText} /></div>
+              <span className="slg-feature-tag">Policy</span>
+              <h3 className="slg-feature-title">Accountability Framework</h3>
+              <p className="slg-feature-text">Standardized procedures for monitoring public service delivery.</p>
+            </Link>
           </div>
         </section>
 
