@@ -211,7 +211,7 @@ const GLOBAL_CSS = `
     --text: #09090b;
     --text-2: #52525b;
     --text-3: #71717a;
-    --nav-bg: rgba(255,255,255,0.85);
+    --nav-bg: #ffffff;
     --hero-overlay: linear-gradient(90deg, #ffffff 0%, rgba(255,255,255,0.95) 35%, rgba(255,255,255,0.4) 65%, transparent 100%);
     --stats-bg: rgba(255,255,255,0.6);
   }
@@ -227,13 +227,16 @@ const GLOBAL_CSS = `
     --text: #f4f4f5;
     --text-2: #a1a1aa;
     --text-3: #52525b;
-    --nav-bg: rgba(9,9,11,0.85);
+    --nav-bg: #09090b;
     --hero-overlay: linear-gradient(90deg, #09090b 0%, rgba(9,9,11,0.9) 35%, rgba(9,9,11,0.4) 65%, transparent 100%);
     --stats-bg: rgba(255,255,255,0.04);
   }
 
   .slg-page * { box-sizing: border-box; margin: 0; padding: 0; }
   .slg-page { font-family: 'DM Sans', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; scroll-behavior: smooth; }
+  
+  /* Account for sticky nav when scrolling to IDs */
+  [id] { scroll-margin-top: 100px; }
 
   .slg-serif { font-family: 'DM Serif Display', Georgia, serif; }
 
@@ -681,6 +684,15 @@ export function HomePage() {
     if (!sessionStorage.getItem('slogbaa-visited')) {
       recordVisit()
       sessionStorage.setItem('slogbaa-visited', '1')
+    }
+    
+    // Handle cross-page hash scroll
+    const hash = window.location.hash
+    if (hash) {
+      setTimeout(() => {
+        const el = document.querySelector(hash)
+        if (el) el.scrollIntoView({ behavior: 'smooth' })
+      }, 500)
     }
   }, [])
 

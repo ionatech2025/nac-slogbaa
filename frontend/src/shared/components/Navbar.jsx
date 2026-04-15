@@ -6,23 +6,25 @@ import { useTheme } from '../../contexts/ThemeContext.jsx'
 
 const NAV_CSS = `
   .slg-nav {
-    position: sticky; top: 0; z-index: 500;
+    position: sticky; top: 0; z-index: 10000;
     display: flex; align-items: center; justify-content: space-between;
     padding: 0 4rem; height: 80px;
-    background: transparent;
-    border-bottom: 1px solid transparent;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   }
-  @media (max-width: 1200px) { .slg-nav { padding: 0 2rem; } }
-
+  .slg-nav.transparent:not(.scrolled) {
+    background: transparent;
+    border-bottom-color: transparent;
+  }
   .slg-nav.scrolled {
     height: 64px;
-    background: var(--nav-bg);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
-    border-bottom: 1px solid var(--border);
-    box-shadow: 0 4px 30px rgba(0,0,0,0.03);
+    background: var(--bg) !important;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 4px 30px rgba(0,0,0,0.1);
+    border-bottom-color: var(--border);
   }
+  @media (max-width: 1200px) { .slg-nav { padding: 0 2rem; } }
 
   .slg-nav-links { 
     display: flex; align-items: center; gap: 0.5rem;
@@ -33,9 +35,7 @@ const NAV_CSS = `
   }
   @media (max-width: 900px) { .slg-nav-links { display: none; } }
 
-  /* Dropdown Grouping */
   .slg-nav-group { position: relative; }
-  
   .slg-nav-trigger {
     display: flex; align-items: center; gap: 0.35rem; cursor: pointer;
     padding: 0.5rem 0.875rem; border-radius: 8px; font-size: 0.8125rem; font-weight: 500;
@@ -46,27 +46,30 @@ const NAV_CSS = `
   .slg-nav-group:hover .slg-nav-chevron { transform: rotate(180deg); color: var(--orange); }
 
   .slg-nav-dropdown {
-    position: absolute; top: 100%; left: 0; min-width: 220px;
-    padding: 0.75rem; background: var(--surface); border: 1px solid var(--border);
-    border-radius: 12px; box-shadow: 0 20px 40px rgba(0,0,0,0.12);
-    opacity: 0; visibility: hidden; transform: translateY(10px);
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    position: absolute; top: 100%; left: 0; min-width: 300px;
+    padding: 1rem; background: var(--bg) !important; border: 1px solid var(--border);
+    border-radius: 12px; box-shadow: 0 40px 80px rgba(0,0,0,0.6);
+    opacity: 0; visibility: hidden; transform: translateY(0);
+    transition: all 0.25s ease-in-out;
+    z-index: 20000 !important;
   }
-  .slg-nav-group:hover .slg-nav-dropdown { opacity: 1; visibility: visible; transform: translateY(4px); }
+  .slg-nav-group::after {
+    content: ''; position: absolute; top: 100%; left: 0; right: 0; height: 20px;
+  }
+  .slg-nav-group:hover .slg-nav-dropdown { opacity: 1 !important; visibility: visible !important; transform: translateY(10px); }
 
   .slg-dropdown-link {
-    display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem;
+    display: flex; align-items: center; gap: 0.75rem; padding: 0.875rem;
     border-radius: 8px; color: var(--text-2); text-decoration: none; transition: all 0.2s;
   }
-  .slg-dropdown-link:hover { background: var(--bg-2); color: var(--orange); }
+  .slg-dropdown-link:hover { background: var(--orange-dim); color: var(--orange); }
   .slg-dropdown-icon { width: 32px; height: 32px; border-radius: 8px; background: var(--bg-3); display: flex; align-items: center; justify-content: center; color: var(--text-3); transition: all 0.2s; }
   .slg-dropdown-link:hover .slg-dropdown-icon { background: var(--orange-dim); color: var(--orange); }
   
   .slg-dropdown-content { display: flex; flex-direction: column; }
-  .slg-dropdown-label { font-size: 0.8125rem; font-weight: 600; margin-bottom: 0.125rem; }
-  .slg-dropdown-desc { font-size: 0.6875rem; color: var(--text-3); line-height: 1.3; }
+  .slg-dropdown-label { font-size: 0.875rem; font-weight: 600; margin-bottom: 0.125rem; }
+  .slg-dropdown-desc { font-size: 0.75rem; color: var(--text-3); line-height: 1.4; }
 
-  /* Standard Links */
   .slg-nav-link {
     padding: 0.5rem 0.875rem; border-radius: 8px; font-size: 0.8125rem; font-weight: 500;
     color: var(--text-2); text-decoration: none; transition: all 0.2s;
@@ -121,7 +124,7 @@ export function Navbar() {
     {
       label: 'Resources',
       items: [
-        { label: 'In-Person Training', desc: 'Workshops in your region', icon: icons.graduationCap, href: '/inperson-training' },
+        { label: 'In-Person Training', desc: 'Workshops in your region', icon: icons.graduationCap, href: isHome ? '#inperson' : '/#inperson' },
         { label: 'Public Library', desc: 'Policy and research guides', icon: icons.library, href: isHome ? '#public-library' : '/#public-library' },
         { label: 'News & Updates', desc: 'Latest from SLOGBAA', icon: icons.fileText, href: isHome ? '#news' : '/#news' }
       ]
@@ -129,9 +132,9 @@ export function Navbar() {
   ]
 
   const LinkOrAnchor = ({ item, isDropdown }) => {
-    const isExternal = item.href.startsWith('#') || item.href.startsWith('/#')
+    const isHash = item.href.startsWith('#') || item.href.startsWith('/#')
     const className = isDropdown ? 'slg-dropdown-link' : 'slg-nav-link'
-
+    
     const content = isDropdown ? (
       <>
         <div className="slg-dropdown-icon">
@@ -144,14 +147,14 @@ export function Navbar() {
       </>
     ) : item.label
 
-    if (isExternal) return <a href={item.href} className={className}>{content}</a>
+    if (isHash) return <a href={item.href} className={className}>{content}</a>
     return <Link to={item.href} className={`${className} ${location.pathname === item.href ? 'active' : ''}`}>{content}</Link>
   }
 
   return (
     <>
       <style>{NAV_CSS}</style>
-      <nav className={`slg-nav ${scrolled ? 'scrolled' : ''}`}>
+      <nav className={`slg-nav ${scrolled ? 'scrolled' : ''} ${isHome ? 'transparent' : ''}`}>
         <Link to="/" className="slg-logo-wrap">
           <Logo variant="full" size={28} color={theme === 'dark' ? 'white' : 'dark'} />
         </Link>
@@ -177,7 +180,7 @@ export function Navbar() {
           <button
             onClick={toggleTheme}
             className="slg-theme-toggle"
-            title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+            title="Toggle theme"
           >
             <Icon icon={theme === 'dark' ? icons.sun : icons.moon} size={16} />
           </button>

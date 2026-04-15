@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Icon, icons } from '../../../shared/icons.jsx'
 import { Logo } from '../../../shared/components/Logo.jsx'
+import { useTheme } from '../../../contexts/ThemeContext.jsx'
+import { Navbar } from '../../../shared/components/Navbar.jsx'
 
 /* ─── Static Data (Will be CMS-driven) ─────────────────────────────────────── */
 const ALL_TRAININGS = [
@@ -211,9 +213,7 @@ const PAGE_CSS = `
 `
 
 export function InPersonTrainingPage() {
-  const [scrolled, setScrolled] = useState(false)
-  const [theme, setTheme] = useState('light')
-
+  const { theme } = useTheme()
   const [upcomingPage, setUpcomingPage] = useState(1)
   const [pastPage, setPastPage] = useState(1)
   const [selectedTraining, setSelectedTraining] = useState(null)
@@ -237,25 +237,7 @@ export function InPersonTrainingPage() {
   return (
     <div className={`slg-page ${theme}-theme`}>
       <style>{PAGE_CSS}</style>
-
-      {/* Modern Nav */}
-      <nav className="slg-nav">
-        <Link to="/" className="slg-logo-wrap" title="Back to home">
-          <Logo variant="full" size={28} color={theme === 'dark' ? 'white' : 'dark'} />
-        </Link>
-        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-          <Link to="/inperson-training" className="slg-nav-link" style={{ marginLeft: '1rem' }}>Trainings</Link>
-          <Link to="/inquiries" className="slg-nav-link">Inquiries</Link>
-          <button
-            onClick={() => setTheme(t => t === 'dark' ? 'light' : 'dark')}
-            className="slg-theme-toggle"
-            title="Toggle theme"
-          >
-            <Icon icon={theme === 'dark' ? icons.sun : icons.moon} size={16} />
-          </button>
-          <Link to="/" className="slg-btn-ghost">Back to Home</Link>
-        </div>
-      </nav>
+      <Navbar />
 
       <header className="slg-training-hero">
         <div className="slg-hero-grid" />

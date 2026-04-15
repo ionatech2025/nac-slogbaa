@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Icon, icons } from '../../../shared/icons.jsx'
 import { Logo } from '../../../shared/components/Logo.jsx'
+import { useTheme } from '../../../contexts/ThemeContext.jsx'
+import { Navbar } from '../../../shared/components/Navbar.jsx'
 
 const INQUIRIES_CSS = `
   .slg-inquiries { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
@@ -69,7 +71,7 @@ const FAQS = [
 ]
 
 export function InquiriesPage() {
-  const [theme, setTheme] = useState('light')
+  const { theme } = useTheme()
   const [activeFaq, setActiveFaq] = useState(0)
 
   return (
@@ -77,21 +79,7 @@ export function InquiriesPage() {
       <style>{INQUIRIES_CSS}</style>
 
       {/* Nav */}
-      <nav className="slg-nav">
-        <Link to="/" className="slg-logo-wrap">
-          <Logo variant="full" size={28} color={theme === 'dark' ? 'white' : 'dark'} />
-        </Link>
-        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-          <Link to="/inperson-training" className="slg-nav-link">Trainings</Link>
-          <button
-            onClick={() => setTheme(t => t === 'dark' ? 'light' : 'dark')}
-            className="slg-theme-toggle"
-          >
-            <Icon icon={theme === 'dark' ? icons.sun : icons.moon} size={16} />
-          </button>
-          <Link to="/" className="slg-btn-ghost">Back home</Link>
-        </div>
-      </nav>
+      <Navbar />
 
       <header className="slg-inquiries-hero">
         <div className="slg-hero-glow" />

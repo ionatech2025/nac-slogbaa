@@ -121,4 +121,10 @@ export const icons = {
   chevronRight: ChevronRight,
   externalLink: ExternalLink,
   arrowRight: ArrowRight,
+  layers: Layers,
+  grid: Grid3X3,
+  refreshCw: RefreshCw,
+  sync: RefreshCw,
+  fileText: FileText,
+  graduationCap: GraduationCap,
 }

@@ -18,6 +18,21 @@
   --orange-surface-hover: rgba(245, 130, 32, 0.08);
   --orange-border-subtle: rgba(245, 130, 32, 0.2);
 
+  /* Global Shorthand Aliases (Light) */
+  --bg: #ffffff;
+  --bg-2: #fcfcfd;
+  --bg-3: #f9fafb;
+  --surface: #ffffff;
+  --surface-2: #f3f4f6;
+  --border: rgba(0,0,0,0.06);
+  --border-hover: rgba(0,0,0,0.12);
+  --text: #09090b;
+  --text-2: #52525b;
+  --text-3: #71717a;
+  --nav-bg: #ffffff;
+  --orange: #F58220;
+  --orange-dim: rgba(245,130,32,0.06);
+
   /* Slogbaa aliases */
   --slogbaa-blue: var(--primary-orange);
   --slogbaa-blue-hover: var(--primary-orange-hover);
@@ -51,7 +66,7 @@
   --slogbaa-glass-shadow-lg: 0 2px 8px rgba(0, 0, 0, 0.06);
   --slogbaa-glass-highlight: none;
 
-  /* Typography & spacing (from dev) */
+  /* Typography & spacing */
   --font-xs: clamp(0.75rem, 0.7rem + 0.15vw, 0.8125rem);
   --font-sm: clamp(0.8125rem, 0.775rem + 0.2vw, 0.875rem);
   --font-base: clamp(0.875rem, 0.825rem + 0.25vw, 1rem);
@@ -69,24 +84,31 @@
   --space-8: 2rem;
   --space-10: 2.5rem;
   --space-12: 3rem;
-
-  --touch-min: 44px;
-  --touch-comfortable: 48px;
-
-  --slogbaa-glass-blur-sm: blur(8px) saturate(160%);
-  --slogbaa-glass-blur-md: blur(16px) saturate(175%);
-  --slogbaa-glass-blur-lg: blur(24px) saturate(190%);
-  --slogbaa-glass-blur-xl: blur(32px) saturate(200%);
 }
 
 [data-theme='dark'] {
+  /* Global Shorthand Aliases (Dark Neutral) */
+  --bg: #09090b;
+  --bg-2: #111115;
+  --bg-3: #18181e;
+  --surface: #1e1e26;
+  --surface-2: #26262f;
+  --border: rgba(255,255,255,0.08);
+  --border-hover: rgba(255,255,255,0.14);
+  --text: #f4f4f5;
+  --text-2: #a1a1aa;
+  --text-3: #52525b;
+  --nav-bg: #09090b;
+  --orange: #F58220;
+  --orange-dim: rgba(245,130,32,0.12);
+
   --primary-orange: #fb923c;
   --primary-orange-hover: #f97316;
-  --bg-soft: #0f172a;
-  --text-main: #f1f5f9;
-  --text-muted: #94a3b8;
-  --border-color: #334155;
-  --identity-header-blue: #0f172a;
+  --bg-soft: var(--bg);
+  --text-main: var(--text);
+  --text-muted: var(--text-2);
+  --border-color: var(--border);
+  --identity-header-blue: var(--bg);
   --orange-surface: rgba(251, 146, 60, 0.08);
   --orange-surface-hover: rgba(251, 146, 60, 0.12);
 
@@ -97,12 +119,12 @@
   --slogbaa-green: #4ade80;
   --slogbaa-error: #f87171;
   --slogbaa-dark: #020617;
-  --slogbaa-surface: #1e293b;
-  --slogbaa-bg: var(--bg-soft);
-  --slogbaa-bg-secondary: #1e293b;
-  --slogbaa-text: var(--text-main);
-  --slogbaa-text-muted: var(--text-muted);
-  --slogbaa-border: var(--border-color);
+  --slogbaa-surface: var(--surface);
+  --slogbaa-bg: var(--bg);
+  --slogbaa-bg-secondary: var(--bg-2);
+  --slogbaa-text: var(--text);
+  --slogbaa-text-muted: var(--text-2);
+  --slogbaa-border: var(--border);
   --slogbaa-focus-ring: 0 0 0 2px var(--slogbaa-surface), 0 0 0 4px rgba(251, 146, 60, 0.4);
   --slogbaa-glass-bg: rgba(30, 41, 59, 0.9);
   --slogbaa-glass-bg-subtle: rgba(30, 41, 59, 0.7);

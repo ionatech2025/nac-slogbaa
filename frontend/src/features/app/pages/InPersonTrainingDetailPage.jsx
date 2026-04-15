@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { Icon, icons } from '../../../shared/icons.jsx'
 import { Logo } from '../../../shared/components/Logo.jsx'
+import { useTheme } from '../../../contexts/ThemeContext.jsx'
+import { Navbar } from '../../../shared/components/Navbar.jsx'
 
 /* ─── Page Specific CSS ──────────────────────────────────────────────────── */
 const DETAIL_CSS = `
@@ -121,7 +123,7 @@ const TRAINING_DATA = {
 
 export function InPersonTrainingDetailPage() {
   const { slug } = useParams()
-  const [theme, setTheme] = useState('light')
+  const { theme } = useTheme()
   const data = TRAINING_DATA[slug] || TRAINING_DATA['parish-development-model-monitoring']
 
   // Force scroll to top on mount
@@ -133,21 +135,8 @@ export function InPersonTrainingDetailPage() {
     <div className={`slg-page slg-detail ${theme}-theme`}>
       <style>{DETAIL_CSS}</style>
 
-      {/* Detail Nav */}
-      <nav className="slg-detail-nav">
-        <Link to="/" className="slg-logo-wrap">
-          <Logo variant="full" size={26} color={theme === 'dark' ? 'white' : 'dark'} />
-        </Link>
-        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-          <button
-            onClick={() => setTheme(t => t === 'dark' ? 'light' : 'dark')}
-            className="slg-theme-toggle"
-          >
-            <Icon icon={theme === 'dark' ? icons.sun : icons.moon} size={16} />
-          </button>
-          <Link to="/inperson-training" className="slg-btn-ghost">Back to List</Link>
-        </div>
-      </nav>
+      {/* Shared Nav */}
+      <Navbar />
 
       <header className="slg-detail-hero">
         <span className="slg-detail-eyebrow">{data.eyebrow}</span>
