@@ -6,6 +6,7 @@ import { useTheme } from '../../../contexts/ThemeContext.jsx'
 import { useQuery } from '@tanstack/react-query'
 import { getHomepageContent } from '../../../api/homepage.js'
 import { queryKeys } from '../../../lib/query-keys.js'
+import { CtaSection } from '../../../shared/components/CtaSection.jsx'
 
 const VIDEOS_CSS = `
   @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap');
@@ -46,18 +47,6 @@ const VIDEOS_CSS = `
     color: var(--orange); margin-bottom: 0.875rem;
   }
   .slg-eyebrow::before { content: ''; display: block; width: 18px; height: 1.5px; background: var(--orange); border-radius: 99px; }
-
-  .slg-btn-orange {
-    position: relative; overflow: hidden;
-    padding: 0.625rem 1.75rem; border-radius: 10px; font-size: 0.9375rem; font-weight: 600;
-    color: #fff; text-decoration: none; background: var(--orange);
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 4px 12px rgba(245,130,32,0.2);
-  }
-  .slg-btn-orange:hover {
-    background: #FF933A; transform: translateY(-1px);
-    box-shadow: 0 8px 20px rgba(245,130,32,0.3);
-  }
 
   .slg-hero-videos {
     padding: 6rem 2rem 4rem; text-align: center; background: var(--bg-2);
@@ -153,11 +142,7 @@ export function VideosPage() {
         </div>
       </main>
 
-      <footer className="slg-footer" style={{ background: 'var(--bg-2)', padding: '5rem 2rem', textAlign: 'center', borderTop: '1px solid var(--border)' }}>
-        <h2 className="slg-hero-title" style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>Want deeper learning?</h2>
-        <p className="slg-section-desc" style={{ marginBottom: '2.5rem', margin: '0 auto' }}>Enroll in our structured courses to earn certificates and build your civic leadership credentials.</p>
-        <Link to="/auth/register" className="slg-btn-orange" style={{ display: 'inline-flex', marginTop: '2rem' }}>Get Started Free</Link>
-      </footer>
+      <CtaSection />
     </div>
   )
 }

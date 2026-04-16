@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { Icon, icons } from '../../../shared/icons.jsx'
 import { Navbar } from '../../../shared/components/Navbar.jsx'
 import { useTheme } from '../../../contexts/ThemeContext.jsx'
+import { CtaSection } from '../../../shared/components/CtaSection.jsx'
 
 const LIB_CSS = `
   .slg-lib-page { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
@@ -217,6 +218,8 @@ export function PublicLibraryPage() {
           <button className="slg-page-btn"><Icon icon={icons.chevronRight} size={16} /></button>
         </div>
       </main>
+
+      <CtaSection />
 
       {/* Modal same as homepage */}
       {modalResource && (

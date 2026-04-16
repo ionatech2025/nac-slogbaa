@@ -4,6 +4,7 @@ import { Icon, icons } from '../../../shared/icons.jsx'
 import { Logo } from '../../../shared/components/Logo.jsx'
 import { useTheme } from '../../../contexts/ThemeContext.jsx'
 import { Navbar } from '../../../shared/components/Navbar.jsx'
+import { CtaSection } from '../../../shared/components/CtaSection.jsx'
 
 /* ─── Static Data (Will be CMS-driven) ─────────────────────────────────────── */
 const ALL_TRAININGS = [
@@ -337,13 +338,7 @@ export function InPersonTrainingPage() {
         </div>
       )}
 
-      {/* Basic Footer */}
-      <footer className="slg-footer" style={{ marginTop: 'auto' }}>
-        <div className="slg-footer-bottom" style={{ margin: 0, border: 'none' }}>
-          <p className="slg-copyright">&copy; {new Date().getFullYear()} NAC. All rights reserved.</p>
-          <Logo variant="icon" size={24} />
-        </div>
-      </footer>
+      <CtaSection />
     </div>
   )
 }

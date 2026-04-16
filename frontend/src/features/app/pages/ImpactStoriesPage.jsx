@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { Icon, icons } from '../../../shared/icons.jsx'
 import { Navbar } from '../../../shared/components/Navbar.jsx'
 import { useTheme } from '../../../contexts/ThemeContext.jsx'
+import { CtaSection } from '../../../shared/components/CtaSection.jsx'
 
 const STORIES_CSS = `
   .slg-stories-page { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
@@ -135,11 +136,7 @@ export function ImpactStoriesPage() {
         </div>
       </main>
 
-      <footer className="slg-footer" style={{ background: 'var(--bg-2)', padding: '5rem 2rem', textAlign: 'center', borderTop: '1px solid var(--border)' }}>
-        <h2 className="slg-story-title" style={{ fontSize: '2.5rem' }}>Have a story to share?</h2>
-        <p className="slg-section-desc" style={{ marginBottom: '2.5rem' }}>We are always looking for more voices to inspire the next generation of civic leaders.</p>
-        <Link to="/inquiries" className="slg-btn-register" style={{ display: 'inline-flex' }}>Submit your story</Link>
-      </footer>
+      <CtaSection />
     </div>
   )
 }

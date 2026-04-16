@@ -7,6 +7,7 @@ import { useTheme } from '../../../contexts/ThemeContext.jsx'
 import { Navbar } from '../../../shared/components/Navbar.jsx'
 import { getHomepageContent, recordVisit } from '../../../api/homepage.js'
 import { queryKeys } from '../../../lib/query-keys.js'
+import { CtaSection } from '../../../shared/components/CtaSection.jsx'
 
 /* ─── Brand SVG icons ──────────────────────────────────────────────────────── */
 function FacebookSvg(props) {
@@ -836,9 +837,13 @@ export function HomePage() {
                 <Link to="/auth/register" className="slg-btn-hero-primary" style={{ fontSize: '0.875rem', padding: '0.625rem 1.25rem' }}>
                   Start learning
                 </Link>
+
                 <a href="#features" className="slg-btn-hero-secondary" style={{ fontSize: '0.875rem', padding: '0.625rem 1.25rem' }}>
                   Explore features
                 </a>
+                <Link to="/auth/login" className="slg-btn-hero-primary" style={{ fontSize: '0.875rem', padding: '0.625rem 1.25rem' }}>
+                  Continue Learning
+                </Link>
               </div>
             </div>
 
@@ -1135,23 +1140,7 @@ export function HomePage() {
         </section>
 
         {/* ── CTA Band ── */}
-        <div className="slg-cta-band">
-          <div className="slg-cta-band-grid" />
-          <h2 className="slg-cta-title">
-            Ready to start your<br /><em>learning journey?</em>
-          </h2>
-          <p className="slg-cta-text">
-            Join thousands of citizens building the skills to make a real difference in their communities across Uganda.
-          </p>
-          <div className="slg-cta-actions">
-            <Link to="/auth/register" className="slg-btn-hero-primary">
-              Register Free — No credit card
-            </Link>
-            <Link to="/auth/login" className="slg-btn-hero-secondary">
-              Sign in
-            </Link>
-          </div>
-        </div>
+        <CtaSection />
 
         {/* ── Footer ── */}
         <footer className="slg-footer">

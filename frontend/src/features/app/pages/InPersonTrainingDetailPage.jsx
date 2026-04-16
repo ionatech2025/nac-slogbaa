@@ -4,6 +4,7 @@ import { Icon, icons } from '../../../shared/icons.jsx'
 import { Logo } from '../../../shared/components/Logo.jsx'
 import { useTheme } from '../../../contexts/ThemeContext.jsx'
 import { Navbar } from '../../../shared/components/Navbar.jsx'
+import { CtaSection } from '../../../shared/components/CtaSection.jsx'
 
 /* ─── Page Specific CSS ──────────────────────────────────────────────────── */
 const DETAIL_CSS = `
@@ -216,10 +217,9 @@ export function InPersonTrainingDetailPage() {
         </aside>
       </div>
 
-      <footer className="slg-footer">
-        <Logo variant="full" size={22} color={theme === 'dark' ? 'white' : 'dark'} style={{ opacity: 0.5, marginBottom: '1.5rem' }} />
-        <p className="slg-copyright">&copy; {new Date().getFullYear()} NAC Uganda. Editorial Content.</p>
-      </footer>
+
+
+      <CtaSection />
     </div>
   )
 }

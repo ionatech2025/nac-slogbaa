@@ -4,6 +4,7 @@ import { Icon, icons } from '../../../shared/icons.jsx'
 import { Logo } from '../../../shared/components/Logo.jsx'
 import { useTheme } from '../../../contexts/ThemeContext.jsx'
 import { Navbar } from '../../../shared/components/Navbar.jsx'
+import { CtaSection } from '../../../shared/components/CtaSection.jsx'
 
 const STORY_DETAIL_CSS = `
   .slg-story-detail { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; line-height: 1.8; }
@@ -216,10 +217,7 @@ export function ImpactStoryDetailPage() {
         </aside>
       </div>
 
-      <footer className="slg-footer" style={{ borderTop: '1px solid var(--border)', padding: '4rem 2rem', textAlign: 'center' }}>
-        <Logo variant="full" size={24} color={theme === 'dark' ? 'white' : 'dark'} style={{ opacity: 0.4, marginBottom: '2rem' }} />
-        <p className="slg-copyright">&copy; {new Date().getFullYear()} National Accountability Council — Impact Series.</p>
-      </footer>
+      <CtaSection />
     </div>
   )
 }
