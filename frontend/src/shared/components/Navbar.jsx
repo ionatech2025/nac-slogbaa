@@ -126,7 +126,8 @@ export function Navbar() {
       items: [
         { label: 'In-Person Training', desc: 'Workshops in your region', icon: icons.graduationCap, href: isHome ? '#inperson' : '/#inperson' },
         { label: 'Public Library', desc: 'Policy and research guides', icon: icons.library, href: isHome ? '#public-library' : '/#public-library' },
-        { label: 'News & Updates', desc: 'Latest from SLOGBAA', icon: icons.fileText, href: isHome ? '#news' : '/#news' }
+        { label: 'News & Updates', desc: 'Latest from SLOGBAA', icon: icons.fileText, href: isHome ? '#news' : '/#news' },
+        { label: 'Video Gallery', desc: 'Learn through digital media', icon: icons.blockVideo, href: isHome ? '#videos' : '/#videos' }
       ]
     }
   ]

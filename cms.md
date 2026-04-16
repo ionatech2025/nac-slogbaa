@@ -82,5 +82,13 @@ The `content` field should ideally be a structured JSON array of blocks to suppo
 | `url` | URL | Destination |
 | `description` | Text | Short description |
 
+## 7. Video Content
+**Endpoint:** `/api/cms/videos`
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `title` | String | Video title |
+| `youtubeUrl` | URL | Full YouTube watch URL |
+| `order` | Integer | Sequence of the video |
+
 ---
 **Note:** All CMS endpoints should return structured JSON that matches these fields to ensure frontend compatibility.

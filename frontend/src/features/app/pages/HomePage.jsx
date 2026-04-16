@@ -941,14 +941,17 @@ export function HomePage() {
 
         {/* ── Videos ── */}
         <section className="slg-section" id="videos">
-          <div style={{ marginBottom: '2.5rem' }}>
-            <span className="slg-eyebrow">Video Content</span>
-            <h2 className="slg-section-title">
-              Learn through<br /><em>video</em>
-            </h2>
-            <p className="slg-section-desc" style={{ marginTop: '0.875rem' }}>
-              Watch training videos on governance, accountability, and civic engagement.
-            </p>
+          <div style={{ marginBottom: '3.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '1.5rem' }}>
+            <div>
+              <span className="slg-eyebrow">Video Content</span>
+              <h2 className="slg-section-title">
+                Learn through<br /><em>video</em>
+              </h2>
+              <p className="slg-section-desc" style={{ marginTop: '0.875rem' }}>
+                Watch general videos on governance, accountability, civic engagement, and more.
+              </p>
+            </div>
+            <Link to="/videos" className="slg-btn-ghost">More Videos</Link>
           </div>
           <div className="slg-videos-grid">
             {(cmsVideos || [
@@ -1175,6 +1178,7 @@ export function HomePage() {
               <a href="#about" className="slg-footer-link">About SLOGBAA</a>
               <a href="#stories" className="slg-footer-link">Impact stories</a>
               <a href="#news" className="slg-footer-link">News & Updates</a>
+              <Link to="/videos" className="slg-footer-link">Video Gallery</Link>
               <a href="#partners" className="slg-footer-link">Our Partners</a>
             </div>
 
