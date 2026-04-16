@@ -5,6 +5,7 @@ import { Logo } from '../../../shared/components/Logo.jsx'
 import { useTheme } from '../../../contexts/ThemeContext.jsx'
 import { Navbar } from '../../../shared/components/Navbar.jsx'
 import { CtaSection } from '../../../shared/components/CtaSection.jsx'
+import { Footer } from '../../../shared/components/Footer.jsx'
 
 const STORY_DETAIL_CSS = `
   .slg-story-detail { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; line-height: 1.8; }
@@ -218,6 +219,7 @@ export function ImpactStoryDetailPage() {
       </div>
 
       <CtaSection />
+      <Footer />
     </div>
   )
 }

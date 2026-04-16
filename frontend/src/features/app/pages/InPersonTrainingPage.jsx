@@ -5,6 +5,7 @@ import { Logo } from '../../../shared/components/Logo.jsx'
 import { useTheme } from '../../../contexts/ThemeContext.jsx'
 import { Navbar } from '../../../shared/components/Navbar.jsx'
 import { CtaSection } from '../../../shared/components/CtaSection.jsx'
+import { Footer } from '../../../shared/components/Footer.jsx'
 
 /* ─── Static Data (Will be CMS-driven) ─────────────────────────────────────── */
 const ALL_TRAININGS = [
@@ -339,6 +340,7 @@ export function InPersonTrainingPage() {
       )}
 
       <CtaSection />
+      <Footer />
     </div>
   )
 }

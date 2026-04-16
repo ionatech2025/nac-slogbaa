@@ -4,6 +4,7 @@ import { Icon, icons } from '../../../shared/icons.jsx'
 import { Navbar } from '../../../shared/components/Navbar.jsx'
 import { useTheme } from '../../../contexts/ThemeContext.jsx'
 import { CtaSection } from '../../../shared/components/CtaSection.jsx'
+import { Footer } from '../../../shared/components/Footer.jsx'
 
 const STORIES_CSS = `
   .slg-stories-page { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
@@ -137,6 +138,7 @@ export function ImpactStoriesPage() {
       </main>
 
       <CtaSection />
+      <Footer />
     </div>
   )
 }

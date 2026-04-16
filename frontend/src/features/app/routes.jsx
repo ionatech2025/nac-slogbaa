@@ -48,6 +48,8 @@ const ImpactStoriesPage = lazy(() => import('./pages/ImpactStoriesPage.jsx').the
 const ImpactStoryDetailPage = lazy(() => import('./pages/ImpactStoryDetailPage.jsx').then((m) => ({ default: m.ImpactStoryDetailPage })))
 const PublicLibraryPage = lazy(() => import('./pages/PublicLibraryPage.jsx').then((m) => ({ default: m.PublicLibraryPage })))
 const VideosPage = lazy(() => import('./pages/VideosPage.jsx').then((m) => ({ default: m.VideosPage })))
+const NewsListingPage = lazy(() => import('./pages/NewsListingPage.jsx').then((m) => ({ default: m.NewsListingPage })))
+const NewsDetailPage = lazy(() => import('./pages/NewsDetailPage.jsx').then((m) => ({ default: m.NewsDetailPage })))
 
 function Lazy({ children }) {
   return <Suspense fallback={<PageSkeleton />}>{children}</Suspense>
@@ -58,6 +60,8 @@ export function AppRoutes() {
     <Routes>
       <Route path="/" element={<HomePage />} />
       <Route path="/videos" element={<Lazy><VideosPage /></Lazy>} />
+      <Route path="/news-and-updates" element={<Lazy><NewsListingPage /></Lazy>} />
+      <Route path="/news-and-updates/:slug" element={<Lazy><NewsDetailPage /></Lazy>} />
       <Route path="/inperson-training" element={<Lazy><InPersonTrainingPage /></Lazy>} />
       <Route path="/inperson-training/:slug" element={<Lazy><InPersonTrainingDetailPage /></Lazy>} />
       <Route path="/inquiries" element={<Lazy><InquiriesPage /></Lazy>} />

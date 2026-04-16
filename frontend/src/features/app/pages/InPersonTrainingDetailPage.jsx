@@ -5,6 +5,7 @@ import { Logo } from '../../../shared/components/Logo.jsx'
 import { useTheme } from '../../../contexts/ThemeContext.jsx'
 import { Navbar } from '../../../shared/components/Navbar.jsx'
 import { CtaSection } from '../../../shared/components/CtaSection.jsx'
+import { Footer } from '../../../shared/components/Footer.jsx'
 
 /* ─── Page Specific CSS ──────────────────────────────────────────────────── */
 const DETAIL_CSS = `
@@ -220,6 +221,7 @@ export function InPersonTrainingDetailPage() {
 
 
       <CtaSection />
+      <Footer />
     </div>
   )
 }

@@ -8,36 +8,9 @@ import { Navbar } from '../../../shared/components/Navbar.jsx'
 import { getHomepageContent, recordVisit } from '../../../api/homepage.js'
 import { queryKeys } from '../../../lib/query-keys.js'
 import { CtaSection } from '../../../shared/components/CtaSection.jsx'
+import { Footer } from '../../../shared/components/Footer.jsx'
 
-/* ─── Brand SVG icons ──────────────────────────────────────────────────────── */
-function FacebookSvg(props) {
-  return (
-    <svg viewBox="0 0 24 24" width={16} height={16} fill="currentColor" aria-hidden="true" {...props}>
-      <path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" />
-    </svg>
-  )
-}
-function TwitterSvg(props) {
-  return (
-    <svg viewBox="0 0 24 24" width={16} height={16} fill="currentColor" aria-hidden="true" {...props}>
-      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-    </svg>
-  )
-}
-function WhatsAppSvg(props) {
-  return (
-    <svg viewBox="0 0 24 24" width={16} height={16} fill="currentColor" aria-hidden="true" {...props}>
-      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51l-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
-    </svg>
-  )
-}
-function YoutubeSvg(props) {
-  return (
-    <svg viewBox="0 0 24 24" width={16} height={16} fill="currentColor" aria-hidden="true" {...props}>
-      <path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.546 12 3.546 12 3.546s-7.505 0-9.377.504A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.504 9.376.504 9.376.504s7.505 0 9.377-.504a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
-    </svg>
-  )
-}
+
 
 /* ─── Static data ─────────────────────────────────────────────────────────── */
 const HERO_SLIDES = [
@@ -166,39 +139,39 @@ const PUBLIC_LIBRARY_RESOURCES = [
 ]
 const NEWS_ITEMS = [
   {
-    date: 'Coming Soon',
+    date: 'April 15, 2024',
     title: 'New Courses on Civic Engagement',
     summary: 'NAC is preparing new courses on community-led governance, accountability, and citizen participation.',
-    tag: 'Courses',
+    tag: 'News & Updates',
+    slug: 'new-courses-2024',
+    image: 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?q=80&w=800&auto=format&fit=crop'
   },
   {
-    date: 'Coming Soon',
+    date: 'April 10, 2024',
     title: 'Regional Training Workshops',
     summary: 'Live training workshops will complement online courses, bringing trainers and trainees together across Uganda.',
     tag: 'Events',
+    slug: 'regional-workshops-july',
+    image: 'https://images.unsplash.com/photo-1515187029135-18ee286d815b?q=80&w=800&auto=format&fit=crop'
   },
   {
-    date: 'Coming Soon',
+    date: 'March 28, 2024',
     title: 'Platform Updates & Improvements',
     summary: 'Ongoing enhancements including new content formats, mobile improvements, and expanded district coverage.',
-    tag: 'Updates',
+    tag: 'News & Updates',
+    slug: 'platform-upgrade-v2',
+    image: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?q=80&w=800&auto=format&fit=crop'
   },
 ]
 
 const PARTNER_LOGOS = [
-  { name: 'Network for Active Citizens', initials: 'NAC', color: '#F58220' },
-  { name: 'Ministry of ICT', initials: 'MoICT', color: '#059669' },
-  { name: 'Uganda Communications Commission', initials: 'UCC', color: '#d97706' },
-  { name: 'Civil Society Alliance', initials: 'CSA', color: '#7c3aed' },
-  { name: 'Community Development Fund', initials: 'CDF', color: '#0d9488' },
+  { name: 'Civil Connections', logoUrl: '/assets/images/logos/CivilConnectionsLogo.png', websiteUrl: 'https://civilconnections.org/' },
+  { name: 'UYONET', logoUrl: '/assets/images/logos/uyonet-logo.png', websiteUrl: 'https://uyonet.wordpress.com/' },
+  { name: 'ActionAid', logoUrl: '/assets/images/logos/Actionaid_logo.png', websiteUrl: 'https://uganda.actionaid.org/' },
+  { name: 'Oxfam', logoUrl: '/assets/images/logos/nac_logo.png', websiteUrl: 'https://nacuganda.org/' },
 ]
 
-const SOCIAL_LINKS = [
-  { label: 'Facebook', href: 'https://facebook.com', SvgIcon: FacebookSvg },
-  { label: 'Twitter', href: 'https://twitter.com', SvgIcon: TwitterSvg },
-  { label: 'WhatsApp', href: 'https://wa.me/', SvgIcon: WhatsAppSvg },
-  { label: 'YouTube', href: 'https://youtube.com', SvgIcon: YoutubeSvg },
-]
+
 
 const IN_PERSON_TRAININGS = [
   {
@@ -483,77 +456,97 @@ const GLOBAL_CSS = `
   .slg-step-title { font-size: 1.125rem; font-weight: 600; color: var(--text); margin-bottom: 0.5rem; }
   .slg-step-text { font-size: 0.875rem; color: var(--text-2); line-height: 1.65; }
 
-  /* Stories */
-  .slg-stories-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
+  /* Stories Home (Compact) */
+  .slg-stories-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
   .slg-story-card {
-    padding: 2rem; border-radius: 16px; background: var(--bg-2);
-    border: 1px solid var(--border); display: flex; flex-direction: column; gap: 1rem;
-    transition: border-color 0.2s, transform 0.2s;
+    background: var(--bg); border: 1px solid var(--border); border-radius: 20px; overflow: hidden;
+    display: flex; flex-direction: column; transition: all 0.3s ease;
   }
-  .slg-story-card:hover { border-color: var(--border-hover); transform: translateY(-3px); }
-  .slg-story-avatar {
-    width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center;
-    justify-content: center; font-weight: 700; font-size: 0.875rem; color: #fff; flex-shrink: 0;
+  .slg-story-card:hover { border-color: var(--orange-glow); transform: translateY(-5px); box-shadow: 0 20px 40px -10px rgba(0,0,0,0.1); }
+  .slg-story-img-wrap { aspect-ratio: 16/10; position: relative; overflow: hidden; background: var(--bg-3); border-bottom: 1px solid var(--border); }
+  .slg-story-img-wrap img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s; }
+  .slg-story-card:hover .slg-story-img-wrap img { transform: scale(1.05); }
+  
+  .slg-story-tag {
+    position: absolute; bottom: 1rem; left: 1rem; padding: 0.25rem 0.6rem;
+    background: rgba(var(--bg), 0.8); backdrop-filter: blur(8px); border: 1px solid var(--border);
+    border-radius: 6px; font-size: 0.65rem; font-weight: 700; color: var(--text);
   }
-  .slg-story-quote { font-size: 0.9375rem; color: var(--text-2); line-height: 1.7; font-style: italic; flex: 1; }
-  .slg-story-quote::before { content: '\x201C'; font-size: 2rem; line-height: 0; vertical-align: -0.5em; color: var(--orange); margin-right: 0.2rem; font-style: normal; font-family: 'DM Serif Display', Georgia, serif; }
-  .slg-story-name { font-size: 0.9375rem; font-weight: 600; color: var(--text); }
-  .slg-story-role { font-size: 0.8125rem; color: var(--text-3); }
+  .slg-story-content { padding: 1.5rem; flex-grow: 1; display: flex; flex-direction: column; }
+  .slg-story-meta { font-size: 0.75rem; font-weight: 700; color: var(--orange); text-transform: uppercase; margin-bottom: 0.5rem; }
+  .slg-story-title { font-size: 1.125rem; font-weight: 600; line-height: 1.3; margin-bottom: 0.75rem; color: var(--text); }
+  .slg-story-preview { font-size: 0.875rem; color: var(--text-2); line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 
-  /* News */
-  .slg-news-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem; }
+  /* News section cards (matching news listing) */
+  .slg-news-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2.5rem; }
   .slg-news-card {
-    padding: 1.5rem; border-radius: 14px; background: var(--bg-2); border: 1px solid var(--border);
-    display: flex; flex-direction: column; gap: 0.6rem; transition: border-color 0.2s, transform 0.2s;
+    background: var(--bg); border: 1px solid var(--border); border-radius: 20px; overflow: hidden;
+    display: flex; flex-direction: column; transition: all 0.3s ease;
   }
-  .slg-news-card:hover { border-color: var(--border-hover); transform: translateY(-2px); }
-  .slg-news-tag {
-    display: inline-block; padding: 0.175rem 0.55rem; border-radius: 5px; align-self: flex-start;
-    font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;
-    color: var(--orange); background: var(--orange-dim);
+  .slg-news-card:hover { border-color: var(--orange-glow); transform: translateY(-5px); box-shadow: 0 20px 40px -10px rgba(0,0,0,0.1); }
+  .slg-news-img { aspect-ratio: 16/10; background: var(--bg-3); overflow: hidden; border-bottom: 1px solid var(--border); }
+  .slg-news-img img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s; }
+  .slg-news-card:hover .slg-news-img img { transform: scale(1.05); }
+  .slg-news-card-content { padding: 1.75rem; flex-grow: 1; display: flex; flex-direction: column; }
+  .slg-news-card-tag {
+    display: inline-block; padding: 0.25rem 0.65rem; border-radius: 6px;
+    font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+    color: var(--orange); background: var(--orange-dim); margin-bottom: 1rem;
+    align-self: flex-start;
   }
-  .slg-news-title { font-size: 1rem; font-weight: 600; color: var(--text); }
-  .slg-news-summary { font-size: 0.875rem; color: var(--text-2); line-height: 1.65; flex: 1; }
-  .slg-news-date { font-size: 0.75rem; color: var(--text-3); font-weight: 500; }
+  .slg-news-card-title { font-size: 1.125rem; font-weight: 600; line-height: 1.4; color: var(--text); margin-bottom: 0.75rem; }
+  .slg-news-card-summary { font-size: 0.875rem; color: var(--text-2); line-height: 1.6; margin-bottom: 1.5rem; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .slg-news-card-footer { margin-top: auto; padding-top: 1.25rem; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .slg-news-card-date { font-size: 0.8125rem; color: var(--text-3); display: flex; align-items: center; gap: 0.4rem; }
 
-  /* Partners */
-  .slg-partners-row { display: flex; flex-wrap: wrap; gap: 1rem; justify-content: center; align-items: center; }
-  .slg-partner-tile {
-    width: 110px; height: 80px; border-radius: 12px; border: 1px solid var(--border);
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    gap: 0.3rem; background: var(--bg-2); transition: border-color 0.2s, background 0.2s;
-  }
-  .slg-partner-tile:hover { border-color: var(--border-hover); background: var(--surface); }
-  .slg-partner-initials { font-size: 1.0625rem; font-weight: 800; }
-  .slg-partner-name { font-size: 0.5rem; color: var(--text-3); text-align: center; line-height: 1.3; max-width: 90px; }
+  /* Videos Home */
+  .slg-videos-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
+  .slg-video-card { border-radius: 16px; overflow: hidden; border: 1px solid var(--border); background: var(--bg-2); transition: border-color 0.2s; }
+  .slg-video-card:hover { border-color: var(--border-hover); }
+  .slg-video-thumb { aspect-ratio: 16/9; position: relative; }
+  .slg-video-thumb iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: none; }
+  .slg-video-body { padding: 1rem 1.25rem; }
+  .slg-video-title { font-size: 0.9375rem; font-weight: 600; color: var(--text); }
 
-  /* Public Library Cards */
-  .slg-lib-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; }
+  /* Library Home (Compact) */
+  .slg-lib-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.5rem; }
   .slg-lib-card {
     background: var(--bg); border: 1px solid var(--border); border-radius: 20px;
-    padding: 1.75rem; display: flex; flex-direction: column; transition: all 0.3s ease;
+    padding: 1.25rem; display: flex; flex-direction: column; transition: all 0.3s ease;
   }
   .slg-lib-card:hover { transform: translateY(-5px); border-color: var(--orange-glow); box-shadow: 0 20px 40px -10px rgba(0,0,0,0.1); }
-  
   .slg-lib-img-box {
-    aspect-ratio: 1; border-radius: 12px; overflow: hidden; margin-bottom: 1.5rem;
-    background: var(--bg-2); border: 1px solid var(--border);
+    aspect-ratio: 16/10; border-radius: 12px; overflow: hidden; margin-bottom: 1rem;
+    background: var(--bg-3); border: 1px solid var(--border);
   }
   .slg-lib-img-box img { width: 100%; height: 100%; object-fit: cover; }
-  
-  .slg-lib-actions { display: flex; gap: 0.75rem; margin-top: auto; padding-top: 1.5rem; }
+  .slg-lib-actions { display: flex; gap: 0.5rem; margin-top: auto; padding-top: 1rem; }
   .slg-btn-lib-main {
-    flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
-    padding: 0.625rem; border-radius: 8px; font-size: 0.8125rem; font-weight: 700;
+    flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 0.3rem;
+    padding: 0.5rem; border-radius: 8px; font-size: 0.75rem; font-weight: 700;
     background: var(--orange); color: #fff; text-decoration: none; border: none; cursor: pointer;
   }
   .slg-btn-lib-outline {
-    flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
-    padding: 0.625rem; border-radius: 8px; font-size: 0.8125rem; font-weight: 600;
+    flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 0.3rem;
+    padding: 0.5rem; border-radius: 8px; font-size: 0.75rem; font-weight: 600;
     background: transparent; color: var(--text); border: 1px solid var(--border);
     text-decoration: none; cursor: pointer; transition: all 0.2s;
   }
   .slg-btn-lib-outline:hover { background: var(--bg-2); border-color: var(--text-3); }
+
+  /* Training Home (Compact) */
+  .slg-training-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
+  .slg-training-card {
+    background: var(--bg); border: 1px solid var(--border); border-radius: 20px; overflow: hidden;
+    display: flex; flex-direction: column; transition: all 0.3s ease;
+  }
+  .slg-training-card:hover { border-color: var(--orange-glow); transform: translateY(-5px); box-shadow: 0 20px 40px -10px rgba(0,0,0,0.1); }
+  .slg-training-img-wrap { aspect-ratio: 16/9; position: relative; overflow: hidden; background: var(--bg-3); border-bottom: 1px solid var(--border); }
+  .slg-training-img-wrap img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s; }
+  .slg-training-card:hover .slg-training-img-wrap img { transform: scale(1.05); }
+  .slg-training-content { padding: 1.25rem; flex-grow: 1; display: flex; flex-direction: column; }
+  .slg-training-title { font-size: 1rem; font-weight: 600; line-height: 1.4; margin-bottom: 0.5rem; }
+  .slg-training-date { font-size: 0.75rem; color: var(--text-3); font-weight: 500; margin-bottom: 1rem; }
 
   /* Modal */
   .slg-modal-overlay {
@@ -562,66 +555,13 @@ const GLOBAL_CSS = `
   }
   .slg-modal-box {
     background: var(--bg); border-radius: 24px; padding: 3rem; max-width: 600px; width: 100%;
-    position: relative; border: 1px solid var(--border); border-radius: 12px;
+    position: relative; border: 1px solid var(--border);
   }
   .slg-modal-close {
     position: absolute; top: 1.5rem; right: 1.5rem; background: var(--bg-2); border: 1px solid var(--border);
     width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
     cursor: pointer; color: var(--text-2);
   }
-
-
-  /* Stories Refined */
-  .slg-stories-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2.5rem; }
-  .slg-story-card {
-    background: var(--bg); border: 1px solid var(--border); border-radius: 24px; overflow: hidden;
-    display: flex; flex-direction: column; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
-  }
-  .slg-story-card:hover { transform: translateY(-8px); border-color: var(--orange-glow); box-shadow: 0 30px 60px -12px rgba(0,0,0,0.1); }
-  
-  .slg-story-img-wrap { aspect-ratio: 4/5; position: relative; overflow: hidden; background: var(--bg-3); }
-  .slg-story-img-wrap img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s ease; }
-  .slg-story-card:hover .slg-story-img-wrap img { transform: scale(1.05); }
-  
-  .slg-story-tag {
-    position: absolute; bottom: 1.5rem; left: 1.5rem; padding: 0.5rem 1rem;
-    background: rgba(var(--bg), 0.8); backdrop-filter: blur(10px); border: 1px solid var(--border);
-    border-radius: 100px; font-size: 0.75rem; font-weight: 700; color: var(--text);
-  }
-  .dark-theme .slg-story-tag { background: rgba(0,0,0,0.6); }
-
-  .slg-story-content { padding: 2rem; display: flex; flex-direction: column; flex-grow: 1; min-height: 280px; }
-  .slg-story-meta { font-size: 0.75rem; font-weight: 700; color: var(--orange); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.75rem; }
-  .slg-story-title { font-size: 1.5rem; font-weight: 500; line-height: 1.25; margin-bottom: 1rem; color: var(--text); font-family: 'DM Serif Display', serif; }
-  .slg-story-preview { font-size: 0.9375rem; color: var(--text-2); line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-
-  /* CTA band */
-  .slg-cta-band {
-    position: relative; padding: clamp(3.5rem, 7vw, 6rem) 2rem; text-align: center;
-    overflow: hidden;
-    background: radial-gradient(ellipse 70% 80% at 50% 50%, rgba(245,130,32,0.1) 0%, transparent 65%);
-    border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
-  }
-  .slg-cta-band-grid {
-    position: absolute; inset: 0; pointer-events: none; opacity: 0.025;
-    background-image: linear-gradient(var(--border-hover) 1px, transparent 1px),
-      linear-gradient(90deg, var(--border-hover) 1px, transparent 1px);
-    background-size: 48px 48px;
-  }
-  .slg-cta-title { font-size: clamp(1.75rem, 4vw, 2.75rem); font-weight: 300; letter-spacing: -0.025em; color: var(--text); margin-bottom: 1rem; position: relative; }
-  .slg-cta-title em { font-style: normal; font-family: 'DM Serif Display', Georgia, serif; color: var(--orange); }
-  .slg-cta-text { font-size: 1rem; color: var(--text-2); max-width: 460px; margin: 0 auto 2.5rem; line-height: 1.7; position: relative; }
-  .slg-cta-actions { display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; position: relative; }
-
-  /* Videos */
-  .slg-videos-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
-  .slg-video-card { border-radius: 16px; overflow: hidden; border: 1px solid var(--border); background: var(--bg-2); transition: border-color 0.2s; }
-  .slg-video-card:hover { border-color: var(--border-hover); }
-  .slg-video-thumb { aspect-ratio: 16/9; position: relative; }
-  .slg-video-thumb iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: none; }
-  .slg-video-body { padding: 1rem 1.25rem; }
-  .slg-video-title { font-size: 0.9375rem; font-weight: 600; color: var(--text); }
 
   /* Footer */
   .slg-footer { background: var(--bg-2); border-top: 1px solid var(--border); padding: 3.5rem 2rem 1.75rem; }
@@ -638,6 +578,55 @@ const GLOBAL_CSS = `
   }
   .slg-social-btn:hover { border-color: var(--border-hover); color: var(--text); background: var(--surface-2); }
   .slg-footer-socials { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+  /* Partners Home Scrolling */
+  .slg-partners-container {
+    width: 100%; overflow: hidden; position: relative;
+    padding: 2rem 0;
+    mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
+  }
+  .slg-partners-track {
+    display: flex; gap: 5rem; width: max-content;
+    animation: slg-marquee 40s linear infinite;
+  }
+  .slg-partners-track:hover { animation-play-state: paused; }
+
+  @keyframes slg-marquee {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(calc(-50% - 2.5rem)); }
+  }
+
+  .slg-partner-link {
+    display: flex; align-items: center; justify-content: center;
+    position: relative; width: 120px; height: 120px;
+    opacity: 0.95; transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    z-index: 1; flex-shrink: 0;
+  }
+  .slg-partner-link:hover {
+    opacity: 1; transform: scale(1.15) translateY(-8px);
+  }
+  .slg-partner-link::before {
+    content: ''; position: absolute; inset: 0;
+    border: 2px solid var(--orange);
+    border-right-color: transparent;
+    border-bottom-color: transparent;
+    border-radius: 50%; opacity: 0; transform: rotate(-45deg) scale(0.8);
+    transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    z-index: -1;
+  }
+  .slg-partner-link:hover::before {
+    opacity: 1; transform: rotate(15deg) scale(1);
+  }
+  .slg-partner-img { height: 54px; width: auto; max-width: 110px; object-fit: contain; }
+
+  .slg-partner-tile {
+    display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
+    padding: 1.5rem; background: var(--bg-2); border: 1px solid var(--border);
+    border-radius: 12px; min-width: 140px;
+  }
+  .slg-partner-initials { font-size: 1.25rem; font-weight: 700; }
+  .slg-partner-name { font-size: 0.75rem; color: var(--text-2); font-weight: 600; text-align: center; }
+
   .slg-footer-bottom {
     max-width: 1120px; margin: 2.5rem auto 0; padding-top: 1.5rem;
     border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem;
@@ -990,19 +979,36 @@ export function HomePage() {
 
         {/* ── News ── */}
         <section className="slg-section" id="news">
-          <div style={{ marginBottom: '2.5rem' }}>
-            <span className="slg-eyebrow">News & Updates</span>
-            <h2 className="slg-section-title">
-              Latest from<br /><em>SLOGBAA</em>
-            </h2>
+          <div style={{ marginBottom: '3.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '1.5rem' }}>
+            <div>
+              <span className="slg-eyebrow">News & Updates</span>
+              <h2 className="slg-section-title">
+                Latest from<br /><em>SLOGBAA</em>
+              </h2>
+            </div>
+            <Link to="/news-and-updates" className="slg-btn-ghost">View More</Link>
           </div>
           <div className="slg-news-grid">
             {newsItems.map((item) => (
               <article key={item.title} className="slg-news-card">
-                <span className="slg-news-tag">{item.tag || 'Update'}</span>
-                <h3 className="slg-news-title">{item.title}</h3>
-                <p className="slg-news-summary">{item.summary}</p>
-                <p className="slg-news-date">{item.publishedDate || item.date || ''}</p>
+                <div className="slg-news-img">
+                  <img src={item.image} alt={item.title} />
+                </div>
+                <div className="slg-news-card-content">
+                  <span className="slg-news-card-tag">{item.tag || 'Update'}</span>
+                  <h3 className="slg-news-card-title">{item.title}</h3>
+                  <p className="slg-news-card-summary">{item.summary}</p>
+
+                  <div className="slg-news-card-footer">
+                    <p className="slg-news-card-date">
+                      <Icon icon={item.tag === 'Events' ? icons.calendar : icons.fileText} size={14} />
+                      {item.date}
+                    </p>
+                    <Link to={`/news-and-updates/${item.slug}`} className="slg-link-more">
+                      See Details <Icon icon={icons.arrowRight} size={14} />
+                    </Link>
+                  </div>
+                </div>
               </article>
             ))}
           </div>
@@ -1119,23 +1125,30 @@ export function HomePage() {
               Collaborating with government, civil society, and development partners to deliver impactful civic education.
             </p>
           </div>
-          <div className="slg-partners-row">
-            {partners.map((p) => {
-              const name = p.name || 'Partner'
-              const logo = p.logoUrl || null
-              const color = p.color || '#F58220'
-              const initials = p.initials || name.split(' ').map((w) => w[0]).join('').slice(0, 4)
-              return logo ? (
-                <a key={name} href={p.websiteUrl || '#'} target="_blank" rel="noopener noreferrer" title={name} style={{ textDecoration: 'none' }}>
-                  <img src={logo} alt={name} style={{ height: 60, maxWidth: 120, objectFit: 'contain', borderRadius: 10 }} loading="lazy" />
-                </a>
-              ) : (
-                <div key={name} className="slg-partner-tile" title={name}>
-                  <span className="slg-partner-initials" style={{ color }}>{initials}</span>
-                  <span className="slg-partner-name">{name}</span>
-                </div>
-              )
-            })}
+          <div className="slg-partners-container" style={{ marginTop: '1rem' }}>
+            <div className="slg-partners-track">
+              {[...partners, ...partners, ...partners].map((p, idx) => {
+                const name = p.name || 'Partner'
+                const logo = p.logoUrl || null
+                const color = p.color || 'var(--orange)'
+                const initials = p.initials || name.split(' ').map((w) => w[0]).join('').slice(0, 4)
+
+                if (logo) {
+                  return (
+                    <a key={`${name}-${idx}`} href={p.websiteUrl || '#'} target="_blank" rel="noopener noreferrer" className="slg-partner-link" title={name}>
+                      <img src={logo} alt={name} className="slg-partner-img" loading="lazy" />
+                    </a>
+                  )
+                }
+
+                return (
+                  <div key={`${name}-${idx}`} className="slg-partner-tile" title={name}>
+                    <span className="slg-partner-initials" style={{ color }}>{initials}</span>
+                    <span className="slg-partner-name">{name}</span>
+                  </div>
+                )
+              })}
+            </div>
           </div>
         </section>
 
@@ -1143,64 +1156,7 @@ export function HomePage() {
         <CtaSection />
 
         {/* ── Footer ── */}
-        <footer className="slg-footer">
-          <div className="slg-footer-inner">
-            <div>
-              <div style={{ marginBottom: '0.875rem' }}>
-                <Logo variant="full" size={28} color="dark" />
-              </div>
-              <p className="slg-footer-text" style={{ maxWidth: 220 }}>
-                NAC&rsquo;s online learning platform for civic leadership and community development across Uganda.
-              </p>
-            </div>
-
-            <div>
-              <h4 className="slg-footer-title">Platform</h4>
-              <Link to="/auth/login" className="slg-footer-link">Sign in</Link>
-              <Link to="/auth/register" className="slg-footer-link">Register</Link>
-              <a href="#features" className="slg-footer-link">Features</a>
-              <a href="#how" className="slg-footer-link">How it works</a>
-            </div>
-
-            <div>
-              <h4 className="slg-footer-title">Explore</h4>
-              <a href="#about" className="slg-footer-link">About SLOGBAA</a>
-              <a href="#stories" className="slg-footer-link">Impact stories</a>
-              <a href="#news" className="slg-footer-link">News & Updates</a>
-              <Link to="/videos" className="slg-footer-link">Video Gallery</Link>
-              <a href="#partners" className="slg-footer-link">Our Partners</a>
-            </div>
-
-            <div>
-              <h4 className="slg-footer-title">Connect</h4>
-              <p className="slg-footer-text" style={{ marginBottom: '0.5rem' }}>support@nac.go.ug</p>
-              <p className="slg-footer-text" style={{ marginBottom: '1.25rem' }}>Kampala, Uganda</p>
-              <div className="slg-footer-socials">
-                {SOCIAL_LINKS.map((link) => (
-                  <a
-                    key={link.label}
-                    href={link.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="slg-social-btn"
-                    aria-label={link.label}
-                  >
-                    <link.SvgIcon />
-                  </a>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div className="slg-footer-bottom">
-            <p className="slg-copyright">
-              &copy; {new Date().getFullYear()} Network for Active Citizens (NAC). All rights reserved.
-            </p>
-            <p className="slg-copyright">
-              SLOGBAA Online Learning Platform
-            </p>
-          </div>
-        </footer>
+        <Footer />
 
       </div>
     </>
