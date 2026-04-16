@@ -4,6 +4,8 @@ import { Icon, icons } from '../../../shared/icons.jsx'
 import { Logo } from '../../../shared/components/Logo.jsx'
 import { useTheme } from '../../../contexts/ThemeContext.jsx'
 import { Navbar } from '../../../shared/components/Navbar.jsx'
+import { CtaSection } from '../../../shared/components/CtaSection.jsx'
+import { Footer } from '../../../shared/components/Footer.jsx'
 
 const INQUIRIES_CSS = `
   .slg-inquiries { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
@@ -160,10 +162,8 @@ export function InquiriesPage() {
         </section>
       </main>
 
-      <footer className="slg-footer">
-        <Logo variant="full" size={24} color={theme === 'dark' ? 'white' : 'dark'} style={{ opacity: 0.5 }} />
-        <p className="slg-copyright" style={{ marginTop: '1rem' }}>&copy; {new Date().getFullYear()} NAC. Empowering Citizens.</p>
-      </footer>
+      <CtaSection />
+      <Footer />
     </div>
   )
 }
