@@ -53,42 +53,67 @@ The `content` field should ideally be a structured JSON array of blocks to suppo
 | `materials` | String | e.g., "Printed Syllabus, Digital Toolkit" |
 
 
-## 4. Impact Stories / Testimonials
-**Endpoint:** `/api/cms/stories`
+---
+## 4. Impact Stories
+**Endpoint:** `/api/cms/stories`  
+*Supports both global listing and slug-based detail fetching.*
+
 | Field | Type | Description |
 | :--- | :--- | :--- |
-| `name` | String | Person name |
-| `role` | String | Designation/Organization |
-| `content` | Text | The testimonial text |
-| `initials` | String | Fallback avatar text (2 chars) |
-| `tag` | String | Category tag (e.g., "Student", "Facilitator") |
+| `title` | String | Story headline |
+| `meta` | String | Author/subject attribution (e.g., "Jane Doe — Lead Advocate") |
+| `slug` | String | URL identifier for routing |
+| `tag` | String | Category label (e.g., "Youth Engagement") |
+| `image_url` | URL | Featured editorial image |
+| `preview` | Text | 2-3 sentence summary for grid cards |
+| `content` | HTML/Text | Rich content for the specialized detail page |
 
 ## 5. News & Updates
 **Endpoint:** `/api/cms/news`
+
 | Field | Type | Description |
 | :--- | :--- | :--- |
-| `title` | String | News headline |
-| `date` | Date | Publication date |
-| `excerpt` | Text | Brief snippet |
-| `image_url` | URL | Thumbnail |
-| `slug` | String | Link identifier |
+| `title` | String | news/event headline |
+| `slug` | String | URL identifier |
+| `date` | String/Date | Display date (e.g., "June 15, 2024") |
+| `tag` | Enum | `News & Updates` or `Events` |
+| `image_url` | URL | High-quality card image |
+| `summary` | Text | Brief snippet for the archive view |
+| `content` | HTML/Text | Magazine-style layout content for detail pages |
 
-## 6. Public Library (External Resources)
+## 6. Public Library (Resource Portal)
 **Endpoint:** `/api/cms/library`
-| Field | Type | Description |
-| :--- | :--- | :--- |
-| `title` | String | Document/Folder name |
-| `type` | Enum | `pdf`, `folder`, `link` |
-| `url` | URL | Destination |
-| `description` | Text | Short description |
 
-## 7. Video Content
-**Endpoint:** `/api/cms/videos`
 | Field | Type | Description |
 | :--- | :--- | :--- |
-| `title` | String | Video title |
-| `youtubeUrl` | URL | Full YouTube watch URL |
-| `order` | Integer | Sequence of the video |
+| `id` | String | Unique resource identifier |
+| `title` | String | Document/Resource name |
+| `tag` | String | Type label (e.g., "Policy Guide", "Manual") |
+| `image_url` | URL | High-contrast cover preview |
+| `desc` | Text | Short card description |
+| `full_desc` | Text | Detailed explanation for the resource modal |
+| `download_url`| URL | Secure link to the PDF or document |
+| `category` | String | Grouping for filtering (e.g., "Governance") |
+
+## 7. Partner Logos (Scrolling Marquee)
+**Endpoint:** `/api/cms/partners`
+
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `name` | String | Organization name |
+| `logo_url` | URL | High-clarity PNG/SVG logo |
+| `website_url`| URL | Official destination for external links |
+| `order` | Integer | Sequence for the marquee track |
+
+## 8. Video Content
+**Endpoint:** `/api/cms/videos`
+
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `title` | String | Video description |
+| `youtubeUrl` | URL | YouTube watch URL |
+| `category` | String | e.g., "Leadership Basics" |
+| `order` | Integer | Position in the gallery |
 
 ---
-**Note:** All CMS endpoints should return structured JSON that matches these fields to ensure frontend compatibility.
+**Note:** All CMS endpoints should return structured JSON that matches these fields to ensure frontend compatibility. Assets (images/PDFs) should be served via CDNs or optimized storage buckets.
