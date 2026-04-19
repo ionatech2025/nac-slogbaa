@@ -18,6 +18,9 @@ public interface JpaCourseStaffReviewRepository extends JpaRepository<CourseStaf
     @Query("SELECT COALESCE(AVG(CAST(r.rating AS double)), 0) FROM CourseStaffReviewEntity r WHERE r.courseId = :courseId")
     double averageRatingForCourse(@Param("courseId") UUID courseId);
 
+    @Query("SELECT COALESCE(AVG(CAST(r.rating AS double)), 0) FROM CourseStaffReviewEntity r")
+    double globalAverageRating();
+
     long countByCourseId(UUID courseId);
 
     @Query("SELECT r.rating, COUNT(r) FROM CourseStaffReviewEntity r GROUP BY r.rating")

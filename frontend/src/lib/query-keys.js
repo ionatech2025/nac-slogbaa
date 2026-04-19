@@ -152,6 +152,7 @@ export const queryKeys = {
   homepage: {
     all: ['homepage'],
     content: () => ['homepage', 'content'],
+    impact: () => ['homepage', 'impact'],
   },
 
   // === Live sessions (trainee view) ===

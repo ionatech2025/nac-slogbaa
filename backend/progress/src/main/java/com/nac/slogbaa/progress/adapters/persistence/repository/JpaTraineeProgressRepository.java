@@ -28,6 +28,8 @@ public interface JpaTraineeProgressRepository extends JpaRepository<TraineeProgr
 
     long countByCourseId(UUID courseId);
 
+    long countByStatus(String status);
+
     List<TraineeProgressEntity> findByCourseIdOrderByEnrollmentDateDesc(UUID courseId);
 
     @Query("SELECT tp.traineeId, COUNT(tp) FROM TraineeProgressEntity tp WHERE tp.status = 'COMPLETED' GROUP BY tp.traineeId ORDER BY COUNT(tp) DESC")

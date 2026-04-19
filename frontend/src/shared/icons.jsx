@@ -20,7 +20,7 @@ import {
   GripVertical, Save, Type,
   Phone, MapPin, Building2, Hash, Globe, Lock, ShieldCheck,
   Flame, Target, MessageSquare, CheckCircle,
-  Bookmark, Star, Bell, BellDot, Settings, HelpCircle,
+  Bookmark, Star, StarHalf, Bell, BellDot, Settings, HelpCircle,
   Wifi, WifiOff, PartyPopper, Upload, UserMinus, Trash,
   ChevronDown, ChevronRight, ExternalLink, ArrowRight,
 } from 'lucide-react'
@@ -107,6 +107,8 @@ export const icons = {
   checkCircle: CheckCircle,
   bookmark: Bookmark,
   star: Star,
+  starHalf: StarHalf,
+  starOutline: Star,
   bell: Bell,
   bellDot: BellDot,
   settings: Settings,
@@ -121,4 +123,10 @@ export const icons = {
   chevronRight: ChevronRight,
   externalLink: ExternalLink,
   arrowRight: ArrowRight,
+  layers: Layers,
+  grid: Grid3X3,
+  refreshCw: RefreshCw,
+  sync: RefreshCw,
+  fileText: FileText,
+  graduationCap: GraduationCap,
 }
