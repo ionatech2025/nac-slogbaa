@@ -1271,7 +1271,7 @@ export function HomePage() {
               { title: 'Introduction to Civic Leadership', youtubeUrl: 'https://www.youtube.com/watch?v=avrQXoBConA' },
               { title: 'Community Governance Basics', youtubeUrl: 'https://www.youtube.com/watch?v=fWUANWrSHSw' },
               { title: 'Accountability & Transparency', youtubeUrl: 'https://www.youtube.com/watch?v=9Xk3H0JdUTY' },
-            ]).map((v) => {
+            ]).slice(0, 3).map((v) => {
               const vid = extractYoutubeId(v.youtubeUrl)
               return (
                 <div key={v.title} className="slg-video-card">

@@ -25,6 +25,38 @@ const s = {
   label: { fontSize: '0.8125rem', fontWeight: 600, color: 'var(--slogbaa-text)' },
 }
 
+const CMS_STYLE = `
+  .admin-cms-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+  }
+  @media (max-width: 1024px) {
+    .admin-cms-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 640px) {
+    .admin-cms-grid { grid-template-columns: 1fr; }
+  }
+  .admin-cms-card {
+    position: relative;
+    padding: 1.25rem;
+    border-radius: 14px;
+    border: 1px solid var(--slogbaa-border);
+    background: var(--slogbaa-surface);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    min-height: 140px;
+    transition: all 0.2s ease;
+  }
+  .admin-cms-card:hover {
+    border-color: var(--slogbaa-blue);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  }
+`;
+
 function CmsSection({ title, queryKey, fetchFn, createFn, deleteFn, fields, token, isSuperAdmin }) {
   const qc = useQueryClient()
   const { data: items = [], isLoading } = useQuery({ queryKey, queryFn: () => fetchFn(token), staleTime: 30_000 })
@@ -33,6 +65,12 @@ function CmsSection({ title, queryKey, fetchFn, createFn, deleteFn, fields, toke
   const [form, setForm] = useState({})
   const [showForm, setShowForm] = useState(false)
   const [deleteTarget, setDeleteTarget] = useState(null)
+
+  // Pagination state
+  const [page, setPage] = useState(0)
+  const pageSize = 12
+  const totalPages = Math.ceil(items.length / pageSize)
+  const paginatedItems = items.slice(page * pageSize, (page + 1) * pageSize)
 
   const handleSubmit = (e) => {
     e.preventDefault()
@@ -43,7 +81,8 @@ function CmsSection({ title, queryKey, fetchFn, createFn, deleteFn, fields, toke
 
   return (
     <section style={s.section}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+      <style>{CMS_STYLE}</style>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
         <h3 style={s.subtitle}>{title} ({items.length})</h3>
         {isSuperAdmin && (
           <button type="button" style={{ ...s.btn, ...s.btnPrimary }} onClick={() => setShowForm((v) => !v)}>
@@ -71,21 +110,75 @@ function CmsSection({ title, queryKey, fetchFn, createFn, deleteFn, fields, toke
       )}
 
       {isLoading ? <p style={s.empty}>Loading...</p> : items.length === 0 ? <p style={s.empty}>No items yet.</p> : (
-        items.map((item) => (
-          <div key={item.id} style={s.card}>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <strong style={{ color: 'var(--slogbaa-text)' }}>{item.title || item.authorName || item.name || 'Item'}</strong>
-              {item.subtitle && <span style={{ marginLeft: '0.5rem', color: 'var(--slogbaa-text-muted)', fontSize: '0.8125rem' }}>{item.subtitle}</span>}
-              {item.quoteText && <p style={{ margin: '0.25rem 0 0', fontSize: '0.8125rem', color: 'var(--slogbaa-text-muted)' }}>{item.quoteText.slice(0, 80)}...</p>}
-              {item.youtubeUrl && <span style={{ fontSize: '0.75rem', color: 'var(--slogbaa-text-muted)' }}>{item.youtubeUrl}</span>}
-            </div>
-            {isSuperAdmin && (
-              <button type="button" style={{ ...s.btn, ...s.btnDanger }} onClick={() => setDeleteTarget(item)}>
-                <Icon icon={icons.delete} size={14} />
-              </button>
-            )}
+        <>
+          <div className="admin-cms-grid">
+            {paginatedItems.map((item) => (
+              <div key={item.id} className="admin-cms-card">
+                <div style={{ flex: 1, minWidth: 0, paddingRight: '2.5rem' }}>
+                  <div style={{ marginBottom: '0.5rem' }}>
+                    <strong style={{ color: 'var(--slogbaa-text)', fontSize: '1rem', display: 'block' }}>
+                      {item.title || item.authorName || item.name || 'Item'}
+                    </strong>
+                  </div>
+                  
+                  {item.subtitle && (
+                    <div style={{ color: 'var(--slogbaa-text-muted)', fontSize: '0.8125rem', marginBottom: '0.5rem' }}>
+                      {item.subtitle}
+                    </div>
+                  )}
+                  
+                  {item.quoteText && (
+                    <p style={{ margin: '0.25rem 0 0', fontSize: '0.8125rem', color: 'var(--slogbaa-text-muted)', fontStyle: 'italic' }}>
+                      "{item.quoteText.slice(0, 100)}{item.quoteText.length > 100 ? '...' : ''}"
+                    </p>
+                  )}
+                  
+                  {item.youtubeUrl && (
+                    <div style={{ marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                      <Icon icon={icons.video} size={12} color="var(--slogbaa-text-muted)" />
+                      <span style={{ fontSize: '0.75rem', color: 'var(--slogbaa-text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>
+                        {item.youtubeUrl}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {isSuperAdmin && (
+                  <button 
+                    type="button" 
+                    style={{ ...s.btn, ...s.btnDanger, position: 'absolute', top: '1rem', right: '1rem', padding: '0.5rem' }} 
+                    onClick={() => setDeleteTarget(item)}
+                    title="Delete item"
+                  >
+                    <Icon icon={icons.delete} size={14} />
+                  </button>
+                )}
+              </div>
+            ))}
           </div>
-        ))
+
+          {totalPages > 1 && (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', marginTop: '1rem' }}>
+              <button 
+                type="button" 
+                style={{ ...s.btn, ...s.btnPrimary, opacity: page === 0 ? 0.5 : 1 }} 
+                disabled={page === 0} 
+                onClick={() => setPage(p => p - 1)}
+              >
+                Previous
+              </button>
+              <span style={s.label}>Page {page + 1} of {totalPages}</span>
+              <button 
+                type="button" 
+                style={{ ...s.btn, ...s.btnPrimary, opacity: page === totalPages - 1 ? 0.5 : 1 }} 
+                disabled={page === totalPages - 1} 
+                onClick={() => setPage(p => p + 1)}
+              >
+                Next
+              </button>
+            </div>
+          )}
+        </>
       )}
 
       {deleteTarget && (
