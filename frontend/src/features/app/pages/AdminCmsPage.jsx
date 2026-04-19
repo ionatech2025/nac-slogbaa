@@ -31,6 +31,8 @@ const CMS_STYLE = `
     grid-template-columns: repeat(3, 1fr);
     gap: 1.25rem;
     margin-bottom: 2rem;
+    width: 100%;
+    box-sizing: border-box;
   }
   @media (max-width: 1024px) {
     .admin-cms-grid { grid-template-columns: repeat(2, 1fr); }
@@ -48,7 +50,9 @@ const CMS_STYLE = `
     flex-direction: column;
     gap: 0.75rem;
     min-height: 140px;
+    min-width: 0; /* Important: prevents grid items from expanding beyond 1fr */
     transition: all 0.2s ease;
+    box-sizing: border-box;
   }
   .admin-cms-card:hover {
     border-color: var(--slogbaa-blue);
