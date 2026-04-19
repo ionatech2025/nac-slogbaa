@@ -41,6 +41,16 @@ const AdminLiveSessionsPage = lazy(() => import('./pages/AdminLiveSessionsPage.j
 const LiveSessionsPage = lazy(() => import('./pages/LiveSessionsPage.jsx').then((m) => ({ default: m.LiveSessionsPage })))
 const TraineeCertificatesPage = lazy(() =>
   import('./pages/TraineeCertificatesPage.jsx').then((m) => ({ default: m.TraineeCertificatesPage })))
+const InPersonTrainingPage = lazy(() => import('./pages/InPersonTrainingPage.jsx').then((m) => ({ default: m.InPersonTrainingPage })))
+const InPersonTrainingDetailPage = lazy(() => import('./pages/InPersonTrainingDetailPage.jsx').then((m) => ({ default: m.InPersonTrainingDetailPage })))
+const InquiriesPage = lazy(() => import('./pages/InquiriesPage.jsx').then((m) => ({ default: m.InquiriesPage })))
+const ImpactStoriesPage = lazy(() => import('./pages/ImpactStoriesPage.jsx').then((m) => ({ default: m.ImpactStoriesPage })))
+const ImpactStoryDetailPage = lazy(() => import('./pages/ImpactStoryDetailPage.jsx').then((m) => ({ default: m.ImpactStoryDetailPage })))
+const PublicLibraryPage = lazy(() => import('./pages/PublicLibraryPage.jsx').then((m) => ({ default: m.PublicLibraryPage })))
+const VideosPage = lazy(() => import('./pages/VideosPage.jsx').then((m) => ({ default: m.VideosPage })))
+const NewsListingPage = lazy(() => import('./pages/NewsListingPage.jsx').then((m) => ({ default: m.NewsListingPage })))
+const NewsDetailPage = lazy(() => import('./pages/NewsDetailPage.jsx').then((m) => ({ default: m.NewsDetailPage })))
+const PublicCoursesPage = lazy(() => import('./pages/PublicCoursesPage.jsx').then((m) => ({ default: m.PublicCoursesPage })))
 
 function Lazy({ children }) {
   return <Suspense fallback={<PageSkeleton />}>{children}</Suspense>
@@ -50,6 +60,16 @@ export function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<HomePage />} />
+      <Route path="/videos" element={<Lazy><VideosPage /></Lazy>} />
+      <Route path="/news-and-updates" element={<Lazy><NewsListingPage /></Lazy>} />
+      <Route path="/news-and-updates/:slug" element={<Lazy><NewsDetailPage /></Lazy>} />
+      <Route path="/inperson-training" element={<Lazy><InPersonTrainingPage /></Lazy>} />
+      <Route path="/inperson-training/:slug" element={<Lazy><InPersonTrainingDetailPage /></Lazy>} />
+      <Route path="/inquiries" element={<Lazy><InquiriesPage /></Lazy>} />
+      <Route path="/stories" element={<Lazy><ImpactStoriesPage /></Lazy>} />
+      <Route path="/stories/:id" element={<Lazy><ImpactStoryDetailPage /></Lazy>} />
+      <Route path="/public-library" element={<Lazy><PublicLibraryPage /></Lazy>} />
+      <Route path="/public/courses-view" element={<Lazy><PublicCoursesPage /></Lazy>} />
       <Route path="/reset-password" element={<Lazy><ResetPasswordPage /></Lazy>} />
       <Route path="/auth/*" element={<Lazy><IamRoutes /></Lazy>} />
       <Route path="/dashboard" element={<RequireTrainee />}>

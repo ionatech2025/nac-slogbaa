@@ -1146,7 +1146,7 @@ export function CourseDetailPage() {
       </div>
       <div style={styles.tocSectionBanner}>Modules in this course</div>
       <div style={styles.tocScroll}>
-        <ul style={styles.moduleList}>
+            <ul style={styles.moduleList}>
           {modules.map((m, idx) => {
             const active = selectedModule?.id === m.id
             const modDone = completedModuleIdSet.has(String(m.id))
@@ -1163,8 +1163,8 @@ export function CourseDetailPage() {
             }
 
             return (
-              <li key={m.id} style={styles.moduleItem}>
-                <Link
+                <li key={m.id} style={styles.moduleItem}>
+                  <Link
                   to={isLocked ? '#' : `/dashboard/courses/${courseId}/modules/${m.id}`}
                   onClick={(e) => {
                     if (isLocked) {
@@ -1173,8 +1173,8 @@ export function CourseDetailPage() {
                     }
                     closeMobileToc()
                   }}
-                  style={{
-                    ...styles.moduleLink,
+                    style={{
+                      ...styles.moduleLink,
                     ...(active ? styles.moduleLinkActive : {}),
                     ...(isLocked ? { opacity: 0.5, cursor: 'not-allowed' } : {}),
                   }}
@@ -1199,11 +1199,11 @@ export function CourseDetailPage() {
                       {(m.hasQuiz === true || m.has_quiz === true) && <>Quiz</>}
                     </span>
                   </span>
-                </Link>
-              </li>
+                  </Link>
+                </li>
             )
           })}
-        </ul>
+            </ul>
       </div>
       <div style={styles.sidebarBackLinks}>
         <Link to="/dashboard/courses" style={styles.sidebarBackLink} onClick={closeMobileToc}>
@@ -1319,17 +1319,17 @@ export function CourseDetailPage() {
                 }}
               >
                 {tocInner}
-              </aside>
+          </aside>
             </>
           )}
 
           <article ref={articleRef} style={styles.article}>
             <div style={styles.articleInner}>
-              {selectedModule ? (
-                <>
+            {selectedModule ? (
+              <>
                   <div>
                     <h2 style={styles.lessonTitle}>{selectedModule.title}</h2>
-                    {selectedModule.description && (
+                {selectedModule.description && (
                       <p style={styles.lessonDescription}>{selectedModule.description}</p>
                     )}
                     {selectedModuleCompleted && (
@@ -1370,7 +1370,7 @@ export function CourseDetailPage() {
                   <div style={styles.notesContentRegion}>
                     {notesVisible ? (
                       <>
-                        {selectedModule.contentBlocks?.map((block) => (
+                {selectedModule.contentBlocks?.map((block) => (
                           <BlockWithProgressObserver
                             key={block.id}
                             block={block}
@@ -1384,10 +1384,10 @@ export function CourseDetailPage() {
                             bookmarks={bookmarks}
                             skipProgress={selectedModuleCompleted}
                           />
-                        ))}
-                        {(!selectedModule.contentBlocks || selectedModule.contentBlocks.length === 0) && (
-                          <p style={{ color: 'var(--slogbaa-text-muted)' }}>No content in this module yet.</p>
-                        )}
+                ))}
+                {(!selectedModule.contentBlocks || selectedModule.contentBlocks.length === 0) && (
+                  <p style={{ color: 'var(--slogbaa-text-muted)' }}>No content in this module yet.</p>
+                )}
                         {selectedModuleHasQuiz && !selectedModuleCompleted && !notesReadThrough && blocks.length > 0 && (
                           <div style={styles.scrollHint}>
                             <Icon icon={icons.enrolled} size={24} style={{ color: 'var(--slogbaa-blue)' }} />
@@ -1395,8 +1395,8 @@ export function CourseDetailPage() {
                             <span style={{ fontSize: '0.8125rem', fontWeight: 500, color: 'var(--slogbaa-text-muted)' }}>Scroll to the very bottom</span>
                           </div>
                         )}
-                      </>
-                    ) : (
+              </>
+            ) : (
                       <div style={{ padding: '0.5rem 0' }}>
                         {!selectedModuleCompleted && (
                           <>
