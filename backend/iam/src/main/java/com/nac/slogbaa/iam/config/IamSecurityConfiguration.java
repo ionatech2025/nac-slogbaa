@@ -115,6 +115,7 @@ public class IamSecurityConfiguration {
                 // Uploaded files: browsers never send Bearer on <img src>, <a href>, etc.
                 // Upload remains POST /api/files/upload with @PreAuthorize(ADMIN).
                 // Objects use UUID filenames (see LocalFileStorageAdapter).
+                .requestMatchers(HttpMethod.GET, "/api/courses/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
                 .requestMatchers(HttpMethod.HEAD, "/uploads/**").permitAll()
                 .anyRequest().authenticated()

@@ -50,6 +50,7 @@ const PublicLibraryPage = lazy(() => import('./pages/PublicLibraryPage.jsx').the
 const VideosPage = lazy(() => import('./pages/VideosPage.jsx').then((m) => ({ default: m.VideosPage })))
 const NewsListingPage = lazy(() => import('./pages/NewsListingPage.jsx').then((m) => ({ default: m.NewsListingPage })))
 const NewsDetailPage = lazy(() => import('./pages/NewsDetailPage.jsx').then((m) => ({ default: m.NewsDetailPage })))
+const PublicCoursesPage = lazy(() => import('./pages/PublicCoursesPage.jsx').then((m) => ({ default: m.PublicCoursesPage })))
 
 function Lazy({ children }) {
   return <Suspense fallback={<PageSkeleton />}>{children}</Suspense>
@@ -68,6 +69,7 @@ export function AppRoutes() {
       <Route path="/stories" element={<Lazy><ImpactStoriesPage /></Lazy>} />
       <Route path="/stories/:id" element={<Lazy><ImpactStoryDetailPage /></Lazy>} />
       <Route path="/public-library" element={<Lazy><PublicLibraryPage /></Lazy>} />
+      <Route path="/public/courses-view" element={<Lazy><PublicCoursesPage /></Lazy>} />
       <Route path="/reset-password" element={<Lazy><ResetPasswordPage /></Lazy>} />
       <Route path="/auth/*" element={<Lazy><IamRoutes /></Lazy>} />
       <Route path="/dashboard" element={<RequireTrainee />}>

@@ -6,6 +6,18 @@ export async function getHomepageContent() {
   return parseResponse(res)
 }
 
+/** Public: fetch impact statistics */
+export async function getImpactStats() {
+  const res = await apiClient(null).get('/api/public/impact/stats')
+  return parseResponse(res)
+}
+
+/** Public: fetch all published courses (no auth required) */
+export async function getPublishedCourses() {
+  const res = await apiClient(null).get('/api/courses')
+  return parseResponse(res)
+}
+
 /** Public: record a page visit (fire-and-forget) */
 export async function recordVisit() {
   try {

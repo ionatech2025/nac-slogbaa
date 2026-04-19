@@ -5,10 +5,22 @@ import { Icon, icons } from '../../../shared/icons.jsx'
 import { Logo } from '../../../shared/components/Logo.jsx'
 import { useTheme } from '../../../contexts/ThemeContext.jsx'
 import { Navbar } from '../../../shared/components/Navbar.jsx'
-import { getHomepageContent, recordVisit } from '../../../api/homepage.js'
+import { getHomepageContent, getImpactStats, recordVisit } from '../../../api/homepage.js'
 import { queryKeys } from '../../../lib/query-keys.js'
 import { CtaSection } from '../../../shared/components/CtaSection.jsx'
 import { Footer } from '../../../shared/components/Footer.jsx'
+import {
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend
+} from 'recharts'
 
 
 
@@ -384,6 +396,7 @@ const GLOBAL_CSS = `
     color: #fff; background: var(--orange); text-decoration: none;
     transition: transform 0.2s, box-shadow 0.2s;
     box-shadow: 0 4px 24px rgba(245,130,32,0.3);
+    cursor: pointer;
   }
   .slg-btn-hero-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(245,130,32,0.4); }
   .slg-btn-hero-secondary {
@@ -391,6 +404,7 @@ const GLOBAL_CSS = `
     padding: 0.75rem 1.75rem; border-radius: 10px; font-size: 0.9375rem; font-weight: 500;
     color: var(--text); background: var(--surface); text-decoration: none;
     border: 1px solid var(--border); transition: border-color 0.15s, background 0.15s;
+    cursor: pointer;
   }
   .slg-btn-hero-secondary:hover { border-color: var(--border-hover); background: var(--surface-2); }
 
@@ -676,10 +690,114 @@ const GLOBAL_CSS = `
   .slg-dot-active { width: 24px; background: var(--orange); }
   .slg-dot-inactive { background: var(--bg-3); }
   .slg-dot-inactive:hover { background: var(--text-3); }
+
+  /* Impact Section Styling */
+  .slg-impact-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2.5rem;
+    margin-top: 3.5rem;
+  }
+  @media (max-width: 960px) {
+    .slg-impact-grid { grid-template-columns: 1fr; }
+  }
+
+  .slg-impact-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 2.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+  }
+  .slg-impact-card::before {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(circle at 50% 50%, var(--orange-glow) 0%, transparent 70%);
+    opacity: 0; transition: opacity 0.4s ease;
+    pointer-events: none;
+  }
+  .slg-impact-card:hover {
+    transform: translateY(-8px);
+    border-color: var(--orange-glow);
+    box-shadow: 0 24px 48px rgba(0,0,0,0.08);
+  }
+  .slg-impact-card:hover::before { opacity: 1; }
+
+  .slg-impact-icon {
+    width: 64px; height: 64px; border-radius: 20px;
+    background: var(--orange-dim); border: 1px solid rgba(245,130,32,0.25);
+    color: var(--orange); display: flex; align-items: center; justify-content: center;
+    margin-bottom: 1.5rem; font-size: 1.75rem; position: relative; z-index: 1;
+  }
+  .slg-impact-val { font-size: 3rem; font-weight: 800; color: var(--text); line-height: 1; margin-bottom: 0.5rem; position: relative; z-index: 1; letter-spacing: -0.02em; }
+  .slg-impact-label { font-size: 0.9375rem; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.08em; position: relative; z-index: 1; }
+
+  .slg-chart-container {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin-top: 2rem;
+  }
+  .slg-chart-header {
+    display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;
+  }
+  .slg-chart-title { font-size: 1.125rem; font-weight: 700; color: var(--text); }
+  .slg-chart-subtitle { font-size: 0.8125rem; color: var(--text-3); }
+  
+  .slg-rating-strip {
+    display: flex; gap: 1rem; align-items: center; justify-content: center;
+    padding: 0.75rem 1.25rem; background: var(--surface-2); border-radius: 99px;
+    border: 1px solid var(--border); width: fit-content; margin: 0 auto;
+  }
+  .slg-rating-val { font-size: 1.5rem; font-weight: 800; color: var(--orange); }
+  .slg-stars { display: flex; gap: 0.25rem; color: var(--orange); }
+  .slg-rating-label { font-size: 0.75rem; font-weight: 600; color: var(--text-3); text-transform: uppercase; }
+
+  .slg-impact-visual {
+    display: grid;
+    grid-template-columns: 1.25fr 1fr;
+    gap: 2.5rem;
+    margin-top: 2.5rem;
+  }
+  @media (max-width: 960px) {
+    .slg-impact-visual { grid-template-columns: 1fr; }
+  }
+
+  .slg-pie-legend {
+    display: flex; flex-direction: column; gap: 0.75rem; justify-content: center;
+  }
+  .slg-pie-legend-item {
+    display: flex; align-items: center; gap: 0.75rem; font-size: 0.875rem; color: var(--text-2);
+  }
+  .slg-pie-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+  .slg-impact-btn-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    width: 100%;
+    margin-top: 1.5rem;
+  }
 `
 
 /* ─── Hero with Carousel ──────────────────────────────────────────────────── */
 function HeroSection() {
+  const { data: stats } = useQuery({
+    queryKey: queryKeys.homepage.impact(),
+    queryFn: getImpactStats,
+    staleTime: 5 * 60 * 1000,
+  })
+
   const [current, setCurrent] = useState(0)
   const [paused, setPaused] = useState(false)
   const total = HERO_SLIDES.length
@@ -694,6 +812,14 @@ function HeroSection() {
   }, [paused, next])
 
   const slide = HERO_SLIDES[current]
+
+  // Dynamic stats
+  const dynamicStats = [
+    { value: stats ? `${(stats.traineeCount || 0).toLocaleString()}+` : '500+', label: 'Active Learners' },
+    { value: stats ? (stats.coursesAvailable || 0) : '12', label: 'Courses Available' },
+    { value: stats ? `${Math.round(((stats.coursesDone || 0) / (stats.traineeCount || 1)) * 100)}%` : '95%', label: 'Completion Rate' },
+    { value: stats ? (stats.districtsCount || 0) : '8', label: 'Districts Reached' },
+  ]
 
   return (
     <section
@@ -716,9 +842,9 @@ function HeroSection() {
           <em>{slide.highlight}</em>
         </h1>
 
-        <p className="slg-hero-sub" key={`sub-${current}`}>
+        <h2 className="slg-hero-sub" key={`sub-${current}`} style={{ fontSize: '1.25rem', fontWeight: 400, opacity: 0.9 }}>
           {slide.subtitle}
-        </p>
+        </h2>
 
         <div className="slg-hero-actions">
           <Link to="/auth/register" className="slg-btn-hero-primary">
@@ -731,7 +857,7 @@ function HeroSection() {
 
         {/* Stats strip */}
         <div className="slg-stats-bar">
-          {STATS.map((s) => (
+          {dynamicStats.map((s) => (
             <div key={s.label} className="slg-stat-item">
               <span className="slg-stat-val">{s.value}</span>
               <span className="slg-stat-label">{s.label}</span>
@@ -750,6 +876,194 @@ function HeroSection() {
               aria-label={`Go to slide ${i + 1}`}
             />
           ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function ImpactSection() {
+  const { data: stats, isLoading } = useQuery({
+    queryKey: queryKeys.homepage.impact(),
+    queryFn: getImpactStats,
+    staleTime: 5 * 60 * 1000,
+  })
+
+  const { theme } = useTheme()
+  const isDark = theme === 'dark'
+
+  if (isLoading) return null // Or a shimmer
+
+  // Prepare chart data
+  const genderData = [
+    { name: 'Male', value: stats?.demographicsByGender?.MALE || 0, color: '#F58220' },
+    { name: 'Female', value: stats?.demographicsByGender?.FEMALE || 0, color: '#34d399' },
+  ]
+
+  const districtData = Object.entries(stats?.demographicsByDistrict || {}).map(([name, value]) => ({
+    name,
+    value,
+  })).sort((a, b) => b.value - a.value).slice(0, 5)
+
+  const renderStars = (rating) => {
+    const full = Math.floor(rating)
+    const half = rating % 1 >= 0.5
+    return (
+      <div className="slg-stars">
+        {[...Array(5)].map((_, i) => (
+          <Icon
+            key={i}
+            icon={i < full ? icons.star : (i === full && half ? icons.starHalf : icons.starOutline)}
+            size={18}
+            fill={i < full || (i === full && half) ? 'currentColor' : 'none'}
+          />
+        ))}
+      </div>
+    )
+  }
+
+  return (
+    <section className="slg-section" id="impact">
+      <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
+        <span className="slg-eyebrow" style={{ justifyContent: 'center' }}>Our Global Reach</span>
+        <h2 className="slg-section-title" style={{ textAlign: 'center' }}>
+          Real Impact, <em>Quantified</em>
+        </h2>
+        <p className="slg-section-desc" style={{ margin: '0.875rem auto 0', textAlign: 'center' }}>
+          Tracking our progress as we empower citizens through civic education and leadership training across the region.
+        </p>
+      </div>
+
+      <div className="slg-impact-grid">
+        <div className="slg-impact-card">
+          <div className="slg-impact-icon">◈</div>
+          <div className="slg-impact-val">{(stats?.coursesDone || 0).toLocaleString()}+</div>
+          <div className="slg-impact-label">Courses Completed</div>
+        </div>
+        <div className="slg-impact-card">
+          <div className="slg-impact-icon">◉</div>
+          <div className="slg-impact-val">{(stats?.certificatesIssued || 0).toLocaleString()}</div>
+          <div className="slg-impact-label">Certificates Issued</div>
+        </div>
+        <div className="slg-impact-card">
+          <div className="slg-impact-icon">◎</div>
+          <div className="slg-impact-val">{(stats?.traineeCount || 0).toLocaleString()}</div>
+          <div className="slg-impact-label">Active Trainees</div>
+        </div>
+      </div>
+
+      <div className="slg-impact-visual">
+        {/* District Demographics */}
+        <div className="slg-chart-container">
+          <div className="slg-chart-header">
+            <div>
+              <h3 className="slg-chart-title">Trainee Distribution</h3>
+              <p className="slg-chart-subtitle">Top 5 Districts by Enrollment</p>
+            </div>
+            <div className="slg-impact-icon" style={{ width: 40, height: 40, fontSize: '1rem', marginBottom: 0 }}>◓</div>
+          </div>
+          <div style={{ height: 300, width: '100%' }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={districtData} layout="vertical" margin={{ left: 20, right: 30 }}>
+                <XAxis type="number" hide />
+                <YAxis
+                  dataKey="name"
+                  type="category"
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fill: isDark ? '#a1a1aa' : '#52525b', fontSize: 12 }}
+                  width={100}
+                />
+                <Tooltip
+                  cursor={{ fill: 'transparent' }}
+                  contentStyle={{
+                    background: isDark ? '#1e1e26' : '#ffffff',
+                    border: '1px solid var(--border)',
+                    borderRadius: '12px'
+                  }}
+                />
+                <Bar dataKey="value" fill="#F58220" radius={[0, 10, 10, 0]} barSize={20} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Gender Demographics */}
+        <div className="slg-chart-container">
+          <div className="slg-chart-header">
+            <div>
+              <h3 className="slg-chart-title">Gender Inclusivity</h3>
+              <p className="slg-chart-subtitle">Commitment to Gender Balanced Learning</p>
+            </div>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '2rem', height: 300 }}>
+            <div style={{ flex: 1, height: '100%' }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={genderData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={80}
+                    paddingAngle={8}
+                    dataKey="value"
+                  >
+                    {genderData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    contentStyle={{
+                      background: isDark ? '#1e1e26' : '#ffffff',
+                      border: '1px solid var(--border)',
+                      borderRadius: '12px'
+                    }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="slg-pie-legend">
+              {genderData.map((entry) => (
+                <div key={entry.name} className="slg-pie-legend-item">
+                  <div className="slg-pie-dot" style={{ background: entry.color }} />
+                  <span style={{ fontWeight: 600 }}>{entry.name}:</span>
+                  <span>{((entry.value / (stats?.traineeCount || 1)) * 100).toFixed(1)}%</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="slg-impact-grid" style={{ marginTop: '2.5rem' }}>
+        <div className="slg-chart-container" style={{ textAlign: 'center', justifyContent: 'center' }}>
+          <span className="slg-impact-label" style={{ marginBottom: '1.5rem' }}>Trainee Satisfaction</span>
+          <div className="slg-rating-strip">
+            <span className="slg-rating-val">{(stats?.avgTraineeRating || 0).toFixed(1)}</span>
+            {renderStars(stats?.avgTraineeRating || 0)}
+          </div>
+          <p className="slg-chart-subtitle" style={{ marginTop: '1rem' }}>Overall Course Rating from Trainees</p>
+        </div>
+        <div className="slg-chart-container" style={{ textAlign: 'center', justifyContent: 'center' }}>
+          <span className="slg-impact-label" style={{ marginBottom: '1.5rem' }}>Admin Evaluation</span>
+          <div className="slg-rating-strip">
+            <span className="slg-rating-val">{(stats?.avgAdminRating || 0).toFixed(1)}</span>
+            {renderStars(stats?.avgAdminRating || 0)}
+          </div>
+          <p className="slg-chart-subtitle" style={{ marginTop: '1rem' }}>Internal Academic Performance Quality</p>
+        </div>
+        <div className="slg-impact-card" style={{ background: 'var(--orange)', color: '#fff', border: 'none', justifyContent: 'flex-start' }}>
+          <h3 className="slg-serif" style={{ fontSize: '1.625rem', marginBottom: '0.5rem', fontWeight: 800 }}>Join the Movement</h3>
+          <p style={{ fontSize: '0.875rem', opacity: 0.9, marginBottom: '1rem' }}>Empowering citizens through knowledge and action.</p>
+          <div className="slg-impact-btn-stack">
+            <Link to="/auth/register" className="slg-btn-hero-primary" style={{ background: '#fff', color: 'var(--orange)', border: 'none', width: '100%', textAlign: 'center', cursor: 'pointer', position: 'relative', zIndex: 2 }}>
+              Register Now
+            </Link>
+            <Link to="/public/courses-view" className="slg-btn-hero-secondary" style={{ background: 'rgba(255,255,255,0.1)', borderColor: 'rgba(255,255,255,0.4)', color: '#fff', width: '100%', textAlign: 'center', cursor: 'pointer', position: 'relative', zIndex: 2 }}>
+              View Courses
+            </Link>
+          </div>
         </div>
       </div>
     </section>
@@ -805,6 +1119,11 @@ export function HomePage() {
 
         {/* ── Hero ── */}
         <HeroSection />
+
+        <hr className="slg-section-divider" />
+
+        {/* ── Impact ── */}
+        <ImpactSection />
 
         <hr className="slg-section-divider" />
 

@@ -8,7 +8,6 @@ export function useCategories() {
   return useQuery({
     queryKey: queryKeys.categories.all(),
     queryFn: () => getCategories(token),
-    enabled: !!token,
     staleTime: 10 * 60 * 1000, // 10 minutes — categories rarely change
   })
 }

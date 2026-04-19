@@ -13,4 +13,13 @@ public interface JpaTraineeRepository extends JpaRepository<TraineeEntity, UUID>
 
     @Query("select t.id from TraineeEntity t where t.active = true")
     List<UUID> findAllActiveTraineeIds();
+
+    @Query("SELECT t.gender, COUNT(t) FROM TraineeEntity t GROUP BY t.gender")
+    List<Object[]> countByGender();
+
+    @Query("SELECT t.districtName, COUNT(t) FROM TraineeEntity t GROUP BY t.districtName")
+    List<Object[]> countByDistrict();
+
+    @Query("SELECT COUNT(DISTINCT t.districtName) FROM TraineeEntity t")
+    long countDistinctDistrictName();
 }
