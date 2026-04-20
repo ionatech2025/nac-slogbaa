@@ -1,10 +1,20 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import { Icon, icons } from '../../../shared/icons.jsx'
 import { Navbar } from '../../../shared/components/Navbar.jsx'
 import { useTheme } from '../../../contexts/ThemeContext.jsx'
 import { CtaSection } from '../../../shared/components/CtaSection.jsx'
 import { Footer } from '../../../shared/components/Footer.jsx'
+import { getHomepageContent } from '../../../api/homepage.js'
+import { queryKeys } from '../../../lib/query-keys.js'
+
+const truncateWords = (str, limit = 30) => {
+  if (!str) return ''
+  const words = str.split(/\s+/)
+  if (words.length <= limit) return str
+  return words.slice(0, limit).join(' ') + '...'
+}
 
 const STORIES_CSS = `
   .slg-stories-page { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
@@ -31,16 +41,16 @@ const STORIES_CSS = `
   .slg-story-card:hover .slg-story-img-wrap img { transform: scale(1.05); }
   
   .slg-story-tag {
-    position: absolute; bottom: 1.5rem; left: 1.5rem; padding: 0.5rem 1rem;
-    background: rgba(255,255,255,0.85); backdrop-filter: blur(10px); border: 1px solid var(--border);
+    position: absolute; bottom: 1.5rem; left: 1.5rem; padding: 0.45rem 0.875rem;
+    background: rgba(255,255,255,0.9); backdrop-filter: blur(10px); border: 1px solid rgba(0,0,0,0.05);
     border-radius: 100px; font-size: 0.75rem; font-weight: 700; color: #000;
   }
-  .dark-theme .slg-story-tag { background: rgba(0,0,0,0.6); color: #fff; }
+  .dark-theme .slg-story-tag { background: rgba(0,0,0,0.7); color: #fff; border-color: rgba(255,255,255,0.1); }
 
   .slg-story-content { padding: 2.5rem; display: flex; flex-direction: column; flex-grow: 1; }
-  .slg-story-meta { font-size: 0.75rem; font-weight: 700; color: var(--orange); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 1rem; }
-  .slg-story-title { font-size: 1.75rem; font-weight: 500; line-height: 1.25; margin-bottom: 1.25rem; color: var(--text); font-family: 'DM Serif Display', serif; }
-  .slg-story-preview { font-size: 1rem; color: var(--text-2); line-height: 1.7; margin-bottom: 2rem; }
+  .slg-story-meta { font-size: 0.75rem; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.875rem; border-bottom: 1px solid var(--border); padding-bottom: 0.875rem; }
+  .slg-story-title { font-size: 1.625rem; font-weight: 500; line-height: 1.25; margin-bottom: 1rem; color: var(--text); font-family: 'DM Serif Display', serif; }
+  .slg-story-preview { font-size: 0.9375rem; color: var(--text-2); line-height: 1.7; margin-bottom: 2rem; }
   
   .slg-link-more {
     display: flex; align-items: center; gap: 0.5rem; color: var(--text);
@@ -52,49 +62,42 @@ const STORIES_CSS = `
 const ALL_STORIES = [
   {
     id: 'sarah-namuli',
-    name: 'Sarah Namuli',
+    authorName: 'Sarah Namuli',
     location: 'Kampala District',
-    region: 'Central Uganda',
-    role: 'Community Leader',
+    authorRole: 'Community Leader',
     title: 'Leading Accountability from the Frontline',
-    preview: 'How one leader used digital tools to monitor local service delivery and improve community outcomes in the heart of Kampala...',
-    image: '/sarah_namuli_story_1776248245640.png',
+    storyText: 'How one leader used digital tools to monitor local service delivery and improve community outcomes in the heart of Kampala...',
+    imageUrl: '/sarah_namuli_story_1776248245640.png',
   },
   {
     id: 'james-okello',
-    name: 'James Okello',
+    authorName: 'James Okello',
     location: 'Gulu City',
-    region: 'Northern Uganda',
-    role: 'Civil Society Advocate',
+    authorRole: 'Civil Society Advocate',
     title: 'Digital Literacy for Local Governance',
-    preview: 'James shares his journey of transitioning from traditional advocacy to data-driven civic engagement across the Northern region...',
-    image: '/james_okello_story_1776248275273.png',
+    storyText: 'James shares his journey of transitioning from traditional advocacy to data-driven civic engagement across the Northern region...',
+    imageUrl: '/james_okello_story_1776248275273.png',
   },
   {
     id: 'grace-achieng',
-    name: 'Grace Achieng',
+    authorName: 'Grace Achieng',
     location: 'Mbarara District',
-    region: 'Western Uganda',
-    role: 'Civic Trainee',
+    authorRole: 'Civic Trainee',
     title: 'Breaking Barriers in Civic Education',
-    preview: 'Grace explains how the SLOGBAA platform allowed her to pursue high-level certification despite local geographical constraints...',
-    image: 'https://images.unsplash.com/photo-1531123897727-8f129e1688ce?q=80&w=600&auto=format&fit=crop',
-  },
-  // Additional mock stories
-  {
-    id: 'peter-musoke',
-    name: 'Peter Musoke',
-    location: 'Jinij District',
-    region: 'Eastern Uganda',
-    role: 'Local Councilor',
-    title: 'Transforming District Planning',
-    preview: 'A look at how better data management and local council training revitalized infrastructure planning in Jinja...',
-    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=600&auto=format&fit=crop',
+    storyText: 'Grace explains how the SLOGBAA platform allowed her to pursue high-level certification despite local geographical constraints...',
+    imageUrl: 'https://images.unsplash.com/photo-1531123897727-8f129e1688ce?q=80&w=600&auto=format&fit=crop',
   }
 ]
 
 export function ImpactStoriesPage() {
   const { theme } = useTheme()
+  const { data: cms } = useQuery({
+    queryKey: queryKeys.homepage.content(),
+    queryFn: () => getHomepageContent(),
+    staleTime: 60_000,
+  })
+
+  const stories = cms?.stories?.length ? cms.stories : ALL_STORIES
 
   return (
     <div className={`slg-stories-page ${theme}-theme`}>
@@ -102,7 +105,6 @@ export function ImpactStoriesPage() {
       <Navbar />
 
       <header className="slg-hero-stories">
-        <div className="slg-hero-glow" />
         <span className="slg-eyebrow" style={{ color: 'var(--orange)' }}>Transforming Uganda</span>
         <h1 className="slg-hero-title">
           Impact<br /><em>Stories</em>
@@ -114,18 +116,18 @@ export function ImpactStoriesPage() {
 
       <main className="slg-stories-container">
         <div className="slg-stories-grid">
-          {ALL_STORIES.map(story => (
+          {stories.map(story => (
             <article key={story.id} className="slg-story-card">
               <div className="slg-story-img-wrap">
-                <img src={story.image} alt={story.name} />
-                <div className="slg-story-tag">{story.location}</div>
+                <img src={story.imageUrl || story.image} alt={story.authorName || story.name} />
+                <div className="slg-story-tag">{story.location || 'Uganda'}</div>
               </div>
               <div className="slg-story-content">
                 <header>
-                  <p className="slg-story-meta">{story.role} — {story.region}</p>
+                  <p className="slg-story-meta">{story.authorName || story.name} — {story.authorRole || story.role || 'Member'}</p>
                   <h3 className="slg-story-title">{story.title}</h3>
                 </header>
-                <p className="slg-story-preview">{story.preview}</p>
+                <p className="slg-story-preview">{truncateWords(story.storyText || story.preview)}</p>
                 <div style={{ marginTop: 'auto', paddingTop: '1.5rem' }}>
                   <Link to={`/stories/${story.id}`} className="slg-link-more">
                     Read the full story <Icon icon={icons.arrowRight} size={14} />

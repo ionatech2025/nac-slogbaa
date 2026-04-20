@@ -97,7 +97,12 @@ public class AdminHomepageCmsController {
         return storyRepo.findById(id).map(existing -> {
             existing.setAuthorName(s.getAuthorName());
             existing.setAuthorRole(s.getAuthorRole());
-            existing.setQuoteText(s.getQuoteText());
+            existing.setTitle(s.getTitle());
+            existing.setLocation(s.getLocation());
+            existing.setCoursesCompleted(s.getCoursesCompleted());
+            existing.setProjectImpact(s.getProjectImpact());
+            existing.setCertification(s.getCertification());
+            existing.setStoryText(s.getStoryText());
             existing.setImageUrl(s.getImageUrl());
             existing.setSortOrder(s.getSortOrder());
             existing.setActive(s.isActive());

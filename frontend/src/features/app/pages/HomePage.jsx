@@ -1271,18 +1271,20 @@ export function HomePage() {
           </div>
 
           <div className="slg-stories-grid">
-            {IMPACT_STORIES.map((story) => (
+            {stories.map((story) => (
               <article key={story.id} className="slg-story-card">
                 <div className="slg-story-img-wrap">
-                  <img src={story.image} alt={story.name} loading="lazy" />
-                  <div className="slg-story-tag">{story.location}</div>
+                  <img src={story.imageUrl || story.image || 'https://images.unsplash.com/photo-1531123897727-8f129e1688ce?q=80&w=600&auto=format&fit=crop'} alt={story.authorName || story.name} loading="lazy" />
+                  <div className="slg-story-tag">{story.location || 'Uganda'}</div>
                 </div>
                 <div className="slg-story-content">
                   <header>
-                    <p className="slg-story-meta">{story.role} — {story.region}</p>
+                    <p className="slg-story-meta">{story.authorName || story.name} — {story.authorRole || story.role || 'Member'}</p>
                     <h3 className="slg-story-title">{story.title}</h3>
                   </header>
-                  <p className="slg-story-preview">{story.preview}</p>
+                  <p className="slg-story-preview">
+                    {truncateWords(story.storyText || story.preview || '', 30)}
+                  </p>
                   <div style={{ marginTop: 'auto', paddingTop: '1.5rem' }}>
                     <Link to={`/stories/${story.id}`} className="slg-link-more">
                       Read the full story <Icon icon={icons.arrowRight} size={14} />
