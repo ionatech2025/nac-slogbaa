@@ -22,16 +22,19 @@ public class PublicHomepageController {
     private final PartnerRepository partnerRepo;
     private final NewsRepository newsRepo;
     private final SiteVisitRepository visitRepo;
+    private final PublicLibraryResourceRepository libraryRepo;
 
     public PublicHomepageController(BannerRepository bannerRepo, StoryRepository storyRepo,
                                    VideoRepository videoRepo, PartnerRepository partnerRepo,
-                                   NewsRepository newsRepo, SiteVisitRepository visitRepo) {
+                                   NewsRepository newsRepo, SiteVisitRepository visitRepo,
+                                   PublicLibraryResourceRepository libraryRepo) {
         this.bannerRepo = bannerRepo;
         this.storyRepo = storyRepo;
         this.videoRepo = videoRepo;
         this.partnerRepo = partnerRepo;
         this.newsRepo = newsRepo;
         this.visitRepo = visitRepo;
+        this.libraryRepo = libraryRepo;
     }
 
     @GetMapping
@@ -41,7 +44,8 @@ public class PublicHomepageController {
             "stories", storyRepo.findByActiveTrueOrderBySortOrderAsc(),
             "videos", videoRepo.findByActiveTrueOrderBySortOrderAsc(),
             "partners", partnerRepo.findByActiveTrueOrderBySortOrderAsc(),
-            "news", newsRepo.findByActiveTrueOrderBySortOrderAsc()
+            "news", newsRepo.findByActiveTrueOrderBySortOrderAsc(),
+            "library", libraryRepo.findByActiveTrueOrderBySortOrderAsc()
         ));
     }
 

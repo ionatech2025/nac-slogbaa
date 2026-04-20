@@ -26,16 +26,19 @@ public class AdminHomepageCmsController {
     private final PartnerRepository partnerRepo;
     private final NewsRepository newsRepo;
     private final SiteVisitRepository visitRepo;
+    private final PublicLibraryResourceRepository publicLibraryRepo;
 
     public AdminHomepageCmsController(BannerRepository bannerRepo, StoryRepository storyRepo,
                                       VideoRepository videoRepo, PartnerRepository partnerRepo,
-                                      NewsRepository newsRepo, SiteVisitRepository visitRepo) {
+                                      NewsRepository newsRepo, SiteVisitRepository visitRepo,
+                                      PublicLibraryResourceRepository publicLibraryRepo) {
         this.bannerRepo = bannerRepo;
         this.storyRepo = storyRepo;
         this.videoRepo = videoRepo;
         this.partnerRepo = partnerRepo;
         this.newsRepo = newsRepo;
         this.visitRepo = visitRepo;
+        this.publicLibraryRepo = publicLibraryRepo;
     }
 
     // ── Visitor count ──
@@ -203,6 +206,40 @@ public class AdminHomepageCmsController {
     public ResponseEntity<Void> deleteNews(@PathVariable UUID id) {
         if (!newsRepo.existsById(id)) return ResponseEntity.notFound().build();
         newsRepo.deleteById(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    // ── Public Library ──
+    @GetMapping("/library-resources")
+    @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN')")
+    public List<PublicLibraryResource> listResources() { return publicLibraryRepo.findAll(); }
+
+    @PostMapping("/library-resources")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    public ResponseEntity<PublicLibraryResource> createResource(@Valid @RequestBody PublicLibraryResource r) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(publicLibraryRepo.save(r));
+    }
+
+    @PutMapping("/library-resources/{id}")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    public ResponseEntity<PublicLibraryResource> updateResource(@PathVariable UUID id, @Valid @RequestBody PublicLibraryResource r) {
+        return publicLibraryRepo.findById(id).map(existing -> {
+            existing.setTitle(r.getTitle());
+            existing.setDescription(r.getDescription());
+            existing.setCategory(r.getCategory());
+            existing.setFileUrl(r.getFileUrl());
+            existing.setImageUrl(r.getImageUrl());
+            existing.setSortOrder(r.getSortOrder());
+            existing.setActive(r.isActive());
+            return ResponseEntity.ok(publicLibraryRepo.save(existing));
+        }).orElse(ResponseEntity.notFound().build());
+    }
+
+    @DeleteMapping("/library-resources/{id}")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    public ResponseEntity<Void> deleteResource(@PathVariable UUID id) {
+        if (!publicLibraryRepo.existsById(id)) return ResponseEntity.notFound().build();
+        publicLibraryRepo.deleteById(id);
         return ResponseEntity.noContent().build();
     }
 }
