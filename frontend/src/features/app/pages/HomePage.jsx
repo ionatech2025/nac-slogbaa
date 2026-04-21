@@ -842,7 +842,7 @@ const GLOBAL_CSS = `
 `
 
 /* ─── Hero with Carousel ──────────────────────────────────────────────────── */
-function HeroSection() {
+function HeroSection({ banners }) {
   const { data: stats } = useQuery({
     queryKey: queryKeys.homepage.impact(),
     queryFn: getImpactStats,
@@ -851,7 +851,9 @@ function HeroSection() {
 
   const [current, setCurrent] = useState(0)
   const [paused, setPaused] = useState(false)
-  const total = HERO_SLIDES.length
+  
+  const slides = (banners && banners.length > 0) ? banners : HERO_SLIDES
+  const total = slides.length
 
   const next = useCallback(() => setCurrent((c) => (c + 1) % total), [total])
 
@@ -862,7 +864,7 @@ function HeroSection() {
     return () => clearInterval(id)
   }, [paused, next])
 
-  const slide = HERO_SLIDES[current]
+  const slide = slides[current]
 
   // Dynamic stats
   const dynamicStats = [
@@ -878,7 +880,12 @@ function HeroSection() {
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
-      <div className="slg-background-image" />
+      <div 
+        className="slg-background-image" 
+        style={{ 
+          backgroundImage: slide.imageUrl || slide.image ? `url(${slide.imageUrl || slide.image})` : undefined 
+        }} 
+      />
       <div className="slg-hero-overlay" />
       <div className="slg-hero-bg" />
       <div className="slg-hero-grid" />
@@ -918,7 +925,7 @@ function HeroSection() {
 
         {/* Slide dots */}
         <div className="slg-dots" style={{ marginTop: '2.5rem' }}>
-          {HERO_SLIDES.map((_, i) => (
+          {slides.map((_, i) => (
             <button
               key={i}
               type="button"
@@ -1169,7 +1176,7 @@ export function HomePage() {
         <Navbar />
 
         {/* ── Hero ── */}
-        <HeroSection />
+        <HeroSection banners={cms?.banners} />
 
         <hr className="slg-section-divider" />
 
@@ -1279,7 +1286,7 @@ export function HomePage() {
 
           <div className="slg-stories-grid">
             {stories.map((story) => (
-              <article key={story.id} className="slg-story-card">
+              <article key={story.id || story.title} className="slg-story-card">
                 <div className="slg-story-img-wrap">
                   <img src={story.imageUrl || story.image || 'https://images.unsplash.com/photo-1531123897727-8f129e1688ce?q=80&w=600&auto=format&fit=crop'} alt={story.authorName || story.name} loading="lazy" />
                   <div className="slg-story-tag">{story.location || 'Uganda'}</div>
@@ -1364,19 +1371,21 @@ export function HomePage() {
             {newsItems.map((item) => (
               <article key={item.title} className="slg-news-card">
                 <div className="slg-news-img">
-                  <img src={item.image} alt={item.title} />
+                  <img src={item.imageUrl || item.image || 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?q=80&w=800&auto=format&fit=crop'} alt={item.title} />
                 </div>
                 <div className="slg-news-card-content">
                   <span className="slg-news-card-tag">{item.tag || 'Update'}</span>
                   <h3 className="slg-news-card-title">{item.title}</h3>
-                  <p className="slg-news-card-summary">{item.summary}</p>
+                  <p className="slg-news-card-summary">
+                    {item.summary ? item.summary.replace(/[#*>\n]/g, ' ').trim().slice(0, 150) + (item.summary.length > 150 ? '...' : '') : ''}
+                  </p>
 
                   <div className="slg-news-card-footer">
                     <p className="slg-news-card-date">
                       <Icon icon={item.tag === 'Events' ? icons.calendar : icons.fileText} size={14} />
-                      {item.date}
+                      {item.publishedDate || item.date}
                     </p>
-                    <Link to={`/news-and-updates/${item.slug}`} className="slg-link-more">
+                    <Link to={`/news-and-updates/${item.slug || (item.title && item.title.toLowerCase().replace(/\s+/g, '-'))}`} className="slg-link-more">
                       See Details <Icon icon={icons.arrowRight} size={14} />
                     </Link>
                   </div>

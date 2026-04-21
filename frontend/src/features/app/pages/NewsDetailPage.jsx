@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import { Icon, icons } from '../../../shared/icons.jsx'
 import { Navbar } from '../../../shared/components/Navbar.jsx'
 import { useTheme } from '../../../contexts/ThemeContext.jsx'
 import { CtaSection } from '../../../shared/components/CtaSection.jsx'
 import { Footer } from '../../../shared/components/Footer.jsx'
+import { getHomepageContent } from '../../../api/homepage.js'
+import { queryKeys } from '../../../lib/query-keys.js'
 
 const ARTICLE_CSS = `
   .slg-article-page { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
@@ -121,11 +124,61 @@ const NEWS_ARTICLES = {
 export function NewsDetailPage() {
   const { slug } = useParams()
   const { theme } = useTheme()
-  const article = NEWS_ARTICLES[slug] || NEWS_ARTICLES['new-courses-2024']
+  
+  const { data: cms, isLoading } = useQuery({
+    queryKey: queryKeys.homepage.content(),
+    queryFn: () => getHomepageContent(),
+    staleTime: 60_000,
+  })
 
   useEffect(() => {
     window.scrollTo(0, 0)
   }, [slug])
+
+  if (isLoading) return <div style={{ padding: '10rem 2rem', textAlign: 'center' }}>Loading...</div>
+
+  // Find article in CMS or fallback to a default structure
+  const cmsArticle = cms?.news?.find(n => n.slug === slug || (n.title && n.title.toLowerCase().replace(/\s+/g, '-') === slug))
+  
+  // If not found in CMS, check the static ones (keeping them as legacy fallback)
+  const legacyArticle = NEWS_ARTICLES[slug]
+  
+  const article = cmsArticle || legacyArticle || NEWS_ARTICLES['new-courses-2024']
+
+  const renderContent = (text) => {
+    if (!text) return null
+    // Support either blocks (legacy) or raw text with markdown (CMS)
+    if (Array.isArray(text)) {
+      return text.map((block, i) => {
+        if (block.type === 'p') return <p key={i} className="slg-article-p">{block.value}</p>
+        if (block.type === 'h2') return <h2 key={i} className="slg-article-h2 slg-serif">{block.value}</h2>
+        if (block.type === 'quote') return (
+          <blockquote key={i} className="slg-pullquote">
+            <p className="slg-quote-text">{block.text}</p>
+            <cite className="slg-quote-cite">/ {block.author}</cite>
+          </blockquote>
+        )
+        return null
+      })
+    }
+
+    // Split raw text by double newlines for paragraphs/blocks
+    const blocks = text.split(/\n\s*\n/)
+    return blocks.map((block, i) => {
+      const b = block.trim()
+      if (b.startsWith('# ')) return <h2 key={i} className="slg-article-h2 slg-serif" style={{ color: 'var(--orange)', borderColor: 'var(--orange)' }}>{b.replace('# ', '')}</h2>
+      if (b.startsWith('## ')) return <h2 key={i} className="slg-article-h2 slg-serif">{b.replace('## ', '')}</h2>
+      if (b.startsWith('### ')) return <h3 key={i} style={{ fontSize: '1.25rem', fontWeight: 600, margin: '2rem 0 1rem', color: 'var(--text)' }}>{b.replace('### ', '')}</h3>
+      if (b.startsWith('> ')) {
+        return (
+          <blockquote key={i} className="slg-pullquote">
+            <p className="slg-quote-text">{b.replace('> ', '')}</p>
+          </blockquote>
+        )
+      }
+      return <p key={i} className="slg-article-p">{block}</p>
+    })
+  }
 
   return (
     <div className={`slg-article-page ${theme}-theme`}>
@@ -133,27 +186,21 @@ export function NewsDetailPage() {
       <Navbar />
 
       <header className="slg-article-hero">
-        <span className="slg-article-eyebrow">{article.eyebrow}</span>
+        <span className="slg-article-eyebrow">{article.tag || article.eyebrow || 'Update'}</span>
         <h1 className="slg-article-title slg-serif">{article.title}</h1>
 
         <div className="slg-article-meta">
           <div className="slg-meta-item">
             <span className="slg-meta-label">Category</span>
-            <span className="slg-meta-value">{article.category}</span>
+            <span className="slg-meta-value">{article.tag || article.category}</span>
           </div>
           <div className="slg-meta-item">
             <span className="slg-meta-label">Published</span>
-            <span className="slg-meta-value">{article.publishedDate}</span>
+            <span className="slg-meta-value">{article.publishedDate || article.date}</span>
           </div>
-          {article.eventDate && (
-            <div className="slg-meta-item">
-              <span className="slg-meta-label">Event Date</span>
-              <span className="slg-meta-value">{article.eventDate}</span>
-            </div>
-          )}
           <div className="slg-meta-item">
             <span className="slg-meta-label">Author</span>
-            <span className="slg-meta-value">{article.author}</span>
+            <span className="slg-meta-value">{article.author || 'SLOGBAA Editorial'}</span>
           </div>
         </div>
       </header>
@@ -161,41 +208,31 @@ export function NewsDetailPage() {
       <main className="slg-magazine-layout">
         <div className="slg-main-article">
           <div className="slg-editorial-img">
-            <img src={article.image} alt="" />
+            <img src={article.imageUrl || article.image} alt="" />
           </div>
 
-          <p className="slg-article-lead slg-dropcap">
-            {article.lead}
-          </p>
-
-          {article.content.map((block, i) => {
-            if (block.type === 'p') return <p key={i} className="slg-article-p">{block.value}</p>
-            if (block.type === 'h2') return <h2 key={i} className="slg-article-h2 slg-serif">{block.value}</h2>
-            if (block.type === 'quote') return (
-              <blockquote key={i} className="slg-pullquote">
-                <p className="slg-quote-text">{block.text}</p>
-                <cite className="slg-quote-cite">/ {block.author}</cite>
-              </blockquote>
-            )
-            return null
-          })}
+          <div className="slg-article-content">
+            {renderContent(article.summary || article.content || article.lead)}
+          </div>
         </div>
 
         <aside className="slg-article-sidebar">
           <div className="slg-sidebar-section">
             <h3 className="slg-sidebar-h3">In this section</h3>
-            <div className="slg-latest-news-item">
-              <span className="slg-latest-tag">News</span>
-              <Link to="/news-and-updates" className="slg-latest-title">Back to all updates</Link>
-            </div>
-            <div className="slg-latest-news-item">
-              <span className="slg-latest-tag">Event</span>
-              <Link to="/news-and-updates/regional-workshops-july" className="slg-latest-title">Regional Training Workshops Series</Link>
-            </div>
-            <div className="slg-latest-news-item">
-              <span className="slg-latest-tag">Update</span>
-              <Link to="/news-and-updates/platform-upgrade-v2" className="slg-latest-title">Platform Upgrade v2.0 Details</Link>
-            </div>
+            {cms?.news?.filter(n => (n.slug || (n.title && n.title.toLowerCase().replace(/\s+/g, '-'))) !== slug).slice(0, 4).map((item) => (
+              <div key={item.id} className="slg-latest-news-item">
+                <span className="slg-latest-tag">{item.tag || 'News'}</span>
+                <Link to={`/news-and-updates/${item.slug || (item.title && item.title.toLowerCase().replace(/\s+/g, '-'))}`} className="slg-latest-title">
+                  {item.title}
+                </Link>
+              </div>
+            ))}
+            {(!cms?.news || cms.news.length <= 1) && (
+              <div className="slg-latest-news-item">
+                <span className="slg-latest-tag">News</span>
+                <Link to="/news-and-updates" className="slg-latest-title">Back to all updates</Link>
+              </div>
+            )}
           </div>
 
           <div className="slg-sidebar-section" style={{ background: 'var(--orange)', color: '#fff', border: 'none' }}>

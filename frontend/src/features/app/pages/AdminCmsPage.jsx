@@ -165,9 +165,27 @@ function CmsSection({ title, queryKey, fetchFn, createFn, updateFn, deleteFn, fi
   const qc = useQueryClient()
   const sectionRef = useRef(null)
   const { data: items = [], isLoading } = useQuery({ queryKey, queryFn: () => fetchFn(token), staleTime: 30_000 })
-  const createMut = useMutation({ mutationFn: (data) => createFn(token, data), onSuccess: () => qc.invalidateQueries({ queryKey }) })
-  const updateMut = useMutation({ mutationFn: (data) => updateFn(token, data.id, data), onSuccess: () => qc.invalidateQueries({ queryKey }) })
-  const deleteMut = useMutation({ mutationFn: (id) => deleteFn(token, id), onSuccess: () => qc.invalidateQueries({ queryKey }) })
+  const createMut = useMutation({ 
+    mutationFn: (data) => createFn(token, data), 
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey })
+      qc.invalidateQueries({ queryKey: queryKeys.homepage.all })
+    } 
+  })
+  const updateMut = useMutation({ 
+    mutationFn: (data) => updateFn(token, data.id, data), 
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey })
+      qc.invalidateQueries({ queryKey: queryKeys.homepage.all })
+    } 
+  })
+  const deleteMut = useMutation({ 
+    mutationFn: (id) => deleteFn(token, id), 
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey })
+      qc.invalidateQueries({ queryKey: queryKeys.homepage.all })
+    } 
+  })
   const [form, setForm] = useState({})
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState(null)
@@ -252,7 +270,10 @@ function CmsSection({ title, queryKey, fetchFn, createFn, updateFn, deleteFn, fi
             <div className="cms-form-grid">
               {fields.map((f) => (
                 <div key={f.key} className={f.type === 'textarea' || f.fullWidth ? 'cms-form-full' : ''} style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  <label style={s.label}>{f.label} {f.required && <span style={{ color: 'var(--slogbaa-error)' }}>*</span>}</label>
+                  <label style={s.label}>
+                    {typeof f.label === 'function' ? f.label(form) : f.label} 
+                    {f.required && <span style={{ color: 'var(--slogbaa-error)' }}>*</span>}
+                  </label>
 
                   {f.type === 'textarea' ? (
                     <>
@@ -550,6 +571,17 @@ export function AdminCmsPage() {
         Manage public homepage sections. Changes appear on the homepage immediately.
       </p>
 
+      <CmsSection title="Hero Banners" queryKey={queryKeys.admin.cms.banners()} fetchFn={api.getAdminBanners} createFn={api.createBanner} updateFn={api.updateBanner} deleteFn={api.deleteBanner} token={token} isSuperAdmin={isSuperAdmin}
+         fields={[
+           { key: 'eyebrow', label: 'Eyebrow Text', placeholder: 'e.g. Empowering Citizens' },
+           { key: 'title', label: 'Main Title', required: true, placeholder: 'e.g. Building Community' },
+           { key: 'highlight', label: 'Highlighted Word', placeholder: 'e.g. Leaders' },
+           { key: 'subtitle', label: 'Subtitle', type: 'textarea' },
+           { key: 'imageUrl', label: 'Background Image', type: 'file', subdir: 'banners' },
+           { key: 'sortOrder', label: 'Sort Order', type: 'number' },
+         ]}
+       />
+
        <CmsSection title="Public Library Resources" queryKey={queryKeys.admin.cms.libraryResources()} fetchFn={api.getAdminLibraryResources} createFn={api.createLibraryResource} updateFn={api.updateLibraryResource} deleteFn={api.deleteLibraryResource} token={token} isSuperAdmin={isSuperAdmin}
         fields={[
           { key: 'title', label: 'Title', required: true },
@@ -590,10 +622,10 @@ export function AdminCmsPage() {
       <CmsSection title="News & Updates" queryKey={queryKeys.admin.cms.news()} fetchFn={api.getAdminNews} createFn={api.createNewsItem} updateFn={api.updateNewsItem} deleteFn={api.deleteNewsItem} token={token} isSuperAdmin={isSuperAdmin}
         fields={[
           { key: 'title', label: 'Title', required: true },
-          { key: 'tag', label: 'Tag', placeholder: 'e.g. Courses, Events, Updates' },
-          { key: 'summary', label: 'Summary', type: 'textarea', required: true },
-          { key: 'image', label: 'Cover Image', type: 'file', subdir: 'library' },
-          { key: 'publishedDate', label: 'Published Date', type: 'date' },
+          { key: 'tag', label: 'Tag', type: 'select', options: ['News', 'Update', 'Event', 'Other'], required: true },
+          { key: 'summary', label: 'Summary', type: 'textarea', required: true, instructions: 'Use # for Category/Topic Headings (Stylized), ## for standard headings (h2), ### for subheadings (h3), > for blockquotes. Enter twice for new paragraphs.' },
+          { key: 'imageUrl', label: 'Cover Image', type: 'file', subdir: 'library' },
+          { key: 'publishedDate', label: (form) => form.tag === 'Event' ? 'Event Date' : 'Published Date', type: 'date' },
         ]}
       />
       <AdminNavigatePills />
