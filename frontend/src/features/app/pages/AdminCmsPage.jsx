@@ -165,26 +165,26 @@ function CmsSection({ title, queryKey, fetchFn, createFn, updateFn, deleteFn, fi
   const qc = useQueryClient()
   const sectionRef = useRef(null)
   const { data: items = [], isLoading } = useQuery({ queryKey, queryFn: () => fetchFn(token), staleTime: 30_000 })
-  const createMut = useMutation({ 
-    mutationFn: (data) => createFn(token, data), 
+  const createMut = useMutation({
+    mutationFn: (data) => createFn(token, data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey })
       qc.invalidateQueries({ queryKey: queryKeys.homepage.all })
-    } 
+    }
   })
-  const updateMut = useMutation({ 
-    mutationFn: (data) => updateFn(token, data.id, data), 
+  const updateMut = useMutation({
+    mutationFn: (data) => updateFn(token, data.id, data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey })
       qc.invalidateQueries({ queryKey: queryKeys.homepage.all })
-    } 
+    }
   })
-  const deleteMut = useMutation({ 
-    mutationFn: (id) => deleteFn(token, id), 
+  const deleteMut = useMutation({
+    mutationFn: (id) => deleteFn(token, id),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey })
       qc.invalidateQueries({ queryKey: queryKeys.homepage.all })
-    } 
+    }
   })
   const [form, setForm] = useState({})
   const [showForm, setShowForm] = useState(false)
@@ -271,7 +271,7 @@ function CmsSection({ title, queryKey, fetchFn, createFn, updateFn, deleteFn, fi
               {fields.map((f) => (
                 <div key={f.key} className={f.type === 'textarea' || f.fullWidth ? 'cms-form-full' : ''} style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                   <label style={s.label}>
-                    {typeof f.label === 'function' ? f.label(form) : f.label} 
+                    {typeof f.label === 'function' ? f.label(form) : f.label}
                     {f.required && <span style={{ color: 'var(--slogbaa-error)' }}>*</span>}
                   </label>
 
@@ -283,34 +283,34 @@ function CmsSection({ title, queryKey, fetchFn, createFn, updateFn, deleteFn, fi
                         onChange={(e) => setForm((p) => ({ ...p, [f.key]: e.target.value }))}
                         required={f.required}
                       />
-                      {f.instructions && 
+                      {f.instructions &&
                         <div style={s.hint}>{f.instructions}</div>}
                     </>
-                ) : f.type === 'select' ? (
-                  <select
-                    style={{ ...s.input, width: '100%', height: '42px' }}
-                    value={form[f.key] || ''}
-                    onChange={(e) => setForm((p) => ({ ...p, [f.key]: e.target.value }))}
-                    required={f.required}
-                  >
-                    <option value="">Select category...</option>
-                    {f.options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                  </select>
-                ) : f.type === 'searchable' ? (
-                  <>
-                    <input
+                  ) : f.type === 'select' ? (
+                    <select
                       style={{ ...s.input, width: '100%', height: '42px' }}
-                      list={`list-${f.key}`}
                       value={form[f.key] || ''}
                       onChange={(e) => setForm((p) => ({ ...p, [f.key]: e.target.value }))}
                       required={f.required}
-                      placeholder={f.placeholder || 'Search or select...'}
-                    />
-                    <datalist id={`list-${f.key}`}>
-                      {f.options.map(opt => <option key={opt} value={opt} />)}
-                    </datalist>
-                  </>
-                ) : f.type === 'file' ? (
+                    >
+                      <option value="">Select category...</option>
+                      {f.options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                    </select>
+                  ) : f.type === 'searchable' ? (
+                    <>
+                      <input
+                        style={{ ...s.input, width: '100%', height: '42px' }}
+                        list={`list-${f.key}`}
+                        value={form[f.key] || ''}
+                        onChange={(e) => setForm((p) => ({ ...p, [f.key]: e.target.value }))}
+                        required={f.required}
+                        placeholder={f.placeholder || 'Search or select...'}
+                      />
+                      <datalist id={`list-${f.key}`}>
+                        {f.options.map(opt => <option key={opt} value={opt} />)}
+                      </datalist>
+                    </>
+                  ) : f.type === 'file' ? (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                       <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.25rem' }}>
                         <button
@@ -572,17 +572,17 @@ export function AdminCmsPage() {
       </p>
 
       <CmsSection title="Hero Banners" queryKey={queryKeys.admin.cms.banners()} fetchFn={api.getAdminBanners} createFn={api.createBanner} updateFn={api.updateBanner} deleteFn={api.deleteBanner} token={token} isSuperAdmin={isSuperAdmin}
-         fields={[
-           { key: 'eyebrow', label: 'Eyebrow Text', placeholder: 'e.g. Empowering Citizens' },
-           { key: 'title', label: 'Main Title', required: true, placeholder: 'e.g. Building Community' },
-           { key: 'highlight', label: 'Highlighted Word', placeholder: 'e.g. Leaders' },
-           { key: 'subtitle', label: 'Subtitle', type: 'textarea' },
-           { key: 'imageUrl', label: 'Background Image', type: 'file', subdir: 'banners' },
-           { key: 'sortOrder', label: 'Sort Order', type: 'number' },
-         ]}
-       />
+        fields={[
+          { key: 'eyebrow', label: 'Eyebrow Text', placeholder: 'e.g. Empowering Citizens' },
+          { key: 'title', label: 'Main Title', required: true, placeholder: 'e.g. Building Community' },
+          { key: 'highlight', label: 'Highlighted Word', placeholder: 'e.g. Leaders' },
+          { key: 'subtitle', label: 'Subtitle', type: 'textarea' },
+          { key: 'imageUrl', label: 'Background Image', type: 'file', subdir: 'banners' },
+          { key: 'sortOrder', label: 'Sort Order', type: 'number' },
+        ]}
+      />
 
-       <CmsSection title="Public Library Resources" queryKey={queryKeys.admin.cms.libraryResources()} fetchFn={api.getAdminLibraryResources} createFn={api.createLibraryResource} updateFn={api.updateLibraryResource} deleteFn={api.deleteLibraryResource} token={token} isSuperAdmin={isSuperAdmin}
+      <CmsSection title="Public Library Resources" queryKey={queryKeys.admin.cms.libraryResources()} fetchFn={api.getAdminLibraryResources} createFn={api.createLibraryResource} updateFn={api.updateLibraryResource} deleteFn={api.deleteLibraryResource} token={token} isSuperAdmin={isSuperAdmin}
         fields={[
           { key: 'title', label: 'Title', required: true },
           { key: 'category', label: 'Category', type: 'select', options: ['GENERAL', 'MANUAL', 'REPORT', 'POLICY'], required: true },
@@ -598,7 +598,14 @@ export function AdminCmsPage() {
           { key: 'authorName', label: 'Author Name', required: true },
           { key: 'authorRole', label: 'Author Role in Community' },
           { key: 'location', label: 'Location (District in Uganda)', required: true, type: 'searchable', options: UG_DISTRICTS, placeholder: 'Search for a district...' },
-          { key: 'storyText', label: 'Story Content', type: 'textarea', required: true, fullWidth: true, instructions: 'Use # for Category/Topic Headings (Stylized), ## for standard headings (h2), ### for subheadings (h3), > for blockquotes. Enter twice for new paragraphs.' },
+          { 
+            key: 'storyText', 
+            label: 'Story Editorial Content', 
+            type: 'textarea', 
+            required: true, 
+            fullWidth: true, 
+            instructions: 'Use ## for headings, > for pull-quotes (e.g. > Quote / Author), and double-enter for paragraphs.' 
+          },
           { key: 'imageUrl', label: 'Story Image', type: 'file', subdir: 'stories' },
           { key: 'coursesCompleted', label: 'Courses Completed (Optional)' },
           { key: 'projectImpact', label: 'Project Impact (Optional)', type: 'textarea' },
@@ -619,11 +626,33 @@ export function AdminCmsPage() {
           { key: 'websiteUrl', label: 'Website URL', placeholder: 'https://...' },
         ]}
       />
+      <CmsSection title="In-Person Training" queryKey={queryKeys.admin.cms.trainings()} fetchFn={api.getAdminTrainings} createFn={api.createTraining} updateFn={api.updateTraining} deleteFn={api.deleteTraining} token={token} isSuperAdmin={isSuperAdmin}
+        fields={[
+          { key: 'title', label: 'Workshop Title', required: true, fullWidth: true },
+          { key: 'tag', label: 'Tag', type: 'select', options: ['Workshop', 'Meeting', 'Bootcamp', 'Training', 'Recap', 'Other'] },
+          { key: 'eventDate', label: 'Event Date & Time', type: 'datetime-local', required: true },
+          { key: 'imageUrl', label: 'Main Image', type: 'file', subdir: 'trainings' },
+          { 
+            key: 'summary', 
+            label: 'Workshop Editorial Content', 
+            type: 'textarea', 
+            fullWidth: true, 
+            instructions: 'EDITORIAL TIPS: \n• Use ## for big headings (Section Titles)\n• Use > for pull-quotes (e.g. > Quote text / Author Name)\n• Use double-enter to create new paragraphs.\n• The first paragraph will automatically get a stylized drop-cap.'
+          },
+          { key: 'sortOrder', label: 'Sort Order', type: 'number' },
+        ]}
+      />
       <CmsSection title="News & Updates" queryKey={queryKeys.admin.cms.news()} fetchFn={api.getAdminNews} createFn={api.createNewsItem} updateFn={api.updateNewsItem} deleteFn={api.deleteNewsItem} token={token} isSuperAdmin={isSuperAdmin}
         fields={[
           { key: 'title', label: 'Title', required: true },
           { key: 'tag', label: 'Tag', type: 'select', options: ['News', 'Update', 'Event', 'Other'], required: true },
-          { key: 'summary', label: 'Summary', type: 'textarea', required: true, instructions: 'Use # for Category/Topic Headings (Stylized), ## for standard headings (h2), ### for subheadings (h3), > for blockquotes. Enter twice for new paragraphs.' },
+          { 
+            key: 'summary', 
+            label: 'Editorial Content', 
+            type: 'textarea', 
+            required: true, 
+            instructions: 'Use ## for headings, > for quotes (format: > Text / Author), and double-enter for paragraphs.' 
+          },
           { key: 'imageUrl', label: 'Cover Image', type: 'file', subdir: 'library' },
           { key: 'publishedDate', label: (form) => form.tag === 'Event' ? 'Event Date' : 'Published Date', type: 'date' },
         ]}

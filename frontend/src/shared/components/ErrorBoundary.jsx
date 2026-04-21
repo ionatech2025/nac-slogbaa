@@ -38,7 +38,17 @@ export class ErrorBoundary extends Component {
       try {
         if (!localStorage.getItem('slogbaa_auth')) {
           const path = window.location.pathname
-          if (path !== '/auth/login' && path !== '/auth/register' && path !== '/') {
+          if (
+            path !== '/auth/login' && 
+            path !== '/auth/register' && 
+            path !== '/' &&
+            !path.startsWith('/news-and-updates') &&
+            !path.startsWith('/inperson-training') &&
+            !path.startsWith('/stories') &&
+            !path.startsWith('/public-library') &&
+            !path.startsWith('/videos') &&
+            !path.startsWith('/inquiries')
+          ) {
             window.location.replace('/auth/login')
             return null
           }

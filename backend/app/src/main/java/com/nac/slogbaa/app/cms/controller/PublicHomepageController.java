@@ -21,18 +21,20 @@ public class PublicHomepageController {
     private final VideoRepository videoRepo;
     private final PartnerRepository partnerRepo;
     private final NewsRepository newsRepo;
+    private final InPersonTrainingRepository inPersonTrainingRepo;
     private final SiteVisitRepository visitRepo;
     private final PublicLibraryResourceRepository libraryRepo;
 
     public PublicHomepageController(BannerRepository bannerRepo, StoryRepository storyRepo,
                                    VideoRepository videoRepo, PartnerRepository partnerRepo,
-                                   NewsRepository newsRepo, SiteVisitRepository visitRepo,
-                                   PublicLibraryResourceRepository libraryRepo) {
+                                   NewsRepository newsRepo, InPersonTrainingRepository inPersonTrainingRepo,
+                                   SiteVisitRepository visitRepo, PublicLibraryResourceRepository libraryRepo) {
         this.bannerRepo = bannerRepo;
         this.storyRepo = storyRepo;
         this.videoRepo = videoRepo;
         this.partnerRepo = partnerRepo;
         this.newsRepo = newsRepo;
+        this.inPersonTrainingRepo = inPersonTrainingRepo;
         this.visitRepo = visitRepo;
         this.libraryRepo = libraryRepo;
     }
@@ -45,6 +47,7 @@ public class PublicHomepageController {
             "videos", videoRepo.findByActiveTrueOrderBySortOrderAsc(),
             "partners", partnerRepo.findByActiveTrueOrderBySortOrderAsc(),
             "news", newsRepo.findByActiveTrueOrderBySortOrderAsc(),
+            "trainings", inPersonTrainingRepo.findByActiveTrueOrderByEventDateDesc(),
             "library", libraryRepo.findByActiveTrueOrderBySortOrderAsc()
         ));
     }

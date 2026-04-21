@@ -27,11 +27,13 @@ public class AdminHomepageCmsController {
     private final NewsRepository newsRepo;
     private final SiteVisitRepository visitRepo;
     private final PublicLibraryResourceRepository publicLibraryRepo;
+    private final InPersonTrainingRepository inPersonTrainingRepo;
 
     public AdminHomepageCmsController(BannerRepository bannerRepo, StoryRepository storyRepo,
                                       VideoRepository videoRepo, PartnerRepository partnerRepo,
                                       NewsRepository newsRepo, SiteVisitRepository visitRepo,
-                                      PublicLibraryResourceRepository publicLibraryRepo) {
+                                      PublicLibraryResourceRepository publicLibraryRepo,
+                                      InPersonTrainingRepository inPersonTrainingRepo) {
         this.bannerRepo = bannerRepo;
         this.storyRepo = storyRepo;
         this.videoRepo = videoRepo;
@@ -39,6 +41,7 @@ public class AdminHomepageCmsController {
         this.newsRepo = newsRepo;
         this.visitRepo = visitRepo;
         this.publicLibraryRepo = publicLibraryRepo;
+        this.inPersonTrainingRepo = inPersonTrainingRepo;
     }
 
     // ── Visitor count ──
@@ -248,6 +251,40 @@ public class AdminHomepageCmsController {
     public ResponseEntity<Void> deleteResource(@PathVariable UUID id) {
         if (!publicLibraryRepo.existsById(id)) return ResponseEntity.notFound().build();
         publicLibraryRepo.deleteById(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    // ── In-Person Training ──
+    @GetMapping("/trainings")
+    @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN')")
+    public List<InPersonTraining> listTrainings() { return inPersonTrainingRepo.findAll(); }
+
+    @PostMapping("/trainings")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    public ResponseEntity<InPersonTraining> createTraining(@Valid @RequestBody InPersonTraining t) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(inPersonTrainingRepo.save(t));
+    }
+
+    @PutMapping("/trainings/{id}")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    public ResponseEntity<InPersonTraining> updateTraining(@PathVariable UUID id, @Valid @RequestBody InPersonTraining t) {
+        return inPersonTrainingRepo.findById(id).map(existing -> {
+            existing.setTitle(t.getTitle());
+            existing.setTag(t.getTag());
+            existing.setEventDate(t.getEventDate());
+            existing.setImageUrl(t.getImageUrl());
+            existing.setSummary(t.getSummary());
+            existing.setSortOrder(t.getSortOrder());
+            existing.setActive(t.isActive());
+            return ResponseEntity.ok(inPersonTrainingRepo.save(existing));
+        }).orElse(ResponseEntity.notFound().build());
+    }
+
+    @DeleteMapping("/trainings/{id}")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    public ResponseEntity<Void> deleteTraining(@PathVariable UUID id) {
+        if (!inPersonTrainingRepo.existsById(id)) return ResponseEntity.notFound().build();
+        inPersonTrainingRepo.deleteById(id);
         return ResponseEntity.noContent().build();
     }
 }

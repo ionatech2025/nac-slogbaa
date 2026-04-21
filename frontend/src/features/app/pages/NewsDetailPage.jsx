@@ -147,36 +147,54 @@ export function NewsDetailPage() {
 
   const renderContent = (text) => {
     if (!text) return null
-    // Support either blocks (legacy) or raw text with markdown (CMS)
     if (Array.isArray(text)) {
-      return text.map((block, i) => {
-        if (block.type === 'p') return <p key={i} className="slg-article-p">{block.value}</p>
-        if (block.type === 'h2') return <h2 key={i} className="slg-article-h2 slg-serif">{block.value}</h2>
-        if (block.type === 'quote') return (
-          <blockquote key={i} className="slg-pullquote">
-            <p className="slg-quote-text">{block.text}</p>
-            <cite className="slg-quote-cite">/ {block.author}</cite>
+      return text.map((item, idx) => {
+        if (item.type === 'h2') return <h2 key={idx} className="slg-article-h2 slg-serif">{item.value}</h2>
+        if (item.type === 'p') return <p key={idx} className="slg-article-p">{item.value}</p>
+        if (item.type === 'quote') return (
+          <blockquote key={idx} className="slg-pullquote">
+            <p className="slg-quote-text">{item.text}</p>
+            <cite className="slg-quote-cite">/ {item.author}</cite>
           </blockquote>
         )
         return null
       })
     }
+    if (typeof text !== 'string') return null
 
-    // Split raw text by double newlines for paragraphs/blocks
-    const blocks = text.split(/\n\s*\n/)
+    // Flexible parsing: split by markdown markers anywhere
+    const blocks = text.split(/(?=[#]{1,3}\s|[>]\s)/)
+
     return blocks.map((block, i) => {
       const b = block.trim()
-      if (b.startsWith('# ')) return <h2 key={i} className="slg-article-h2 slg-serif" style={{ color: 'var(--orange)', borderColor: 'var(--orange)' }}>{b.replace('# ', '')}</h2>
-      if (b.startsWith('## ')) return <h2 key={i} className="slg-article-h2 slg-serif">{b.replace('## ', '')}</h2>
-      if (b.startsWith('### ')) return <h3 key={i} style={{ fontSize: '1.25rem', fontWeight: 600, margin: '2rem 0 1rem', color: 'var(--text)' }}>{b.replace('### ', '')}</h3>
+      if (!b) return null
+
+      if (b.startsWith('# ')) {
+        return <h2 key={i} className="slg-article-h2 slg-serif" style={{ color: 'var(--orange)', borderColor: 'var(--orange)' }}>{b.replace('# ', '')}</h2>
+      }
+      if (b.startsWith('## ')) {
+        return <h2 key={i} className="slg-article-h2 slg-serif">{b.replace('## ', '')}</h2>
+      }
+      if (b.startsWith('### ')) {
+        return <h3 key={i} style={{ fontSize: '1.25rem', fontWeight: 600, margin: '2.5rem 0 1rem', color: 'var(--text)' }}>{b.replace('### ', '')}</h3>
+      }
       if (b.startsWith('> ')) {
+        const parts = b.replace('> ', '').split(' / ')
         return (
           <blockquote key={i} className="slg-pullquote">
-            <p className="slg-quote-text">{b.replace('> ', '')}</p>
+            <p className="slg-quote-text">{parts[0]}</p>
+            {parts[1] && <cite className="slg-quote-cite">/ {parts[1]}</cite>}
           </blockquote>
         )
       }
-      return <p key={i} className="slg-article-p">{block}</p>
+
+      // First paragraph gets a drop-cap if it's long enough
+      const isFirst = i === 0 || (i === 1 && !blocks[0].trim())
+      return (
+        <p key={i} className={`slg-article-p ${isFirst ? 'slg-dropcap' : ''}`}>
+          {b}
+        </p>
+      )
     })
   }
 

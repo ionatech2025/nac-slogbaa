@@ -1166,6 +1166,7 @@ export function HomePage() {
   const stories = cms?.stories?.length ? cms.stories : IMPACT_STORIES
   const newsItems = cms?.news?.length ? cms.news : NEWS_ITEMS
   const partners = cms?.partners?.length ? cms.partners : PARTNER_LOGOS
+  const trainingItems = cms?.trainings?.length ? cms.trainings : IN_PERSON_TRAININGS
   const cmsVideos = cms?.videos?.length ? cms.videos : null
 
   return (
@@ -1409,24 +1410,27 @@ export function HomePage() {
             </div>
 
             <div className="slg-training-grid">
-              {IN_PERSON_TRAININGS.map(training => (
-                <div key={training.id} className="slg-training-card">
-                  <div className="slg-training-img-wrap">
-                    <img src={training.image} alt={training.title} loading="lazy" />
-                  </div>
-                  <div className="slg-training-content">
-                    <h3 className="slg-training-title">
-                      <Link to={`/inperson-training/${training.slug}`}>{training.title}</Link>
-                    </h3>
-                    <p className="slg-training-date">{training.date}</p>
-                    <div style={{ marginTop: 'auto', paddingTop: '0.5rem' }}>
-                      <Link to={`/inperson-training/${training.slug}`} className="slg-link-more">
-                        Read More <Icon icon={icons.arrowRight} size={14} />
-                      </Link>
+              {trainingItems.slice(0, 3).map(training => {
+                const slug = training.slug || (training.title && training.title.toLowerCase().replace(/\s+/g, '-'))
+                return (
+                  <div key={training.id} className="slg-training-card">
+                    <div className="slg-training-img-wrap">
+                      <img src={training.imageUrl || training.image || 'https://images.unsplash.com/photo-1515187029135-18ee286d815b?q=80&w=800&auto=format&fit=crop'} alt={training.title} loading="lazy" />
+                    </div>
+                    <div className="slg-training-content">
+                      <h3 className="slg-training-title">
+                        <Link to={`/inperson-training/${slug}`}>{training.title}</Link>
+                      </h3>
+                      <p className="slg-training-date">{training.date || new Date(training.eventDate).toLocaleDateString()}</p>
+                      <div style={{ marginTop: 'auto', paddingTop: '0.5rem' }}>
+                        <Link to={`/inperson-training/${slug}`} className="slg-link-more">
+                          See Details <Icon icon={icons.arrowRight} size={14} />
+                        </Link>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           </div>
         </section>
