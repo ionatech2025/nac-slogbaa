@@ -16,6 +16,7 @@ public class HomepageNews {
     private String title;
     private String summary;
     private String tag;
+    @Column(name = "image_url") private String imageUrl;
     @Column(name = "published_date") private LocalDate publishedDate;
     @Column(name = "sort_order") private int sortOrder;
     private boolean active = true;
@@ -36,6 +37,8 @@ public class HomepageNews {
     public void setTag(String t) { this.tag = t; }
     public LocalDate getPublishedDate() { return publishedDate; }
     public void setPublishedDate(LocalDate d) { this.publishedDate = d; }
+    public String getImageUrl() { return imageUrl; }
+    public void setImageUrl(String u) { this.imageUrl = u; }
     public int getSortOrder() { return sortOrder; }
     public void setSortOrder(int o) { this.sortOrder = o; }
     public boolean isActive() { return active; }

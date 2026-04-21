@@ -13,6 +13,8 @@ public class HomepageBanner {
     private UUID id;
     @NotBlank(message = "Title is required")
     private String title;
+    private String eyebrow;
+    private String highlight;
     private String subtitle;
     @Column(name = "image_url") private String imageUrl;
     @Column(name = "sort_order") private int sortOrder;
@@ -28,6 +30,10 @@ public class HomepageBanner {
     public UUID getId() { return id; }
     public String getTitle() { return title; }
     public void setTitle(String t) { this.title = t; }
+    public String getEyebrow() { return eyebrow; }
+    public void setEyebrow(String e) { this.eyebrow = e; }
+    public String getHighlight() { return highlight; }
+    public void setHighlight(String h) { this.highlight = h; }
     public String getSubtitle() { return subtitle; }
     public void setSubtitle(String s) { this.subtitle = s; }
     public String getImageUrl() { return imageUrl; }

@@ -63,7 +63,9 @@ public class AdminHomepageCmsController {
     @PreAuthorize("hasRole('SUPER_ADMIN')")
     public ResponseEntity<HomepageBanner> updateBanner(@PathVariable UUID id, @Valid @RequestBody HomepageBanner b) {
         return bannerRepo.findById(id).map(existing -> {
+            existing.setEyebrow(b.getEyebrow());
             existing.setTitle(b.getTitle());
+            existing.setHighlight(b.getHighlight());
             existing.setSubtitle(b.getSubtitle());
             existing.setImageUrl(b.getImageUrl());
             existing.setSortOrder(b.getSortOrder());
@@ -199,6 +201,7 @@ public class AdminHomepageCmsController {
             existing.setTitle(n.getTitle());
             existing.setSummary(n.getSummary());
             existing.setTag(n.getTag());
+            existing.setImageUrl(n.getImageUrl());
             existing.setPublishedDate(n.getPublishedDate());
             existing.setSortOrder(n.getSortOrder());
             existing.setActive(n.isActive());
