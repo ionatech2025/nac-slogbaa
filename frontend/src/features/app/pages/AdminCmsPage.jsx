@@ -540,12 +540,12 @@ function CmsSection({ title, queryKey, fetchFn, createFn, updateFn, deleteFn, fi
 
 export function AdminCmsPage() {
   const { token, isSuperAdmin } = useOutletContext()
-  useDocumentTitle('Homepage CMS')
+  useDocumentTitle('CMS')
 
   return (
     <>
-      <Breadcrumbs items={[{ label: 'Admin', to: '/admin' }, { label: 'Homepage CMS' }]} />
-      <h2 style={s.title}>Homepage Content Management</h2>
+      <Breadcrumbs items={[{ label: 'Admin', to: '/admin' }, { label: 'CMS' }]} />
+      <h2 style={s.title}>Content Management</h2>
       <p style={{ margin: '0 0 1.5rem', color: 'var(--slogbaa-text-muted)', fontSize: '0.9375rem' }}>
         Manage public homepage sections. Changes appear on the homepage immediately.
       </p>

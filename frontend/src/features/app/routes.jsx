@@ -7,6 +7,7 @@ import { NotFoundPage } from '../../shared/components/NotFoundPage.jsx'
 import { HomePage } from './pages/HomePage.jsx'
 import { RequireTrainee } from './components/RequireTrainee.jsx'
 import { RequireAdmin } from './components/RequireAdmin.jsx'
+import { RequireSuperAdmin } from './components/RequireSuperAdmin.jsx'
 import { TraineeLayout } from './layouts/TraineeLayout.jsx'
 
 // Lazy: IAM pages
@@ -33,7 +34,6 @@ const AdminModuleEditorPage = lazy(() => import('./pages/AdminModuleEditorPage.j
 const AdminLibraryPage = lazy(() => import('./pages/AdminLibraryPage.jsx').then((m) => ({ default: m.AdminLibraryPage })))
 const AdminCourseManagementPage = lazy(() => import('./pages/AdminCourseManagementPage.jsx').then((m) => ({ default: m.AdminCourseManagementPage })))
 const AdminUserDetailPage = lazy(() => import('./pages/AdminUserDetailPage.jsx').then((m) => ({ default: m.AdminUserDetailPage })))
-const AdminHomePage = lazy(() => import('./pages/AdminHomePage.jsx').then((m) => ({ default: m.AdminHomePage })))
 const AdminReportsAnalyticsPage = lazy(() =>
   import('./pages/AdminReportsAnalyticsPage.jsx').then((m) => ({ default: m.AdminReportsAnalyticsPage })))
 const AdminCmsPage = lazy(() => import('./pages/AdminCmsPage.jsx').then((m) => ({ default: m.AdminCmsPage })))
@@ -92,14 +92,16 @@ export function AppRoutes() {
           <Route index element={<Navigate to="overview" replace />} />
           <Route path="overview" element={<Lazy><AdminOverviewPage /></Lazy>} />
           <Route path="users/:userType/:userId" element={<Lazy><AdminUserDetailPage /></Lazy>} />
-          <Route path="homepage" element={<Lazy><AdminHomePage /></Lazy>} />
+          <Route path="homepage" element={<Navigate to="/admin/cms" replace />} />
           <Route path="learning" element={<Lazy><AdminLearningPage /></Lazy>} />
           <Route path="learning/:courseId" element={<Lazy><AdminCoursePage /></Lazy>} />
           <Route path="coursemanagement" element={<Lazy><AdminCourseManagementPage /></Lazy>} />
           <Route path="learning/:courseId/modules/:moduleId" element={<Lazy><AdminModuleEditorPage /></Lazy>} />
           <Route path="library" element={<Lazy><AdminLibraryPage /></Lazy>} />
           <Route path="assessment" element={<Lazy><AdminAssessmentPage /></Lazy>} />
-          <Route path="cms" element={<Lazy><AdminCmsPage /></Lazy>} />
+          <Route element={<RequireSuperAdmin />}>
+            <Route path="cms" element={<Lazy><AdminCmsPage /></Lazy>} />
+          </Route>
           <Route path="live-sessions" element={<Lazy><AdminLiveSessionsPage /></Lazy>} />
           <Route path="reports" element={<Lazy><AdminReportsAnalyticsPage /></Lazy>} />
         </Route>
