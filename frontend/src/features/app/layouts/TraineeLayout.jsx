@@ -131,17 +131,23 @@ export function TraineeLayout() {
   }
 
   const identityHeaderStyle = {
-    background: 'var(--identity-header-blue, #0072BB)',
-    borderBottom: '3px solid var(--primary-orange, #F58220)',
-    padding: '1.25rem 2rem',
+    background: 'var(--slogbaa-glass-bg)',
+    backdropFilter: 'var(--slogbaa-glass-blur)',
+    borderBottom: '1px solid var(--slogbaa-border)',
+    padding: '1.75rem 2.5rem',
     flexShrink: 0,
+    display: 'flex',
+    flexDirection: 'column',
   }
 
   const greetingStyle = {
     margin: 0,
-    fontSize: '1.35rem',
-    fontWeight: 700,
-    color: '#FFFFFF',
+    fontSize: '1.75rem',
+    fontWeight: 800,
+    color: 'var(--slogbaa-text)',
+    letterSpacing: '-0.025em',
+    paddingLeft: '1rem',
+    borderLeft: '4px solid var(--primary-orange, #F58220)',
   }
 
   const scrollInnerStyle = {
@@ -175,10 +181,10 @@ export function TraineeLayout() {
     marginBottom: '1rem',
     padding: '0.625rem 1rem',
     minHeight: 44,
-    border: '1px solid rgba(255,255,255,0.4)',
+    border: '1px solid var(--slogbaa-border)',
     borderRadius: 10,
-    background: 'rgba(255,255,255,0.15)',
-    color: '#FFFFFF',
+    background: 'var(--slogbaa-surface)',
+    color: 'var(--slogbaa-text)',
     fontSize: '0.9375rem',
     fontWeight: 500,
     cursor: 'pointer',

@@ -239,7 +239,7 @@ const GLOBAL_CSS = `
     --text-2: #52525b;
     --text-3: #71717a;
     --nav-bg: #ffffff;
-    --hero-overlay: linear-gradient(90deg, #ffffff 0%, rgba(255,255,255,0.95) 35%, rgba(255,255,255,0.4) 65%, transparent 100%);
+    --hero-overlay: linear-gradient(90deg, #f9fafb 0%, rgba(249, 250, 251, 0.98) 35%, rgba(249, 250, 251, 0.4) 65%, transparent 100%);
     --stats-bg: rgba(255,255,255,0.6);
   }
 
@@ -351,6 +351,13 @@ const GLOBAL_CSS = `
     background-position: 80% center; 
     background-repeat: no-repeat;
     z-index: 0;
+  }
+  .slg-page.light-theme .slg-background-image::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.03);
+    z-index: 1;
   }
   /* Protecive overlay for text legibility */
   .slg-hero-overlay {
