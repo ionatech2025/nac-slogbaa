@@ -852,7 +852,10 @@ function HeroSection({ banners }) {
   const [current, setCurrent] = useState(0)
   const [paused, setPaused] = useState(false)
   
-  const slides = (banners && banners.length > 0) ? banners : HERO_SLIDES
+  const slides = HERO_SLIDES.map((slide, i) => {
+    const cmsBanner = banners && banners[i]
+    return cmsBanner ? { ...slide, ...cmsBanner } : slide
+  })
   const total = slides.length
 
   const next = useCallback(() => setCurrent((c) => (c + 1) % total), [total])
@@ -864,7 +867,7 @@ function HeroSection({ banners }) {
     return () => clearInterval(id)
   }, [paused, next])
 
-  const slide = slides[current]
+  const slide = slides[current] || slides[0] || {}
 
   // Dynamic stats
   const dynamicStats = [
@@ -891,18 +894,24 @@ function HeroSection({ banners }) {
       <div className="slg-hero-grid" />
 
       <div className="slg-hero-content">
-        <div className="slg-hero-eyebrow" key={`eyebrow-${current}`}>
-          {slide.eyebrow}
-        </div>
+        {slide.eyebrow && (
+          <div className="slg-hero-eyebrow" key={`eyebrow-${current}`}>
+            {slide.eyebrow}
+          </div>
+        )}
 
-        <h1 className="slg-hero-title slg-serif" key={`title-${current}`}>
-          {slide.title}{' '}
-          <em>{slide.highlight}</em>
-        </h1>
+        {slide.title && (
+          <h1 className="slg-hero-title slg-serif" key={`title-${current}`}>
+            {slide.title}{' '}
+            {slide.highlight && <em>{slide.highlight}</em>}
+          </h1>
+        )}
 
-        <h2 className="slg-hero-sub" key={`sub-${current}`} style={{ fontSize: '1.25rem', fontWeight: 400, opacity: 0.9 }}>
-          {slide.subtitle}
-        </h2>
+        {slide.subtitle && (
+          <h2 className="slg-hero-sub" key={`sub-${current}`} style={{ fontSize: '1.25rem', fontWeight: 400, opacity: 0.9 }}>
+            {slide.subtitle}
+          </h2>
+        )}
 
         <div className="slg-hero-actions">
           <Link to="/auth/register" className="slg-btn-hero-primary">

@@ -258,7 +258,16 @@ function CmsSection({ title, queryKey, fetchFn, createFn, updateFn, deleteFn, fi
           {title} <span style={{ opacity: 0.5, fontWeight: 400, marginLeft: '0.5rem' }}>— {items.length} total</span>
         </h3>
         {isSuperAdmin && (
-          <button type="button" style={{ ...s.btn, ...s.btnPrimary, background: showForm ? 'var(--slogbaa-error)' : 'var(--slogbaa-blue)' }} onClick={showForm ? cancelForm : () => { setShowForm(true); sectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }) }}>
+          <button 
+            type="button" 
+            style={{ 
+              ...s.btn, 
+              ...s.btnPrimary, 
+              background: showForm ? 'var(--slogbaa-error)' : 'var(--slogbaa-blue)',
+              display: (!showForm && title === 'Hero Banners' && items.length >= 3) ? 'none' : 'inline-flex'
+            }} 
+            onClick={showForm ? cancelForm : () => { setShowForm(true); sectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }) }}
+          >
             <Icon icon={showForm ? icons.close : icons.plus} size={16} /> {showForm ? 'Cancel' : 'Add New'}
           </button>
         )}
@@ -573,11 +582,7 @@ export function AdminCmsPage() {
 
       <CmsSection title="Hero Banners" queryKey={queryKeys.admin.cms.banners()} fetchFn={api.getAdminBanners} createFn={api.createBanner} updateFn={api.updateBanner} deleteFn={api.deleteBanner} token={token} isSuperAdmin={isSuperAdmin}
         fields={[
-          { key: 'eyebrow', label: 'Eyebrow Text', placeholder: 'e.g. Empowering Citizens' },
-          { key: 'title', label: 'Main Title', required: true, placeholder: 'e.g. Building Community' },
-          { key: 'highlight', label: 'Highlighted Word', placeholder: 'e.g. Leaders' },
-          { key: 'subtitle', label: 'Subtitle', type: 'textarea' },
-          { key: 'imageUrl', label: 'Background Image', type: 'file', subdir: 'banners' },
+          { key: 'imageUrl', label: 'Background Image', type: 'file', subdir: 'banners', required: true },
           { key: 'sortOrder', label: 'Sort Order', type: 'number' },
         ]}
       />

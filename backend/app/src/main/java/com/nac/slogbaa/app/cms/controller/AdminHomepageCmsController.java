@@ -58,7 +58,10 @@ public class AdminHomepageCmsController {
 
     @PostMapping("/banners")
     @PreAuthorize("hasRole('SUPER_ADMIN')")
-    public ResponseEntity<HomepageBanner> createBanner(@Valid @RequestBody HomepageBanner b) {
+    public ResponseEntity<?> createBanner(@Valid @RequestBody HomepageBanner b) {
+        if (bannerRepo.count() >= 3) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "Maximum of 3 banners allowed"));
+        }
         return ResponseEntity.status(HttpStatus.CREATED).body(bannerRepo.save(b));
     }
 
@@ -66,10 +69,6 @@ public class AdminHomepageCmsController {
     @PreAuthorize("hasRole('SUPER_ADMIN')")
     public ResponseEntity<HomepageBanner> updateBanner(@PathVariable UUID id, @Valid @RequestBody HomepageBanner b) {
         return bannerRepo.findById(id).map(existing -> {
-            existing.setEyebrow(b.getEyebrow());
-            existing.setTitle(b.getTitle());
-            existing.setHighlight(b.getHighlight());
-            existing.setSubtitle(b.getSubtitle());
             existing.setImageUrl(b.getImageUrl());
             existing.setSortOrder(b.getSortOrder());
             existing.setActive(b.isActive());
