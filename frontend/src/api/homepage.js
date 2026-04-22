@@ -127,3 +127,54 @@ export async function deleteNewsItem(token, id) {
   assertToken(token)
   return parseResponse(await apiClient(token).delete(`/api/v1/admin/homepage/news/${id}`))
 }
+
+export async function getAdminLibraryResources(token) {
+  assertToken(token)
+  return parseListResponse(await apiClient(token).get('/api/v1/admin/homepage/library-resources'))
+}
+export async function createLibraryResource(token, data) {
+  assertToken(token)
+  return parseResponse(await apiClient(token).post('/api/v1/admin/homepage/library-resources', data))
+}
+export async function updateLibraryResource(token, id, data) {
+  assertToken(token)
+  return parseResponse(await apiClient(token).put(`/api/v1/admin/homepage/library-resources/${id}`, data))
+}
+export async function deleteLibraryResource(token, id) {
+  assertToken(token)
+  return parseResponse(await apiClient(token).delete(`/api/v1/admin/homepage/library-resources/${id}`))
+}
+
+export async function getAdminTrainings(token) {
+  assertToken(token)
+  return parseListResponse(await apiClient(token).get('/api/v1/admin/homepage/trainings'))
+}
+export async function createTraining(token, data) {
+  assertToken(token)
+  return parseResponse(await apiClient(token).post('/api/v1/admin/homepage/trainings', data))
+}
+export async function updateTraining(token, id, data) {
+  assertToken(token)
+  return parseResponse(await apiClient(token).put(`/api/v1/admin/homepage/trainings/${id}`, data))
+}
+export async function deleteTraining(token, id) {
+  assertToken(token)
+  return parseResponse(await apiClient(token).delete(`/api/v1/admin/homepage/trainings/${id}`))
+}
+
+/** Admin: upload any file */
+export async function uploadFile(token, file, subdir = 'library') {
+  assertToken(token)
+  const formData = new FormData()
+  formData.append('file', file)
+  formData.append('subdir', subdir)
+  
+  const res = await fetch('/api/files/upload', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`
+    },
+    body: formData
+  })
+  return parseResponse(res)
+}

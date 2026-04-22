@@ -138,6 +138,8 @@ export const queryKeys = {
       partners: () => [...queryKeys.admin.all, 'cms', 'partners'],
       news: () => [...queryKeys.admin.all, 'cms', 'news'],
       visitors: () => [...queryKeys.admin.all, 'cms', 'visitors'],
+      libraryResources: () => [...queryKeys.admin.all, 'cms', 'library-resources'],
+      trainings: () => [...queryKeys.admin.all, 'cms', 'trainings'],
     },
 
     // Admin live sessions

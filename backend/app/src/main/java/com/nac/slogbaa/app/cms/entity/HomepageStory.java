@@ -14,11 +14,17 @@ public class HomepageStory {
     @NotBlank(message = "Author name is required")
     @Column(name = "author_name") private String authorName;
     @Column(name = "author_role") private String authorRole;
+    @Column(name = "title") private String title;
+    @Column(name = "location") private String location;
+    @Column(name = "courses_completed") private String coursesCompleted;
+    @Column(name = "project_impact") private String projectImpact;
+    @Column(name = "certification") private String certification;
     @NotBlank(message = "Story text is required")
-    @Column(name = "quote_text") private String quoteText;
+    @Column(name = "story_text") private String storyText;
     @Column(name = "image_url") private String imageUrl;
     @Column(name = "sort_order") private int sortOrder;
     private boolean active = true;
+
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     @Column(name = "created_at") private Instant createdAt;
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
@@ -32,8 +38,18 @@ public class HomepageStory {
     public void setAuthorName(String n) { this.authorName = n; }
     public String getAuthorRole() { return authorRole; }
     public void setAuthorRole(String r) { this.authorRole = r; }
-    public String getQuoteText() { return quoteText; }
-    public void setQuoteText(String t) { this.quoteText = t; }
+    public String getTitle() { return title; }
+    public void setTitle(String t) { this.title = t; }
+    public String getLocation() { return location; }
+    public void setLocation(String l) { this.location = l; }
+    public String getCoursesCompleted() { return coursesCompleted; }
+    public void setCoursesCompleted(String c) { this.coursesCompleted = c; }
+    public String getProjectImpact() { return projectImpact; }
+    public void setProjectImpact(String p) { this.projectImpact = p; }
+    public String getCertification() { return certification; }
+    public void setCertification(String c) { this.certification = c; }
+    public String getStoryText() { return storyText; }
+    public void setStoryText(String t) { this.storyText = t; }
     public String getImageUrl() { return imageUrl; }
     public void setImageUrl(String u) { this.imageUrl = u; }
     public int getSortOrder() { return sortOrder; }

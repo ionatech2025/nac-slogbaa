@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import { Icon, icons } from '../../../shared/icons.jsx'
 import { Logo } from '../../../shared/components/Logo.jsx'
 import { useTheme } from '../../../contexts/ThemeContext.jsx'
 import { Navbar } from '../../../shared/components/Navbar.jsx'
 import { CtaSection } from '../../../shared/components/CtaSection.jsx'
 import { Footer } from '../../../shared/components/Footer.jsx'
+import { getHomepageContent } from '../../../api/homepage.js'
+import { queryKeys } from '../../../lib/query-keys.js'
 
 /* ─── Page Specific CSS ──────────────────────────────────────────────────── */
 const DETAIL_CSS = `
@@ -126,12 +129,84 @@ const TRAINING_DATA = {
 export function InPersonTrainingDetailPage() {
   const { slug } = useParams()
   const { theme } = useTheme()
-  const data = TRAINING_DATA[slug] || TRAINING_DATA['parish-development-model-monitoring']
+
+  const { data: cms, isLoading } = useQuery({
+    queryKey: queryKeys.homepage.content(),
+    queryFn: getHomepageContent,
+    staleTime: 60_000,
+  })
+
+  if (isLoading) return <div style={{ padding: '10rem 2rem', textAlign: 'center' }}>Loading training details...</div>
+
+  // Find article in CMS or fallback
+  const cmsTraining = cms?.trainings?.find(t => {
+    const generatedSlug = t.slug || (t.title && t.title.toLowerCase().replace(/\s+/g, '-'))
+    return generatedSlug === slug
+  })
+  const data = cmsTraining || TRAINING_DATA[slug] || TRAINING_DATA['parish-development-model-monitoring']
+
+  if (!data) return <div style={{ padding: '10rem 2rem', textAlign: 'center' }}>Training not found</div>
+
+  const displayDate = data.date || (data.eventDate ? new Date(data.eventDate).toLocaleDateString() : 'Date to be announced')
+  const displayTag = data.tag || data.eyebrow || 'Workshops'
+  const displayImage = data.imageUrl || data.image || 'https://images.unsplash.com/photo-1515187029135-18ee286d815b?q=80&w=1200&auto=format&fit=crop'
 
   // Force scroll to top on mount
   useEffect(() => {
     window.scrollTo(0, 0)
-  }, [])
+  }, [slug])
+
+  const renderContent = (content) => {
+    if (!content) return null
+    if (Array.isArray(content)) {
+      return content.map((item, idx) => {
+        if (item.type === 'h2') return <h2 key={idx} className="slg-article-h2 slg-serif">{item.value}</h2>
+        if (item.type === 'p') return <p key={idx} className="slg-article-p">{item.value}</p>
+        if (item.type === 'quote') return (
+          <blockquote key={idx} className="slg-pull-quote">
+            <p className="slg-quote-text">{item.text}</p>
+            <cite className="slg-quote-author">/ {item.author}</cite>
+          </blockquote>
+        )
+        return null
+      })
+    }
+    if (typeof content !== 'string') return null
+
+    // Split by double newlines to separate paragraphs/blocks
+    const paras = content.split(/\n\s*\n/)
+    
+    return paras.map((para, i) => {
+      const p = para.trim()
+      if (!p) return null
+
+      if (p.startsWith('# ')) {
+        return <h2 key={i} className="slg-article-h2 slg-serif" style={{ color: 'var(--orange)', borderLeft: '4px solid var(--orange)', paddingLeft: '1rem' }}>{p.replace('# ', '')}</h2>
+      }
+      if (p.startsWith('## ')) {
+        return <h2 key={i} className="slg-article-h2 slg-serif">{p.replace('## ', '')}</h2>
+      }
+      if (p.startsWith('### ')) {
+        return <h3 key={i} style={{ fontSize: '1.25rem', fontWeight: 600, margin: '2rem 0 1rem', color: 'var(--text)' }}>{p.replace('### ', '')}</h3>
+      }
+      if (p.startsWith('> ')) {
+        const parts = p.replace('> ', '').split(' / ')
+        return (
+          <blockquote key={i} className="slg-pull-quote">
+            <p className="slg-quote-text">{parts[0]}</p>
+            {parts[1] && <cite className="slg-quote-author">/ {parts[1]}</cite>}
+          </blockquote>
+        )
+      }
+
+      // Normal paragraph - First one gets drop-cap
+      return (
+        <p key={i} className={`slg-article-p ${i === 0 ? 'slg-drop-cap' : ''}`}>
+          {p}
+        </p>
+      )
+    })
+  }
 
   return (
     <div className={`slg-page slg-detail ${theme}-theme`}>
@@ -141,29 +216,17 @@ export function InPersonTrainingDetailPage() {
       <Navbar />
 
       <header className="slg-detail-hero">
-        <span className="slg-detail-eyebrow">{data.eyebrow}</span>
-        <h1 className="slg-detail-title slg-serif">{data.title}</h1>
+        <span className="slg-detail-eyebrow">{displayTag}</span>
+        <h1 className="slg-detail-title slg-serif">{data.title || 'Untitled Workshop'}</h1>
 
         <div className="slg-detail-meta-grid">
           <div className="slg-meta-box">
-            <span className="slg-meta-label">Date & Time</span>
-            <span className="slg-meta-value">{data.date}</span>
+            <span className="slg-meta-label">Event Date</span>
+            <span className="slg-meta-value">{displayDate}</span>
           </div>
           <div className="slg-meta-box">
-            <span className="slg-meta-label">Location</span>
-            <span className="slg-meta-value">{data.location}</span>
-          </div>
-          <div className="slg-meta-box">
-            <span className="slg-meta-label">Lead Facilitators</span>
-            <span className="slg-meta-value">{data.facilitators.join(', ')}</span>
-          </div>
-          <div className="slg-meta-box">
-            <span className="slg-meta-label">Focus Areas</span>
-            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.25rem' }}>
-              {data.tags.map(t => (
-                <span key={t} style={{ fontSize: '0.75rem', padding: '0.2rem 0.5rem', border: '1px solid var(--border)', borderRadius: '4px' }}>{t}</span>
-              ))}
-            </div>
+            <span className="slg-meta-label">Category</span>
+            <span className="slg-meta-value">{displayTag}</span>
           </div>
         </div>
       </header>
@@ -171,24 +234,12 @@ export function InPersonTrainingDetailPage() {
       <div className="slg-magazine-layout">
         <article>
           <div className="slg-editorial-image">
-            <img src={data.image} alt={data.title} />
+            <img src={displayImage} alt={data.title || 'Training Image'} />
           </div>
 
-          <p className="slg-article-p slg-drop-cap">
-            {data.intro}
-          </p>
-
-          {data.content.map((item, idx) => {
-            if (item.type === 'h2') return <h2 key={idx} className="slg-article-h2 slg-serif">{item.value}</h2>
-            if (item.type === 'p') return <p key={idx} className="slg-article-p">{item.value}</p>
-            if (item.type === 'quote') return (
-              <blockquote key={idx} className="slg-pull-quote">
-                <p className="slg-quote-text">{item.text}</p>
-                <cite className="slg-quote-author">/ {item.author}</cite>
-              </blockquote>
-            )
-            return null
-          })}
+          <div className="slg-article-content">
+            {renderContent(data.content || data.summary || data.intro || '')}
+          </div>
         </article>
 
         <aside className="slg-editorial-sidebar">
@@ -217,8 +268,6 @@ export function InPersonTrainingDetailPage() {
           </div>
         </aside>
       </div>
-
-
 
       <CtaSection />
       <Footer />
