@@ -1224,12 +1224,11 @@ export function HomePage() {
             </div>
 
             <div className="slg-about-visual">
-              <div style={{ textAlign: 'center', position: 'relative', zIndex: 1 }}>
-                <Logo variant="icon" size={72} />
-                <p style={{ marginTop: '1.25rem', fontSize: '0.875rem', color: 'var(--text-3)', fontStyle: 'italic' }}>
-                  Empowering communities through learning
-                </p>
-              </div>
+              <img 
+                src="/assets/images/homepage/community2.png" 
+                alt="Putting communities first" 
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+              />
             </div>
           </div>
         </section>
