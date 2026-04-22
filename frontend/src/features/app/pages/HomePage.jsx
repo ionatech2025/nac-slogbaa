@@ -851,7 +851,7 @@ function HeroSection({ banners }) {
 
   const [current, setCurrent] = useState(0)
   const [paused, setPaused] = useState(false)
-  
+
   const slides = HERO_SLIDES.map((slide, i) => {
     const cmsBanner = banners && banners[i]
     return cmsBanner ? { ...slide, ...cmsBanner } : slide
@@ -883,11 +883,11 @@ function HeroSection({ banners }) {
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
-      <div 
-        className="slg-background-image" 
-        style={{ 
-          backgroundImage: slide.imageUrl || slide.image ? `url(${slide.imageUrl || slide.image})` : undefined 
-        }} 
+      <div
+        className="slg-background-image"
+        style={{
+          backgroundImage: slide.imageUrl || slide.image ? `url(${slide.imageUrl || slide.image})` : undefined
+        }}
       />
       <div className="slg-hero-overlay" />
       <div className="slg-hero-bg" />
@@ -1224,10 +1224,10 @@ export function HomePage() {
             </div>
 
             <div className="slg-about-visual">
-              <img 
-                src="/assets/images/homepage/community2.png" 
-                alt="Putting communities first" 
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+              <img
+                src="/assets/images/homepage/community2.jpg"
+                alt="Putting communities first"
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
               />
             </div>
           </div>
@@ -1488,17 +1488,17 @@ export function HomePage() {
               <div className="slg-modal-box" onClick={e => e.stopPropagation()}>
                 <div className="slg-modal-content">
                   <div className="slg-modal-left">
-                    <img 
-                      src={modalResource.imageUrl || modalResource.image || 'https://images.unsplash.com/photo-1544652478-6653e09f18a2?q=80&w=600&auto=format&fit=crop'} 
-                      alt="" 
-                      className="slg-modal-cover" 
+                    <img
+                      src={modalResource.imageUrl || modalResource.image || 'https://images.unsplash.com/photo-1544652478-6653e09f18a2?q=80&w=600&auto=format&fit=crop'}
+                      alt=""
+                      className="slg-modal-cover"
                     />
                   </div>
                   <div className="slg-modal-right">
                     <button className="slg-modal-close" onClick={() => setModalResource(null)}>
                       <Icon icon={icons.close} size={20} />
                     </button>
-                    
+
                     <div className="slg-modal-body">
                       <span className="slg-feature-tag" style={{ background: 'var(--orange-dim)', color: 'var(--orange)', marginBottom: '1.25rem' }}>
                         {modalResource.category || modalResource.tag}
@@ -1511,18 +1511,18 @@ export function HomePage() {
                         {modalResource.description || modalResource.fullDesc}
                       </p>
                     </div>
-                    
+
                     <div className="slg-modal-footer">
                       <button
                         onClick={() => { if (modalResource.fileUrl) window.open(modalResource.fileUrl, '_blank') }}
                         className="slg-btn-orange"
-                        style={{ 
-                          width: '100%', 
-                          height: '56px', 
-                          display: 'flex', 
-                          alignItems: 'center', 
-                          justifyContent: 'center', 
-                          gap: '0.75rem', 
+                        style={{
+                          width: '100%',
+                          height: '56px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '0.75rem',
                           fontSize: '1.0625rem',
                           borderRadius: '16px',
                           fontWeight: 700
