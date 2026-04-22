@@ -61,9 +61,7 @@ const FOOTER_CSS = `
 
 const SOCIAL_LINKS = [
   { label: 'Facebook', href: 'https://www.facebook.com/networkforactivecitizens/', SvgIcon: FacebookSvg },
-  { label: 'Twitter', href: 'https://twitter.com', SvgIcon: TwitterSvg },
   { label: 'WhatsApp', href: 'https://wa.me/256784315251', SvgIcon: WhatsAppSvg },
-  { label: 'YouTube', href: 'https://youtube.com', SvgIcon: YoutubeSvg },
 ]
 
 export function Footer() {
