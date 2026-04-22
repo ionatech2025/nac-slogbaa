@@ -1,10 +1,13 @@
 import { useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import { Icon, icons } from '../../../shared/icons.jsx'
 import { Navbar } from '../../../shared/components/Navbar.jsx'
 import { useTheme } from '../../../contexts/ThemeContext.jsx'
 import { CtaSection } from '../../../shared/components/CtaSection.jsx'
 import { Footer } from '../../../shared/components/Footer.jsx'
+import { getHomepageContent } from '../../../api/homepage.js'
+import { queryKeys } from '../../../lib/query-keys.js'
 
 const NEWS_CSS = `
   .slg-news-page { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
@@ -126,10 +129,29 @@ export function NewsListingPage() {
   const { theme } = useTheme()
   const [activeFilter, setActiveFilter] = useState('All')
 
+  const { data: cms, isLoading } = useQuery({
+    queryKey: queryKeys.homepage.content(),
+    queryFn: () => getHomepageContent(),
+    staleTime: 60_000,
+  })
+
+  const newsItems = useMemo(() => {
+    return cms?.news?.length ? cms.news : NEWS_DATA
+  }, [cms])
+
   const filteredNews = useMemo(() => {
-    if (activeFilter === 'All') return NEWS_DATA
-    return NEWS_DATA.filter(item => item.category === activeFilter)
-  }, [activeFilter])
+    if (activeFilter === 'All') return newsItems
+    return newsItems.filter(item => (item.tag || item.category) === activeFilter)
+  }, [activeFilter, newsItems])
+
+  const filterOptions = useMemo(() => {
+    const defaultOptions = ['All', 'News', 'Update', 'Event', 'Other']
+    // If we have categories in static data that don't match, we could add them, 
+    // but the CMS uses these 4.
+    return defaultOptions
+  }, [])
+
+  if (isLoading) return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Loading...</div>
 
   return (
     <div className={`slg-news-page ${theme}-theme`}>
@@ -148,7 +170,7 @@ export function NewsListingPage() {
 
       <main className="slg-news-container">
         <div className="slg-filter-bar">
-          {['All', 'News & Updates', 'Events'].map(filter => (
+          {filterOptions.map(filter => (
             <button
               key={filter}
               className={`slg-filter-btn ${activeFilter === filter ? 'active' : ''}`}
@@ -161,21 +183,23 @@ export function NewsListingPage() {
 
         <div className="slg-news-grid">
           {filteredNews.map((item) => (
-            <article key={item.id} className="slg-news-card">
+            <article key={item.id || item.title} className="slg-news-card">
               <div className="slg-news-img">
-                <img src={item.image} alt={item.title} loading="lazy" />
+                <img src={item.imageUrl || item.image || 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?q=80&w=800&auto=format&fit=crop'} alt={item.title} loading="lazy" />
               </div>
               <div className="slg-news-content">
-                <span className="slg-news-tag">{item.category}</span>
+                <span className="slg-news-tag">{item.tag || item.category || 'Update'}</span>
                 <h2 className="slg-news-title">{item.title}</h2>
-                <p className="slg-news-summary">{item.description}</p>
+                <p className="slg-news-summary" style={{ whiteSpace: 'pre-wrap' }}>
+                  {item.summary || item.description}
+                </p>
                 
                 <div className="slg-news-footer">
                   <div className="slg-news-date">
-                    <Icon icon={item.category === 'Events' ? icons.calendar : icons.fileText} size={14} />
-                    {item.category === 'Events' ? item.eventDate : item.publishedDate}
+                    <Icon icon={(item.tag === 'Event' || item.category === 'Events') ? icons.calendar : icons.fileText} size={14} />
+                    {item.publishedDate || item.date || item.eventDate}
                   </div>
-                  <Link to={`/news-and-updates/${item.slug}`} className="slg-link-details">
+                  <Link to={`/news-and-updates/${item.slug || (item.title && item.title.toLowerCase().replace(/\s+/g, '-'))}`} className="slg-link-details">
                     See Details <Icon icon={icons.arrowRight} size={14} />
                   </Link>
                 </div>

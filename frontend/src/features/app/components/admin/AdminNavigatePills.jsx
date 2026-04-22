@@ -45,13 +45,12 @@ const pillActive = {
 
 /** Order matches admin sidebar; super-only entries hidden for regular admins. */
 const NAV_CONFIG = [
-  { to: '/admin/homepage', icon: icons.home, label: 'Landing', end: true, superOnly: true },
+  { to: '/admin/cms', icon: icons.viewCards, label: 'CMS', superOnly: true },
   { to: '/admin/overview', icon: icons.overview, label: 'Overview', end: true },
   { to: '/admin/learning', icon: icons.learning, label: 'Learning' },
   { to: '/admin/coursemanagement', icon: icons.course, label: 'Course Mgmt', superOnly: true },
   { to: '/admin/library', icon: icons.library, label: 'Library' },
   { to: '/admin/assessment', icon: icons.assessment, label: 'Assessment' },
-  { to: '/admin/cms', icon: icons.viewCards, label: 'CMS', superOnly: true },
   { to: '/admin/live-sessions', icon: icons.blockVideo, label: 'Live sessions' },
   { to: '/admin/reports', icon: icons.reports, label: 'Analytics' },
 ]

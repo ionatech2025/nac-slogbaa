@@ -15,7 +15,7 @@ import { CommandPalette } from '../../../shared/components/CommandPalette.jsx'
 import { useToast } from '../../../shared/hooks/useToast.js'
 
 const MODULES_SUPER_ADMIN = [
-  { path: 'homepage', label: 'Landing page', icon: icons.home },
+  { path: 'cms', label: 'CMS', icon: icons.viewCards },
   { path: 'overview', label: 'Overview', icon: icons.overview },
   { path: 'learning', label: 'Learning', icon: icons.learning },
   { path: 'coursemanagement', label: 'Course Management', icon: icons.course },
@@ -63,8 +63,25 @@ const lightSidebarStyles = {
 const styles = {
   ...baseStyles,
   main: { flex: 1, minWidth: 0, overflowY: 'auto', overflowX: 'hidden', padding: 0, maxWidth: 1000, margin: '0 auto', width: '100%', background: 'var(--slogbaa-bg)', borderLeft: '1px solid var(--slogbaa-border)' },
-  identityHeader: { background: 'var(--identity-header-blue, #0072BB)', borderBottom: '3px solid var(--primary-orange, #F58220)', padding: '1.5rem 2rem', marginBottom: 0 },
-  greeting: { margin: 0, fontSize: '1.5rem', fontWeight: 700, color: '#FFFFFF' },
+  identityHeader: { 
+    background: 'var(--slogbaa-glass-bg)', 
+    backdropFilter: 'var(--slogbaa-glass-blur)',
+    borderBottom: '1px solid var(--slogbaa-border)', 
+    padding: '1.75rem 2.5rem', 
+    marginBottom: 0,
+    display: 'flex',
+    flexDirection: 'column',
+    position: 'relative'
+  },
+  greeting: { 
+    margin: 0, 
+    fontSize: '1.75rem', 
+    fontWeight: 800, 
+    color: 'var(--slogbaa-text)',
+    letterSpacing: '-0.025em',
+    paddingLeft: '1rem',
+    borderLeft: '4px solid var(--primary-orange, #F58220)'
+  },
   greetingDivider: { display: 'none' },
   mainContent: { padding: '1.5rem 2rem' },
 }
@@ -182,7 +199,7 @@ export function AdminLayout() {
   const STATIC_COMMANDS = [
     { label: 'Go to Overview', group: 'Navigation', onSelect: () => navigate('/admin/overview'), shortcut: 'G O' },
     { label: 'Go to Reports & Analytics', group: 'Navigation', onSelect: () => navigate('/admin/reports'), shortcut: 'G R' },
-    ...(isSuperAdmin ? [{ label: 'Go to Landing page', group: 'Navigation', onSelect: () => navigate('/admin/homepage') }] : []),
+    { label: 'Go to CMS', group: 'Navigation', onSelect: () => navigate('/admin/cms'), shortcut: 'G C' },
     { label: 'Go to Learning', group: 'Navigation', onSelect: () => navigate('/admin/learning'), shortcut: 'G L' },
     { label: 'Go to Library', group: 'Navigation', onSelect: () => navigate('/admin/library') },
     { label: 'Go to Assessment', group: 'Navigation', onSelect: () => navigate('/admin/assessment') },
@@ -313,7 +330,7 @@ export function AdminLayout() {
             <button
               type="button"
               className="mobile-menu-btn"
-              style={{ display: 'none', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', padding: '0.625rem 1rem', minHeight: 44, border: '1px solid rgba(255,255,255,0.4)', borderRadius: 10, background: 'rgba(255,255,255,0.15)', color: '#FFFFFF', fontSize: '0.9375rem', fontWeight: 500, cursor: 'pointer' }}
+              style={{ display: 'none', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', padding: '0.625rem 1rem', minHeight: 44, border: '1px solid var(--slogbaa-border)', borderRadius: 10, background: 'var(--slogbaa-surface)', color: 'var(--slogbaa-text)', fontSize: '0.9375rem', fontWeight: 500, cursor: 'pointer' }}
               onClick={() => setMobileMenuOpen(true)}
               aria-label="Open navigation menu"
             >

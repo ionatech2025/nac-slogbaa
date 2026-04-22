@@ -1,11 +1,14 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Link } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import { Icon, icons } from '../../../shared/icons.jsx'
 import { Logo } from '../../../shared/components/Logo.jsx'
 import { useTheme } from '../../../contexts/ThemeContext.jsx'
 import { Navbar } from '../../../shared/components/Navbar.jsx'
 import { CtaSection } from '../../../shared/components/CtaSection.jsx'
 import { Footer } from '../../../shared/components/Footer.jsx'
+import { getHomepageContent } from '../../../api/homepage.js'
+import { queryKeys } from '../../../lib/query-keys.js'
 
 /* ─── Static Data (Will be CMS-driven) ─────────────────────────────────────── */
 const ALL_TRAININGS = [
@@ -93,18 +96,11 @@ const PAGE_CSS = `
   .slg-page { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; scroll-behavior: smooth; }
   .slg-serif { font-family: 'DM Serif Display', serif; }
   
-  .slg-nav {
-    position: sticky; top: 0; z-index: 200; height: 64px;
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 0 2rem; background: var(--nav-bg); backdrop-filter: blur(16px);
-    border-bottom: 1px solid var(--border);
-  }
-
   .slg-section { max-width: 1200px; margin: 0 auto; padding: 4rem 2rem; }
 
   .slg-training-hero {
-    position: relative; padding: 6rem 2rem 5rem; text-align: center; overflow: hidden;
-    background: radial-gradient(circle at 15% 50%, var(--orange-dim) 0%, transparent 40%);
+    position: relative; padding: 3rem 2rem 5rem; text-align: center; overflow: hidden;
+    background: var(--bg-2); border-bottom: 1px solid var(--border);
   }
   .slg-hero-grid {
     position: absolute; inset: 0; opacity: 0.03; z-index: 0;
@@ -116,102 +112,53 @@ const PAGE_CSS = `
     display: inline-flex; align-items: center; gap: 0.5rem; text-transform: uppercase;
     font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; color: var(--orange);
     background: var(--orange-dim); padding: 0.4rem 0.8rem; border-radius: 99px; border: 1px solid rgba(245,130,32,0.2);
+    margin-bottom: 1.5rem;
   }
 
-  .slg-section-title { font-size: 2.75rem; font-weight: 300; line-height: 1.1; margin: 1.5rem 0; letter-spacing: -0.02em; }
+  .slg-section-title { font-size: clamp(2.5rem, 6vw, 4rem); font-weight: 300; line-height: 1.1; margin: 0 0 1.5rem; letter-spacing: -0.02em; }
   .slg-section-title em { font-style: normal; color: var(--orange); font-family: 'DM Serif Display', serif; }
 
   .slg-training-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 2.5rem; }
   
   .slg-training-card {
-    background: var(--surface); border: 1px solid var(--border); border-radius: 20px; overflow: hidden;
-    display: flex; flex-direction: column; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    background: var(--bg); border: 1px solid var(--border); border-radius: 20px; overflow: hidden;
+    display: flex; flex-direction: column; transition: all 0.3s ease;
   }
-  .slg-training-card:hover { transform: translateY(-8px); border-color: var(--orange); box-shadow: 0 20px 40px rgba(0,0,0,0.08); }
+  .slg-training-card:hover { border-color: var(--orange-glow); transform: translateY(-5px); box-shadow: 0 20px 40px -10px rgba(0,0,0,0.1); }
 
-  .slg-card-img-wrap { position: relative; aspect-ratio: 16/10; overflow: hidden; }
+  .slg-card-img-wrap { position: relative; aspect-ratio: 16/9; overflow: hidden; background: var(--bg-3); }
   .slg-card-img-wrap img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s ease; }
-  .slg-training-card:hover .slg-card-img-wrap img { transform: scale(1.08); }
+  .slg-training-card:hover .slg-card-img-wrap img { transform: scale(1.05); }
 
   .slg-card-badge {
     position: absolute; top: 1rem; right: 1rem; padding: 0.35rem 0.75rem; border-radius: 8px;
-    font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
-    backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.2);
+    font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+    backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.2); z-index: 2;
   }
   .slg-badge-upcoming { background: rgba(5, 150, 105, 0.85); color: #fff; }
   .slg-badge-past { background: rgba(82, 82, 91, 0.85); color: #fff; }
 
-  .slg-card-body { padding: 1.75rem; flex-grow: 1; display: flex; flex-direction: column; }
-  .slg-card-title { font-size: 1.125rem; font-weight: 700; line-height: 1.4; margin-bottom: 0.75rem; }
-  .slg-card-title a { color: var(--text); text-decoration: none; transition: color 0.2s; }
+  .slg-card-body { padding: 2rem; flex-grow: 1; display: flex; flex-direction: column; }
+  .slg-card-tag {
+    display: inline-block; padding: 0.25rem 0.75rem; border-radius: 6px;
+    font-size: 0.6875rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+    color: var(--orange); background: var(--orange-dim); margin-bottom: 1rem;
+    align-self: flex-start;
+  }
+  .slg-card-title { font-size: 1.25rem; font-weight: 600; line-height: 1.4; color: var(--text); margin-bottom: 1rem; }
+  .slg-card-title a { color: inherit; text-decoration: none; }
   .slg-card-title a:hover { color: var(--orange); }
 
-  .slg-meta-row { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.25rem; font-size: 0.8125rem; color: var(--text-2); }
-  .slg-meta-item { display: flex; align-items: center; gap: 0.4rem; }
+  .slg-card-excerpt { font-size: 0.9375rem; color: var(--text-2); line-height: 1.6; margin-bottom: 2rem; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
   
-  .slg-card-excerpt { font-size: 0.875rem; color: var(--text-2); line-height: 1.6; margin-bottom: 2rem; }
-  
+  .slg-card-footer { margin-top: auto; padding-top: 1.5rem; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .slg-card-date { font-size: 0.8125rem; color: var(--text-3); font-weight: 500; display: flex; align-items: center; gap: 0.4rem; }
+
   .slg-link-more {
     display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.875rem; font-weight: 700;
     color: var(--orange); text-decoration: none; transition: gap 0.2s;
   }
   .slg-link-more:hover { gap: 0.6rem; }
-
-  .slg-theme-toggle {
-    width: 34px; height: 34px; border-radius: 10px; border: 1px solid var(--border);
-    background: var(--bg-2); color: var(--text-2); cursor: pointer; display: flex; align-items: center; justify-content: center;
-  }
-  .slg-theme-toggle:hover { background: var(--surface-2); color: var(--text); border-color: var(--border-hover); }
-
-  .slg-btn-ghost {
-    padding: 0.5rem 1rem; border-radius: 10px; border: 1px solid var(--border);
-    font-size: 0.8125rem; font-weight: 600; color: var(--text); text-decoration: none;
-    transition: all 0.2s;
-  }
-  .slg-btn-ghost:hover { background: var(--surface-2); border-color: var(--border-hover); }
-
-  .slg-footer { border-top: 1px solid var(--border); padding: 3rem 2rem; text-align: center; }
-  .slg-copyright { font-size: 0.8125rem; color: var(--text-3); }
-
-  /* Pagination */
-  .slg-pagination {
-    display: flex; align-items: center; justify-content: center; gap: 0.5rem; margin-top: 4rem;
-  }
-  .slg-page-btn {
-    width: 40px; height: 40px; border-radius: 10px; border: 1px solid var(--border);
-    background: var(--surface); color: var(--text-2); font-size: 0.875rem; font-weight: 600;
-    cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;
-  }
-  .slg-page-btn:hover:not(:disabled) { border-color: var(--orange); color: var(--orange); background: var(--orange-dim); }
-  .slg-page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-  .slg-page-btn.active { background: var(--orange); color: #fff; border-color: var(--orange); }
-
-  /* Modal */
-  .slg-modal-overlay {
-    position: fixed; inset: 0; z-index: 1000;
-    background: rgba(0,0,0,0.4); backdrop-filter: blur(8px);
-    display: flex; align-items: center; justify-content: center;
-    padding: 1rem; animation: slg-fade-in 0.2s ease;
-  }
-  .slg-modal {
-    background: var(--bg); border: 1px solid var(--border); border-radius: 24px;
-    max-width: 580px; width: 100%; position: relative;
-    box-shadow: 0 40px 100px rgba(0,0,0,0.2);
-    animation: slg-scale-up 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-  }
-  .slg-modal-close {
-    position: absolute; top: 1.25rem; right: 1.25rem;
-    width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--border);
-    background: var(--bg-2); color: var(--text-2); cursor: pointer;
-    display: flex; align-items: center; justify-content: center; transition: all 0.2s;
-  }
-  .slg-modal-close:hover { background: var(--surface-2); color: var(--text); border-color: var(--border-hover); }
-  
-  .slg-modal-body { padding: 2.5rem; }
-  .slg-modal-img { width: 100%; aspect-ratio: 16/9; border-radius: 16px; object-fit: cover; margin-bottom: 2rem; }
-  
-  @keyframes slg-fade-in { from { opacity: 0; } to { opacity: 1; } }
-  @keyframes slg-scale-up { from { opacity: 0; transform: scale(0.95) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
 `
 
 export function InPersonTrainingPage() {
@@ -221,14 +168,40 @@ export function InPersonTrainingPage() {
   const [selectedTraining, setSelectedTraining] = useState(null)
   const itemsPerPage = 6
 
+  const { data: cms, isLoading } = useQuery({
+    queryKey: queryKeys.homepage.content(),
+    queryFn: getHomepageContent,
+    staleTime: 60_000,
+  })
+
+  // Set up scrolled state if needed, though not used in simplified design
+  const [scrolled, setScrolled] = useState(false)
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20)
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  const upcomingAll = ALL_TRAININGS.filter(t => t.status === 'upcoming')
-  const pastAll = ALL_TRAININGS.filter(t => t.status === 'past')
+  const allTrainings = useMemo(() => {
+    if (cms?.trainings?.length) return cms.trainings
+    return ALL_TRAININGS
+  }, [cms])
+
+  const upcomingAll = useMemo(() => {
+    return allTrainings.filter(t => {
+      if (t.status) return t.status === 'upcoming'
+      return new Date(t.eventDate) > new Date()
+    })
+  }, [allTrainings])
+
+  const pastAll = useMemo(() => {
+    return allTrainings.filter(t => {
+      if (t.status) return t.status === 'past'
+      return new Date(t.eventDate) <= new Date()
+    })
+  }, [allTrainings])
+
+  if (isLoading) return <div style={{ padding: '10rem 2rem', textAlign: 'center' }}>Loading training data...</div>
 
   const upcomingTotalPages = Math.ceil(upcomingAll.length / itemsPerPage)
   const pastTotalPages = Math.ceil(pastAll.length / itemsPerPage)
@@ -244,21 +217,21 @@ export function InPersonTrainingPage() {
       <header className="slg-training-hero">
         <div className="slg-hero-grid" />
         <div style={{ position: 'relative', zIndex: 1 }}>
-          <span className="slg-eyebrow">Interactive Training</span>
-          <h1 className="slg-section-title slg-serif">
-            In-Person <em>Workshops</em>
+          <span className="slg-eyebrow">Interactive Workshops</span>
+          <h1 className="slg-section-title">
+            In-Person <em>Learning</em>
           </h1>
-          <p className="slg-section-desc" style={{ maxWidth: 660, margin: '0 auto', fontSize: '1.125rem', color: 'var(--text-2)', lineHeight: 1.6 }}>
+          <p className="slg-section-desc" style={{ maxWidth: 600, margin: '0 auto' }}>
             Bridging the digital divide through localized, intense training sessions across all districts of Uganda.
           </p>
         </div>
       </header>
 
-      <main className="slg-section" style={{ paddingTop: 0 }}>
+      <main className="slg-section">
         {upcoming.length > 0 && (
           <section style={{ marginBottom: '6rem' }}>
             <div style={{ marginBottom: '3rem' }}>
-              <h2 className="slg-section-title" style={{ fontSize: '1.75rem' }}>Upcoming <em>Sessions</em></h2>
+              <h2 className="slg-section-title" style={{ fontSize: '2rem' }}>Upcoming <em>Sessions</em></h2>
             </div>
             <div className="slg-training-grid">
               {upcoming.map(t => (
@@ -266,7 +239,6 @@ export function InPersonTrainingPage() {
                   key={t.id}
                   training={t}
                   isUpcoming
-                  onViewDetails={() => setSelectedTraining(t)}
                 />
               ))}
             </div>
@@ -282,8 +254,7 @@ export function InPersonTrainingPage() {
 
         <section>
           <div style={{ marginBottom: '3rem' }}>
-            <h2 className="slg-section-title" style={{ fontSize: '1.75rem' }}>Past <em>Highlights</em></h2>
-            <p style={{ color: 'var(--text-3)', fontSize: '0.875rem' }}>Archives of our previous regional training workshops.</p>
+            <h2 className="slg-section-title" style={{ fontSize: '2rem' }}>Past <em>Highlights</em></h2>
           </div>
           <div className="slg-training-grid">
             {past.map(t => (
@@ -308,25 +279,21 @@ export function InPersonTrainingPage() {
               <Icon icon={icons.x || icons.arrowRight} size={18} />
             </button>
             <div className="slg-modal-body">
-              <img src={selectedTraining.image} alt={selectedTraining.title} className="slg-modal-img" />
+              <img src={selectedTraining.imageUrl || selectedTraining.image} alt={selectedTraining.title} className="slg-modal-img" />
               <div style={{ marginBottom: '1.5rem' }}>
                 <span className="slg-eyebrow" style={{ marginBottom: '1rem' }}>Upcoming Opportunity</span>
                 <h2 className="slg-section-title" style={{ fontSize: '2rem', marginTop: '0.5rem' }}>{selectedTraining.title}</h2>
               </div>
 
-              <div className="slg-meta-row" style={{ marginBottom: '2rem', padding: '1rem', background: 'var(--bg-2)', borderRadius: '12px' }}>
-                <div className="slg-meta-item">
+              <div className="slg-meta-row" style={{ marginBottom: '2rem', padding: '1rem', background: 'var(--bg-2)', borderRadius: '12px', display: 'flex', gap: '1.5rem' }}>
+                <div className="slg-card-date">
                   <Icon icon={icons.calendar} size={16} />
-                  <span>{selectedTraining.date}</span>
-                </div>
-                <div className="slg-meta-item">
-                  <Icon icon={icons.mapPin} size={16} />
-                  <span>{selectedTraining.location}</span>
+                  <span>{selectedTraining.date || new Date(selectedTraining.eventDate).toLocaleDateString()}</span>
                 </div>
               </div>
 
-              <p className="slg-card-excerpt" style={{ fontSize: '1rem', marginBottom: '2.5rem' }}>
-                {selectedTraining.excerpt} This intensive regional workshop focuses on localized implementation and citizen oversight strategies.
+              <p className="slg-card-excerpt" style={{ fontSize: '1rem', marginBottom: '2.5rem', display: 'block' }}>
+                {selectedTraining.summary || selectedTraining.excerpt}
               </p>
 
               <div style={{ display: 'flex', gap: '1rem' }}>
@@ -379,58 +346,36 @@ function Pagination({ current, total, onChange }) {
   )
 }
 
-function TrainingCard({ training, isUpcoming, onViewDetails }) {
+function TrainingCard({ training, isUpcoming }) {
+  const displayDate = typeof training.date === 'string' ? training.date.split(' - ')[0] : new Date(training.eventDate).toLocaleDateString()
+  const slug = training.slug || (training.title && training.title.toLowerCase().replace(/\s+/g, '-'))
+
   return (
-    <div className="slg-training-card">
+    <article className="slg-training-card">
       <div className="slg-card-img-wrap">
-        <img src={training.image} alt={training.title} loading="lazy" />
+        <img src={training.imageUrl || training.image || 'https://images.unsplash.com/photo-1515187029135-18ee286d815b?q=80&w=800&auto=format&fit=crop'} alt={training.title} loading="lazy" />
         <span className={`slg-card-badge ${isUpcoming ? 'slg-badge-upcoming' : 'slg-badge-past'}`}>
           {isUpcoming ? 'Upcoming' : 'Past Event'}
         </span>
       </div>
       <div className="slg-card-body">
+        <span className="slg-card-tag">{training.tag || training.eyebrow || (isUpcoming ? 'Workshop' : 'Recap')}</span>
         <h3 className="slg-card-title">
-          {isUpcoming ? (
-            <button
-              onClick={onViewDetails}
-              style={{ background: 'none', border: 'none', padding: 0, textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit' }}
-            >
-              <span className="slg-card-title">{training.title}</span>
-            </button>
-          ) : (
-            <Link to={`/inperson-training/${training.slug}`}>{training.title}</Link>
-          )}
+          <Link to={`/inperson-training/${slug}`}>{training.title}</Link>
         </h3>
 
-        <div className="slg-meta-row">
-          <div className="slg-meta-item">
+        <p className="slg-card-excerpt">{training.summary || training.excerpt}</p>
+
+        <div className="slg-card-footer">
+          <div className="slg-card-date">
             <Icon icon={icons.calendar} size={14} />
-            <span>{training.date.split(' - ')[0]}</span>
+            {displayDate}
           </div>
-          <div className="slg-meta-item">
-            <Icon icon={icons.mapPin} size={14} />
-            <span>{training.location}</span>
-          </div>
-        </div>
-
-        <p className="slg-card-excerpt">{training.excerpt}</p>
-
-        <div style={{ marginTop: 'auto', paddingTop: '1rem' }}>
-          {isUpcoming ? (
-            <button
-              onClick={onViewDetails}
-              className="slg-link-more"
-              style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
-            >
-              View Details <Icon icon={icons.arrowRight} size={14} />
-            </button>
-          ) : (
-            <Link to={`/inperson-training/${training.slug}`} className="slg-link-more">
-              View Full Recap <Icon icon={icons.arrowRight} size={14} />
-            </Link>
-          )}
+          <Link to={`/inperson-training/${slug}`} className="slg-link-more">
+            See Details <Icon icon={icons.arrowRight} size={14} />
+          </Link>
         </div>
       </div>
-    </div>
+    </article>
   )
 }

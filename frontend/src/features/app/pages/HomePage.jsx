@@ -21,6 +21,12 @@ import {
   Tooltip,
   Legend
 } from 'recharts'
+const truncateWords = (str, limit = 150) => {
+  if (!str) return ''
+  const words = str.split(/\s+/)
+  if (words.length <= limit) return str
+  return words.slice(0, limit).join(' ') + '...'
+}
 
 
 
@@ -233,7 +239,7 @@ const GLOBAL_CSS = `
     --text-2: #52525b;
     --text-3: #71717a;
     --nav-bg: #ffffff;
-    --hero-overlay: linear-gradient(90deg, #ffffff 0%, rgba(255,255,255,0.95) 35%, rgba(255,255,255,0.4) 65%, transparent 100%);
+    --hero-overlay: linear-gradient(90deg, #f9fafb 0%, rgba(249, 250, 251, 0.98) 35%, rgba(249, 250, 251, 0.4) 65%, transparent 100%);
     --stats-bg: rgba(255,255,255,0.6);
   }
 
@@ -345,6 +351,13 @@ const GLOBAL_CSS = `
     background-position: 80% center; 
     background-repeat: no-repeat;
     z-index: 0;
+  }
+  .slg-page.light-theme .slg-background-image::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.03);
+    z-index: 1;
   }
   /* Protecive overlay for text legibility */
   .slg-hero-overlay {
@@ -522,31 +535,42 @@ const GLOBAL_CSS = `
   .slg-video-body { padding: 1rem 1.25rem; }
   .slg-video-title { font-size: 0.9375rem; font-weight: 600; color: var(--text); }
 
-  /* Library Home (Compact) */
-  .slg-lib-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.5rem; }
-  .slg-lib-card {
-    background: var(--bg); border: 1px solid var(--border); border-radius: 20px;
-    padding: 1.25rem; display: flex; flex-direction: column; transition: all 0.3s ease;
+  /* Library Home Update (Row Layout) */
+  .slg-lib-row-stack { display: flex; flex-direction: column; gap: 1.5rem; }
+  .slg-lib-item-row {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 20px;
+    padding: 1.5rem; display: flex; gap: 2rem; align-items: flex-start; transition: all 0.3s ease;
   }
-  .slg-lib-card:hover { transform: translateY(-5px); border-color: var(--orange-glow); box-shadow: 0 20px 40px -10px rgba(0,0,0,0.1); }
-  .slg-lib-img-box {
-    aspect-ratio: 16/10; border-radius: 12px; overflow: hidden; margin-bottom: 1rem;
-    background: var(--bg-3); border: 1px solid var(--border);
-  }
-  .slg-lib-img-box img { width: 100%; height: 100%; object-fit: cover; }
-  .slg-lib-actions { display: flex; gap: 0.5rem; margin-top: auto; padding-top: 1rem; }
+  .slg-lib-item-row:hover { border-color: var(--orange-glow); box-shadow: 0 12px 32px rgba(0,0,0,0.06); }
+  .slg-lib-row-img { width: 140px; height: 180px; border-radius: 12px; overflow: hidden; flex-shrink: 0; background: var(--bg-3); border: 1px solid var(--border); }
+  .slg-lib-row-img img { width: 100%; height: 100%; object-fit: cover; }
+  .slg-lib-row-content { flex: 1; min-width: 0; }
+  .slg-lib-row-actions { display: flex; gap: 0.875rem; margin-top: 1.5rem; }
   .slg-btn-lib-main {
-    flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 0.3rem;
-    padding: 0.5rem; border-radius: 8px; font-size: 0.75rem; font-weight: 700;
+    display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+    padding: 0.625rem 1.25rem; border-radius: 12px; font-size: 0.8125rem; font-weight: 700;
     background: var(--orange); color: #fff; text-decoration: none; border: none; cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 12px rgba(245,130,32,0.15);
+  }
+  .slg-btn-lib-main:hover {
+    background: #FF933A; transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(245,130,32,0.25);
   }
   .slg-btn-lib-outline {
-    flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 0.3rem;
-    padding: 0.5rem; border-radius: 8px; font-size: 0.75rem; font-weight: 600;
-    background: transparent; color: var(--text); border: 1px solid var(--border);
+    display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+    padding: 0.625rem 1.25rem; border-radius: 12px; font-size: 0.8125rem; font-weight: 600;
+    background: var(--bg-2); color: var(--text); border: 1px solid var(--border);
     text-decoration: none; cursor: pointer; transition: all 0.2s;
   }
-  .slg-btn-lib-outline:hover { background: var(--bg-2); border-color: var(--text-3); }
+  .slg-btn-lib-outline:hover {
+    background: var(--surface-2); border-color: var(--text-3); transform: translateY(-2px);
+  }
+
+  @media (max-width: 640px) {
+    .slg-lib-item-row { flex-direction: column; gap: 1.25rem; }
+    .slg-lib-row-img { width: 100%; height: 200px; }
+  }
 
   /* Training Home (Compact) */
   .slg-training-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
@@ -568,13 +592,40 @@ const GLOBAL_CSS = `
     z-index: 10001; display: flex; align-items: center; justify-content: center; padding: 2rem;
   }
   .slg-modal-box {
-    background: var(--bg); border-radius: 24px; padding: 3rem; max-width: 600px; width: 100%;
-    position: relative; border: 1px solid var(--border);
+    background: var(--bg); border: 1px solid var(--border); border-radius: 28px;
+    padding: 0; max-width: 940px; width: 95%; height: 75vh; min-height: 500px;
+    position: relative; overflow: hidden;
+    box-shadow: 0 32px 64px -16px rgba(0,0,0,0.5);
+    display: flex; flex-direction: column;
   }
+  .slg-modal-content { display: flex; align-items: stretch; flex: 1; min-height: 0; overflow: hidden; }
+  .slg-modal-left { width: 360px; background: var(--bg-3); border-right: 1px solid var(--border); position: relative; flex-shrink: 0; }
+  .slg-modal-cover { width: 100%; height: 100%; object-fit: cover; }
+  .slg-modal-right { flex: 1; display: flex; flex-direction: column; min-width: 0; position: relative; background: var(--bg); }
+  .slg-modal-body { flex: 1; overflow-y: auto; padding: 3rem; min-height: 0; scrollbar-width: thin; scrollbar-color: var(--orange-dim) transparent; }
+  .slg-modal-footer { padding: 1.5rem 3rem; background: var(--bg-2); border-top: 1px solid var(--border); flex-shrink: 0; }
   .slg-modal-close {
-    position: absolute; top: 1.5rem; right: 1.5rem; background: var(--bg-2); border: 1px solid var(--border);
-    width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
-    cursor: pointer; color: var(--text-2);
+    position: absolute; top: 1rem; right: 1rem; background: var(--bg-2); 
+    border: 1px solid var(--border); width: 40px; height: 40px; border-radius: 50%; 
+    display: flex; align-items: center; justify-content: center; cursor: pointer; 
+    color: var(--text); z-index: 100; transition: all 0.2s;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+  .slg-modal-close:hover { background: var(--orange); color: #fff; transform: rotate(90deg); border-color: var(--orange); }
+
+  @media (max-width: 800px) {
+    .slg-modal-box { max-height: 95vh; width: 95%; }
+    .slg-modal-content { flex-direction: column; overflow-y: auto; }
+    .slg-modal-left { width: 100%; height: 250px; border-right: none; border-bottom: 1px solid var(--border); }
+    .slg-modal-right { height: auto; overflow: visible; }
+    .slg-modal-body { padding: 2rem; overflow: visible; }
+    .slg-modal-footer { padding: 1.5rem 2rem; }
+  }
+
+  @media (max-width: 800px) {
+    .slg-modal-content { flex-direction: column; }
+    .slg-modal-left { width: 100%; height: 200px; border-right: none; border-bottom: 1px solid var(--border); }
+    .slg-modal-right { padding: 2rem; }
   }
 
   /* Footer */
@@ -791,7 +842,7 @@ const GLOBAL_CSS = `
 `
 
 /* ─── Hero with Carousel ──────────────────────────────────────────────────── */
-function HeroSection() {
+function HeroSection({ banners }) {
   const { data: stats } = useQuery({
     queryKey: queryKeys.homepage.impact(),
     queryFn: getImpactStats,
@@ -800,7 +851,12 @@ function HeroSection() {
 
   const [current, setCurrent] = useState(0)
   const [paused, setPaused] = useState(false)
-  const total = HERO_SLIDES.length
+
+  const slides = HERO_SLIDES.map((slide, i) => {
+    const cmsBanner = banners && banners[i]
+    return cmsBanner ? { ...slide, ...cmsBanner } : slide
+  })
+  const total = slides.length
 
   const next = useCallback(() => setCurrent((c) => (c + 1) % total), [total])
 
@@ -811,7 +867,7 @@ function HeroSection() {
     return () => clearInterval(id)
   }, [paused, next])
 
-  const slide = HERO_SLIDES[current]
+  const slide = slides[current] || slides[0] || {}
 
   // Dynamic stats
   const dynamicStats = [
@@ -827,24 +883,35 @@ function HeroSection() {
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
-      <div className="slg-background-image" />
+      <div
+        className="slg-background-image"
+        style={{
+          backgroundImage: slide.imageUrl || slide.image ? `url(${slide.imageUrl || slide.image})` : undefined
+        }}
+      />
       <div className="slg-hero-overlay" />
       <div className="slg-hero-bg" />
       <div className="slg-hero-grid" />
 
       <div className="slg-hero-content">
-        <div className="slg-hero-eyebrow" key={`eyebrow-${current}`}>
-          {slide.eyebrow}
-        </div>
+        {slide.eyebrow && (
+          <div className="slg-hero-eyebrow" key={`eyebrow-${current}`}>
+            {slide.eyebrow}
+          </div>
+        )}
 
-        <h1 className="slg-hero-title slg-serif" key={`title-${current}`}>
-          {slide.title}{' '}
-          <em>{slide.highlight}</em>
-        </h1>
+        {slide.title && (
+          <h1 className="slg-hero-title slg-serif" key={`title-${current}`}>
+            {slide.title}{' '}
+            {slide.highlight && <em>{slide.highlight}</em>}
+          </h1>
+        )}
 
-        <h2 className="slg-hero-sub" key={`sub-${current}`} style={{ fontSize: '1.25rem', fontWeight: 400, opacity: 0.9 }}>
-          {slide.subtitle}
-        </h2>
+        {slide.subtitle && (
+          <h2 className="slg-hero-sub" key={`sub-${current}`} style={{ fontSize: '1.25rem', fontWeight: 400, opacity: 0.9 }}>
+            {slide.subtitle}
+          </h2>
+        )}
 
         <div className="slg-hero-actions">
           <Link to="/auth/register" className="slg-btn-hero-primary">
@@ -867,7 +934,7 @@ function HeroSection() {
 
         {/* Slide dots */}
         <div className="slg-dots" style={{ marginTop: '2.5rem' }}>
-          {HERO_SLIDES.map((_, i) => (
+          {slides.map((_, i) => (
             <button
               key={i}
               type="button"
@@ -1108,6 +1175,7 @@ export function HomePage() {
   const stories = cms?.stories?.length ? cms.stories : IMPACT_STORIES
   const newsItems = cms?.news?.length ? cms.news : NEWS_ITEMS
   const partners = cms?.partners?.length ? cms.partners : PARTNER_LOGOS
+  const trainingItems = cms?.trainings?.length ? cms.trainings : IN_PERSON_TRAININGS
   const cmsVideos = cms?.videos?.length ? cms.videos : null
 
   return (
@@ -1118,7 +1186,7 @@ export function HomePage() {
         <Navbar />
 
         {/* ── Hero ── */}
-        <HeroSection />
+        <HeroSection banners={cms?.banners} />
 
         <hr className="slg-section-divider" />
 
@@ -1156,12 +1224,11 @@ export function HomePage() {
             </div>
 
             <div className="slg-about-visual">
-              <div style={{ textAlign: 'center', position: 'relative', zIndex: 1 }}>
-                <Logo variant="icon" size={72} />
-                <p style={{ marginTop: '1.25rem', fontSize: '0.875rem', color: 'var(--text-3)', fontStyle: 'italic' }}>
-                  Empowering communities through learning
-                </p>
-              </div>
+              <img
+                src="/assets/images/homepage/community2.jpg"
+                alt="Putting communities first"
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
             </div>
           </div>
         </section>
@@ -1227,18 +1294,20 @@ export function HomePage() {
           </div>
 
           <div className="slg-stories-grid">
-            {IMPACT_STORIES.map((story) => (
-              <article key={story.id} className="slg-story-card">
+            {stories.map((story) => (
+              <article key={story.id || story.title} className="slg-story-card">
                 <div className="slg-story-img-wrap">
-                  <img src={story.image} alt={story.name} loading="lazy" />
-                  <div className="slg-story-tag">{story.location}</div>
+                  <img src={story.imageUrl || story.image || 'https://images.unsplash.com/photo-1531123897727-8f129e1688ce?q=80&w=600&auto=format&fit=crop'} alt={story.authorName || story.name} loading="lazy" />
+                  <div className="slg-story-tag">{story.location || 'Uganda'}</div>
                 </div>
                 <div className="slg-story-content">
                   <header>
-                    <p className="slg-story-meta">{story.role} — {story.region}</p>
+                    <p className="slg-story-meta">{story.authorName || story.name} — {story.authorRole || story.role || 'Member'}</p>
                     <h3 className="slg-story-title">{story.title}</h3>
                   </header>
-                  <p className="slg-story-preview">{story.preview}</p>
+                  <p className="slg-story-preview">
+                    {truncateWords(story.storyText || story.preview || '', 30)}
+                  </p>
                   <div style={{ marginTop: 'auto', paddingTop: '1.5rem' }}>
                     <Link to={`/stories/${story.id}`} className="slg-link-more">
                       Read the full story <Icon icon={icons.arrowRight} size={14} />
@@ -1271,7 +1340,7 @@ export function HomePage() {
               { title: 'Introduction to Civic Leadership', youtubeUrl: 'https://www.youtube.com/watch?v=avrQXoBConA' },
               { title: 'Community Governance Basics', youtubeUrl: 'https://www.youtube.com/watch?v=fWUANWrSHSw' },
               { title: 'Accountability & Transparency', youtubeUrl: 'https://www.youtube.com/watch?v=9Xk3H0JdUTY' },
-            ]).map((v) => {
+            ]).slice(0, 3).map((v) => {
               const vid = extractYoutubeId(v.youtubeUrl)
               return (
                 <div key={v.title} className="slg-video-card">
@@ -1311,19 +1380,21 @@ export function HomePage() {
             {newsItems.map((item) => (
               <article key={item.title} className="slg-news-card">
                 <div className="slg-news-img">
-                  <img src={item.image} alt={item.title} />
+                  <img src={item.imageUrl || item.image || 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?q=80&w=800&auto=format&fit=crop'} alt={item.title} />
                 </div>
                 <div className="slg-news-card-content">
                   <span className="slg-news-card-tag">{item.tag || 'Update'}</span>
                   <h3 className="slg-news-card-title">{item.title}</h3>
-                  <p className="slg-news-card-summary">{item.summary}</p>
+                  <p className="slg-news-card-summary">
+                    {item.summary ? item.summary.replace(/[#*>\n]/g, ' ').trim().slice(0, 150) + (item.summary.length > 150 ? '...' : '') : ''}
+                  </p>
 
                   <div className="slg-news-card-footer">
                     <p className="slg-news-card-date">
                       <Icon icon={item.tag === 'Events' ? icons.calendar : icons.fileText} size={14} />
-                      {item.date}
+                      {item.publishedDate || item.date}
                     </p>
-                    <Link to={`/news-and-updates/${item.slug}`} className="slg-link-more">
+                    <Link to={`/news-and-updates/${item.slug || (item.title && item.title.toLowerCase().replace(/\s+/g, '-'))}`} className="slg-link-more">
                       See Details <Icon icon={icons.arrowRight} size={14} />
                     </Link>
                   </div>
@@ -1347,24 +1418,27 @@ export function HomePage() {
             </div>
 
             <div className="slg-training-grid">
-              {IN_PERSON_TRAININGS.map(training => (
-                <div key={training.id} className="slg-training-card">
-                  <div className="slg-training-img-wrap">
-                    <img src={training.image} alt={training.title} loading="lazy" />
-                  </div>
-                  <div className="slg-training-content">
-                    <h3 className="slg-training-title">
-                      <Link to={`/inperson-training/${training.slug}`}>{training.title}</Link>
-                    </h3>
-                    <p className="slg-training-date">{training.date}</p>
-                    <div style={{ marginTop: 'auto', paddingTop: '0.5rem' }}>
-                      <Link to={`/inperson-training/${training.slug}`} className="slg-link-more">
-                        Read More <Icon icon={icons.arrowRight} size={14} />
-                      </Link>
+              {trainingItems.slice(0, 3).map(training => {
+                const slug = training.slug || (training.title && training.title.toLowerCase().replace(/\s+/g, '-'))
+                return (
+                  <div key={training.id} className="slg-training-card">
+                    <div className="slg-training-img-wrap">
+                      <img src={training.imageUrl || training.image || 'https://images.unsplash.com/photo-1515187029135-18ee286d815b?q=80&w=800&auto=format&fit=crop'} alt={training.title} loading="lazy" />
+                    </div>
+                    <div className="slg-training-content">
+                      <h3 className="slg-training-title">
+                        <Link to={`/inperson-training/${slug}`}>{training.title}</Link>
+                      </h3>
+                      <p className="slg-training-date">{training.date || new Date(training.eventDate).toLocaleDateString()}</p>
+                      <div style={{ marginTop: 'auto', paddingTop: '0.5rem' }}>
+                        <Link to={`/inperson-training/${slug}`} className="slg-link-more">
+                          See Details <Icon icon={icons.arrowRight} size={14} />
+                        </Link>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           </div>
         </section>
@@ -1383,20 +1457,24 @@ export function HomePage() {
             <Link to="/public-library" className="slg-btn-ghost">Enter Public Library</Link>
           </div>
 
-          <div className="slg-lib-grid">
-            {PUBLIC_LIBRARY_RESOURCES.map(res => (
-              <article key={res.id} className="slg-lib-card">
-                <div className="slg-lib-img-box">
-                  <img src={res.image} alt={res.title} />
+          <div className="slg-lib-row-stack">
+            {(cms?.library?.length ? cms.library : PUBLIC_LIBRARY_RESOURCES).slice(0, 3).map(res => (
+              <article key={res.id} className="slg-lib-item-row">
+                <div className="slg-lib-row-img">
+                  <img src={res.imageUrl || res.image || 'https://images.unsplash.com/photo-1544652478-6653e09f18a2?q=80&w=600&auto=format&fit=crop'} alt={res.title} />
                 </div>
-                <span className="slg-feature-tag">{res.tag}</span>
-                <h3 className="slg-feature-title">{res.title}</h3>
-                <p className="slg-feature-text">{res.desc}</p>
-                <div className="slg-lib-actions">
-                  <button onClick={() => setModalResource(res)} className="slg-btn-lib-outline">View More</button>
-                  <a href="#" className="slg-btn-lib-main" onClick={e => e.preventDefault()}>
-                    Download <Icon icon={icons.download} size={14} />
-                  </a>
+                <div className="slg-lib-row-content">
+                  <span className="slg-feature-tag">{res.category || res.tag}</span>
+                  <h3 className="slg-feature-title" style={{ fontSize: '1.25rem', marginBottom: '0.75rem' }}>{res.title}</h3>
+                  <p className="slg-feature-text" style={{ fontSize: '0.9375rem', lineHeight: 1.6 }}>
+                    {truncateWords(res.description || res.desc, 50)}
+                  </p>
+                  <div className="slg-lib-row-actions">
+                    <button onClick={() => setModalResource(res)} className="slg-btn-lib-outline" style={{ maxWidth: '140px' }}>View Details</button>
+                    <button onClick={() => { if (res.fileUrl) window.open(res.fileUrl, '_blank') }} className="slg-btn-lib-main" style={{ maxWidth: '140px' }}>
+                      Download <Icon icon={icons.download} size={14} />
+                    </button>
+                  </div>
                 </div>
               </article>
             ))}
@@ -1404,32 +1482,61 @@ export function HomePage() {
         </section>
 
         {/* Modal for Library Details */}
-        {modalResource && (
-          <div className="slg-modal-overlay" onClick={() => setModalResource(null)}>
-            <div className="slg-modal-box" onClick={e => e.stopPropagation()}>
-              <button className="slg-modal-close" onClick={() => setModalResource(null)}>
-                <Icon icon={icons.close} size={16} />
-              </button>
-              <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap' }}>
-                <div style={{ width: '120px', borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--border)' }}>
-                  <img src={modalResource.image} alt="" style={{ width: '100%', height: 'auto' }} />
-                </div>
-                <div style={{ flex: 1, minWidth: '280px' }}>
-                  <span className="slg-feature-tag">{modalResource.tag}</span>
-                  <h2 className="slg-section-title" style={{ fontSize: '1.75rem', marginBottom: '1rem' }}>{modalResource.title}</h2>
-                  <p className="slg-article-p" style={{ fontSize: '0.9375rem', color: 'var(--text-2)', lineHeight: 1.7 }}>
-                    {modalResource.fullDesc}
-                  </p>
-                  <div style={{ marginTop: '2.5rem' }}>
-                    <button className="slg-btn-hero-primary" style={{ width: '100%', justifyContent: 'center' }}>
-                      Download Documentation <Icon icon={icons.download} size={16} />
+        {
+          modalResource && (
+            <div className="slg-modal-overlay" onClick={() => setModalResource(null)}>
+              <div className="slg-modal-box" onClick={e => e.stopPropagation()}>
+                <div className="slg-modal-content">
+                  <div className="slg-modal-left">
+                    <img
+                      src={modalResource.imageUrl || modalResource.image || 'https://images.unsplash.com/photo-1544652478-6653e09f18a2?q=80&w=600&auto=format&fit=crop'}
+                      alt=""
+                      className="slg-modal-cover"
+                    />
+                  </div>
+                  <div className="slg-modal-right">
+                    <button className="slg-modal-close" onClick={() => setModalResource(null)}>
+                      <Icon icon={icons.close} size={20} />
                     </button>
+
+                    <div className="slg-modal-body">
+                      <span className="slg-feature-tag" style={{ background: 'var(--orange-dim)', color: 'var(--orange)', marginBottom: '1.25rem' }}>
+                        {modalResource.category || modalResource.tag}
+                      </span>
+                      <h2 className="slg-serif" style={{ fontSize: '2.5rem', lineHeight: 1.1, marginBottom: '1.5rem', color: 'var(--text)' }}>
+                        {modalResource.title}
+                      </h2>
+                      <div style={{ height: '4px', width: '50px', background: 'var(--orange)', borderRadius: '2px', marginBottom: '2rem' }} />
+                      <p style={{ fontSize: '1.0625rem', color: 'var(--text-2)', lineHeight: 1.8, whiteSpace: 'pre-wrap' }}>
+                        {modalResource.description || modalResource.fullDesc}
+                      </p>
+                    </div>
+
+                    <div className="slg-modal-footer">
+                      <button
+                        onClick={() => { if (modalResource.fileUrl) window.open(modalResource.fileUrl, '_blank') }}
+                        className="slg-btn-orange"
+                        style={{
+                          width: '100%',
+                          height: '56px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '0.75rem',
+                          fontSize: '1.0625rem',
+                          borderRadius: '16px',
+                          fontWeight: 700
+                        }}
+                      >
+                        Download Document Resource <Icon icon={icons.download} size={22} />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        )}
+          )
+        }
 
         <hr className="slg-section-divider" />
 
@@ -1477,7 +1584,7 @@ export function HomePage() {
         {/* ── Footer ── */}
         <Footer />
 
-      </div>
+      </div >
     </>
   )
 }
