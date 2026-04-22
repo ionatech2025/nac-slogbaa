@@ -1,5 +1,6 @@
 import { ThemeToggle } from '../shared/components/ThemeToggle.jsx'
 import { OfflineBanner } from '../shared/components/OfflineBanner.jsx'
+import { FloatingSocials } from '../shared/components/FloatingSocials.jsx'
 
 const globalToggleStyles = {
   position: 'fixed',
@@ -18,6 +19,7 @@ export function AppLayout({ children }) {
       <div style={globalToggleStyles}>
         <ThemeToggle />
       </div>
+      <FloatingSocials />
       <main id="main-content">{children}</main>
     </div>
   )
