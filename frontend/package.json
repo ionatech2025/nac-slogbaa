@@ -25,9 +25,9 @@
     "@tanstack/react-query-devtools": "^5.91.3",
     "dompurify": "^3.3.3",
     "lucide-react": "^0.575.0",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "react-router-dom": "^6.28.0",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "react-router-dom": "^7.14.2",
     "recharts": "^3.8.0",
     "zod": "^4.3.6",
     "zustand": "^5.0.12"
