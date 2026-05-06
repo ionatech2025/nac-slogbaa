@@ -1260,45 +1260,6 @@ export function HomePage() {
 
         <hr className="slg-section-divider" />
 
-        {/* ── In-Person Training Section ── */}
-        <section id="inperson" className="slg-section slg-bg-2">
-          <div className="slg-container">
-            <div style={{ marginBottom: '3rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '1rem' }}>
-              <div>
-                <span className="slg-eyebrow">Training & Workshops</span>
-                <h2 className="slg-section-title">In-Person <em>Training</em></h2>
-              </div>
-              <Link to="/inperson-training" className="slg-btn-ghost">View All Trainings</Link>
-            </div>
-
-            <div className="slg-training-grid">
-              {trainingItems.slice(0, 3).map(training => {
-                const slug = training.slug || (training.title && training.title.toLowerCase().replace(/\s+/g, '-'))
-                return (
-                  <div key={training.id} className="slg-training-card">
-                    <div className="slg-training-img-wrap">
-                      <img src={training.imageUrl || training.image || 'https://images.unsplash.com/photo-1515187029135-18ee286d815b?q=80&w=800&auto=format&fit=crop'} alt={training.title} loading="lazy" />
-                    </div>
-                    <div className="slg-training-content">
-                      <h3 className="slg-training-title">
-                        <Link to={`/inperson-training/${slug}`}>{training.title}</Link>
-                      </h3>
-                      <p className="slg-training-date">{training.date || new Date(training.eventDate).toLocaleDateString()}</p>
-                      <div style={{ marginTop: 'auto', paddingTop: '0.5rem' }}>
-                        <Link to={`/inperson-training/${slug}`} className="slg-link-more">
-                          See Details <Icon icon={icons.arrowRight} size={14} />
-                        </Link>
-                      </div>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-        </section>
-
-        <hr className="slg-section-divider" />
-
         <section id="public-library" className="slg-section slg-bg-3">
           <div style={{ marginBottom: '3.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '1.5rem' }}>
             <div>
