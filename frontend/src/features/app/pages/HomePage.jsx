@@ -1260,47 +1260,6 @@ export function HomePage() {
 
         <hr className="slg-section-divider" />
 
-        {/* ── News ── */}
-        <section className="slg-section" id="news">
-          <div style={{ marginBottom: '3.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '1.5rem' }}>
-            <div>
-              <span className="slg-eyebrow">News & Updates</span>
-              <h2 className="slg-section-title">
-                Latest from<br /><em>SLOGBAA</em>
-              </h2>
-            </div>
-            <Link to="/news-and-updates" className="slg-btn-ghost">View More</Link>
-          </div>
-          <div className="slg-news-grid">
-            {newsItems.map((item) => (
-              <article key={item.title} className="slg-news-card">
-                <div className="slg-news-img">
-                  <img src={item.imageUrl || item.image || 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?q=80&w=800&auto=format&fit=crop'} alt={item.title} />
-                </div>
-                <div className="slg-news-card-content">
-                  <span className="slg-news-card-tag">{item.tag || 'Update'}</span>
-                  <h3 className="slg-news-card-title">{item.title}</h3>
-                  <p className="slg-news-card-summary">
-                    {item.summary ? item.summary.replace(/[#*>\n]/g, ' ').trim().slice(0, 150) + (item.summary.length > 150 ? '...' : '') : ''}
-                  </p>
-
-                  <div className="slg-news-card-footer">
-                    <p className="slg-news-card-date">
-                      <Icon icon={item.tag === 'Events' ? icons.calendar : icons.fileText} size={14} />
-                      {item.publishedDate || item.date}
-                    </p>
-                    <Link to={`/news-and-updates/${item.slug || (item.title && item.title.toLowerCase().replace(/\s+/g, '-'))}`} className="slg-link-more">
-                      See Details <Icon icon={icons.arrowRight} size={14} />
-                    </Link>
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <hr className="slg-section-divider" />
-
         {/* ── In-Person Training Section ── */}
         <section id="inperson" className="slg-section slg-bg-2">
           <div className="slg-container">
