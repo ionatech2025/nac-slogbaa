@@ -1,184 +1,26 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
-import { Link } from 'react-router-dom'
+import { useState, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Icon, icons } from '../../../shared/icons.jsx'
-import { Logo } from '../../../shared/components/Logo.jsx'
 import { useTheme } from '../../../contexts/ThemeContext.jsx'
 import { Navbar } from '../../../shared/components/Navbar.jsx'
-import { getHomepageContent, getImpactStats, recordVisit } from '../../../api/homepage.js'
+import { getHomepageContent } from '../../../api/homepage.js'
 import { queryKeys } from '../../../lib/query-keys.js'
 import { CtaSection } from '../../../shared/components/CtaSection.jsx'
 import { Footer } from '../../../shared/components/Footer.jsx'
+
+// Import extracted home components
 import {
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  Legend
-} from 'recharts'
-const truncateWords = (str, limit = 150) => {
-  if (!str) return ''
-  const words = str.split(/\s+/)
-  if (words.length <= limit) return str
-  return words.slice(0, limit).join(' ') + '...'
-}
+  HeroSection,
+  AboutSection,
+  ImpactSection,
+  HowItWorksSection,
+  ImpactStoriesSection,
+  LibrarySection,
+  PartnersSection,
+  LibraryModal
+} from '../components/home'
 
-
-
-/* ─── Static data ─────────────────────────────────────────────────────────── */
-const HERO_SLIDES = [
-  {
-    eyebrow: 'Civic Education Platform',
-    title: 'Empowering Active Citizens',
-    highlight: 'Through Online Learning',
-    subtitle: 'Build your civic leadership skills with structured courses, validated assessments, and recognised certificates.',
-    accent: '#F58220',
-  },
-  {
-    eyebrow: 'Learn Your Way',
-    title: 'Train at Your Own Pace',
-    highlight: 'From Any Device',
-    subtitle: 'Access training modules and downloadable resources. Your progress saves automatically.',
-    accent: '#34d399',
-  },
-  {
-    eyebrow: 'Certificates & Recognition',
-    title: 'Earn Credentials That',
-    highlight: 'Open Doors',
-    subtitle: 'Pass assessments, receive downloadable certificates, and have your achievements emailed directly to you.',
-    accent: '#a78bfa',
-  },
-]
-
-const STEPS = [
-  { num: '01', title: 'Register', text: 'Create your free account with your name, email, and district.' },
-  { num: '02', title: 'Learn', text: 'Study rich module content at your own pace — progress saves automatically.' },
-  { num: '03', title: 'Certification', text: 'Complete all module assessments for a given course and earn a certificate of completion.' },
-]
-
-const IMPACT_STORIES = [
-  {
-    id: 'sarah-namuli',
-    name: 'Sarah Namuli',
-    location: 'Kampala District',
-    region: 'Central Uganda',
-    role: 'Community Leader',
-    title: 'Leading Accountability from the Frontline',
-    preview: 'How one leader used digital tools to monitor local service delivery and improve community outcomes...',
-    image: '/sarah_namuli_story_1776248245640.png',
-  },
-  {
-    id: 'james-okello',
-    name: 'James Okello',
-    location: 'Gulu City',
-    region: 'Northern Uganda',
-    role: 'Civil Society Advocate',
-    title: 'Digital Literacy for Local Governance',
-    preview: 'James shares his journey of transitioning from traditional advocacy to data-driven civic engagement...',
-    image: '/james_okello_story_1776248275273.png',
-  },
-  {
-    id: 'grace-achieng',
-    name: 'Grace Achieng',
-    location: 'Mbarara District',
-    region: 'Western Uganda',
-    role: 'Civic Trainee',
-    title: 'Breaking Barriers in Civic Education',
-    preview: 'Grace explains how the SLOGBAA platform allowed her to pursue certification despite regional constraints...',
-    image: 'https://images.unsplash.com/photo-1531123897727-8f129e1688ce?q=80&w=600&auto=format&fit=crop', // Temporary until rerun
-  },
-]
-
-const PUBLIC_LIBRARY_RESOURCES = [
-  {
-    id: 'gov-guide',
-    title: 'District Governance Guide',
-    tag: 'Report',
-    desc: 'Guidelines for effective local administration and community-led district planning.',
-    fullDesc: 'The District Governance Guide is a comprehensive manual designed for local council members and administrative staff. It outlines best practices for fiscal transparency, public consultation, and resource allocation to ensure that community needs are prioritized in every policy decision.',
-    image: '/governance_guide_cover_1776252013759.png'
-  },
-  {
-    id: 'leadership-101',
-    title: 'Civic Leadership 101',
-    tag: 'Manual',
-    desc: 'Foundation principles for emerging community leaders and grassroots advocates.',
-    fullDesc: 'Leadership 101 focuses on the core competencies required to organize and mobilize communities. From conflict resolution to public speaking and strategic planning, this manual serves as a roadmap for anyone looking to make a tangible impact at the local level.',
-    image: '/leadership_manual_cover_1776252040723.png'
-  },
-  {
-    id: 'acc-framework',
-    title: 'Accountability Framework',
-    tag: 'Policy',
-    desc: 'Standardized procedures for monitoring and evaluating public service delivery.',
-    fullDesc: 'This policy framework provides the technical tools needed to audit local service delivery. It includes standardized reporting templates, data verification protocols, and community monitoring checklists designed to hold local service providers accountable to the citizens.',
-    image: '/accountability_framework_cover_1776252057156.png'
-  }
-]
-const NEWS_ITEMS = [
-  {
-    date: 'April 15, 2024',
-    title: 'New Courses on Civic Engagement',
-    summary: 'NAC is preparing new courses on community-led governance, accountability, and citizen participation.',
-    tag: 'News & Updates',
-    slug: 'new-courses-2024',
-    image: 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?q=80&w=800&auto=format&fit=crop'
-  },
-  {
-    date: 'April 10, 2024',
-    title: 'Regional Training Workshops',
-    summary: 'Live training workshops will complement online courses, bringing trainers and trainees together across Uganda.',
-    tag: 'Events',
-    slug: 'regional-workshops-july',
-    image: 'https://images.unsplash.com/photo-1515187029135-18ee286d815b?q=80&w=800&auto=format&fit=crop'
-  },
-  {
-    date: 'March 28, 2024',
-    title: 'Platform Updates & Improvements',
-    summary: 'Ongoing enhancements including new content formats, mobile improvements, and expanded district coverage.',
-    tag: 'News & Updates',
-    slug: 'platform-upgrade-v2',
-    image: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?q=80&w=800&auto=format&fit=crop'
-  },
-]
-
-const PARTNER_LOGOS = [
-  { name: 'Civil Connections', logoUrl: '/assets/images/logos/CivilConnectionsLogo.png', websiteUrl: 'https://civilconnections.org/' },
-  { name: 'UYONET', logoUrl: '/assets/images/logos/uyonet-logo.png', websiteUrl: 'https://uyonet.wordpress.com/' },
-  { name: 'ActionAid', logoUrl: '/assets/images/logos/Actionaid_logo.png', websiteUrl: 'https://uganda.actionaid.org/' },
-  { name: 'Oxfam', logoUrl: '/assets/images/logos/nac_logo.png', websiteUrl: 'https://nacuganda.org/' },
-]
-
-
-
-const IN_PERSON_TRAININGS = [
-  {
-    id: '1',
-    title: 'Three (3) Green Democratic Spaces in Yumbe, Mayuge, and Kampala',
-    date: 'Monday, July 1, 2024 - 00:00',
-    image: '/assets/images/homepage/banner_IMG.jpg',
-    slug: 'three-green-democratic-spaces'
-  },
-  {
-    id: '2',
-    title: 'The Parish Development Model Monitoring',
-    date: 'Monday, June 10, 2024 - 00:00',
-    image: '/assets/images/homepage/banner_IMG.jpg',
-    slug: 'parish-development-model-monitoring'
-  },
-  {
-    id: '3',
-    title: 'The Civil Society Strengthening Academy (CSSA)',
-    date: 'Tuesday, June 4, 2024 - 00:00',
-    image: '/assets/images/homepage/banner_IMG.jpg',
-    slug: 'civil-society-strengthening-academy'
-  }
-]
+// Import fallback data
+import { IMPACT_STORIES } from '../components/home/data'
 
 /* ─── Global CSS injected once ────────────────────────────────────────────── */
 const GLOBAL_CSS = `
@@ -469,37 +311,6 @@ const GLOBAL_CSS = `
   .slg-story-title { font-size: 1.125rem; font-weight: 600; line-height: 1.3; margin-bottom: 0.75rem; color: var(--text); }
   .slg-story-preview { font-size: 0.875rem; color: var(--text-2); line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 
-  /* News section cards (matching news listing) */
-  .slg-news-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2.5rem; }
-  .slg-news-card {
-    background: var(--bg); border: 1px solid var(--border); border-radius: 20px; overflow: hidden;
-    display: flex; flex-direction: column; transition: all 0.3s ease;
-  }
-  .slg-news-card:hover { border-color: var(--orange-glow); transform: translateY(-5px); box-shadow: 0 20px 40px -10px rgba(0,0,0,0.1); }
-  .slg-news-img { aspect-ratio: 16/10; background: var(--bg-3); overflow: hidden; border-bottom: 1px solid var(--border); }
-  .slg-news-img img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s; }
-  .slg-news-card:hover .slg-news-img img { transform: scale(1.05); }
-  .slg-news-card-content { padding: 1.75rem; flex-grow: 1; display: flex; flex-direction: column; }
-  .slg-news-card-tag {
-    display: inline-block; padding: 0.25rem 0.65rem; border-radius: 6px;
-    font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
-    color: var(--orange); background: var(--orange-dim); margin-bottom: 1rem;
-    align-self: flex-start;
-  }
-  .slg-news-card-title { font-size: 1.125rem; font-weight: 600; line-height: 1.4; color: var(--text); margin-bottom: 0.75rem; }
-  .slg-news-card-summary { font-size: 0.875rem; color: var(--text-2); line-height: 1.6; margin-bottom: 1.5rem; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-  .slg-news-card-footer { margin-top: auto; padding-top: 1.25rem; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
-  .slg-news-card-date { font-size: 0.8125rem; color: var(--text-3); display: flex; align-items: center; gap: 0.4rem; }
-
-  /* Videos Home */
-  .slg-videos-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
-  .slg-video-card { border-radius: 16px; overflow: hidden; border: 1px solid var(--border); background: var(--bg-2); transition: border-color 0.2s; }
-  .slg-video-card:hover { border-color: var(--border-hover); }
-  .slg-video-thumb { aspect-ratio: 16/9; position: relative; }
-  .slg-video-thumb iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: none; }
-  .slg-video-body { padding: 1rem 1.25rem; }
-  .slg-video-title { font-size: 0.9375rem; font-weight: 600; color: var(--text); }
-
   /* Library Home Update (Row Layout) */
   .slg-lib-row-stack { display: flex; flex-direction: column; gap: 1.5rem; }
   .slg-lib-item-row {
@@ -537,20 +348,6 @@ const GLOBAL_CSS = `
     .slg-lib-row-img { width: 100%; height: 200px; }
   }
 
-  /* Training Home (Compact) */
-  .slg-training-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
-  .slg-training-card {
-    background: var(--bg); border: 1px solid var(--border); border-radius: 20px; overflow: hidden;
-    display: flex; flex-direction: column; transition: all 0.3s ease;
-  }
-  .slg-training-card:hover { border-color: var(--orange-glow); transform: translateY(-5px); box-shadow: 0 20px 40px -10px rgba(0,0,0,0.1); }
-  .slg-training-img-wrap { aspect-ratio: 16/9; position: relative; overflow: hidden; background: var(--bg-3); border-bottom: 1px solid var(--border); }
-  .slg-training-img-wrap img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s; }
-  .slg-training-card:hover .slg-training-img-wrap img { transform: scale(1.05); }
-  .slg-training-content { padding: 1.25rem; flex-grow: 1; display: flex; flex-direction: column; }
-  .slg-training-title { font-size: 1rem; font-weight: 600; line-height: 1.4; margin-bottom: 0.5rem; }
-  .slg-training-date { font-size: 0.75rem; color: var(--text-3); font-weight: 500; margin-bottom: 1rem; }
-
   /* Modal */
   .slg-modal-overlay {
     position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px);
@@ -585,12 +382,6 @@ const GLOBAL_CSS = `
     .slg-modal-right { height: auto; overflow: visible; }
     .slg-modal-body { padding: 2rem; overflow: visible; }
     .slg-modal-footer { padding: 1.5rem 2rem; }
-  }
-
-  @media (max-width: 800px) {
-    .slg-modal-content { flex-direction: column; }
-    .slg-modal-left { width: 100%; height: 200px; border-right: none; border-bottom: 1px solid var(--border); }
-    .slg-modal-right { padding: 2rem; }
   }
 
   /* Footer */
@@ -806,392 +597,6 @@ const GLOBAL_CSS = `
   }
 `
 
-/* ─── Hero with Carousel ──────────────────────────────────────────────────── */
-function HeroSection({ banners }) {
-  const { data: stats } = useQuery({
-    queryKey: queryKeys.homepage.impact(),
-    queryFn: getImpactStats,
-    staleTime: 5 * 60 * 1000,
-  })
-
-  const [current, setCurrent] = useState(0)
-  const [paused, setPaused] = useState(false)
-
-  const slides = HERO_SLIDES.map((slide, i) => {
-    const cmsBanner = banners && banners[i]
-    return cmsBanner ? { ...slide, ...cmsBanner } : slide
-  })
-  const total = slides.length
-
-  const next = useCallback(() => setCurrent((c) => (c + 1) % total), [total])
-
-  useEffect(() => {
-    if (paused) return
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
-    const id = setInterval(next, 3000)
-    return () => clearInterval(id)
-  }, [paused, next])
-
-  const slide = slides[current] || slides[0] || {}
-
-  // Dynamic stats
-  const dynamicStats = [
-    { value: stats ? `${(stats.traineeCount || 0).toLocaleString()}+` : '500+', label: 'Active Learners' },
-    { value: stats ? (stats.coursesAvailable || 0) : '12', label: 'Courses Available' },
-    { value: stats ? `${Math.round(((stats.coursesDone || 0) / (stats.traineeCount || 1)) * 100)}%` : '95%', label: 'Completion Rate' },
-    { value: stats ? (stats.districtsCount || 0) : '8', label: 'Districts Reached' },
-  ]
-
-  return (
-    <section
-      className="slg-hero"
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
-    >
-      <div
-        className="slg-background-image"
-        style={{
-          backgroundImage: slide.imageUrl || slide.image ? `url(${slide.imageUrl || slide.image})` : undefined
-        }}
-      />
-      <div className="slg-hero-overlay" />
-      <div className="slg-hero-bg" />
-      <div className="slg-hero-grid" />
-
-      <div className="slg-hero-content">
-        {slide.eyebrow && (
-          <div className="slg-hero-eyebrow" key={`eyebrow-${current}`}>
-            {slide.eyebrow}
-          </div>
-        )}
-
-        {slide.title && (
-          <h1 className="slg-hero-title slg-serif" key={`title-${current}`}>
-            {slide.title}{' '}
-            {slide.highlight && <em>{slide.highlight}</em>}
-          </h1>
-        )}
-
-        {slide.subtitle && (
-          <h2 className="slg-hero-sub" key={`sub-${current}`} style={{ fontSize: '1.25rem', fontWeight: 400, opacity: 0.9 }}>
-            {slide.subtitle}
-          </h2>
-        )}
-
-        <div className="slg-hero-actions">
-          <Link to="/auth/register" className="slg-btn-hero-primary">
-            Get Started — It&apos;s Free
-          </Link>
-          <Link to="/auth/login" className="slg-btn-hero-secondary">
-            Sign In
-          </Link>
-        </div>
-
-        {/* Stats strip */}
-        <div className="slg-stats-bar">
-          {dynamicStats.map((s) => (
-            <div key={s.label} className="slg-stat-item">
-              <span className="slg-stat-val">{s.value}</span>
-              <span className="slg-stat-label">{s.label}</span>
-            </div>
-          ))}
-        </div>
-
-        {/* Slide dots */}
-        <div className="slg-dots" style={{ marginTop: '2.5rem' }}>
-          {slides.map((_, i) => (
-            <button
-              key={i}
-              type="button"
-              className={`slg-dot ${i === current ? 'slg-dot-active' : 'slg-dot-inactive'}`}
-              onClick={() => setCurrent(i)}
-              aria-label={`Go to slide ${i + 1}`}
-            />
-          ))}
-        </div>
-      </div>
-    </section>
-  )
-}
-
-function ImpactSection() {
-  const { data: stats, isLoading } = useQuery({
-    queryKey: queryKeys.homepage.impact(),
-    queryFn: getImpactStats,
-    staleTime: 5 * 60 * 1000,
-  })
-
-  const { theme } = useTheme()
-  const isDark = theme === 'dark'
-
-  if (isLoading) return null // Or a shimmer
-
-  // Prepare chart data
-  const genderData = [
-    { name: 'Male', value: stats?.demographicsByGender?.MALE || 0, color: '#F58220' },
-    { name: 'Female', value: stats?.demographicsByGender?.FEMALE || 0, color: '#34d399' },
-  ]
-
-  const districtData = Object.entries(stats?.demographicsByDistrict || {}).map(([name, value]) => ({
-    name,
-    value,
-  })).sort((a, b) => b.value - a.value).slice(0, 5)
-
-  const renderStars = (rating) => {
-    const full = Math.floor(rating)
-    const half = rating % 1 >= 0.5
-    return (
-      <div className="slg-stars">
-        {[...Array(5)].map((_, i) => (
-          <Icon
-            key={i}
-            icon={i < full ? icons.star : (i === full && half ? icons.starHalf : icons.starOutline)}
-            size={18}
-            fill={i < full || (i === full && half) ? 'currentColor' : 'none'}
-          />
-        ))}
-      </div>
-    )
-  }
-
-  return (
-    <section className="slg-section" id="impact">
-      <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
-        <span className="slg-eyebrow" style={{ justifyContent: 'center' }}>Our Global Reach</span>
-        <h2 className="slg-section-title" style={{ textAlign: 'center' }}>
-          Real Impact, <em>Quantified</em>
-        </h2>
-        <p className="slg-section-desc" style={{ margin: '0.875rem auto 0', textAlign: 'center' }}>
-          Tracking our progress as we empower citizens through civic education and leadership training across the region.
-        </p>
-      </div>
-
-      <div className="slg-impact-grid">
-        <div className="slg-impact-card">
-          <div className="slg-impact-icon">◈</div>
-          <div className="slg-impact-val">{(stats?.coursesDone || 0).toLocaleString()}+</div>
-          <div className="slg-impact-label">Courses Completed</div>
-        </div>
-        <div className="slg-impact-card">
-          <div className="slg-impact-icon">◉</div>
-          <div className="slg-impact-val">{(stats?.certificatesIssued || 0).toLocaleString()}</div>
-          <div className="slg-impact-label">Certificates Issued</div>
-        </div>
-        <div className="slg-impact-card">
-          <div className="slg-impact-icon">◎</div>
-          <div className="slg-impact-val">{(stats?.traineeCount || 0).toLocaleString()}</div>
-          <div className="slg-impact-label">Active Trainees</div>
-        </div>
-      </div>
-
-      <div className="slg-impact-visual">
-        {/* District Demographics */}
-        <div className="slg-chart-container">
-          <div className="slg-chart-header">
-            <div>
-              <h3 className="slg-chart-title">Trainee Distribution</h3>
-              <p className="slg-chart-subtitle">Top 5 Districts by Enrollment</p>
-            </div>
-            <div className="slg-impact-icon" style={{ width: 40, height: 40, fontSize: '1rem', marginBottom: 0 }}>◓</div>
-          </div>
-          <div style={{ height: 300, width: '100%' }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={districtData} layout="vertical" margin={{ left: 20, right: 30 }}>
-                <XAxis type="number" hide />
-                <YAxis
-                  dataKey="name"
-                  type="category"
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fill: isDark ? '#a1a1aa' : '#52525b', fontSize: 12 }}
-                  width={100}
-                />
-                <Tooltip
-                  cursor={{ fill: 'transparent' }}
-                  contentStyle={{
-                    background: isDark ? '#1e1e26' : '#ffffff',
-                    border: '1px solid var(--border)',
-                    borderRadius: '12px'
-                  }}
-                />
-                <Bar dataKey="value" fill="#F58220" radius={[0, 10, 10, 0]} barSize={20} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        {/* Gender Demographics */}
-        <div className="slg-chart-container">
-          <div className="slg-chart-header">
-            <div>
-              <h3 className="slg-chart-title">Gender Inclusivity</h3>
-              <p className="slg-chart-subtitle">Commitment to Gender Balanced Learning</p>
-            </div>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '2rem', height: 300 }}>
-            <div style={{ flex: 1, height: '100%' }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={genderData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
-                    paddingAngle={8}
-                    dataKey="value"
-                  >
-                    {genderData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    contentStyle={{
-                      background: isDark ? '#1e1e26' : '#ffffff',
-                      border: '1px solid var(--border)',
-                      borderRadius: '12px'
-                    }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="slg-pie-legend">
-              {genderData.map((entry) => (
-                <div key={entry.name} className="slg-pie-legend-item">
-                  <div className="slg-pie-dot" style={{ background: entry.color }} />
-                  <span style={{ fontWeight: 600 }}>{entry.name}:</span>
-                  <span>{((entry.value / (stats?.traineeCount || 1)) * 100).toFixed(1)}%</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="slg-impact-grid" style={{ marginTop: '2.5rem' }}>
-        <div className="slg-chart-container" style={{ textAlign: 'center', justifyContent: 'center' }}>
-          <span className="slg-impact-label" style={{ marginBottom: '1.5rem' }}>Trainee Satisfaction</span>
-          <div className="slg-rating-strip">
-            <span className="slg-rating-val">{(stats?.avgTraineeRating || 0).toFixed(1)}</span>
-            {renderStars(stats?.avgTraineeRating || 0)}
-          </div>
-          <p className="slg-chart-subtitle" style={{ marginTop: '1rem' }}>Overall Course Rating from Trainees</p>
-        </div>
-        <div className="slg-chart-container" style={{ textAlign: 'center', justifyContent: 'center' }}>
-          <span className="slg-impact-label" style={{ marginBottom: '1.5rem' }}>Admin Evaluation</span>
-          <div className="slg-rating-strip">
-            <span className="slg-rating-val">{(stats?.avgAdminRating || 0).toFixed(1)}</span>
-            {renderStars(stats?.avgAdminRating || 0)}
-          </div>
-          <p className="slg-chart-subtitle" style={{ marginTop: '1rem' }}>Internal Course Quality Rating</p>
-        </div>
-        <div className="slg-impact-card" style={{ background: 'var(--orange)', color: '#fff', border: 'none', justifyContent: 'flex-start' }}>
-          <h3 className="slg-serif" style={{ fontSize: '1.625rem', marginBottom: '0.5rem', fontWeight: 800 }}>Join SLOGBAA</h3>
-          <p style={{ fontSize: '0.875rem', opacity: 0.9, marginBottom: '1rem' }}>Empowering citizens through knowledge and action.</p>
-          <div className="slg-impact-btn-stack">
-            <Link to="/auth/register" className="slg-btn-hero-primary" style={{ background: '#fff', color: 'var(--orange)', border: 'none', width: '100%', textAlign: 'center', cursor: 'pointer', position: 'relative', zIndex: 2 }}>
-              Register Now
-            </Link>
-            <Link to="/public/courses-view" className="slg-btn-hero-secondary" style={{ background: 'rgba(255,255,255,0.1)', borderColor: 'rgba(255,255,255,0.4)', color: '#fff', width: '100%', textAlign: 'center', cursor: 'pointer', position: 'relative', zIndex: 2 }}>
-              View Courses
-            </Link>
-          </div>
-        </div>
-      </div>
-    </section>
-  )
-}
-
-/* ─── YouTube helper ─────────────────────────────────────────────────────── */
-function extractYoutubeId(url) {
-  if (!url) return null
-  const m = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([^&?#]+)/)
-  return m ? m[1] : url
-}
-
-function AboutSection() {
-  return (
-    <section className="slg-section" id="about">
-      <div className="slg-about-grid">
-        <div>
-          <span className="slg-eyebrow">About SLOGBAA</span>
-          <h2 className="slg-section-title">
-            Putting Communities<br /><em>Before Self</em>
-          </h2>
-          <p style={{ fontSize: '0.9375rem', color: 'var(--text-2)', lineHeight: 1.75, marginTop: '1.25rem' }}>
-            The <strong style={{ color: 'var(--text)', fontWeight: 600 }}>Network for Active Citizens (NAC)</strong> is a civic engagement initiative dedicated to building community capacity across Uganda. We empower citizens with the knowledge, skills, and tools to actively participate in governance and community development.
-          </p>
-          <p style={{ fontSize: '0.9375rem', color: 'var(--text-2)', lineHeight: 1.75, marginTop: '1rem' }}>
-            <strong style={{ color: 'var(--text)', fontWeight: 600 }}>SLOGBAA</strong> extends this mission into the digital space — structured courses, rigorous assessments, and recognised certification for civic leaders, civil society members, and engaged citizens at every level.
-          </p>
-          <div style={{ display: 'flex', gap: '0.75rem', marginTop: '2rem', flexWrap: 'wrap' }}>
-            <Link to="/auth/register" className="slg-btn-hero-primary" style={{ fontSize: '0.875rem', padding: '0.625rem 1.25rem' }}>
-              Start learning
-            </Link>
-            <Link to="/auth/login" className="slg-btn-hero-secondary" style={{ fontSize: '0.875rem', padding: '0.625rem 1.25rem' }}>
-              Continue Learning
-            </Link>
-          </div>
-        </div>
-
-        <div className="slg-about-visual">
-          <img
-            src="/assets/images/homepage/community2.jpg"
-            alt="Putting communities first"
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-          />
-        </div>
-      </div>
-    </section>
-  )
-}
-
-function ImpactStoriesSection({ stories }) {
-  return (
-    <section className="slg-section slg-bg-3" id="stories">
-      <div style={{ marginBottom: '3.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '1.5rem' }}>
-        <div>
-          <span className="slg-eyebrow">Impact Stories</span>
-          <h2 className="slg-section-title">
-            Voices from<br /><em>the community</em>
-          </h2>
-          <p className="slg-section-desc" style={{ marginTop: '0.875rem' }}>
-            Real citizen leaders sharing their journey of transformation through civic education.
-          </p>
-        </div>
-        <Link to="/stories" className="slg-btn-ghost">View All Stories</Link>
-      </div>
-
-      <div className="slg-stories-grid">
-        {stories.map((story) => (
-          <article key={story.id || story.title} className="slg-story-card">
-            <div className="slg-story-img-wrap">
-              <img src={story.imageUrl || story.image || 'https://images.unsplash.com/photo-1531123897727-8f129e1688ce?q=80&w=600&auto=format&fit=crop'} alt={story.authorName || story.name} loading="lazy" />
-              <div className="slg-story-tag">{story.location || 'Uganda'}</div>
-            </div>
-            <div className="slg-story-content">
-              <header>
-                <p className="slg-story-meta">{story.authorName || story.name} — {story.authorRole || story.role || 'Member'}</p>
-                <h3 className="slg-story-title">{story.title}</h3>
-              </header>
-              <p className="slg-story-preview">
-                {truncateWords(story.storyText || story.preview || '', 30)}
-              </p>
-              <div style={{ marginTop: 'auto', paddingTop: '1.5rem' }}>
-                <Link to={`/stories/${story.id}`} className="slg-link-more">
-                  Read the full story <Icon icon={icons.arrowRight} size={14} />
-                </Link>
-              </div>
-            </div>
-          </article>
-        ))}
-      </div>
-    </section>
-  )
-}
-
-
-
 /* ─── Page ───────────────────────────────────────────────────────────────── */
 export function HomePage() {
   const [modalResource, setModalResource] = useState(null)
@@ -1210,7 +615,6 @@ export function HomePage() {
       sessionStorage.setItem('slogbaa-visited', '1')
     }
 
-    // Handle cross-page hash scroll
     const hash = window.location.hash
     if (hash) {
       setTimeout(() => {
@@ -1221,10 +625,6 @@ export function HomePage() {
   }, [])
 
   const stories = cms?.stories?.length ? cms.stories : IMPACT_STORIES
-  const newsItems = cms?.news?.length ? cms.news : NEWS_ITEMS
-  const partners = cms?.partners?.length ? cms.partners : PARTNER_LOGOS
-  const trainingItems = cms?.trainings?.length ? cms.trainings : IN_PERSON_TRAININGS
-  const cmsVideos = cms?.videos?.length ? cms.videos : null
 
   return (
     <>
@@ -1233,184 +633,37 @@ export function HomePage() {
       <div className={`slg-page ${theme}-theme`}>
         <Navbar />
 
-        {/* ── Hero ── */}
         <HeroSection banners={cms?.banners} />
 
         <hr className="slg-section-divider" />
 
-        {/* ── About ── */}
         <AboutSection />
+
         {/* ── Impact ── silenced for now till numbers grow */}
         {/* <hr className="slg-section-divider" /> */}
         {/* <ImpactSection /> */}
 
         <hr className="slg-section-divider" />
 
-        {/* ── How it works ── */}
-        <section className="slg-section" id="how">
-          <div style={{ marginBottom: '3rem' }}>
-            <span className="slg-eyebrow">How it works</span>
-            <h2 className="slg-section-title">
-              Three steps to<br /><em>civic leadership</em>
-            </h2>
-          </div>
-          <div className="slg-steps">
-            {STEPS.map((step) => (
-              <div key={step.num} className="slg-step">
-                <div className="slg-step-num">{step.num}</div>
-                <h3 className="slg-step-title">{step.title}</h3>
-                <p className="slg-step-text">{step.text}</p>
-              </div>
-            ))}
-          </div>
-        </section>
+        <HowItWorksSection />
 
         <hr className="slg-section-divider" />
 
-        {/* ── Impact Stories ── */}
         <ImpactStoriesSection stories={stories} />
 
         <hr className="slg-section-divider" />
 
-        <section id="public-library" className="slg-section slg-bg-3">
-          <div style={{ marginBottom: '3.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '1.5rem' }}>
-            <div>
-              <span className="slg-eyebrow">Resource Center</span>
-              <h2 className="slg-section-title">Public <em>Library</em></h2>
-              <p className="slg-section-desc">
-                Fully open-access policy guides, administrative manuals, and governance research for all citizens.
-              </p>
-            </div>
-            <Link to="/public-library" className="slg-btn-ghost">Enter Public Library</Link>
-          </div>
-
-          <div className="slg-lib-row-stack">
-            {(cms?.library?.length ? cms.library : PUBLIC_LIBRARY_RESOURCES).slice(0, 3).map(res => (
-              <article key={res.id} className="slg-lib-item-row">
-                <div className="slg-lib-row-img">
-                  <img src={res.imageUrl || res.image || 'https://images.unsplash.com/photo-1544652478-6653e09f18a2?q=80&w=600&auto=format&fit=crop'} alt={res.title} />
-                </div>
-                <div className="slg-lib-row-content">
-                  <span className="slg-feature-tag">{res.category || res.tag}</span>
-                  <h3 className="slg-feature-title" style={{ fontSize: '1.25rem', marginBottom: '0.75rem' }}>{res.title}</h3>
-                  <p className="slg-feature-text" style={{ fontSize: '0.9375rem', lineHeight: 1.6 }}>
-                    {truncateWords(res.description || res.desc, 50)}
-                  </p>
-                  <div className="slg-lib-row-actions">
-                    <button onClick={() => setModalResource(res)} className="slg-btn-lib-outline" style={{ maxWidth: '140px' }}>View Details</button>
-                    <button onClick={() => { if (res.fileUrl) window.open(res.fileUrl, '_blank') }} className="slg-btn-lib-main" style={{ maxWidth: '140px' }}>
-                      Download <Icon icon={icons.download} size={14} />
-                    </button>
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        {/* Modal for Library Details */}
-        {
-          modalResource && (
-            <div className="slg-modal-overlay" onClick={() => setModalResource(null)}>
-              <div className="slg-modal-box" onClick={e => e.stopPropagation()}>
-                <div className="slg-modal-content">
-                  <div className="slg-modal-left">
-                    <img
-                      src={modalResource.imageUrl || modalResource.image || 'https://images.unsplash.com/photo-1544652478-6653e09f18a2?q=80&w=600&auto=format&fit=crop'}
-                      alt=""
-                      className="slg-modal-cover"
-                    />
-                  </div>
-                  <div className="slg-modal-right">
-                    <button className="slg-modal-close" onClick={() => setModalResource(null)}>
-                      <Icon icon={icons.close} size={20} />
-                    </button>
-
-                    <div className="slg-modal-body">
-                      <span className="slg-feature-tag" style={{ background: 'var(--orange-dim)', color: 'var(--orange)', marginBottom: '1.25rem' }}>
-                        {modalResource.category || modalResource.tag}
-                      </span>
-                      <h2 className="slg-serif" style={{ fontSize: '2.5rem', lineHeight: 1.1, marginBottom: '1.5rem', color: 'var(--text)' }}>
-                        {modalResource.title}
-                      </h2>
-                      <div style={{ height: '4px', width: '50px', background: 'var(--orange)', borderRadius: '2px', marginBottom: '2rem' }} />
-                      <p style={{ fontSize: '1.0625rem', color: 'var(--text-2)', lineHeight: 1.8, whiteSpace: 'pre-wrap' }}>
-                        {modalResource.description || modalResource.fullDesc}
-                      </p>
-                    </div>
-
-                    <div className="slg-modal-footer">
-                      <button
-                        onClick={() => { if (modalResource.fileUrl) window.open(modalResource.fileUrl, '_blank') }}
-                        className="slg-btn-orange"
-                        style={{
-                          width: '100%',
-                          height: '56px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          gap: '0.75rem',
-                          fontSize: '1.0625rem',
-                          borderRadius: '16px',
-                          fontWeight: 700
-                        }}
-                      >
-                        Download Document Resource <Icon icon={icons.download} size={22} />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )
-        }
+        <LibrarySection library={cms?.library} onOpenDetails={setModalResource} />
 
         <hr className="slg-section-divider" />
 
-        {/* ── Partners ── */}
-        <section className="slg-section" id="partners">
-          <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
-            <span className="slg-eyebrow" style={{ justifyContent: 'center' }}>Our Partners</span>
-            <h2 className="slg-section-title" style={{ textAlign: 'center' }}>
-              Working together<br /><em>for change</em>
-            </h2>
-            <p className="slg-section-desc" style={{ margin: '0.875rem auto 0', textAlign: 'center' }}>
-              Collaborating with government, civil society, and development partners to deliver impactful civic education.
-            </p>
-          </div>
-          <div className="slg-partners-container" style={{ marginTop: '1rem' }}>
-            <div className="slg-partners-track">
-              {[...partners, ...partners, ...partners].map((p, idx) => {
-                const name = p.name || 'Partner'
-                const logo = p.logoUrl || null
-                const color = p.color || 'var(--orange)'
-                const initials = p.initials || name.split(' ').map((w) => w[0]).join('').slice(0, 4)
+        <PartnersSection partners={cms?.partners} />
 
-                if (logo) {
-                  return (
-                    <a key={`${name}-${idx}`} href={p.websiteUrl || '#'} target="_blank" rel="noopener noreferrer" className="slg-partner-link" title={name}>
-                      <img src={logo} alt={name} className="slg-partner-img" loading="lazy" />
-                    </a>
-                  )
-                }
-
-                return (
-                  <div key={`${name}-${idx}`} className="slg-partner-tile" title={name}>
-                    <span className="slg-partner-initials" style={{ color }}>{initials}</span>
-                    <span className="slg-partner-name">{name}</span>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-        </section>
-
-        {/* ── CTA Band ── */}
         <CtaSection />
 
-        {/* ── Footer ── */}
         <Footer />
 
+        <LibraryModal resource={modalResource} onClose={() => setModalResource(null)} />
       </div >
     </>
   )
