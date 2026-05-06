@@ -91,9 +91,8 @@ const FEATURES = [
 
 const STEPS = [
   { num: '01', title: 'Register', text: 'Create your free account with your name, email, and district.' },
-  { num: '02', title: 'Enroll', text: 'Browse courses and enroll in the ones relevant to your civic role.' },
-  { num: '03', title: 'Learn', text: 'Study rich module content at your own pace — progress saves automatically.' },
-  { num: '04', title: 'Earn', text: 'Pass module assessments and earn recognised certificates of completion.' },
+  { num: '02', title: 'Learn', text: 'Study rich module content at your own pace — progress saves automatically.' },
+  { num: '03', title: 'Certification', text: 'Complete all module assessments for a given course and earn a certificate of completion.' },
 ]
 
 const IMPACT_STORIES = [
@@ -1262,7 +1261,7 @@ export function HomePage() {
           <div style={{ marginBottom: '3rem' }}>
             <span className="slg-eyebrow">How it works</span>
             <h2 className="slg-section-title">
-              Four steps to<br /><em>civic leadership</em>
+              Three steps to<br /><em>civic leadership</em>
             </h2>
           </div>
           <div className="slg-steps">
