@@ -116,18 +116,8 @@ export function Navbar() {
       label: 'Explore',
       items: [
         { label: 'About', desc: 'Our mission and impact', icon: icons.users, href: isHome ? '#about' : '/#about' },
-        { label: 'Features', desc: 'Tools for leadership', icon: icons.layers || icons.grid, href: isHome ? '#features' : '/#features' },
         { label: 'How it works', desc: 'Your learning journey', icon: icons.refreshCw || icons.sync, href: isHome ? '#how' : '/#how' },
         { label: 'Impact Stories', desc: 'Voices from citizens', icon: icons.award || icons.star, href: isHome ? '#stories' : '/stories' }
-      ]
-    },
-    {
-      label: 'Resources',
-      items: [
-        { label: 'In-Person Training', desc: 'Workshops in your region', icon: icons.graduationCap, href: isHome ? '#inperson' : '/#inperson' },
-        { label: 'Public Library', desc: 'Policy and research guides', icon: icons.library, href: isHome ? '#public-library' : '/#public-library' },
-        { label: 'News & Updates', desc: 'Latest from SLOGBAA', icon: icons.fileText, href: isHome ? '#news' : '/#news' },
-        { label: 'Video Gallery', desc: 'Learn through digital media', icon: icons.blockVideo, href: isHome ? '#videos' : '/#videos' }
       ]
     }
   ]
@@ -174,6 +164,7 @@ export function Navbar() {
               </div>
             </div>
           ))}
+          <LinkOrAnchor item={{ label: 'Civic Library', href: isHome ? '#public-library' : '/public-library' }} isDropdown={false} />
           <LinkOrAnchor item={{ label: 'Support', href: '/inquiries' }} isDropdown={false} />
         </div>
 
