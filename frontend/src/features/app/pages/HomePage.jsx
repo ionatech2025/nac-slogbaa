@@ -38,6 +38,8 @@ const GLOBAL_CSS = `
     --bg: #ffffff;
     --bg-2: #fcfcfd;
     --bg-3: #f9fafb;
+    --section-bg: #ffffff;
+    --section-alt-bg: #f9fafb;
     --surface: #ffffff;
     --surface-2: #f3f4f6;
     --border: rgba(0,0,0,0.06);
@@ -51,9 +53,11 @@ const GLOBAL_CSS = `
   }
 
   .slg-page.dark-theme {
-    --bg: #09090b;
-    --bg-2: #111115;
-    --bg-3: #18181e;
+    --bg: #000000;
+    --bg-2: #09090b;
+    --bg-3: #11111a;
+    --section-bg: #000000;
+    --section-alt-bg: #11111a;
     --surface: #1e1e26;
     --surface-2: #26262f;
     --border: rgba(255,255,255,0.08);
@@ -61,8 +65,8 @@ const GLOBAL_CSS = `
     --text: #f4f4f5;
     --text-2: #a1a1aa;
     --text-3: #52525b;
-    --nav-bg: #09090b;
-    --hero-overlay: linear-gradient(90deg, #09090b 0%, rgba(9,9,11,0.9) 35%, rgba(9,9,11,0.4) 65%, transparent 100%);
+    --nav-bg: #000000;
+    --hero-overlay: linear-gradient(90deg, #000000 0%, rgba(0,0,0,0.9) 35%, rgba(0,0,0,0.4) 65%, transparent 100%);
     --stats-bg: rgba(255,255,255,0.04);
   }
 
@@ -78,6 +82,13 @@ const GLOBAL_CSS = `
   .slg-page ::-webkit-scrollbar { width: 6px; }
   .slg-page ::-webkit-scrollbar-track { background: var(--bg); }
   .slg-page ::-webkit-scrollbar-thumb { background: var(--surface-2); border-radius: 99px; }
+
+  /* Full Width Sectioning */
+  .slg-home-section { width: 100%; border-bottom: 1px solid var(--border); }
+  .slg-home-section:last-of-type { border-bottom: none; }
+  .slg-section-white { background: var(--section-bg); }
+  .slg-section-alt { background: var(--section-alt-bg); }
+  .slg-container { max-width: 1120px; margin: 0 auto; padding: clamp(4rem, 8vw, 7rem) 2rem; width: 100%; }
 
   .slg-btn-ghost {
     padding: 0.45rem 1rem; border-radius: 10px; font-size: 0.875rem; font-weight: 500;
@@ -149,7 +160,7 @@ const GLOBAL_CSS = `
     position: relative; min-height: clamp(660px, 95vh, 920px);
     display: flex; align-items: center; justify-content: flex-start;
     padding: 0 clamp(2rem, 10vw, 8rem); overflow: hidden;
-    text-align: left;
+    text-align: left; border-bottom: 1px solid var(--border);
   }
   .slg-background-image{
     position:absolute; inset: 0;
@@ -244,7 +255,6 @@ const GLOBAL_CSS = `
   .slg-stat-label { font-size: 0.75rem; color: var(--text-3); margin-top: 0.2rem; display: block; }
 
   /* Section */
-  .slg-section { padding: clamp(3rem, 6vw, 5rem) 2rem; max-width: 1120px; margin: 0 auto; width: 100%; }
   .slg-eyebrow {
     display: inline-flex; align-items: center; gap: 0.4rem;
     font-size: 0.75rem; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase;
@@ -488,9 +498,6 @@ const GLOBAL_CSS = `
     background: radial-gradient(ellipse 60% 60% at 50% 50%, rgba(245,130,32,0.08) 0%, transparent 70%);
   }
 
-  /* Horizontal rule */
-  .slg-section-divider { width: 100%; height: 1px; background: var(--border); margin: 0; }
-
   /* Slide dots */
   .slg-dots { display: flex; gap: 0.5rem; justify-content: flex-start; margin-top: 1.5rem; }
   .slg-dot { width: 6px; height: 6px; border-radius: 99px; border: none; cursor: pointer; transition: all 0.3s ease; padding: 0; }
@@ -635,29 +642,15 @@ export function HomePage() {
 
         <HeroSection banners={cms?.banners} />
 
-        <hr className="slg-section-divider" />
+        <AboutSection variant="white" />
 
-        <AboutSection />
+        <HowItWorksSection variant="alt" />
 
-        {/* ── Impact ── silenced for now till numbers grow */}
-        {/* <hr className="slg-section-divider" /> */}
-        {/* <ImpactSection /> */}
+        <ImpactStoriesSection stories={stories} variant="white" />
 
-        <hr className="slg-section-divider" />
+        <LibrarySection library={cms?.library} onOpenDetails={setModalResource} variant="alt" />
 
-        <HowItWorksSection />
-
-        <hr className="slg-section-divider" />
-
-        <ImpactStoriesSection stories={stories} />
-
-        <hr className="slg-section-divider" />
-
-        <LibrarySection library={cms?.library} onOpenDetails={setModalResource} />
-
-        <hr className="slg-section-divider" />
-
-        <PartnersSection partners={cms?.partners} />
+        <PartnersSection partners={cms?.partners} variant="white" />
 
         <CtaSection />
 

@@ -35,43 +35,45 @@ const truncateWords = (str, limit = 150) => {
   return words.slice(0, limit).join(' ') + '...'
 }
 
-export function LibrarySection({ library, onOpenDetails }) {
+export function LibrarySection({ library, onOpenDetails, variant = 'alt' }) {
   const resources = library?.length ? library : PUBLIC_LIBRARY_RESOURCES
 
   return (
-    <section id="public-library" className="slg-section slg-bg-3">
-      <div style={{ marginBottom: '3.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '1.5rem' }}>
-        <div>
-          <span className="slg-eyebrow">Resource Center</span>
-          <h2 className="slg-section-title">Public <em>Library</em></h2>
-          <p className="slg-section-desc">
-            Fully open-access policy guides, administrative manuals, and governance research for all citizens.
-          </p>
+    <section id="public-library" className={`slg-home-section slg-section-${variant}`}>
+      <div className="slg-container">
+        <div style={{ marginBottom: '3.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '1.5rem' }}>
+          <div>
+            <span className="slg-eyebrow">Resource Center</span>
+            <h2 className="slg-section-title">Civic <em>Library</em></h2>
+            <p className="slg-section-desc">
+              Fully open-access policy guides, administrative manuals, and governance research for all citizens.
+            </p>
+          </div>
+          <Link to="/public-library" className="slg-btn-ghost">Enter Civic Library</Link>
         </div>
-        <Link to="/public-library" className="slg-btn-ghost">Enter Public Library</Link>
-      </div>
 
-      <div className="slg-lib-row-stack">
-        {resources.slice(0, 3).map(res => (
-          <article key={res.id} className="slg-lib-item-row">
-            <div className="slg-lib-row-img">
-              <img src={res.imageUrl || res.image || 'https://images.unsplash.com/photo-1544652478-6653e09f18a2?q=80&w=600&auto=format&fit=crop'} alt={res.title} />
-            </div>
-            <div className="slg-lib-row-content">
-              <span className="slg-feature-tag">{res.category || res.tag}</span>
-              <h3 className="slg-feature-title" style={{ fontSize: '1.25rem', marginBottom: '0.75rem' }}>{res.title}</h3>
-              <p className="slg-feature-text" style={{ fontSize: '0.9375rem', lineHeight: 1.6 }}>
-                {truncateWords(res.description || res.desc, 50)}
-              </p>
-              <div className="slg-lib-row-actions">
-                <button onClick={() => onOpenDetails(res)} className="slg-btn-lib-outline" style={{ maxWidth: '140px' }}>View Details</button>
-                <button onClick={() => { if (res.fileUrl) window.open(res.fileUrl, '_blank') }} className="slg-btn-lib-main" style={{ maxWidth: '140px' }}>
-                  Download <Icon icon={icons.download} size={14} />
-                </button>
+        <div className="slg-lib-row-stack">
+          {resources.slice(0, 3).map(res => (
+            <article key={res.id} className="slg-lib-item-row">
+              <div className="slg-lib-row-img">
+                <img src={res.imageUrl || res.image || 'https://images.unsplash.com/photo-1544652478-6653e09f18a2?q=80&w=600&auto=format&fit=crop'} alt={res.title} />
               </div>
-            </div>
-          </article>
-        ))}
+              <div className="slg-lib-row-content">
+                <span className="slg-feature-tag">{res.category || res.tag}</span>
+                <h3 className="slg-feature-title" style={{ fontSize: '1.25rem', marginBottom: '0.75rem' }}>{res.title}</h3>
+                <p className="slg-feature-text" style={{ fontSize: '0.9375rem', lineHeight: 1.6 }}>
+                  {truncateWords(res.description || res.desc, 50)}
+                </p>
+                <div className="slg-lib-row-actions">
+                  <button onClick={() => onOpenDetails(res)} className="slg-btn-lib-outline" style={{ maxWidth: '140px' }}>View Details</button>
+                  <button onClick={() => { if (res.fileUrl) window.open(res.fileUrl, '_blank') }} className="slg-btn-lib-main" style={{ maxWidth: '140px' }}>
+                    Download <Icon icon={icons.download} size={14} />
+                  </button>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
       </div>
     </section>
   )
