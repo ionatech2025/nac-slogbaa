@@ -62,6 +62,7 @@ export function HomePage() {
       <HeroSection banners={cms?.banners} />
 
       <AboutSection variant="white" />
+      {/* <ImpactSection /> silenced till numbers grow..*/}
 
       <HowItWorksSection variant="alt" />
 
