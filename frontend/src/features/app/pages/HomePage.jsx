@@ -1155,11 +1155,6 @@ export function HomePage() {
 
         <hr className="slg-section-divider" />
 
-        {/* ── Impact ── */}
-        <ImpactSection />
-
-        <hr className="slg-section-divider" />
-
         {/* ── About ── */}
         <section className="slg-section" id="about">
           <div className="slg-about-grid">
@@ -1193,6 +1188,13 @@ export function HomePage() {
             </div>
           </div>
         </section>
+
+        <hr className="slg-section-divider" />
+
+
+
+        {/* ── Impact ── */}
+        <ImpactSection />
 
         <hr className="slg-section-divider" />
 
