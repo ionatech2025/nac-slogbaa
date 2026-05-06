@@ -111,17 +111,13 @@ export function Footer() {
             <h4 className="slg-footer-title">Platform</h4>
             <LinkOrAnchor href="/auth/login">Login</LinkOrAnchor>
             <LinkOrAnchor href="/auth/register">Become a Trainee</LinkOrAnchor>
-            <LinkOrAnchor href="#features">Key Features</LinkOrAnchor>
             <LinkOrAnchor href="#how">How it Works</LinkOrAnchor>
           </div>
 
           <div>
             <h4 className="slg-footer-title">Explore</h4>
             <LinkOrAnchor href="/stories">Impact Stories</LinkOrAnchor>
-            <LinkOrAnchor href="/news-and-updates">News & Updates</LinkOrAnchor>
-            <LinkOrAnchor href="/videos">Video Gallery</LinkOrAnchor>
-            <LinkOrAnchor href="/public-library">Public Library</LinkOrAnchor>
-            <LinkOrAnchor href="/inperson-training">Workshops</LinkOrAnchor>
+            <LinkOrAnchor href="/public-library">Civic Library</LinkOrAnchor>
           </div>
 
           <div>
@@ -140,8 +136,8 @@ export function Footer() {
             &copy; {new Date().getFullYear()} School of Local Governance Budget Advocacy and Acountability (SLOGBAA). All rights reserved.
           </p>
           <div style={{ display: 'flex', gap: '1.5rem' }}>
-            <LinkOrAnchor href="/privacy" style={{ fontSize: '0.75rem' }}>Privacy Policy</LinkOrAnchor>
-            <LinkOrAnchor href="/terms" style={{ fontSize: '0.75rem' }}>Terms of Service</LinkOrAnchor>
+            {/* <LinkOrAnchor href="/privacy" style={{ fontSize: '0.75rem' }}>Privacy Policy</LinkOrAnchor>
+            <LinkOrAnchor href="/terms" style={{ fontSize: '0.75rem' }}>Terms of Service</LinkOrAnchor> */}
           </div>
         </div>
       </footer>
