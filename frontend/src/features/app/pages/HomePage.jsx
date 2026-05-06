@@ -43,7 +43,7 @@ const HERO_SLIDES = [
     eyebrow: 'Learn Your Way',
     title: 'Train at Your Own Pace',
     highlight: 'From Any Device',
-    subtitle: 'Access training modules, video content, and downloadable resources. Your progress saves automatically.',
+    subtitle: 'Access training modules and downloadable resources. Your progress saves automatically.',
     accent: '#34d399',
   },
   {
@@ -1083,10 +1083,10 @@ function ImpactSection() {
             <span className="slg-rating-val">{(stats?.avgAdminRating || 0).toFixed(1)}</span>
             {renderStars(stats?.avgAdminRating || 0)}
           </div>
-          <p className="slg-chart-subtitle" style={{ marginTop: '1rem' }}>Internal Academic Performance Quality</p>
+          <p className="slg-chart-subtitle" style={{ marginTop: '1rem' }}>Internal Course Quality Rating</p>
         </div>
         <div className="slg-impact-card" style={{ background: 'var(--orange)', color: '#fff', border: 'none', justifyContent: 'flex-start' }}>
-          <h3 className="slg-serif" style={{ fontSize: '1.625rem', marginBottom: '0.5rem', fontWeight: 800 }}>Join the Movement</h3>
+          <h3 className="slg-serif" style={{ fontSize: '1.625rem', marginBottom: '0.5rem', fontWeight: 800 }}>Join SLOGBAA</h3>
           <p style={{ fontSize: '0.875rem', opacity: 0.9, marginBottom: '1rem' }}>Empowering citizens through knowledge and action.</p>
           <div className="slg-impact-btn-stack">
             <Link to="/auth/register" className="slg-btn-hero-primary" style={{ background: '#fff', color: 'var(--orange)', border: 'none', width: '100%', textAlign: 'center', cursor: 'pointer', position: 'relative', zIndex: 2 }}>
@@ -1178,11 +1178,7 @@ export function HomePage() {
                 <Link to="/auth/register" className="slg-btn-hero-primary" style={{ fontSize: '0.875rem', padding: '0.625rem 1.25rem' }}>
                   Start learning
                 </Link>
-
-                <a href="#features" className="slg-btn-hero-secondary" style={{ fontSize: '0.875rem', padding: '0.625rem 1.25rem' }}>
-                  Explore features
-                </a>
-                <Link to="/auth/login" className="slg-btn-hero-primary" style={{ fontSize: '0.875rem', padding: '0.625rem 1.25rem' }}>
+                <Link to="/auth/login" className="slg-btn-hero-secondary" style={{ fontSize: '0.875rem', padding: '0.625rem 1.25rem' }}>
                   Continue Learning
                 </Link>
               </div>
@@ -1259,50 +1255,6 @@ export function HomePage() {
                 </div>
               </article>
             ))}
-          </div>
-        </section>
-
-        <hr className="slg-section-divider" />
-
-        {/* ── Videos ── */}
-        <section className="slg-section" id="videos">
-          <div style={{ marginBottom: '3.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '1.5rem' }}>
-            <div>
-              <span className="slg-eyebrow">Video Content</span>
-              <h2 className="slg-section-title">
-                Learn through<br /><em>video</em>
-              </h2>
-              <p className="slg-section-desc" style={{ marginTop: '0.875rem' }}>
-                Watch general videos on governance, accountability, civic engagement, and more.
-              </p>
-            </div>
-            <Link to="/videos" className="slg-btn-ghost">More Videos</Link>
-          </div>
-          <div className="slg-videos-grid">
-            {(cmsVideos || [
-              { title: 'Introduction to Civic Leadership', youtubeUrl: 'https://www.youtube.com/watch?v=avrQXoBConA' },
-              { title: 'Community Governance Basics', youtubeUrl: 'https://www.youtube.com/watch?v=fWUANWrSHSw' },
-              { title: 'Accountability & Transparency', youtubeUrl: 'https://www.youtube.com/watch?v=9Xk3H0JdUTY' },
-            ]).slice(0, 3).map((v) => {
-              const vid = extractYoutubeId(v.youtubeUrl)
-              return (
-                <div key={v.title} className="slg-video-card">
-                  <div className="slg-video-thumb">
-                    <iframe
-                      src={`https://www.youtube-nocookie.com/embed/${vid}`}
-                      title={v.title}
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      sandbox="allow-scripts allow-same-origin allow-presentation"
-                      allowFullScreen
-                      loading="lazy"
-                    />
-                  </div>
-                  <div className="slg-video-body">
-                    <h3 className="slg-video-title">{v.title}</h3>
-                  </div>
-                </div>
-              )
-            })}
           </div>
         </section>
 
