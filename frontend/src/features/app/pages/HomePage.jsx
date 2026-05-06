@@ -55,40 +55,6 @@ const HERO_SLIDES = [
   },
 ]
 
-const STATS = [
-  { value: '500+', label: 'Active Learners' },
-  { value: '12', label: 'Courses Available' },
-  { value: '95%', label: 'Completion Rate' },
-  { value: '8', label: 'Districts Reached' },
-]
-
-const FEATURES = [
-  {
-    icon: '◈',
-    title: 'Structured Learning Paths',
-    text: 'Sequential modules, rich content blocks, and embedded quizzes that guide trainees from fundamentals to mastery.',
-    tag: 'Courses',
-  },
-  {
-    icon: '◉',
-    title: 'Assessments & Certificates',
-    text: 'Validated quizzes at every milestone. Earn downloadable certificates to showcase your civic leadership skills.',
-    tag: 'Certification',
-  },
-  {
-    icon: '◎',
-    title: 'Real-time Progress Tracking',
-    text: 'Live progress bars, resume-where-you-left-off functionality, and completion dashboards keep you on track.',
-    tag: 'Analytics',
-  },
-  {
-    icon: '◐',
-    title: 'Resource Library',
-    text: 'Policy documents, reading materials, and reference guides — all organised, searchable, and available offline.',
-    tag: 'Library',
-  },
-]
-
 const STEPS = [
   { num: '01', title: 'Register', text: 'Create your free account with your name, email, and district.' },
   { num: '02', title: 'Learn', text: 'Study rich module content at your own pace — progress saves automatically.' },
@@ -1229,28 +1195,6 @@ export function HomePage() {
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
               />
             </div>
-          </div>
-        </section>
-
-        <hr className="slg-section-divider" />
-
-        {/* ── Features ── */}
-        <section className="slg-section" id="features">
-          <div style={{ marginBottom: '2.5rem' }}>
-            <span className="slg-eyebrow">Platform Features</span>
-            <h2 className="slg-section-title">
-              Everything you need<br /><em>to learn and grow</em>
-            </h2>
-          </div>
-          <div className="slg-feature-grid">
-            {FEATURES.map((f) => (
-              <div key={f.title} className="slg-feature-card">
-                <div className="slg-feature-icon">{f.icon}</div>
-                <span className="slg-feature-tag">{f.tag}</span>
-                <h3 className="slg-feature-title">{f.title}</h3>
-                <p className="slg-feature-text">{f.text}</p>
-              </div>
-            ))}
           </div>
         </section>
 
