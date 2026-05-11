@@ -66,9 +66,14 @@ public final class AuthenticateUserService implements AuthenticateUserUseCase {
         if (!passwordHasher.matches(rawPassword, user.getPasswordHash())) {
             throw new InvalidCredentialsException();
         }
-        AuthenticatedRole role = user.getStaffRole() == com.nac.slogbaa.iam.core.valueobject.StaffRole.SUPER_ADMIN
-                ? AuthenticatedRole.SUPER_ADMIN
-                : AuthenticatedRole.ADMIN;
+        AuthenticatedRole role;
+        if (user.getStaffRole() == com.nac.slogbaa.iam.core.valueobject.StaffRole.SYSTEM_ADMIN) {
+            role = AuthenticatedRole.SYSTEM_ADMIN;
+        } else if (user.getStaffRole() == com.nac.slogbaa.iam.core.valueobject.StaffRole.SUPER_ADMIN) {
+            role = AuthenticatedRole.SUPER_ADMIN;
+        } else {
+            role = AuthenticatedRole.ADMIN;
+        }
         AuthenticatedIdentity identity = new AuthenticatedIdentity(
                 user.getId().getValue(),
                 user.getEmail().getValue(),

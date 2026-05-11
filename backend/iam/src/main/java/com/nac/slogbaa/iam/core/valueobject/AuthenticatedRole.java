@@ -6,6 +6,7 @@ package com.nac.slogbaa.iam.core.valueobject;
  */
 public enum AuthenticatedRole {
     TRAINEE,
+    SYSTEM_ADMIN,
     SUPER_ADMIN,
     ADMIN
 }

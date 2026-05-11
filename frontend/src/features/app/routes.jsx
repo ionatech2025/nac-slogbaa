@@ -8,6 +8,7 @@ import { HomePage } from './pages/HomePage.jsx'
 import { RequireTrainee } from './components/RequireTrainee.jsx'
 import { RequireAdmin } from './components/RequireAdmin.jsx'
 import { RequireSuperAdmin } from './components/RequireSuperAdmin.jsx'
+import { RequireSystemAdmin } from './components/RequireSystemAdmin.jsx'
 import { TraineeLayout } from './layouts/TraineeLayout.jsx'
 
 // Lazy: IAM pages
@@ -26,6 +27,8 @@ const HelpPage = lazy(() => import('./pages/HelpPage.jsx').then((m) => ({ defaul
 
 // Lazy: Admin pages
 const AdminLayout = lazy(() => import('./pages/AdminLayout.jsx').then((m) => ({ default: m.AdminLayout })))
+const SystemAdminLayout = lazy(() => import('./pages/SystemAdminLayout.jsx').then((m) => ({ default: m.SystemAdminLayout })))
+const SystemAdminDashboardPage = lazy(() => import('./pages/SystemAdminDashboardPage.jsx').then((m) => ({ default: m.SystemAdminDashboardPage })))
 const AdminOverviewPage = lazy(() => import('./pages/AdminOverviewPage.jsx').then((m) => ({ default: m.AdminOverviewPage })))
 const AdminAssessmentPage = lazy(() => import('./pages/AdminAssessmentPage.jsx').then((m) => ({ default: m.AdminAssessmentPage })))
 const AdminLearningPage = lazy(() => import('./pages/AdminLearningPage.jsx').then((m) => ({ default: m.AdminLearningPage })))
@@ -94,6 +97,11 @@ export function AppRoutes() {
           </Route>
           <Route path="live-sessions" element={<Lazy><AdminLiveSessionsPage /></Lazy>} />
           <Route path="reports" element={<Lazy><AdminReportsAnalyticsPage /></Lazy>} />
+        </Route>
+      </Route>
+      <Route path="/system-admin" element={<RequireSystemAdmin />}>
+        <Route element={<Lazy><SystemAdminLayout /></Lazy>}>
+          <Route index element={<Lazy><SystemAdminDashboardPage /></Lazy>} />
         </Route>
       </Route>
       <Route path="*" element={<NotFoundPage />} />

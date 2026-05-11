@@ -26,7 +26,7 @@ public class StaffNotificationController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN','SYSTEM_ADMIN')")
     public ResponseEntity<Page<NotificationResult>> list(
             @AuthenticationPrincipal AuthenticatedIdentity identity,
             @RequestParam(defaultValue = "0") int page,
@@ -36,14 +36,14 @@ public class StaffNotificationController {
     }
 
     @GetMapping("/unread-count")
-    @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN','SYSTEM_ADMIN')")
     public ResponseEntity<Map<String, Long>> unreadCount(@AuthenticationPrincipal AuthenticatedIdentity identity) {
         long count = getStaffNotificationsUseCase.unreadCountForStaff(identity.getUserId());
         return ResponseEntity.ok(Map.of("count", count));
     }
 
     @PatchMapping("/{id}/read")
-    @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN','SYSTEM_ADMIN')")
     public ResponseEntity<Void> markRead(
             @AuthenticationPrincipal AuthenticatedIdentity identity,
             @PathVariable UUID id) {
@@ -55,7 +55,7 @@ public class StaffNotificationController {
     }
 
     @PatchMapping("/read-all")
-    @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN','SYSTEM_ADMIN')")
     public ResponseEntity<Void> markAllRead(@AuthenticationPrincipal AuthenticatedIdentity identity) {
         getStaffNotificationsUseCase.markAllStaffNotificationsRead(identity.getUserId());
         return ResponseEntity.noContent().build();

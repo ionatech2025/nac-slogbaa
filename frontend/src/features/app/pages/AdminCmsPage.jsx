@@ -587,7 +587,7 @@ export function AdminCmsPage() {
         ]}
       />
 
-      <CmsSection title="Civic Library Resources" queryKey={queryKeys.admin.cms.libraryResources()} fetchFn={api.getAdminLibraryResources} createFn={api.createLibraryResource} updateFn={api.updateLibraryResource} deleteFn={api.deleteLibraryResource} token={token} isSuperAdmin={isSuperAdmin}
+      <CmsSection title="Civicg Library Resources" queryKey={queryKeys.admin.cms.libraryResources()} fetchFn={api.getAdminLibraryResources} createFn={api.createLibraryResource} updateFn={api.updateLibraryResource} deleteFn={api.deleteLibraryResource} token={token} isSuperAdmin={isSuperAdmin}
         fields={[
           { key: 'title', label: 'Title', required: true },
           { key: 'category', label: 'Category', type: 'select', options: ['GENERAL', 'MANUAL', 'REPORT', 'POLICY'], required: true },
