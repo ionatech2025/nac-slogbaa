@@ -1,5 +1,5 @@
 import { FontAwesomeIcon, icons } from '../../../shared/icons.jsx'
-import { useAdminActivities } from '../../../lib/hooks/use-system-admin.js'
+import { useAdminActivities, useSystemStatus } from '../../../lib/hooks/use-system-admin.js'
 import { timeAgo } from '../../../lib/notification-utils.js'
 
 const styles = {
@@ -204,6 +204,7 @@ function initials(name = '') {
 
 export function SystemAdminDashboardPage() {
   const { data: activitiesData, isLoading: loadingActivities } = useAdminActivities()
+  const { data: systemStatus, isLoading: loadingStatus } = useSystemStatus()
 
   const activities = activitiesData || []
 
@@ -276,14 +277,16 @@ export function SystemAdminDashboardPage() {
 
           {/* Session count hero */}
           <div style={{ marginBottom: '1rem', padding: '1rem', background: 'var(--slogbaa-surface)', borderRadius: 12, border: '1px solid var(--slogbaa-border)' }}>
-            <p style={styles.sessionCount}>142</p>
-            <p style={styles.sessionLabel}>Active sessions right now</p>
+            <p style={styles.sessionCount}>
+              {loadingStatus ? '...' : (systemStatus?.activeSessions ?? 0)}
+            </p>
+            <p style={styles.sessionLabel}>Active user accounts</p>
           </div>
 
           {[
-            { label: 'Backend Service', value: 'Healthy', color: '#10B981' },
-            { label: 'Database', value: 'Connected', color: '#10B981' },
-            { label: 'Auth Service', value: 'Operational', color: '#10B981' },
+            { label: 'Backend Service', value: loadingStatus ? '...' : (systemStatus?.backend || 'Unknown'), color: systemStatus?.backend === 'Healthy' ? '#10B981' : '#EF4444' },
+            { label: 'Database', value: loadingStatus ? '...' : (systemStatus?.database || 'Unknown'), color: systemStatus?.database === 'Connected' ? '#10B981' : '#EF4444' },
+            { label: 'Auth Service', value: loadingStatus ? '...' : (systemStatus?.authService || 'Unknown'), color: systemStatus?.authService === 'Operational' ? '#10B981' : '#EF4444' },
           ].map(row => (
             <div key={row.label} style={styles.monitorRow}>
               <p style={styles.monitorLabel}>{row.label}</p>
