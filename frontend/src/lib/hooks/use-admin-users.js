@@ -113,8 +113,24 @@ export function useDeleteStaff() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (staffId) => deleteStaff(token, staffId),
-    onSuccess: () => {
+    onMutate: async (staffId) => {
+      const listKey = ['system-admin', 'staff-list']
+      await qc.cancelQueries({ queryKey: listKey })
+      const previous = qc.getQueryData(listKey)
+      if (previous) {
+        qc.setQueryData(listKey, old => old?.filter(s => s.id !== staffId))
+      }
+      return { previous, listKey }
+    },
+    onError: (err, variables, context) => {
+      if (context?.previous) {
+        qc.setQueryData(context.listKey, context.previous)
+      }
+    },
+    onSettled: () => {
       qc.invalidateQueries({ queryKey: queryKeys.admin.overview() })
+      qc.invalidateQueries({ queryKey: ['system-admin', 'staff-list'] })
+      qc.invalidateQueries({ queryKey: ['system-admin', 'activities'] })
     },
   })
 }
@@ -135,8 +151,24 @@ export function useUpdateStaffProfile() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: ({ staffId, ...payload }) => updateStaffProfile(token, staffId, payload),
-    onSuccess: (_, { staffId }) => {
+    onMutate: async ({ staffId, ...payload }) => {
+      const listKey = ['system-admin', 'staff-list']
+      await qc.cancelQueries({ queryKey: listKey })
+      const previous = qc.getQueryData(listKey)
+      if (previous) {
+        qc.setQueryData(listKey, old => old?.map(s => s.id === staffId ? { ...s, ...payload } : s))
+      }
+      return { previous, listKey }
+    },
+    onError: (err, variables, context) => {
+      if (context?.previous) {
+        qc.setQueryData(context.listKey, context.previous)
+      }
+    },
+    onSettled: (_, __, { staffId }) => {
       qc.invalidateQueries({ queryKey: queryKeys.admin.users.staff(staffId) })
+      qc.invalidateQueries({ queryKey: ['system-admin', 'staff-list'] })
+      qc.invalidateQueries({ queryKey: ['system-admin', 'activities'] })
     },
   })
 }

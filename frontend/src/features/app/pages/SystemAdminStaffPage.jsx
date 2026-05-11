@@ -63,7 +63,7 @@ const styles = {
   /* ── Staff grid ── */
   staffScroll: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+    gridTemplateColumns: 'repeat(3, 1fr)',
     gap: '1rem',
   },
   staffCard: {
@@ -110,17 +110,13 @@ const styles = {
     fontSize: '1rem',
     fontWeight: 700,
     color: 'var(--slogbaa-text)',
-    whiteSpace: 'nowrap',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
+    wordWrap: 'break-word',
   },
   staffEmail: {
     margin: 0,
     fontSize: '0.8125rem',
     color: 'var(--slogbaa-text-secondary)',
-    whiteSpace: 'nowrap',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
+    wordBreak: 'break-all',
   },
   roleBadge: {
     fontSize: '0.625rem',
