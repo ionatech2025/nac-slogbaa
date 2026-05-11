@@ -258,14 +258,14 @@ function CmsSection({ title, queryKey, fetchFn, createFn, updateFn, deleteFn, fi
           {title} <span style={{ opacity: 0.5, fontWeight: 400, marginLeft: '0.5rem' }}>— {items.length} total</span>
         </h3>
         {isSuperAdmin && (
-          <button 
-            type="button" 
-            style={{ 
-              ...s.btn, 
-              ...s.btnPrimary, 
+          <button
+            type="button"
+            style={{
+              ...s.btn,
+              ...s.btnPrimary,
               background: showForm ? 'var(--slogbaa-error)' : 'var(--slogbaa-blue)',
               display: (!showForm && title === 'Hero Banners' && items.length >= 3) ? 'none' : 'inline-flex'
-            }} 
+            }}
             onClick={showForm ? cancelForm : () => { setShowForm(true); sectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }) }}
           >
             <Icon icon={showForm ? icons.close : icons.plus} size={16} /> {showForm ? 'Cancel' : 'Add New'}
@@ -587,7 +587,7 @@ export function AdminCmsPage() {
         ]}
       />
 
-      <CmsSection title="Public Library Resources" queryKey={queryKeys.admin.cms.libraryResources()} fetchFn={api.getAdminLibraryResources} createFn={api.createLibraryResource} updateFn={api.updateLibraryResource} deleteFn={api.deleteLibraryResource} token={token} isSuperAdmin={isSuperAdmin}
+      <CmsSection title="Civic Library Resources" queryKey={queryKeys.admin.cms.libraryResources()} fetchFn={api.getAdminLibraryResources} createFn={api.createLibraryResource} updateFn={api.updateLibraryResource} deleteFn={api.deleteLibraryResource} token={token} isSuperAdmin={isSuperAdmin}
         fields={[
           { key: 'title', label: 'Title', required: true },
           { key: 'category', label: 'Category', type: 'select', options: ['GENERAL', 'MANUAL', 'REPORT', 'POLICY'], required: true },
@@ -603,13 +603,13 @@ export function AdminCmsPage() {
           { key: 'authorName', label: 'Author Name', required: true },
           { key: 'authorRole', label: 'Author Role in Community' },
           { key: 'location', label: 'Location (District in Uganda)', required: true, type: 'searchable', options: UG_DISTRICTS, placeholder: 'Search for a district...' },
-          { 
-            key: 'storyText', 
-            label: 'Story Editorial Content', 
-            type: 'textarea', 
-            required: true, 
-            fullWidth: true, 
-            instructions: 'Use ## for headings, > for pull-quotes (e.g. > Quote / Author), and double-enter for paragraphs.' 
+          {
+            key: 'storyText',
+            label: 'Story Editorial Content',
+            type: 'textarea',
+            required: true,
+            fullWidth: true,
+            instructions: 'Use ## for headings, > for pull-quotes (e.g. > Quote / Author), and double-enter for paragraphs.'
           },
           { key: 'imageUrl', label: 'Story Image', type: 'file', subdir: 'stories' },
           { key: 'coursesCompleted', label: 'Courses Completed (Optional)' },
@@ -618,12 +618,7 @@ export function AdminCmsPage() {
           { key: 'sortOrder', label: 'Sort Order', type: 'number' },
         ]}
       />
-      <CmsSection title="Videos" queryKey={queryKeys.admin.cms.videos()} fetchFn={api.getAdminVideos} createFn={api.createVideo} updateFn={api.updateVideo} deleteFn={api.deleteVideo} token={token} isSuperAdmin={isSuperAdmin}
-        fields={[
-          { key: 'title', label: 'Title', required: true },
-          { key: 'youtubeUrl', label: 'YouTube URL', required: true, placeholder: 'https://www.youtube.com/watch?v=...' },
-        ]}
-      />
+
       <CmsSection title="Partner Logos" queryKey={queryKeys.admin.cms.partners()} fetchFn={api.getAdminPartners} createFn={api.createPartner} updateFn={api.updatePartner} deleteFn={api.deletePartner} token={token} isSuperAdmin={isSuperAdmin}
         fields={[
           { key: 'name', label: 'Partner Name', required: true },
@@ -631,37 +626,7 @@ export function AdminCmsPage() {
           { key: 'websiteUrl', label: 'Website URL', placeholder: 'https://...' },
         ]}
       />
-      <CmsSection title="In-Person Training" queryKey={queryKeys.admin.cms.trainings()} fetchFn={api.getAdminTrainings} createFn={api.createTraining} updateFn={api.updateTraining} deleteFn={api.deleteTraining} token={token} isSuperAdmin={isSuperAdmin}
-        fields={[
-          { key: 'title', label: 'Workshop Title', required: true, fullWidth: true },
-          { key: 'tag', label: 'Tag', type: 'select', options: ['Workshop', 'Meeting', 'Bootcamp', 'Training', 'Recap', 'Other'] },
-          { key: 'eventDate', label: 'Event Date & Time', type: 'datetime-local', required: true },
-          { key: 'imageUrl', label: 'Main Image', type: 'file', subdir: 'trainings' },
-          { 
-            key: 'summary', 
-            label: 'Workshop Editorial Content', 
-            type: 'textarea', 
-            fullWidth: true, 
-            instructions: 'EDITORIAL TIPS: \n• Use ## for big headings (Section Titles)\n• Use > for pull-quotes (e.g. > Quote text / Author Name)\n• Use double-enter to create new paragraphs.\n• The first paragraph will automatically get a stylized drop-cap.'
-          },
-          { key: 'sortOrder', label: 'Sort Order', type: 'number' },
-        ]}
-      />
-      <CmsSection title="News & Updates" queryKey={queryKeys.admin.cms.news()} fetchFn={api.getAdminNews} createFn={api.createNewsItem} updateFn={api.updateNewsItem} deleteFn={api.deleteNewsItem} token={token} isSuperAdmin={isSuperAdmin}
-        fields={[
-          { key: 'title', label: 'Title', required: true },
-          { key: 'tag', label: 'Tag', type: 'select', options: ['News', 'Update', 'Event', 'Other'], required: true },
-          { 
-            key: 'summary', 
-            label: 'Editorial Content', 
-            type: 'textarea', 
-            required: true, 
-            instructions: 'Use ## for headings, > for quotes (format: > Text / Author), and double-enter for paragraphs.' 
-          },
-          { key: 'imageUrl', label: 'Cover Image', type: 'file', subdir: 'library' },
-          { key: 'publishedDate', label: (form) => form.tag === 'Event' ? 'Event Date' : 'Published Date', type: 'date' },
-        ]}
-      />
+
       <AdminNavigatePills />
     </>
   )

@@ -66,10 +66,10 @@ const INQUIRIES_CSS = `
 `
 
 const FAQS = [
-  { q: 'How do I register for an in-person workshop?', a: 'Registration is simple! Visit our In-Person Training page, find an upcoming workshop, and click "View Details". You can then register directly through the modal.' },
-  { q: 'Can I request a custom training for my district?', a: 'Absolutely. We regularly coordinate with local government and civil society leaders to bring SLOGBAA trainers to specific regions. Use the form to submit your request.' },
-  { q: 'Are there costs associated with these workshops?', a: 'Most of our basic civic leadership workshops are supported by partners and free for participants. Advanced or specialized certification tracks may involve a material fee.' },
-  { q: 'What happens after I submit an inquiry?', a: 'Our field coordination team will review your message and respond via email within 48 business hours. For urgent training requests, please include your phone number.' }
+  { q: 'How do I get started with SLOGBAA?', a: 'Getting started is simple! Click the "Register Free" button in the navigation to create your account and access our online learning dashboard.' },
+  { q: 'Can I request support for my community?', a: 'Absolutely. We regularly coordinate with local government and civil society leaders to provide guidance to specific regions. Use the form to submit your request.' },
+  { q: 'Are there costs associated with the platform?', a: 'Most of our basic civic leadership resources and courses are supported by partners and free for participants.' },
+  { q: 'What happens after I submit an inquiry?', a: 'Our coordination team will review your message and respond via email within 48 business hours. For urgent requests, please include your phone number.' }
 ]
 
 export function InquiriesPage() {
@@ -90,7 +90,7 @@ export function InquiriesPage() {
           Get in <em>Touch</em>
         </h1>
         <p className="slg-section-desc" style={{ maxWidth: 600, margin: '1.5rem auto 0', color: 'var(--text-2)' }}>
-          Have questions about our training programs or want to bring SLOGBAA to your community? Our team is here to help.
+          Have questions about our programs or want to bring SLOGBAA to your community? Our team is here to help.
         </p>
       </header>
 
@@ -114,7 +114,6 @@ export function InquiriesPage() {
               <label className="slg-form-label">Subject</label>
               <select className="slg-input">
                 <option>General Inquiry</option>
-                <option>Training Request</option>
                 <option>Partnership Proposal</option>
                 <option>Technical Support</option>
               </select>
