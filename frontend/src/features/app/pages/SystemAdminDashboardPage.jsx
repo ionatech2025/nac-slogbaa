@@ -4,6 +4,8 @@ import { useAdminActivities, useAllStaff } from '../../../lib/hooks/use-system-a
 import { useSetStaffActive, useSetStaffPassword, useUpdateStaffProfile } from '../../../lib/hooks/use-admin-users.js'
 import { timeAgo } from '../../../lib/notification-utils.js'
 import { useToast } from '../../../shared/hooks/useToast.js'
+import { Modal } from '../../../shared/components/Modal.jsx'
+import { LoadingButton } from '../../../shared/components/LoadingButton.jsx'
 
 const styles = {
   root: {
@@ -310,6 +312,38 @@ const styles = {
     color: 'var(--slogbaa-text-secondary)',
     fontSize: '0.9rem',
   },
+
+  /* ── Modal elements ── */
+  modalInput: {
+    width: '100%',
+    padding: '0.625rem 0.875rem',
+    border: '1px solid var(--slogbaa-border)',
+    borderRadius: 10,
+    fontSize: '0.9375rem',
+    background: 'var(--slogbaa-surface)',
+    color: 'var(--slogbaa-text)',
+    marginBottom: '1rem',
+    boxSizing: 'border-box',
+  },
+  modalLabel: {
+    display: 'block',
+    fontSize: '0.8125rem',
+    fontWeight: 600,
+    color: 'var(--slogbaa-text)',
+    marginBottom: '0.35rem',
+  },
+  modalSubmit: {
+    width: '100%',
+    padding: '0.625rem 0.875rem',
+    background: 'var(--slogbaa-primary)',
+    color: '#fff',
+    border: 'none',
+    borderRadius: 10,
+    fontSize: '0.9375rem',
+    fontWeight: 600,
+    cursor: 'pointer',
+    minHeight: 44,
+  },
 }
 
 function initials(name = '') {
@@ -321,6 +355,10 @@ export function SystemAdminDashboardPage() {
   const { data: staffData, isLoading: loadingStaff } = useAllStaff()
   const toast = useToast()
   const setStaffActive = useSetStaffActive()
+  const setStaffPassword = useSetStaffPassword()
+
+  const [resetStaff, setResetStaff] = useState(null)
+  const [newPassword, setNewPassword] = useState('')
 
   const activities = activitiesData || []
   const staffList = staffData || []
@@ -331,6 +369,19 @@ export function SystemAdminDashboardPage() {
       toast.success(`Staff account ${!currentStatus ? 'activated' : 'deactivated'}.`)
     } catch {
       toast.error('Failed to update staff status.')
+    }
+  }
+
+  const handleResetPasswordSubmit = async (e) => {
+    e.preventDefault()
+    if (!newPassword || !resetStaff) return
+    try {
+      await setStaffPassword.mutateAsync({ staffId: resetStaff.id, newPassword })
+      toast.success(`Password reset for ${resetStaff.fullName}.`)
+      setResetStaff(null)
+      setNewPassword('')
+    } catch {
+      toast.error('Failed to reset password.')
     }
   }
 
@@ -475,7 +526,13 @@ export function SystemAdminDashboardPage() {
                   >
                     {staff.active ? 'Suspend' : 'Activate'}
                   </button>
-                  <button style={styles.actionBtn('default')}>
+                  <button
+                    style={styles.actionBtn('default')}
+                    onClick={() => {
+                      setResetStaff(staff)
+                      setNewPassword('')
+                    }}
+                  >
                     Reset Pass
                   </button>
                 </div>
@@ -484,6 +541,38 @@ export function SystemAdminDashboardPage() {
           )}
         </div>
       </div>
+
+      {resetStaff && (
+        <Modal
+          title="Reset Password"
+          onClose={() => setResetStaff(null)}
+          maxWidth={400}
+        >
+          <form onSubmit={handleResetPasswordSubmit}>
+            <p style={{ margin: '0 0 1rem', fontSize: '0.875rem', color: 'var(--slogbaa-text-secondary)' }}>
+              Set a new password for <strong>{resetStaff.fullName}</strong> ({resetStaff.email}).
+            </p>
+            <label style={styles.modalLabel} htmlFor="new-password">New Password</label>
+            <input
+              id="new-password"
+              type="text"
+              required
+              minLength={6}
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              style={styles.modalInput}
+              placeholder="Enter new password"
+            />
+            <LoadingButton
+              type="submit"
+              loading={setStaffPassword.isPending}
+              style={styles.modalSubmit}
+            >
+              Update Password
+            </LoadingButton>
+          </form>
+        </Modal>
+      )}
     </div>
   )
 }
