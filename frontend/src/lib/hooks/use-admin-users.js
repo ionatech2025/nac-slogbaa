@@ -70,7 +70,38 @@ export function useSetStaffActive() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: ({ staffId, active }) => setStaffActive(token, staffId, active),
-    onSuccess: (_, { staffId }) => {
+    onMutate: async ({ staffId, active }) => {
+      const systemAdminStaffListKey = ['system-admin', 'staff-list']
+      const staffProfileKey = queryKeys.admin.users.staff(staffId)
+
+      await qc.cancelQueries({ queryKey: systemAdminStaffListKey })
+      await qc.cancelQueries({ queryKey: staffProfileKey })
+
+      const previousStaffList = qc.getQueryData(systemAdminStaffListKey)
+      const previousProfile = qc.getQueryData(staffProfileKey)
+
+      if (previousStaffList) {
+        qc.setQueryData(systemAdminStaffListKey, (old) =>
+          old?.map((staff) => (staff.id === staffId ? { ...staff, active } : staff))
+        )
+      }
+      if (previousProfile) {
+        qc.setQueryData(staffProfileKey, (old) => ({ ...old, active }))
+      }
+
+      return { previousStaffList, previousProfile, systemAdminStaffListKey, staffProfileKey }
+    },
+    onError: (err, variables, context) => {
+      if (context?.previousStaffList) {
+        qc.setQueryData(context.systemAdminStaffListKey, context.previousStaffList)
+      }
+      if (context?.previousProfile) {
+        qc.setQueryData(context.staffProfileKey, context.previousProfile)
+      }
+    },
+    onSettled: (_, __, { staffId }) => {
+      qc.invalidateQueries({ queryKey: ['system-admin', 'staff-list'] })
+      qc.invalidateQueries({ queryKey: ['system-admin', 'activities'] })
       qc.invalidateQueries({ queryKey: queryKeys.admin.users.staff(staffId) })
       qc.invalidateQueries({ queryKey: queryKeys.admin.overview() })
     },
