@@ -42,11 +42,8 @@ export class ErrorBoundary extends Component {
             path !== '/auth/login' && 
             path !== '/auth/register' && 
             path !== '/' &&
-            !path.startsWith('/news-and-updates') &&
-            !path.startsWith('/inperson-training') &&
             !path.startsWith('/stories') &&
             !path.startsWith('/public-library') &&
-            !path.startsWith('/videos') &&
             !path.startsWith('/inquiries')
           ) {
             window.location.replace('/auth/login')

@@ -77,22 +77,6 @@ export async function deleteStory(token, id) {
   return parseResponse(await apiClient(token).delete(`/api/v1/admin/homepage/stories/${id}`))
 }
 
-export async function getAdminVideos(token) {
-  assertToken(token)
-  return parseListResponse(await apiClient(token).get('/api/v1/admin/homepage/videos'))
-}
-export async function createVideo(token, data) {
-  assertToken(token)
-  return parseResponse(await apiClient(token).post('/api/v1/admin/homepage/videos', data))
-}
-export async function updateVideo(token, id, data) {
-  assertToken(token)
-  return parseResponse(await apiClient(token).put(`/api/v1/admin/homepage/videos/${id}`, data))
-}
-export async function deleteVideo(token, id) {
-  assertToken(token)
-  return parseResponse(await apiClient(token).delete(`/api/v1/admin/homepage/videos/${id}`))
-}
 
 export async function getAdminPartners(token) {
   assertToken(token)
@@ -111,22 +95,6 @@ export async function deletePartner(token, id) {
   return parseResponse(await apiClient(token).delete(`/api/v1/admin/homepage/partners/${id}`))
 }
 
-export async function getAdminNews(token) {
-  assertToken(token)
-  return parseListResponse(await apiClient(token).get('/api/v1/admin/homepage/news'))
-}
-export async function createNewsItem(token, data) {
-  assertToken(token)
-  return parseResponse(await apiClient(token).post('/api/v1/admin/homepage/news', data))
-}
-export async function updateNewsItem(token, id, data) {
-  assertToken(token)
-  return parseResponse(await apiClient(token).put(`/api/v1/admin/homepage/news/${id}`, data))
-}
-export async function deleteNewsItem(token, id) {
-  assertToken(token)
-  return parseResponse(await apiClient(token).delete(`/api/v1/admin/homepage/news/${id}`))
-}
 
 export async function getAdminLibraryResources(token) {
   assertToken(token)
@@ -145,22 +113,6 @@ export async function deleteLibraryResource(token, id) {
   return parseResponse(await apiClient(token).delete(`/api/v1/admin/homepage/library-resources/${id}`))
 }
 
-export async function getAdminTrainings(token) {
-  assertToken(token)
-  return parseListResponse(await apiClient(token).get('/api/v1/admin/homepage/trainings'))
-}
-export async function createTraining(token, data) {
-  assertToken(token)
-  return parseResponse(await apiClient(token).post('/api/v1/admin/homepage/trainings', data))
-}
-export async function updateTraining(token, id, data) {
-  assertToken(token)
-  return parseResponse(await apiClient(token).put(`/api/v1/admin/homepage/trainings/${id}`, data))
-}
-export async function deleteTraining(token, id) {
-  assertToken(token)
-  return parseResponse(await apiClient(token).delete(`/api/v1/admin/homepage/trainings/${id}`))
-}
 
 /** Admin: upload any file */
 export async function uploadFile(token, file, subdir = 'library') {
