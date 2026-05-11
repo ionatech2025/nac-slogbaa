@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '../../features/iam/hooks/useAuth.js'
 import { queryKeys } from '../query-keys.js'
-import { getStaffProfile, setStaffPassword, setStaffActive, deleteStaff, updateStaffProfile } from '../../api/admin/staff.js'
+import { getStaffProfile, setStaffPassword, setStaffActive, deleteStaff, updateStaffProfile, createStaff } from '../../api/admin/staff.js'
 import { getTraineeProfile, getTraineeEnrolledCourses, setTraineePassword, deleteTrainee, updateTraineeProfile } from '../../api/admin/trainees.js'
 import { getAdminCertificates, uploadManualCertificate } from '../../api/admin/certificates.js'
 
@@ -160,6 +160,19 @@ export function useUploadManualCertificate() {
     onSuccess: (_, { traineeId }) => {
       qc.invalidateQueries({ queryKey: [...queryKeys.admin.assessment.certificates(), 'trainee', traineeId] })
       qc.invalidateQueries({ queryKey: queryKeys.admin.users.traineeEnrolled(traineeId) })
+      qc.invalidateQueries({ queryKey: queryKeys.admin.overview() })
+    },
+  })
+}
+
+export function useCreateStaff() {
+  const { token } = useAuth()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (payload) => createStaff(token, payload),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['system-admin', 'staff-list'] })
+      qc.invalidateQueries({ queryKey: ['system-admin', 'activities'] })
       qc.invalidateQueries({ queryKey: queryKeys.admin.overview() })
     },
   })

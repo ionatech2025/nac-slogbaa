@@ -7,6 +7,7 @@ import { AdminNav } from '../components/admin/AdminNav.jsx'
 
 const MODULES = [
   { path: '', label: 'Dashboard', icon: icons.overview },
+  { path: 'staff', label: 'Manage Staff', icon: icons.users },
 ]
 
 const baseStyles = {

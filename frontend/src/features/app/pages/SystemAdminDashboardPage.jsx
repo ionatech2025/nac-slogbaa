@@ -1,11 +1,6 @@
-import { useState } from 'react'
 import { FontAwesomeIcon, icons } from '../../../shared/icons.jsx'
-import { useAdminActivities, useAllStaff } from '../../../lib/hooks/use-system-admin.js'
-import { useSetStaffActive, useSetStaffPassword, useUpdateStaffProfile } from '../../../lib/hooks/use-admin-users.js'
+import { useAdminActivities } from '../../../lib/hooks/use-system-admin.js'
 import { timeAgo } from '../../../lib/notification-utils.js'
-import { useToast } from '../../../shared/hooks/useToast.js'
-import { Modal } from '../../../shared/components/Modal.jsx'
-import { LoadingButton } from '../../../shared/components/LoadingButton.jsx'
 
 const styles = {
   root: {
@@ -194,155 +189,12 @@ const styles = {
     marginTop: 2,
   },
 
-  /* ── Staff grid ── */
-  staffScroll: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(270px, 1fr))',
-    gap: '0.875rem',
-    maxHeight: 420,
-    overflowY: 'auto',
-  },
-  staffCard: {
-    border: '1px solid var(--slogbaa-border)',
-    borderRadius: 14,
-    padding: '1rem 1.125rem',
-    background: 'var(--slogbaa-surface)',
-    transition: 'border-color 0.18s, box-shadow 0.18s',
-    cursor: 'default',
-  },
-  staffCardTop: {
-    display: 'flex',
-    alignItems: 'flex-start',
-    gap: '0.75rem',
-    marginBottom: '0.75rem',
-  },
-  staffAvatar: (active) => ({
-    width: 38,
-    height: 38,
-    borderRadius: 10,
-    background: active ? 'rgba(255,127,36,0.12)' : 'var(--slogbaa-border)',
-    color: active ? '#FF7F24' : 'var(--slogbaa-text-secondary)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontWeight: 700,
-    fontSize: '0.875rem',
-    flexShrink: 0,
-    letterSpacing: '-0.01em',
-  }),
-  staffInfo: {
-    flex: 1,
-    minWidth: 0,
-  },
-  staffNameRow: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    gap: '0.5rem',
-    marginBottom: '0.15rem',
-  },
-  staffName: {
-    margin: 0,
-    fontSize: '0.9375rem',
-    fontWeight: 700,
-    color: 'var(--slogbaa-text)',
-    whiteSpace: 'nowrap',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-  },
-  staffEmail: {
-    margin: 0,
-    fontSize: '0.8125rem',
-    color: 'var(--slogbaa-text-secondary)',
-    whiteSpace: 'nowrap',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-  },
-  roleBadge: {
-    fontSize: '0.625rem',
-    fontWeight: 700,
-    padding: '0.2rem 0.55rem',
-    borderRadius: 20,
-    background: 'rgba(255,127,36,0.1)',
-    color: '#FF7F24',
-    whiteSpace: 'nowrap',
-    textTransform: 'uppercase',
-    letterSpacing: '0.04em',
-    flexShrink: 0,
-  },
-  staffStatus: (active) => ({
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: '0.3rem',
-    fontSize: '0.75rem',
-    fontWeight: 600,
-    color: active ? '#10B981' : '#EF4444',
-    background: active ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.08)',
-    padding: '0.2rem 0.55rem',
-    borderRadius: 20,
-  }),
-  staffDivider: {
-    height: 1,
-    background: 'var(--slogbaa-border)',
-    margin: '0.75rem 0',
-  },
-  staffActions: {
-    display: 'flex',
-    gap: '0.5rem',
-  },
-  actionBtn: (variant) => ({
-    flex: 1,
-    padding: '0.45rem 0',
-    border: `1px solid ${variant === 'danger' ? 'rgba(239,68,68,0.3)' : 'var(--slogbaa-border)'}`,
-    background: variant === 'danger' ? 'rgba(239,68,68,0.06)' : 'transparent',
-    borderRadius: 8,
-    color: variant === 'danger' ? '#EF4444' : 'var(--slogbaa-text)',
-    fontSize: '0.8125rem',
-    fontWeight: 600,
-    cursor: 'pointer',
-    textAlign: 'center',
-    transition: 'all 0.18s',
-    letterSpacing: '0.01em',
-  }),
-
   /* ── Empty / loading states ── */
   emptyState: {
     textAlign: 'center',
     padding: '2.5rem 1rem',
     color: 'var(--slogbaa-text-secondary)',
     fontSize: '0.9rem',
-  },
-
-  /* ── Modal elements ── */
-  modalInput: {
-    width: '100%',
-    padding: '0.625rem 0.875rem',
-    border: '1px solid var(--slogbaa-border)',
-    borderRadius: 10,
-    fontSize: '0.9375rem',
-    background: 'var(--slogbaa-surface)',
-    color: 'var(--slogbaa-text)',
-    marginBottom: '1rem',
-    boxSizing: 'border-box',
-  },
-  modalLabel: {
-    display: 'block',
-    fontSize: '0.8125rem',
-    fontWeight: 600,
-    color: 'var(--slogbaa-text)',
-    marginBottom: '0.35rem',
-  },
-  modalSubmit: {
-    width: '100%',
-    padding: '0.625rem 0.875rem',
-    background: 'var(--slogbaa-primary)',
-    color: '#fff',
-    border: 'none',
-    borderRadius: 10,
-    fontSize: '0.9375rem',
-    fontWeight: 600,
-    cursor: 'pointer',
-    minHeight: 44,
   },
 }
 
@@ -352,38 +204,8 @@ function initials(name = '') {
 
 export function SystemAdminDashboardPage() {
   const { data: activitiesData, isLoading: loadingActivities } = useAdminActivities()
-  const { data: staffData, isLoading: loadingStaff } = useAllStaff()
-  const toast = useToast()
-  const setStaffActive = useSetStaffActive()
-  const setStaffPassword = useSetStaffPassword()
-
-  const [resetStaff, setResetStaff] = useState(null)
-  const [newPassword, setNewPassword] = useState('')
 
   const activities = activitiesData || []
-  const staffList = staffData || []
-
-  const toggleStaffStatus = async (staffId, currentStatus) => {
-    try {
-      await setStaffActive.mutateAsync({ staffId, active: !currentStatus })
-      toast.success(`Staff account ${!currentStatus ? 'activated' : 'deactivated'}.`)
-    } catch {
-      toast.error('Failed to update staff status.')
-    }
-  }
-
-  const handleResetPasswordSubmit = async (e) => {
-    e.preventDefault()
-    if (!newPassword || !resetStaff) return
-    try {
-      await setStaffPassword.mutateAsync({ staffId: resetStaff.id, newPassword })
-      toast.success(`Password reset for ${resetStaff.fullName}.`)
-      setResetStaff(null)
-      setNewPassword('')
-    } catch {
-      toast.error('Failed to reset password.')
-    }
-  }
 
   return (
     <div style={styles.root}>
@@ -473,106 +295,6 @@ export function SystemAdminDashboardPage() {
           ))}
         </div>
       </div>
-
-      {/* ── Staff Directory ── */}
-      <div style={styles.card}>
-        <div style={styles.cardHeader}>
-          <div style={styles.cardHeaderLeft}>
-            <div style={styles.cardIcon}>
-              <FontAwesomeIcon icon={icons.users} />
-            </div>
-            <h2 style={styles.cardTitle}>Staff Directory</h2>
-          </div>
-          {staffList.length > 0 && (
-            <span style={styles.cardBadge}>{staffList.length} members</span>
-          )}
-        </div>
-
-        <div style={styles.staffScroll}>
-          {loadingStaff ? (
-            <div style={styles.emptyState}>Loading staff…</div>
-          ) : staffList.length === 0 ? (
-            <div style={styles.emptyState}>No staff found.</div>
-          ) : (
-            staffList.map(staff => (
-              <div key={staff.id} style={styles.staffCard}>
-                <div style={styles.staffCardTop}>
-                  <div style={styles.staffAvatar(staff.active)}>
-                    {initials(staff.fullName)}
-                  </div>
-                  <div style={styles.staffInfo}>
-                    <div style={styles.staffNameRow}>
-                      <h3 style={styles.staffName}>{staff.fullName}</h3>
-                      <span style={styles.roleBadge}>{staff.role}</span>
-                    </div>
-                    <p style={styles.staffEmail}>{staff.email}</p>
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-                  <span style={styles.staffStatus(staff.active)}>
-                    <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'currentColor', flexShrink: 0 }} />
-                    {staff.active ? 'Active' : 'Suspended'}
-                  </span>
-                </div>
-
-                <div style={styles.staffDivider} />
-
-                <div style={styles.staffActions}>
-                  <button
-                    style={styles.actionBtn(staff.active ? 'danger' : 'default')}
-                    onClick={() => toggleStaffStatus(staff.id, staff.active)}
-                    disabled={setStaffActive.isPending}
-                  >
-                    {staff.active ? 'Suspend' : 'Activate'}
-                  </button>
-                  <button
-                    style={styles.actionBtn('default')}
-                    onClick={() => {
-                      setResetStaff(staff)
-                      setNewPassword('')
-                    }}
-                  >
-                    Reset Pass
-                  </button>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-      </div>
-
-      {resetStaff && (
-        <Modal
-          title="Reset Password"
-          onClose={() => setResetStaff(null)}
-          maxWidth={400}
-        >
-          <form onSubmit={handleResetPasswordSubmit}>
-            <p style={{ margin: '0 0 1rem', fontSize: '0.875rem', color: 'var(--slogbaa-text-secondary)' }}>
-              Set a new password for <strong>{resetStaff.fullName}</strong> ({resetStaff.email}).
-            </p>
-            <label style={styles.modalLabel} htmlFor="new-password">New Password</label>
-            <input
-              id="new-password"
-              type="text"
-              required
-              minLength={6}
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              style={styles.modalInput}
-              placeholder="Enter new password"
-            />
-            <LoadingButton
-              type="submit"
-              loading={setStaffPassword.isPending}
-              style={styles.modalSubmit}
-            >
-              Update Password
-            </LoadingButton>
-          </form>
-        </Modal>
-      )}
     </div>
   )
 }

@@ -29,6 +29,7 @@ const HelpPage = lazy(() => import('./pages/HelpPage.jsx').then((m) => ({ defaul
 const AdminLayout = lazy(() => import('./pages/AdminLayout.jsx').then((m) => ({ default: m.AdminLayout })))
 const SystemAdminLayout = lazy(() => import('./pages/SystemAdminLayout.jsx').then((m) => ({ default: m.SystemAdminLayout })))
 const SystemAdminDashboardPage = lazy(() => import('./pages/SystemAdminDashboardPage.jsx').then((m) => ({ default: m.SystemAdminDashboardPage })))
+const SystemAdminStaffPage = lazy(() => import('./pages/SystemAdminStaffPage.jsx').then((m) => ({ default: m.SystemAdminStaffPage })))
 const AdminOverviewPage = lazy(() => import('./pages/AdminOverviewPage.jsx').then((m) => ({ default: m.AdminOverviewPage })))
 const AdminAssessmentPage = lazy(() => import('./pages/AdminAssessmentPage.jsx').then((m) => ({ default: m.AdminAssessmentPage })))
 const AdminLearningPage = lazy(() => import('./pages/AdminLearningPage.jsx').then((m) => ({ default: m.AdminLearningPage })))
@@ -102,6 +103,7 @@ export function AppRoutes() {
       <Route path="/system-admin" element={<RequireSystemAdmin />}>
         <Route element={<Lazy><SystemAdminLayout /></Lazy>}>
           <Route index element={<Lazy><SystemAdminDashboardPage /></Lazy>} />
+          <Route path="staff" element={<Lazy><SystemAdminStaffPage /></Lazy>} />
         </Route>
       </Route>
       <Route path="*" element={<NotFoundPage />} />
