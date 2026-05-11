@@ -11,6 +11,7 @@ import com.nac.slogbaa.iam.core.aggregate.StaffUser;
 import com.nac.slogbaa.iam.core.aggregate.Trainee;
 import com.nac.slogbaa.iam.core.exception.EmailNotVerifiedException;
 import com.nac.slogbaa.iam.core.exception.InvalidCredentialsException;
+import com.nac.slogbaa.iam.core.exception.SuspendedAccountException;
 import com.nac.slogbaa.iam.core.valueobject.AuthenticatedIdentity;
 import com.nac.slogbaa.iam.core.valueobject.AuthenticatedRole;
 import com.nac.slogbaa.iam.core.valueobject.Email;
@@ -61,7 +62,7 @@ public final class AuthenticateUserService implements AuthenticateUserUseCase {
 
     private AuthenticationResult authenticateStaff(StaffUser user, String rawPassword) {
         if (!user.isActive()) {
-            throw new InvalidCredentialsException();
+            throw new SuspendedAccountException();
         }
         if (!passwordHasher.matches(rawPassword, user.getPasswordHash())) {
             throw new InvalidCredentialsException();
@@ -91,7 +92,7 @@ public final class AuthenticateUserService implements AuthenticateUserUseCase {
 
     private AuthenticationResult authenticateTrainee(Trainee user, String rawPassword) {
         if (!user.isActive()) {
-            throw new InvalidCredentialsException();
+            throw new SuspendedAccountException();
         }
         if (!passwordHasher.matches(rawPassword, user.getPasswordHash())) {
             throw new InvalidCredentialsException();
