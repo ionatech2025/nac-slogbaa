@@ -126,8 +126,9 @@ public class AdminStaffController {
             @AuthenticationPrincipal AuthenticatedIdentity identity,
             @PathVariable UUID id,
             @Valid @RequestBody SetPasswordByAdminRequest request) {
+        String staffName = getStaffNameOrId(id);
         setStaffPasswordByAdminUseCase.setPassword(id, request.newPassword());
-        adminActivityPort.logActivity(identity.getUserId(), "CHANGE_PASSWORD", id.toString(), "Changed password for staff " + id);
+        adminActivityPort.logActivity(identity.getUserId(), "CHANGE_PASSWORD", id.toString(), "Changed password for staff " + staffName);
         return ResponseEntity.noContent().build();
     }
 
@@ -137,8 +138,9 @@ public class AdminStaffController {
             @AuthenticationPrincipal AuthenticatedIdentity identity,
             @PathVariable UUID id,
             @Valid @RequestBody SetStaffActiveRequest request) {
+        String staffName = getStaffNameOrId(id);
         setStaffActiveUseCase.setActive(id, request.active());
-        adminActivityPort.logActivity(identity.getUserId(), "SET_ACTIVE_STATUS", id.toString(), "Set active status to " + request.active() + " for staff " + id);
+        adminActivityPort.logActivity(identity.getUserId(), "SET_ACTIVE_STATUS", id.toString(), "Set active status to " + request.active() + " for staff " + staffName);
         return ResponseEntity.noContent().build();
     }
 
@@ -148,9 +150,10 @@ public class AdminStaffController {
             @AuthenticationPrincipal AuthenticatedIdentity identity,
             @PathVariable UUID id,
             @Valid @RequestBody UpdateStaffProfileRequest request) {
+        String staffName = getStaffNameOrId(id);
         UpdateStaffProfileCommand command = new UpdateStaffProfileCommand(request.fullName(), request.email());
         updateStaffProfileByAdminUseCase.update(id, command);
-        adminActivityPort.logActivity(identity.getUserId(), "UPDATE_PROFILE", id.toString(), "Updated profile for staff " + id);
+        adminActivityPort.logActivity(identity.getUserId(), "UPDATE_PROFILE", id.toString(), "Updated profile for staff " + staffName);
         return ResponseEntity.noContent().build();
     }
 
@@ -159,8 +162,15 @@ public class AdminStaffController {
     public ResponseEntity<Void> deleteStaff(
             @AuthenticationPrincipal AuthenticatedIdentity identity,
             @PathVariable UUID id) {
+        String staffName = getStaffNameOrId(id);
         deleteStaffUseCase.delete(id, identity.getUserId());
-        adminActivityPort.logActivity(identity.getUserId(), "DELETE_STAFF", id.toString(), "Deleted staff " + id);
+        adminActivityPort.logActivity(identity.getUserId(), "DELETE_STAFF", id.toString(), "Deleted staff " + staffName);
         return ResponseEntity.noContent().build();
+    }
+
+    private String getStaffNameOrId(UUID id) {
+        return getStaffByIdUseCase.getById(id)
+                .map(dto -> dto.getFullName())
+                .orElse(id.toString());
     }
 }
