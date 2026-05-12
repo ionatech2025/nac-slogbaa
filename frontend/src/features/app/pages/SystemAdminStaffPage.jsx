@@ -390,19 +390,24 @@ export function SystemAdminStaffPage() {
                 >
                   Reset Pass
                 </button>
-                <button
-                  style={styles.actionBtn(staff.active ? 'danger' : 'default')}
-                  onClick={() => toggleStaffStatus(staff.id, staff.active)}
-                  disabled={setStaffActive.isPending}
-                >
-                  {staff.active ? 'Suspend' : 'Activate'}
-                </button>
-                <button
-                  style={styles.actionBtn('danger')}
-                  onClick={() => setDeleteStaffConfirm(staff)}
-                >
-                  Delete
-                </button>
+                
+                {staff.id !== user?.userId && staff.email !== user?.email && (
+                  <>
+                    <button
+                      style={styles.actionBtn(staff.active ? 'danger' : 'default')}
+                      onClick={() => toggleStaffStatus(staff.id, staff.active)}
+                      disabled={setStaffActive.isPending}
+                    >
+                      {staff.active ? 'Suspend' : 'Activate'}
+                    </button>
+                    <button
+                      style={styles.actionBtn('danger')}
+                      onClick={() => setDeleteStaffConfirm(staff)}
+                    >
+                      Delete
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           ))

@@ -984,18 +984,6 @@ export function AdminOverviewPage() {
                         >
                           <FontAwesomeIcon icon={icons.eye} />
                         </Link>
-                        {/* {s.id !== currentUserId && s.email !== currentUserEmail ? (
-                          <button
-                            type="button"
-                            style={styles.deleteBtn}
-                            onClick={() => onDeleteStaff(s)}
-                            disabled={deletingId === s.id}
-                            title="Delete staff"
-                            aria-label={`Delete staff: ${s.fullName}`}
-                          >
-                            <FontAwesomeIcon icon={icons.delete} />
-                          </button>
-                        ) : null} */}
                       </td>
                     )}
                   </tr>
