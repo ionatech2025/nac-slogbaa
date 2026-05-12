@@ -4,6 +4,7 @@ import { FontAwesomeIcon, icons } from '../../../shared/icons.jsx'
 import { useAllStaff } from '../../../lib/hooks/use-system-admin.js'
 import { useSetStaffActive, useSetStaffPassword, useCreateStaff, useUpdateStaffProfile, useDeleteStaff } from '../../../lib/hooks/use-admin-users.js'
 import { useToast } from '../../../shared/hooks/useToast.js'
+import { useAuth } from '../../iam/hooks/useAuth.js'
 import { Modal } from '../../../shared/components/Modal.jsx'
 import { LoadingButton } from '../../../shared/components/LoadingButton.jsx'
 
@@ -236,6 +237,7 @@ function initials(name = '') {
 }
 
 export function SystemAdminStaffPage() {
+  const { user, updateUser } = useAuth()
   const { data: staffData, isLoading: loadingStaff } = useAllStaff()
   const toast = useToast()
   
@@ -286,6 +288,11 @@ export function SystemAdminStaffPage() {
     if (!editStaff) return
     try {
       await updateStaffProfile.mutateAsync({ staffId: editStaff.id, ...editForm })
+      
+      if (editStaff.id === user?.userId || editStaff.email === user?.email) {
+        updateUser({ fullName: editForm.fullName, email: editForm.email })
+      }
+      
       toast.success(`Profile updated for ${editForm.fullName}.`)
       setEditStaff(null)
     } catch {

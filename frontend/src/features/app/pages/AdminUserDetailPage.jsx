@@ -390,7 +390,8 @@ function roleLabel(role) {
 export function AdminUserDetailPage() {
   const { userType, userId } = useParams()
   const navigate = useNavigate()
-  const { user: authUser } = useAuth()
+  const auth = useAuth()
+  const { user: authUser } = auth
   const roleUpper = authUser?.role && String(authUser.role).toUpperCase()
   const isSystemAdmin = roleUpper === 'SYSTEM_ADMIN'
   
@@ -490,6 +491,9 @@ export function AdminUserDetailPage() {
     if (!isStaff) return
     try {
       await updateStaffMutation.mutateAsync({ staffId: userId, ...payload })
+      if (userId === authUser?.userId || userId === authUser?.id) {
+        auth.updateUser({ fullName: payload.fullName, email: payload.email })
+      }
       setShowStaffEditModal(false)
       toast.success('Profile updated.')
     } catch (e) {
