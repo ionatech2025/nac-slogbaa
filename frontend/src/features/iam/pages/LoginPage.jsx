@@ -62,7 +62,9 @@ export function LoginPage() {
   // Redirect already-authenticated users to their dashboard
   if (isAuthenticated && user) {
     const role = String(user.role ?? '').toUpperCase()
-    const target = role === 'SUPER_ADMIN' || role === 'ADMIN' ? '/admin' : '/dashboard'
+    let target = '/dashboard'
+    if (role === 'SYSTEM_ADMIN') target = '/system-admin'
+    else if (role === 'SUPER_ADMIN' || role === 'ADMIN') target = '/admin'
     return <Navigate to={target} replace />
   }
 

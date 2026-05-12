@@ -17,6 +17,8 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
+import org.springframework.context.ApplicationEventPublisher;
+import com.nac.slogbaa.shared.events.SystemActivityEvent;
 
 /**
  * Issues certificate when trainee completes course. Generates PDF, stores it, optionally emails.
@@ -32,6 +34,7 @@ public final class IssueCertificateService implements IssueCertificateUseCase {
     private final FileStoragePort fileStorage;
     private final TraineeSettingsPort traineeSettingsPort;
     private final TraineeNotificationPort traineeNotificationPort;
+    private final ApplicationEventPublisher eventPublisher;
 
     public IssueCertificateService(CertificateRepositoryPort certificateRepository,
                                   TraineeProgressRepositoryPort traineeProgressRepository,
@@ -41,7 +44,8 @@ public final class IssueCertificateService implements IssueCertificateUseCase {
                                   CertificatePdfGeneratorPort pdfGenerator,
                                   FileStoragePort fileStorage,
                                   TraineeSettingsPort traineeSettingsPort,
-                                  TraineeNotificationPort traineeNotificationPort) {
+                                  TraineeNotificationPort traineeNotificationPort,
+                                  ApplicationEventPublisher eventPublisher) {
         this.certificateRepository = certificateRepository;
         this.traineeProgressRepository = traineeProgressRepository;
         this.courseDetailsQueryPort = courseDetailsQueryPort;
@@ -51,6 +55,7 @@ public final class IssueCertificateService implements IssueCertificateUseCase {
         this.fileStorage = fileStorage;
         this.traineeSettingsPort = traineeSettingsPort;
         this.traineeNotificationPort = traineeNotificationPort;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -108,5 +113,13 @@ public final class IssueCertificateService implements IssueCertificateUseCase {
             } catch (Exception e) {
             }
         }
+        
+        eventPublisher.publishEvent(new SystemActivityEvent(
+                null,
+                "SYSTEM",
+                "CREATE",
+                courseId.toString(),
+                "Issued certificate for " + course.getTitle() + " to " + traineeName
+        ));
     }
 }

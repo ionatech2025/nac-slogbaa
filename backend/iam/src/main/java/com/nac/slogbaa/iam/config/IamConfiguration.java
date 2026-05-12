@@ -24,6 +24,7 @@ import com.nac.slogbaa.iam.application.port.in.SoftDeleteAccountUseCase;
 import com.nac.slogbaa.iam.application.port.in.UpdateStaffProfileByAdminUseCase;
 import com.nac.slogbaa.iam.application.port.in.PasswordResetUseCase;
 import com.nac.slogbaa.iam.application.port.in.UpdateTraineeProfileUseCase;
+import com.nac.slogbaa.iam.application.port.in.GetAllStaffUseCase;
 import com.nac.slogbaa.iam.application.port.in.VerifyEmailUseCase;
 import com.nac.slogbaa.iam.application.port.out.AuthTokenPort;
 import com.nac.slogbaa.iam.application.port.out.EmailVerificationTokenRepositoryPort;
@@ -41,6 +42,7 @@ import com.nac.slogbaa.iam.application.service.GetAdminDashboardOverviewService;
 import com.nac.slogbaa.iam.application.service.GetStaffByIdService;
 import com.nac.slogbaa.iam.application.service.GetTraineeByIdService;
 import com.nac.slogbaa.iam.application.service.PasswordResetService;
+import com.nac.slogbaa.iam.application.service.GetAllStaffService;
 import com.nac.slogbaa.iam.application.service.SetStaffActiveService;
 import com.nac.slogbaa.iam.application.service.SetStaffPasswordByAdminService;
 import com.nac.slogbaa.iam.application.service.SetTraineePasswordByAdminService;
@@ -108,13 +110,15 @@ public class IamConfiguration {
             TraineeRepositoryPort traineeRepository,
             StaffUserRepositoryPort staffUserRepository,
             PasswordHasherPort passwordHasher,
-            VerifyEmailUseCase verifyEmailUseCase) {
+            VerifyEmailUseCase verifyEmailUseCase,
+            org.springframework.context.ApplicationEventPublisher eventPublisher) {
         return new RegisterTraineeService(
                 traineeRepository,
                 staffUserRepository,
                 passwordHasher,
                 verifyEmailUseCase,
-                verificationRequired
+                verificationRequired,
+                eventPublisher
         );
     }
 
@@ -164,13 +168,20 @@ public class IamConfiguration {
     }
 
     @Bean
-    public DeleteTraineeUseCase deleteTraineeUseCase(TraineeRepositoryPort traineeRepository) {
-        return new DeleteTraineeService(traineeRepository);
+    public DeleteTraineeUseCase deleteTraineeUseCase(
+            TraineeRepositoryPort traineeRepository,
+            org.springframework.context.ApplicationEventPublisher eventPublisher) {
+        return new DeleteTraineeService(traineeRepository, eventPublisher);
     }
 
     @Bean
     public GetStaffByIdUseCase getStaffByIdUseCase(StaffUserRepositoryPort staffUserRepository) {
         return new GetStaffByIdService(staffUserRepository);
+    }
+
+    @Bean
+    public GetAllStaffUseCase getAllStaffUseCase(StaffUserRepositoryPort staffUserRepository) {
+        return new GetAllStaffService(staffUserRepository);
     }
 
     @Bean

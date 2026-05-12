@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '../../features/iam/hooks/useAuth.js'
 import { queryKeys } from '../query-keys.js'
-import { getStaffProfile, setStaffPassword, setStaffActive, deleteStaff, updateStaffProfile } from '../../api/admin/staff.js'
+import { getStaffProfile, setStaffPassword, setStaffActive, deleteStaff, updateStaffProfile, createStaff } from '../../api/admin/staff.js'
 import { getTraineeProfile, getTraineeEnrolledCourses, setTraineePassword, deleteTrainee, updateTraineeProfile } from '../../api/admin/trainees.js'
 import { getAdminCertificates, uploadManualCertificate } from '../../api/admin/certificates.js'
 
@@ -70,7 +70,38 @@ export function useSetStaffActive() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: ({ staffId, active }) => setStaffActive(token, staffId, active),
-    onSuccess: (_, { staffId }) => {
+    onMutate: async ({ staffId, active }) => {
+      const systemAdminStaffListKey = ['system-admin', 'staff-list']
+      const staffProfileKey = queryKeys.admin.users.staff(staffId)
+
+      await qc.cancelQueries({ queryKey: systemAdminStaffListKey })
+      await qc.cancelQueries({ queryKey: staffProfileKey })
+
+      const previousStaffList = qc.getQueryData(systemAdminStaffListKey)
+      const previousProfile = qc.getQueryData(staffProfileKey)
+
+      if (previousStaffList) {
+        qc.setQueryData(systemAdminStaffListKey, (old) =>
+          old?.map((staff) => (staff.id === staffId ? { ...staff, active } : staff))
+        )
+      }
+      if (previousProfile) {
+        qc.setQueryData(staffProfileKey, (old) => ({ ...old, active }))
+      }
+
+      return { previousStaffList, previousProfile, systemAdminStaffListKey, staffProfileKey }
+    },
+    onError: (err, variables, context) => {
+      if (context?.previousStaffList) {
+        qc.setQueryData(context.systemAdminStaffListKey, context.previousStaffList)
+      }
+      if (context?.previousProfile) {
+        qc.setQueryData(context.staffProfileKey, context.previousProfile)
+      }
+    },
+    onSettled: (_, __, { staffId }) => {
+      qc.invalidateQueries({ queryKey: ['system-admin', 'staff-list'] })
+      qc.invalidateQueries({ queryKey: ['system-admin', 'activities'] })
       qc.invalidateQueries({ queryKey: queryKeys.admin.users.staff(staffId) })
       qc.invalidateQueries({ queryKey: queryKeys.admin.overview() })
     },
@@ -82,8 +113,24 @@ export function useDeleteStaff() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (staffId) => deleteStaff(token, staffId),
-    onSuccess: () => {
+    onMutate: async (staffId) => {
+      const listKey = ['system-admin', 'staff-list']
+      await qc.cancelQueries({ queryKey: listKey })
+      const previous = qc.getQueryData(listKey)
+      if (previous) {
+        qc.setQueryData(listKey, old => old?.filter(s => s.id !== staffId))
+      }
+      return { previous, listKey }
+    },
+    onError: (err, variables, context) => {
+      if (context?.previous) {
+        qc.setQueryData(context.listKey, context.previous)
+      }
+    },
+    onSettled: () => {
       qc.invalidateQueries({ queryKey: queryKeys.admin.overview() })
+      qc.invalidateQueries({ queryKey: ['system-admin', 'staff-list'] })
+      qc.invalidateQueries({ queryKey: ['system-admin', 'activities'] })
     },
   })
 }
@@ -104,8 +151,24 @@ export function useUpdateStaffProfile() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: ({ staffId, ...payload }) => updateStaffProfile(token, staffId, payload),
-    onSuccess: (_, { staffId }) => {
+    onMutate: async ({ staffId, ...payload }) => {
+      const listKey = ['system-admin', 'staff-list']
+      await qc.cancelQueries({ queryKey: listKey })
+      const previous = qc.getQueryData(listKey)
+      if (previous) {
+        qc.setQueryData(listKey, old => old?.map(s => s.id === staffId ? { ...s, ...payload } : s))
+      }
+      return { previous, listKey }
+    },
+    onError: (err, variables, context) => {
+      if (context?.previous) {
+        qc.setQueryData(context.listKey, context.previous)
+      }
+    },
+    onSettled: (_, __, { staffId }) => {
       qc.invalidateQueries({ queryKey: queryKeys.admin.users.staff(staffId) })
+      qc.invalidateQueries({ queryKey: ['system-admin', 'staff-list'] })
+      qc.invalidateQueries({ queryKey: ['system-admin', 'activities'] })
     },
   })
 }
@@ -129,6 +192,19 @@ export function useUploadManualCertificate() {
     onSuccess: (_, { traineeId }) => {
       qc.invalidateQueries({ queryKey: [...queryKeys.admin.assessment.certificates(), 'trainee', traineeId] })
       qc.invalidateQueries({ queryKey: queryKeys.admin.users.traineeEnrolled(traineeId) })
+      qc.invalidateQueries({ queryKey: queryKeys.admin.overview() })
+    },
+  })
+}
+
+export function useCreateStaff() {
+  const { token } = useAuth()
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (payload) => createStaff(token, payload),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['system-admin', 'staff-list'] })
+      qc.invalidateQueries({ queryKey: ['system-admin', 'activities'] })
       qc.invalidateQueries({ queryKey: queryKeys.admin.overview() })
     },
   })

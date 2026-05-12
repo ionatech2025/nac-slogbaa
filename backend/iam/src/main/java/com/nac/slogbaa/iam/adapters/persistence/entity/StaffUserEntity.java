@@ -38,6 +38,7 @@ public class StaffUserEntity {
     private Instant lastLoginAt;
 
     public enum StaffRoleEnum {
+        SYSTEM_ADMIN,
         SUPER_ADMIN,
         ADMIN
     }

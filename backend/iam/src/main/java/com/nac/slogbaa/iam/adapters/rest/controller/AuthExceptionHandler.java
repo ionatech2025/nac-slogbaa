@@ -10,6 +10,7 @@ import com.nac.slogbaa.iam.core.exception.InvalidCurrentPasswordException;
 import com.nac.slogbaa.iam.core.exception.StaffCannotSelfRegisterException;
 import com.nac.slogbaa.iam.core.exception.StaffNotFoundException;
 import com.nac.slogbaa.iam.core.exception.StaffRoleLimitReachedException;
+import com.nac.slogbaa.iam.core.exception.SuspendedAccountException;
 import com.nac.slogbaa.iam.core.exception.TraineeNotFoundException;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
@@ -30,6 +31,13 @@ public class AuthExceptionHandler {
     public ProblemDetail handleInvalidCredentials(InvalidCredentialsException e) {
         ProblemDetail detail = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, e.getMessage());
         detail.setTitle("Invalid credentials");
+        return detail;
+    }
+
+    @ExceptionHandler(SuspendedAccountException.class)
+    public ProblemDetail handleSuspendedAccount(SuspendedAccountException e) {
+        ProblemDetail detail = ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, e.getMessage());
+        detail.setTitle("Account suspended");
         return detail;
     }
 

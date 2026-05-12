@@ -22,7 +22,7 @@ import {
   Flame, Target, MessageSquare, CheckCircle,
   Bookmark, Star, StarHalf, Bell, BellDot, Settings, HelpCircle,
   Wifi, WifiOff, PartyPopper, Upload, UserMinus, Trash,
-  ChevronDown, ChevronRight, ExternalLink, ArrowRight,
+  ChevronDown, ChevronRight, ExternalLink, ArrowRight, Server, Timer,
 } from 'lucide-react'
 
 /**
@@ -129,4 +129,6 @@ export const icons = {
   sync: RefreshCw,
   fileText: FileText,
   graduationCap: GraduationCap,
+  server: Server,
+  history: Timer,
 }

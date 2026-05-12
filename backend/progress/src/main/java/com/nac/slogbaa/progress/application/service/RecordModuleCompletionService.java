@@ -7,6 +7,8 @@ import com.nac.slogbaa.progress.application.port.in.IssueCertificateUseCase;
 import com.nac.slogbaa.progress.application.port.in.RecordModuleCompletionUseCase;
 import com.nac.slogbaa.progress.application.port.out.ModuleCompletionPort;
 import com.nac.slogbaa.progress.application.port.out.TraineeProgressRepositoryPort;
+import org.springframework.context.ApplicationEventPublisher;
+import com.nac.slogbaa.shared.events.SystemActivityEvent;
 
 import java.util.UUID;
 
@@ -24,6 +26,7 @@ public final class RecordModuleCompletionService implements RecordModuleCompleti
     private final CheckAndAwardBadgesUseCase checkAndAwardBadgesUseCase;
     private final CreateNotificationUseCase createNotificationUseCase;
     private final CourseCompletionStaffNotificationService staffNotificationService;
+    private final ApplicationEventPublisher eventPublisher;
 
     public RecordModuleCompletionService(TraineeProgressRepositoryPort traineeProgressRepository,
                                          ModuleCompletionPort moduleCompletionPort,
@@ -31,7 +34,8 @@ public final class RecordModuleCompletionService implements RecordModuleCompleti
                                          IssueCertificateUseCase issueCertificateUseCase,
                                          CheckAndAwardBadgesUseCase checkAndAwardBadgesUseCase,
                                          CreateNotificationUseCase createNotificationUseCase,
-                                         CourseCompletionStaffNotificationService staffNotificationService) {
+                                         CourseCompletionStaffNotificationService staffNotificationService,
+                                         ApplicationEventPublisher eventPublisher) {
         this.traineeProgressRepository = traineeProgressRepository;
         this.moduleCompletionPort = moduleCompletionPort;
         this.courseDetailsQueryPort = courseDetailsQueryPort;
@@ -39,6 +43,7 @@ public final class RecordModuleCompletionService implements RecordModuleCompleti
         this.checkAndAwardBadgesUseCase = checkAndAwardBadgesUseCase;
         this.createNotificationUseCase = createNotificationUseCase;
         this.staffNotificationService = staffNotificationService;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -65,6 +70,16 @@ public final class RecordModuleCompletionService implements RecordModuleCompleti
         traineeProgressRepository.updateCompletionStatus(traineeId, courseId, status, percentage);
 
         if (allComplete) {
+            try {
+                eventPublisher.publishEvent(new SystemActivityEvent(
+                        traineeId,
+                        "TRAINEE",
+                        "COMPLETE",
+                        courseId.toString(),
+                        "Completed course"
+                ));
+            } catch (Exception ignored) {
+            }
             try {
                 issueCertificateUseCase.issueIfEligible(traineeId, courseId);
             } catch (Exception ignored) {

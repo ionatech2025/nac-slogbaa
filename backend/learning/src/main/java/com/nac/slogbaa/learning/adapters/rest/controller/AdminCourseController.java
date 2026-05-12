@@ -63,6 +63,8 @@ import com.nac.slogbaa.learning.core.exception.CourseNotFoundException;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import org.springframework.context.ApplicationEventPublisher;
+import com.nac.slogbaa.shared.events.SystemActivityEvent;
 
 /**
  * REST controller for admin course management. SuperAdmin only.
@@ -86,6 +88,7 @@ public class AdminCourseController {
     private final DeleteCourseUseCase deleteCourseUseCase;
     private final DeleteModuleUseCase deleteModuleUseCase;
     private final CloneCourseUseCase cloneCourseUseCase;
+    private final ApplicationEventPublisher eventPublisher;
 
     public AdminCourseController(GetAdminCoursesUseCase getAdminCoursesUseCase,
                                 GetAdminCourseDetailsUseCase getAdminCourseDetailsUseCase,
@@ -100,7 +103,8 @@ public class AdminCourseController {
                                 UnpublishCourseUseCase unpublishCourseUseCase,
                                 DeleteCourseUseCase deleteCourseUseCase,
                                 DeleteModuleUseCase deleteModuleUseCase,
-                                CloneCourseUseCase cloneCourseUseCase) {
+                                CloneCourseUseCase cloneCourseUseCase,
+                                ApplicationEventPublisher eventPublisher) {
         this.getAdminCoursesUseCase = getAdminCoursesUseCase;
         this.getAdminCourseDetailsUseCase = getAdminCourseDetailsUseCase;
         this.createCourseUseCase = createCourseUseCase;
@@ -115,6 +119,7 @@ public class AdminCourseController {
         this.deleteCourseUseCase = deleteCourseUseCase;
         this.deleteModuleUseCase = deleteModuleUseCase;
         this.cloneCourseUseCase = cloneCourseUseCase;
+        this.eventPublisher = eventPublisher;
     }
 
     @GetMapping("/count")
@@ -176,7 +181,8 @@ public class AdminCourseController {
     @PreAuthorize("hasRole('SUPER_ADMIN')")
     public ResponseEntity<Void> updateCourse(
             @PathVariable UUID id,
-            @Valid @RequestBody UpdateCourseRequest request) {
+            @Valid @RequestBody UpdateCourseRequest request,
+            @AuthenticationPrincipal AuthenticatedIdentity identity) {
         UpdateCourseCommand command = new UpdateCourseCommand(
                 id,
                 request.title(),
@@ -185,6 +191,13 @@ public class AdminCourseController {
                 request.categoryId()
         );
         updateCourseUseCase.execute(command);
+        eventPublisher.publishEvent(new SystemActivityEvent(
+                identity.getUserId(),
+                identity.getRole().name(),
+                "UPDATE",
+                id.toString(),
+                "Updated course details"
+        ));
         return ResponseEntity.noContent().build();
     }
 
@@ -213,7 +226,8 @@ public class AdminCourseController {
     public ResponseEntity<Void> updateModule(
             @PathVariable UUID courseId,
             @PathVariable UUID moduleId,
-            @Valid @RequestBody UpdateModuleRequest request) {
+            @Valid @RequestBody UpdateModuleRequest request,
+            @AuthenticationPrincipal AuthenticatedIdentity identity) {
         UpdateModuleCommand command = new UpdateModuleCommand(
                 moduleId,
                 request.title(),
@@ -222,6 +236,13 @@ public class AdminCourseController {
                 request.estimatedMinutes()
         );
         updateModuleUseCase.execute(command);
+        eventPublisher.publishEvent(new SystemActivityEvent(
+                identity.getUserId(),
+                identity.getRole().name(),
+                "UPDATE",
+                moduleId.toString(),
+                "Updated course module"
+        ));
         return ResponseEntity.noContent().build();
     }
 
@@ -287,24 +308,51 @@ public class AdminCourseController {
 
     @PostMapping("/{id}/publish")
     @PreAuthorize("hasRole('SUPER_ADMIN')")
-    public ResponseEntity<Void> publishCourse(@PathVariable UUID id) {
+    public ResponseEntity<Void> publishCourse(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal AuthenticatedIdentity identity) {
         PublishCourseCommand command = new PublishCourseCommand(id);
         publishCourseUseCase.execute(command);
+        eventPublisher.publishEvent(new SystemActivityEvent(
+                identity.getUserId(),
+                identity.getRole().name(),
+                "APPROVE",
+                id.toString(),
+                "Published course"
+        ));
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/{id}/unpublish")
     @PreAuthorize("hasRole('SUPER_ADMIN')")
-    public ResponseEntity<Void> unpublishCourse(@PathVariable UUID id) {
+    public ResponseEntity<Void> unpublishCourse(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal AuthenticatedIdentity identity) {
         UnpublishCourseCommand command = new UnpublishCourseCommand(id);
         unpublishCourseUseCase.execute(command);
+        eventPublisher.publishEvent(new SystemActivityEvent(
+                identity.getUserId(),
+                identity.getRole().name(),
+                "SUSPEND",
+                id.toString(),
+                "Unpublished course"
+        ));
         return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('SUPER_ADMIN')")
-    public ResponseEntity<Void> deleteCourse(@PathVariable UUID id) {
+    public ResponseEntity<Void> deleteCourse(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal AuthenticatedIdentity identity) {
         deleteCourseUseCase.execute(id);
+        eventPublisher.publishEvent(new SystemActivityEvent(
+                identity.getUserId(),
+                identity.getRole().name(),
+                "DELETE",
+                id.toString(),
+                "Deleted course"
+        ));
         return ResponseEntity.noContent().build();
     }
 
@@ -312,8 +360,16 @@ public class AdminCourseController {
     @PreAuthorize("hasRole('SUPER_ADMIN')")
     public ResponseEntity<Void> deleteModule(
             @PathVariable UUID courseId,
-            @PathVariable UUID moduleId) {
+            @PathVariable UUID moduleId,
+            @AuthenticationPrincipal AuthenticatedIdentity identity) {
         deleteModuleUseCase.execute(moduleId);
+        eventPublisher.publishEvent(new SystemActivityEvent(
+                identity.getUserId(),
+                identity.getRole().name(),
+                "DELETE",
+                moduleId.toString(),
+                "Deleted course module"
+        ));
         return ResponseEntity.noContent().build();
     }
 
@@ -323,6 +379,13 @@ public class AdminCourseController {
             @PathVariable UUID courseId,
             @AuthenticationPrincipal AuthenticatedIdentity identity) {
         UUID newCourseId = cloneCourseUseCase.clone(courseId, identity.getUserId());
+        eventPublisher.publishEvent(new SystemActivityEvent(
+                identity.getUserId(),
+                identity.getRole().name(),
+                "CREATE",
+                newCourseId.toString(),
+                "Cloned course from: " + courseId
+        ));
         return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("id", newCourseId));
     }
 

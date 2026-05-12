@@ -1,0 +1,7 @@
+-- Seed sample data for admin activities
+INSERT INTO admin_activity_log (id, actor_id, actor_email, actor_role, action_type, target_id, description, created_at) VALUES
+(gen_random_uuid(), '11111111-1111-1111-1111-111111111101', 'superadmin@slogbaa.nac.go.ug', 'SUPER_ADMIN', 'CREATE_STAFF', '11111111-1111-1111-1111-111111111102', 'Created staff: admin@slogbaa.nac.go.ug as ADMIN', current_timestamp - INTERVAL '20 days'),
+(gen_random_uuid(), '11111111-1111-1111-1111-111111111101', 'superadmin@slogbaa.nac.go.ug', 'SUPER_ADMIN', 'UPDATE_PROFILE', '11111111-1111-1111-1111-111111111102', 'Updated profile for staff 11111111-1111-1111-1111-111111111102', current_timestamp - INTERVAL '5 days'),
+(gen_random_uuid(), '11111111-1111-1111-1111-111111111101', 'superadmin@slogbaa.nac.go.ug', 'SUPER_ADMIN', 'SET_ACTIVE_STATUS', '11111111-1111-1111-1111-111111111102', 'Set active status to true for staff 11111111-1111-1111-1111-111111111102', current_timestamp - INTERVAL '2 days'), 
+(gen_random_uuid(), '11111111-1111-1111-1111-111111111102', 'admin@slogbaa.nac.go.ug', 'ADMIN', 'REVIEW_COURSE', '11111111-1111-1111-1111-111111111103', 'Created organisation: My Organisation as ADMIN', current_timestamp - INTERVAL '20 days'),
+(gen_random_uuid(), '11111111-1111-1111-1111-111111111102', 'admin@slogbaa.nac.go.ug', 'ADMIN', 'UPDATE_PASSWORD', '11111111-1111-1111-1111-111111111104', 'Invited staff: staff@slogbaa.nac.go.ug as ADMIN', current_timestamp - INTERVAL '15 days');

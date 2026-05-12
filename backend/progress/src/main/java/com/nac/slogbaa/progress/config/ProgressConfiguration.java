@@ -160,8 +160,9 @@ public class ProgressConfiguration {
             IssueCertificateUseCase issueCertificateUseCase,
             CheckAndAwardBadgesUseCase checkAndAwardBadgesUseCase,
             CreateNotificationUseCase createNotificationUseCase,
-            CourseCompletionStaffNotificationService staffNotificationService) {
-        return new RecordModuleCompletionService(traineeProgressRepository, moduleCompletionPort, courseDetailsQueryPort, issueCertificateUseCase, checkAndAwardBadgesUseCase, createNotificationUseCase, staffNotificationService);
+            CourseCompletionStaffNotificationService staffNotificationService,
+            org.springframework.context.ApplicationEventPublisher eventPublisher) {
+        return new RecordModuleCompletionService(traineeProgressRepository, moduleCompletionPort, courseDetailsQueryPort, issueCertificateUseCase, checkAndAwardBadgesUseCase, createNotificationUseCase, staffNotificationService, eventPublisher);
     }
 
     @Bean
@@ -173,10 +174,12 @@ public class ProgressConfiguration {
             GetTraineeByIdUseCase getTraineeByIdUseCase,
             CertificatePdfGeneratorPort pdfGenerator,
             FileStoragePort fileStorage,
+            FileStoragePort fileStoragePort,
             com.nac.slogbaa.progress.application.port.out.TraineeSettingsPort traineeSettingsPort,
-            TraineeNotificationPort traineeNotificationPort) {
+            TraineeNotificationPort traineeNotificationPort,
+            org.springframework.context.ApplicationEventPublisher eventPublisher) {
         return new IssueCertificateService(certificateRepository, traineeProgressRepository, courseDetailsQueryPort,
-                traineeCourseQuizScorePort, getTraineeByIdUseCase, pdfGenerator, fileStorage, traineeSettingsPort, traineeNotificationPort);
+                traineeCourseQuizScorePort, getTraineeByIdUseCase, pdfGenerator, fileStoragePort, traineeSettingsPort, traineeNotificationPort, eventPublisher);
     }
 
     @Bean

@@ -24,6 +24,8 @@ import com.nac.slogbaa.progress.application.port.in.RecordProgressUseCase;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import org.springframework.context.ApplicationEventPublisher;
+import com.nac.slogbaa.shared.events.SystemActivityEvent;
 
 /**
  * REST controller for course enrollment and enrolled list. TRAINEE only.
@@ -40,6 +42,7 @@ public class EnrollmentController {
     private final RecordModuleCompletionUseCase recordModuleCompletionUseCase;
     private final GetResumePointUseCase getResumePointUseCase;
     private final TraineeProgressRepositoryPort traineeProgressRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     public EnrollmentController(EnrollTraineeUseCase enrollTraineeUseCase,
                                UnenrollTraineeUseCase unenrollTraineeUseCase,
@@ -47,7 +50,8 @@ public class EnrollmentController {
                                RecordProgressUseCase recordProgressUseCase,
                                RecordModuleCompletionUseCase recordModuleCompletionUseCase,
                                GetResumePointUseCase getResumePointUseCase,
-                               TraineeProgressRepositoryPort traineeProgressRepository) {
+                               TraineeProgressRepositoryPort traineeProgressRepository,
+                               ApplicationEventPublisher eventPublisher) {
         this.enrollTraineeUseCase = enrollTraineeUseCase;
         this.unenrollTraineeUseCase = unenrollTraineeUseCase;
         this.getEnrolledCoursesUseCase = getEnrolledCoursesUseCase;
@@ -55,6 +59,7 @@ public class EnrollmentController {
         this.recordModuleCompletionUseCase = recordModuleCompletionUseCase;
         this.getResumePointUseCase = getResumePointUseCase;
         this.traineeProgressRepository = traineeProgressRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     @GetMapping("/enrolled")
@@ -89,6 +94,13 @@ public class EnrollmentController {
             @AuthenticationPrincipal AuthenticatedIdentity identity,
             @PathVariable UUID courseId) {
         enrollTraineeUseCase.enroll(identity.getUserId(), courseId);
+        eventPublisher.publishEvent(new SystemActivityEvent(
+                identity.getUserId(),
+                identity.getRole().name(),
+                "ENROLL",
+                courseId.toString(),
+                "Enrolled in course"
+        ));
         return ResponseEntity.noContent().build();
     }
 

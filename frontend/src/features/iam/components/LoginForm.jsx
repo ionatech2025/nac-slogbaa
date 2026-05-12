@@ -193,8 +193,13 @@ export function LoginForm() {
       }
       const { token, userId, email: userEmail, role, fullName } = result.data
       setAuth(token, { userId, email: userEmail, role, fullName })
-      const isStaff = Boolean(role && (String(role).toUpperCase() === 'SUPER_ADMIN' || String(role).toUpperCase() === 'ADMIN'))
-      const target = isStaff ? '/admin' : '/dashboard'
+      const roleUpper = String(role ?? '').toUpperCase()
+      let target = '/dashboard'
+      if (roleUpper === 'SYSTEM_ADMIN') {
+        target = '/system-admin'
+      } else if (roleUpper === 'SUPER_ADMIN' || roleUpper === 'ADMIN') {
+        target = '/admin'
+      }
       // Defer navigation so auth context state is committed before the new page reads it
       setTimeout(() => navigate(target, { replace: true }), 0)
     } catch (err) {

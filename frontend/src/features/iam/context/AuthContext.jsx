@@ -69,6 +69,21 @@ export function AuthProvider({ children }) {
     }
   }, [])
 
+  const updateUser = useCallback((updatedFields) => {
+    setState((prev) => {
+      if (!prev?.user) return prev
+      const newUser = { ...prev.user, ...updatedFields }
+      const newState = { token: prev.token, user: newUser }
+      writeStorage(prev.token, newUser)
+      try {
+        const bc = new BroadcastChannel(AUTH_CHANNEL)
+        bc.postMessage({ type: 'updateUser', user: newUser })
+        bc.close()
+      } catch {}
+      return newState
+    })
+  }, [])
+
   const logout = useCallback(() => {
     // 1. Cancel all in-flight queries to prevent 401 cascades
     queryClient.cancelQueries()
@@ -116,6 +131,13 @@ export function AuthProvider({ children }) {
           setState({ token: msg.token, user: msg.user })
           writeStorage(msg.token, msg.user)
           queueMicrotask(() => queryClient.clear())
+        } else if (msg?.type === 'updateUser' && msg.user) {
+          setState((prev) => {
+            if (!prev) return prev
+            const newState = { token: prev.token, user: msg.user }
+            writeStorage(prev.token, msg.user)
+            return newState
+          })
         }
       }
     } catch {
@@ -149,6 +171,7 @@ export function AuthProvider({ children }) {
     isAuthenticated: Boolean(state?.token),
     login,
     logout,
+    updateUser,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
