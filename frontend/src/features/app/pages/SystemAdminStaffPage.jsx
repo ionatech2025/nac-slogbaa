@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { FontAwesomeIcon, icons } from '../../../shared/icons.jsx'
 import { useAllStaff } from '../../../lib/hooks/use-system-admin.js'
 import { useSetStaffActive, useSetStaffPassword, useCreateStaff, useUpdateStaffProfile, useDeleteStaff } from '../../../lib/hooks/use-admin-users.js'
@@ -343,7 +344,11 @@ export function SystemAdminStaffPage() {
                 </div>
                 <div style={styles.staffInfo}>
                   <div style={styles.staffNameRow}>
-                    <h3 style={styles.staffName} title={staff.fullName}>{staff.fullName}</h3>
+                    <h3 style={styles.staffName} title={staff.fullName}>
+                      <Link to={`/system-admin/users/staff/${staff.id}`} style={{ color: 'inherit', textDecoration: 'none' }}>
+                        {staff.fullName}
+                      </Link>
+                    </h3>
                     <span style={styles.roleBadge}>{staff.role}</span>
                   </div>
                   <p style={styles.staffEmail} title={staff.email}>{staff.email}</p>
