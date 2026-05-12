@@ -1,4 +1,4 @@
-package com.nac.slogbaa.iam.application.service;
+package com.nac.slogbaa.iam.adapters.activity;
 
 import com.nac.slogbaa.iam.adapters.persistence.entity.AdminActivityLogEntity;
 import com.nac.slogbaa.iam.adapters.persistence.repository.AdminActivityLogRepository;
