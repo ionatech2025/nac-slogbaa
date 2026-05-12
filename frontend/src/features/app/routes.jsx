@@ -104,7 +104,7 @@ export function AppRoutes() {
         <Route element={<Lazy><SystemAdminLayout /></Lazy>}>
           <Route index element={<Lazy><SystemAdminDashboardPage /></Lazy>} />
           <Route path="staff" element={<Lazy><SystemAdminStaffPage /></Lazy>} />
-          <Route path="users/staff/:userId" element={<Lazy><AdminUserDetailPage /></Lazy>} />
+          <Route path="users/:userType/:userId" element={<Lazy><AdminUserDetailPage /></Lazy>} />
         </Route>
       </Route>
       <Route path="*" element={<NotFoundPage />} />
