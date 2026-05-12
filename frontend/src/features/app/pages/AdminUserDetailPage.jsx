@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useParams, useNavigate, useOutletContext } from 'react-router-dom'
+import { useAuth } from '../../iam/hooks/useAuth.js'
 import { FontAwesomeIcon, icons } from '../../../shared/icons.jsx'
 import { useStaffProfile, useTraineeAdminProfile, useTraineeEnrolledCourses, useTraineeCertificates,
   useSetStaffPassword, useSetTraineePassword, useSetStaffActive,
@@ -389,7 +390,15 @@ function roleLabel(role) {
 export function AdminUserDetailPage() {
   const { userType, userId } = useParams()
   const navigate = useNavigate()
-  const { isSuperAdmin, currentUserId, refreshOverview } = useOutletContext() || {}
+  const auth = useAuth()
+  const { user: authUser } = auth
+  const roleUpper = authUser?.role && String(authUser.role).toUpperCase()
+  const isSystemAdmin = roleUpper === 'SYSTEM_ADMIN'
+  
+  const context = useOutletContext() || {}
+  const isSuperAdmin = roleUpper === 'SUPER_ADMIN' || context.isSuperAdmin
+  const currentUserId = context.currentUserId || authUser?.userId
+  const refreshOverview = context.refreshOverview
 
   const isStaff = userType === 'staff'
   const isTrainee = userType === 'trainee'
@@ -461,7 +470,7 @@ export function AdminUserDetailPage() {
       if (isStaff) await deleteStaffMutation.mutateAsync(userId)
       else await deleteTraineeMutation.mutateAsync(userId)
       toast.success('User deleted.')
-      navigate('/admin/overview')
+      navigate(isSystemAdmin ? '/system-admin/staff' : '/admin/overview')
     } catch (e) {
       toast.error(e?.message ?? 'Failed to delete user.')
     }
@@ -482,6 +491,9 @@ export function AdminUserDetailPage() {
     if (!isStaff) return
     try {
       await updateStaffMutation.mutateAsync({ staffId: userId, ...payload })
+      if (userId === authUser?.userId || userId === authUser?.id) {
+        auth.updateUser({ fullName: payload.fullName, email: payload.email })
+      }
       setShowStaffEditModal(false)
       toast.success('Profile updated.')
     } catch (e) {
@@ -492,13 +504,13 @@ export function AdminUserDetailPage() {
   if (loading) {
     return (
       <div style={styles.page}>
-        <Breadcrumbs items={[
-          { label: 'Admin', to: '/admin' },
-          { label: 'Overview', to: '/admin/overview' },
-          { label: '...' },
-        ]} />
+        <Breadcrumbs items={
+          isSystemAdmin 
+          ? [{ label: 'System Admin', to: '/system-admin' }, { label: 'Staff', to: '/system-admin/staff' }, { label: '...' }]
+          : [{ label: 'Admin', to: '/admin' }, { label: 'Overview', to: '/admin/overview' }, { label: '...' }]
+        } />
         <p style={styles.loading}>Loading user…</p>
-        <AdminNavigatePills />
+        {!isSystemAdmin && <AdminNavigatePills />}
       </div>
     )
   }
@@ -506,13 +518,13 @@ export function AdminUserDetailPage() {
   if (error && !user) {
     return (
       <div style={styles.page}>
-        <Breadcrumbs items={[
-          { label: 'Admin', to: '/admin' },
-          { label: 'Overview', to: '/admin/overview' },
-          { label: '...' },
-        ]} />
+        <Breadcrumbs items={
+          isSystemAdmin 
+          ? [{ label: 'System Admin', to: '/system-admin' }, { label: 'Staff', to: '/system-admin/staff' }, { label: '...' }]
+          : [{ label: 'Admin', to: '/admin' }, { label: 'Overview', to: '/admin/overview' }, { label: '...' }]
+        } />
         <p style={styles.error}>{error}</p>
-        <AdminNavigatePills />
+        {!isSystemAdmin && <AdminNavigatePills />}
       </div>
     )
   }
@@ -520,13 +532,13 @@ export function AdminUserDetailPage() {
   if (!user) {
     return (
       <div style={styles.page}>
-        <Breadcrumbs items={[
-          { label: 'Admin', to: '/admin' },
-          { label: 'Overview', to: '/admin/overview' },
-          { label: '...' },
-        ]} />
+        <Breadcrumbs items={
+          isSystemAdmin 
+          ? [{ label: 'System Admin', to: '/system-admin' }, { label: 'Staff', to: '/system-admin/staff' }, { label: '...' }]
+          : [{ label: 'Admin', to: '/admin' }, { label: 'Overview', to: '/admin/overview' }, { label: '...' }]
+        } />
         <p style={styles.error}>User not found.</p>
-        <AdminNavigatePills />
+        {!isSystemAdmin && <AdminNavigatePills />}
       </div>
     )
   }
@@ -534,20 +546,22 @@ export function AdminUserDetailPage() {
   const displayName = user.fullName ?? [user.firstName, user.lastName].filter(Boolean).join(' ').trim() ?? user.email ?? '—'
   const roleDisplay = isStaff ? roleLabel(user.role) : 'Trainee'
   const active = isStaff ? user.active : true
-  const canDelete = isSuperAdmin && (isStaff ? user.id !== currentUserId : true)
-  const canEdit = isSuperAdmin
-  const canChangePassword = isSuperAdmin
-  const canToggleActive = isStaff && isSuperAdmin && user.id !== currentUserId
+  
+  const canDelete = isTrainee ? isSuperAdmin : (isSystemAdmin && user.id !== currentUserId)
+  const canEdit = isTrainee ? isSuperAdmin : isSystemAdmin
+  const canChangePassword = isTrainee ? isSuperAdmin : isSystemAdmin
+  const canToggleActive = isStaff && isSystemAdmin && user.id !== currentUserId
+  const canSendWelcomeEmail = isTrainee ? isSuperAdmin : isSystemAdmin
 
   const pageStyle = isTrainee ? { ...styles.page, maxWidth: 1100 } : styles.page
 
   return (
     <div style={pageStyle}>
-      <Breadcrumbs items={[
-        { label: 'Admin', to: '/admin' },
-        { label: 'Overview', to: '/admin/overview' },
-        { label: displayName },
-      ]} />
+      <Breadcrumbs items={
+        isSystemAdmin
+        ? [{ label: 'System Admin', to: '/system-admin' }, { label: 'Staff', to: '/system-admin/staff' }, { label: displayName }]
+        : [{ label: 'Admin', to: '/admin' }, { label: 'Overview', to: '/admin/overview' }, { label: displayName }]
+      } />
 
       {error && (
         <p style={{ ...styles.error, marginBottom: '1rem' }}>{error}</p>
@@ -608,15 +622,17 @@ export function AdminUserDetailPage() {
               </button>
             )
           )}
-          <button
-            type="button"
-            style={{ ...styles.actionBtn, ...styles.actionBtnEmail, opacity: 0.5, cursor: 'not-allowed' }}
-            disabled
-            title="Welcome email will be available once SMTP is configured"
-            aria-label="Send welcome email (not yet available)"
-          >
-            <FontAwesomeIcon icon={icons.envelope} /> Send Welcome Email
-          </button>
+          {canSendWelcomeEmail && (
+            <button
+              type="button"
+              style={{ ...styles.actionBtn, ...styles.actionBtnEmail, opacity: 0.5, cursor: 'not-allowed' }}
+              disabled
+              title="Welcome email will be available once SMTP is configured"
+              aria-label="Send welcome email (not yet available)"
+            >
+              <FontAwesomeIcon icon={icons.envelope} /> Send Welcome Email
+            </button>
+          )}
           {canDelete && (
             <button
               type="button"
@@ -971,7 +987,7 @@ export function AdminUserDetailPage() {
           disabled={uploadMutation.isPending}
         />
       )}
-      <AdminNavigatePills />
+      {!isSystemAdmin && <AdminNavigatePills />}
     </div>
   )
 }

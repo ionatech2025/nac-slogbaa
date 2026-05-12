@@ -11,6 +11,7 @@ import com.nac.slogbaa.iam.core.aggregate.StaffUser;
 import com.nac.slogbaa.iam.core.aggregate.Trainee;
 import com.nac.slogbaa.iam.core.exception.EmailNotVerifiedException;
 import com.nac.slogbaa.iam.core.exception.InvalidCredentialsException;
+import com.nac.slogbaa.iam.core.exception.SuspendedAccountException;
 import com.nac.slogbaa.iam.core.valueobject.AuthenticatedIdentity;
 import com.nac.slogbaa.iam.core.valueobject.AuthenticatedRole;
 import com.nac.slogbaa.iam.core.valueobject.Email;
@@ -61,14 +62,19 @@ public final class AuthenticateUserService implements AuthenticateUserUseCase {
 
     private AuthenticationResult authenticateStaff(StaffUser user, String rawPassword) {
         if (!user.isActive()) {
-            throw new InvalidCredentialsException();
+            throw new SuspendedAccountException();
         }
         if (!passwordHasher.matches(rawPassword, user.getPasswordHash())) {
             throw new InvalidCredentialsException();
         }
-        AuthenticatedRole role = user.getStaffRole() == com.nac.slogbaa.iam.core.valueobject.StaffRole.SUPER_ADMIN
-                ? AuthenticatedRole.SUPER_ADMIN
-                : AuthenticatedRole.ADMIN;
+        AuthenticatedRole role;
+        if (user.getStaffRole() == com.nac.slogbaa.iam.core.valueobject.StaffRole.SYSTEM_ADMIN) {
+            role = AuthenticatedRole.SYSTEM_ADMIN;
+        } else if (user.getStaffRole() == com.nac.slogbaa.iam.core.valueobject.StaffRole.SUPER_ADMIN) {
+            role = AuthenticatedRole.SUPER_ADMIN;
+        } else {
+            role = AuthenticatedRole.ADMIN;
+        }
         AuthenticatedIdentity identity = new AuthenticatedIdentity(
                 user.getId().getValue(),
                 user.getEmail().getValue(),
@@ -86,7 +92,7 @@ public final class AuthenticateUserService implements AuthenticateUserUseCase {
 
     private AuthenticationResult authenticateTrainee(Trainee user, String rawPassword) {
         if (!user.isActive()) {
-            throw new InvalidCredentialsException();
+            throw new SuspendedAccountException();
         }
         if (!passwordHasher.matches(rawPassword, user.getPasswordHash())) {
             throw new InvalidCredentialsException();

@@ -1,6 +1,15 @@
 import { apiClient, assertToken, parseResponse } from '../client.js'
 
 /**
+ * Get all staff members.
+ */
+export async function getAllStaff(token) {
+  assertToken(token)
+  const res = await apiClient(token).get('/api/admin/staff')
+  return parseResponse(res)
+}
+
+/**
  * Create a new staff user (SUPER_ADMIN only). Sends credentials to their email.
  * Requires auth token. Returns created staff { id, email, fullName, role }. Throws on failure.
  */

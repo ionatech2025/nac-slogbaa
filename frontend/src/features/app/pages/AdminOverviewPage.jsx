@@ -549,29 +549,29 @@ export function AdminOverviewPage() {
   // --- Demographic breakdowns ---
   const genderData = useMemo(() => {
     const counts = {}
-    ;(trainees ?? []).forEach((t) => {
-      const g = (t.gender || 'Unknown').charAt(0).toUpperCase() + (t.gender || 'Unknown').slice(1).toLowerCase()
-      counts[g] = (counts[g] || 0) + 1
-    })
+      ; (trainees ?? []).forEach((t) => {
+        const g = (t.gender || 'Unknown').charAt(0).toUpperCase() + (t.gender || 'Unknown').slice(1).toLowerCase()
+        counts[g] = (counts[g] || 0) + 1
+      })
     return Object.entries(counts).map(([name, value]) => ({ name, value }))
   }, [trainees])
 
   const categoryData = useMemo(() => {
     const labels = { LEADER: 'Leader', CIVIL_SOCIETY_MEMBER: 'Civil Society', COMMUNITY_MEMBER: 'Community' }
     const counts = {}
-    ;(trainees ?? []).forEach((t) => {
-      const cat = labels[t.traineeCategory] || t.traineeCategory || 'Other'
-      counts[cat] = (counts[cat] || 0) + 1
-    })
+      ; (trainees ?? []).forEach((t) => {
+        const cat = labels[t.traineeCategory] || t.traineeCategory || 'Other'
+        counts[cat] = (counts[cat] || 0) + 1
+      })
     return Object.entries(counts).map(([name, value]) => ({ name, value }))
   }, [trainees])
 
   const districtData = useMemo(() => {
     const counts = {}
-    ;(trainees ?? []).forEach((t) => {
-      const d = t.districtName || t.district || 'Unknown'
-      counts[d] = (counts[d] || 0) + 1
-    })
+      ; (trainees ?? []).forEach((t) => {
+        const d = t.districtName || t.district || 'Unknown'
+        counts[d] = (counts[d] || 0) + 1
+      })
     return Object.entries(counts)
       .sort((a, b) => b[1] - a[1])
       .slice(0, 8)
@@ -589,11 +589,11 @@ export function AdminOverviewPage() {
     })
     let graduated = 0
     let failed = 0
-    ;(trainees ?? []).forEach((t) => {
-      if (certifiedIds.has(t.id)) { graduated++; return }
-      const record = attemptsByTrainee[t.id]
-      if (record && record.any && !record.anyPassed) { failed++; return }
-    })
+      ; (trainees ?? []).forEach((t) => {
+        if (certifiedIds.has(t.id)) { graduated++; return }
+        const record = attemptsByTrainee[t.id]
+        if (record && record.any && !record.anyPassed) { failed++; return }
+      })
     const inProgress = (trainees ?? []).length - graduated - failed
     return [
       { name: 'In Progress', value: inProgress },
@@ -984,18 +984,6 @@ export function AdminOverviewPage() {
                         >
                           <FontAwesomeIcon icon={icons.eye} />
                         </Link>
-                        {s.id !== currentUserId && s.email !== currentUserEmail ? (
-                          <button
-                            type="button"
-                            style={styles.deleteBtn}
-                            onClick={() => onDeleteStaff(s)}
-                            disabled={deletingId === s.id}
-                            title="Delete staff"
-                            aria-label={`Delete staff: ${s.fullName}`}
-                          >
-                            <FontAwesomeIcon icon={icons.delete} />
-                          </button>
-                        ) : null}
                       </td>
                     )}
                   </tr>

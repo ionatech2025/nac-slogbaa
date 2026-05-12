@@ -11,6 +11,7 @@ import com.nac.slogbaa.iam.core.aggregate.StaffUser;
 import com.nac.slogbaa.iam.core.aggregate.Trainee;
 import com.nac.slogbaa.iam.core.entity.Profile;
 import com.nac.slogbaa.iam.core.exception.EmailNotVerifiedException;
+import com.nac.slogbaa.iam.core.exception.SuspendedAccountException;
 import com.nac.slogbaa.iam.core.exception.InvalidCredentialsException;
 import com.nac.slogbaa.iam.core.valueobject.*;
 
@@ -62,7 +63,7 @@ class AuthenticateUserServiceTest {
         Trainee trainee = createTrainee(UUID.randomUUID(), "inactive@test.com", "hashed-pw", false, true);
         traineeRepo.setResult(trainee);
 
-        assertThrows(InvalidCredentialsException.class, () ->
+        assertThrows(SuspendedAccountException.class, () ->
                 service.authenticate(new AuthenticationCommand("inactive@test.com", "password")));
     }
 

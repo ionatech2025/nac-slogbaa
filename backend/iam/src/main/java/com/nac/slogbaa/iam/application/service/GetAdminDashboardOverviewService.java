@@ -53,7 +53,9 @@ public class GetAdminDashboardOverviewService implements GetAdminDashboardOvervi
                 t.getId().getValue().toString(),
                 t.getProfile().getFullName().getFullName(),
                 t.getEmail().getValue(),
-                t.getProfile().getDistrict().getName()
+                t.getProfile().getDistrict().getName(),
+                t.getProfile().getGender().name(),
+                t.getProfile().getCategory().name()
         );
     }
 }
