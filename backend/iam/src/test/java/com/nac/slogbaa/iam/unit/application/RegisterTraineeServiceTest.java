@@ -12,6 +12,7 @@ import com.nac.slogbaa.iam.core.aggregate.Trainee;
 import com.nac.slogbaa.iam.core.exception.DuplicateEmailException;
 import com.nac.slogbaa.iam.core.exception.StaffCannotSelfRegisterException;
 import com.nac.slogbaa.iam.core.valueobject.*;
+import org.springframework.context.ApplicationEventPublisher;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -27,6 +28,7 @@ class RegisterTraineeServiceTest {
     private InMemoryTraineeRepo traineeRepo;
     private StubStaffRepo staffRepo;
     private RecordingVerifyEmail verifyEmail;
+    private RecordingEventPublisher eventPublisher;
     private RegisterTraineeService service;
 
     @BeforeEach
@@ -34,11 +36,12 @@ class RegisterTraineeServiceTest {
         traineeRepo = new InMemoryTraineeRepo();
         staffRepo = new StubStaffRepo();
         verifyEmail = new RecordingVerifyEmail();
+        eventPublisher = new RecordingEventPublisher();
         PasswordHasherPort hasher = new PasswordHasherPort() {
             @Override public String hash(String raw) { return "hashed:" + raw; }
             @Override public boolean matches(String raw, String hashed) { return hashed.equals("hashed:" + raw); }
         };
-        service = new RegisterTraineeService(traineeRepo, staffRepo, hasher, verifyEmail, true);
+        service = new RegisterTraineeService(traineeRepo, staffRepo, hasher, verifyEmail, true, eventPublisher);
     }
 
     @Test
@@ -124,5 +127,10 @@ class RegisterTraineeServiceTest {
         }
         @Override public boolean verify(String token) { return false; }
         @Override public void resendVerification(String email) {}
+    }
+
+    private static class RecordingEventPublisher implements ApplicationEventPublisher {
+        final List<Object> events = new ArrayList<>();
+        @Override public void publishEvent(Object event) { events.add(event); }
     }
 }
