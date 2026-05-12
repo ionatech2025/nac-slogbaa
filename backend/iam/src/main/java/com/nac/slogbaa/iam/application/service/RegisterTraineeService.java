@@ -22,6 +22,8 @@ import com.nac.slogbaa.iam.core.valueobject.TraineeId;
 
 import java.time.Instant;
 import java.util.UUID;
+import org.springframework.context.ApplicationEventPublisher;
+import com.nac.slogbaa.shared.events.SystemActivityEvent;
 
 /**
  * Application service: register a new trainee. Uses only ports; no framework dependency.
@@ -33,17 +35,20 @@ public final class RegisterTraineeService implements RegisterTraineeUseCase {
     private final PasswordHasherPort passwordHasher;
     private final VerifyEmailUseCase verifyEmailUseCase;
     private final boolean verificationRequired;
+    private final ApplicationEventPublisher eventPublisher;
 
     public RegisterTraineeService(TraineeRepositoryPort traineeRepository,
                                   StaffUserRepositoryPort staffUserRepository,
                                   PasswordHasherPort passwordHasher,
                                   VerifyEmailUseCase verifyEmailUseCase,
-                                  boolean verificationRequired) {
+                                  boolean verificationRequired,
+                                  ApplicationEventPublisher eventPublisher) {
         this.traineeRepository = traineeRepository;
         this.staffUserRepository = staffUserRepository;
         this.passwordHasher = passwordHasher;
         this.verifyEmailUseCase = verifyEmailUseCase;
         this.verificationRequired = verificationRequired;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -88,6 +93,14 @@ public final class RegisterTraineeService implements RegisterTraineeUseCase {
 
         // Single email: welcome + verify link (see EmailVerificationNotificationAdapter)
         verifyEmailUseCase.sendVerificationEmail(email.getValue());
+
+        eventPublisher.publishEvent(new SystemActivityEvent(
+                id.getValue(),
+                "TRAINEE",
+                "CREATE",
+                id.getValue().toString(),
+                "Account created"
+        ));
 
         return new RegisterTraineeResult(id.getValue(), email.getValue());
     }

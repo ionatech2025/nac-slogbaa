@@ -110,13 +110,15 @@ public class IamConfiguration {
             TraineeRepositoryPort traineeRepository,
             StaffUserRepositoryPort staffUserRepository,
             PasswordHasherPort passwordHasher,
-            VerifyEmailUseCase verifyEmailUseCase) {
+            VerifyEmailUseCase verifyEmailUseCase,
+            org.springframework.context.ApplicationEventPublisher eventPublisher) {
         return new RegisterTraineeService(
                 traineeRepository,
                 staffUserRepository,
                 passwordHasher,
                 verifyEmailUseCase,
-                verificationRequired
+                verificationRequired,
+                eventPublisher
         );
     }
 
@@ -166,8 +168,10 @@ public class IamConfiguration {
     }
 
     @Bean
-    public DeleteTraineeUseCase deleteTraineeUseCase(TraineeRepositoryPort traineeRepository) {
-        return new DeleteTraineeService(traineeRepository);
+    public DeleteTraineeUseCase deleteTraineeUseCase(
+            TraineeRepositoryPort traineeRepository,
+            org.springframework.context.ApplicationEventPublisher eventPublisher) {
+        return new DeleteTraineeService(traineeRepository, eventPublisher);
     }
 
     @Bean

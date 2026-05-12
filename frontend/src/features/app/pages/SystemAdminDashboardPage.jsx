@@ -6,24 +6,28 @@ import { timeAgo } from '../../../lib/notification-utils.js'
 /* ─── Action-type colour mapping ─────────────────────────────────────── */
 const ACTION_COLORS = {
   CREATE: { bg: 'rgba(255,127,36,0.08)', border: 'rgba(255,127,36,0.2)', text: '#FF7F24', dot: '#FF7F24' },
-  UPDATE: { bg: 'rgba(255,127,36,0.08)', border: 'rgba(255,127,36,0.2)', text: '#FF7F24', dot: '#FF7F24' },
+  UPDATE: { bg: 'rgba(99,179,237,0.08)', border: 'rgba(99,179,237,0.2)', text: '#63b3ed', dot: '#63b3ed' },
   APPROVE: { bg: 'rgba(16,185,129,0.08)', border: 'rgba(16,185,129,0.2)', text: '#10B981', dot: '#10B981' },
   EXPORT: { bg: 'rgba(99,179,237,0.08)', border: 'rgba(99,179,237,0.2)', text: '#63b3ed', dot: '#63b3ed' },
   RESET: { bg: 'rgba(251,191,36,0.08)', border: 'rgba(251,191,36,0.2)', text: '#fbbf24', dot: '#fbbf24' },
   SUSPEND: { bg: 'rgba(239,68,68,0.08)', border: 'rgba(239,68,68,0.2)', text: '#f87171', dot: '#EF4444' },
   DELETE: { bg: 'rgba(239,68,68,0.08)', border: 'rgba(239,68,68,0.2)', text: '#f87171', dot: '#EF4444' },
+  ENROLL: { bg: 'rgba(52,211,153,0.08)', border: 'rgba(52,211,153,0.2)', text: '#34d399', dot: '#10B981' },
+  COMPLETE: { bg: 'rgba(59,130,246,0.08)', border: 'rgba(59,130,246,0.2)', text: '#60a5fa', dot: '#3B82F6' },
 }
 const DEFAULT_ACTION_COLOR = { bg: 'rgba(255,255,255,0.05)', border: 'rgba(255,255,255,0.1)', text: '#8a9099', dot: '#FF7F24' }
 
 /* ─── Role colour mapping ────────────────────────────────────────────── */
 const ROLE_COLORS = {
   ADMIN: { bg: 'rgba(59,130,246,0.08)', border: 'rgba(59,130,246,0.2)', text: '#60a5fa' },
+  SUPER_ADMIN: { bg: 'rgba(239,68,68,0.08)', border: 'rgba(239,68,68,0.2)', text: '#ef4444' },
   STAFF: { bg: 'rgba(168,85,247,0.08)', border: 'rgba(168,85,247,0.2)', text: '#c084fc' },
-  MANAGER: { bg: 'rgba(245,158,11,0.08)', border: 'rgba(245,158,11,0.2)', text: '#fbbf24' },
+  TRAINEE: { bg: 'rgba(16,185,129,0.08)', border: 'rgba(16,185,129,0.2)', text: '#10b981' },
+  SYSTEM: { bg: 'rgba(107,114,128,0.08)', border: 'rgba(107,114,128,0.2)', text: '#9ca3af' },
 }
 const DEFAULT_ROLE_COLOR = { bg: 'rgba(255,255,255,0.05)', border: 'rgba(255,255,255,0.1)', text: '#8a9099' }
 
-const ALL_FILTERS = ['ALL', 'CREATE', 'UPDATE', 'APPROVE', 'SUSPEND', 'RESET', 'EXPORT', 'DELETE']
+const ALL_FILTERS = ['ALL', 'CREATE', 'UPDATE', 'APPROVE', 'SUSPEND', 'RESET', 'EXPORT', 'DELETE', 'ENROLL', 'COMPLETE']
 
 const styles = {
   root: {
@@ -269,10 +273,7 @@ export function SystemAdminDashboardPage() {
     return activities.filter(a => (a.actionType || '').toUpperCase() === activeFilter)
   }, [activities, activeFilter])
 
-  const presentFilters = useMemo(() => {
-    const types = new Set(activities.map(a => (a.actionType || '').toUpperCase()))
-    return ALL_FILTERS.filter(f => f === 'ALL' || types.has(f))
-  }, [activities])
+  const presentFilters = ALL_FILTERS
 
   return (
     <div style={styles.root}>

@@ -16,6 +16,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
+import org.springframework.context.ApplicationEventPublisher;
+import com.nac.slogbaa.shared.events.SystemActivityEvent;
 
 /**
  * REST controller for course reviews and ratings.
@@ -25,15 +27,18 @@ import java.util.UUID;
 public class CourseReviewController {
 
     private final SubmitCourseReviewUseCase submitCourseReviewUseCase;
-    private final com.nac.slogbaa.progress.application.port.in.SubmitStaffCourseReviewUseCase submitStaffCourseReviewUseCase;
+    private final SubmitStaffCourseReviewUseCase submitStaffCourseReviewUseCase;
     private final GetCourseReviewsUseCase getCourseReviewsUseCase;
+    private final ApplicationEventPublisher eventPublisher;
 
     public CourseReviewController(SubmitCourseReviewUseCase submitCourseReviewUseCase,
                                   SubmitStaffCourseReviewUseCase submitStaffCourseReviewUseCase,
-                                  GetCourseReviewsUseCase getCourseReviewsUseCase) {
+                                  GetCourseReviewsUseCase getCourseReviewsUseCase,
+                                  ApplicationEventPublisher eventPublisher) {
         this.submitCourseReviewUseCase = submitCourseReviewUseCase;
         this.submitStaffCourseReviewUseCase = submitStaffCourseReviewUseCase;
         this.getCourseReviewsUseCase = getCourseReviewsUseCase;
+        this.eventPublisher = eventPublisher;
     }
 
     @PostMapping("/{courseId}/reviews")
@@ -57,6 +62,13 @@ public class CourseReviewController {
                     request.reviewText()
             );
         }
+        eventPublisher.publishEvent(new SystemActivityEvent(
+                identity.getUserId(),
+                identity.getRole().name(),
+                "CREATE",
+                courseId.toString(),
+                "Submitted course review (Rating: " + request.rating() + ")"
+        ));
         return ResponseEntity.noContent().build();
     }
 
