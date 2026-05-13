@@ -22,9 +22,10 @@ const ICON_MAP = {
  * Background image layout reference:
  *   • SLOGBAA logo header:   0 – 10%
  *   • Partner logos:        10 – 18%
- *   • "CERTIFICATE OF COMPLETION" text: 18 – 40%
- *   • Blue banner pill:     40 – 44%   ← course title goes here
- *   • White content area:   44 – 84%   ← name, description, modules
+ *   • "CERTIFICATE OF COMPLETION" text: 18 – 38%
+ *   • Blue banner pill:     38 – 43%   (decorative; title goes BELOW it)
+ *   • Course title (orange): 43 – 46%  ← orange SLOGBAA-style heading
+ *   • White content area:   46 – 84%   ← name, description, modules
  *   • Signatures section:   84 – 96%   ← pre-printed; we overlay date + cert-id
  *   • City / date footer:   92 – 100%
  */
@@ -73,44 +74,40 @@ const CertificateTemplate = ({ data = {}, style = {}, className = '' }) => {
          ══════════════════════════════════════════════════════════════ */}
       <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
 
-        {/* ── 1. Course title ── centred inside the blue pill banner ── */}
-        {/* Banner pill sits at ~38.5 % from the top, ~3.5 % tall */}
+        {/* ── 1. Course title ── below the blue pill banner, in SLOGBAA orange ── */}
+        {/* Banner pill ends at ~43 %; title sits immediately below it */}
         <div style={{
-          position:   'absolute',
-          top:        '38.5%',
-          left:       '22%',
-          width:      '56%',
-          height:     '3.5%',
-          display:    'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          textAlign:  'center',
+          position:  'absolute',
+          top:       '43%',
+          left:      '8%',
+          width:     '84%',
+          textAlign: 'center',
         }}>
           <span style={{
-            color:         '#ffffff',
-            fontSize:      'clamp(0.45rem, 2cqw, 1.1rem)',
-            fontWeight:    700,
-            letterSpacing: '0.035em',
+            color:         '#F58220',
+            fontSize:      'clamp(0.7rem, 2.8cqw, 1.6rem)',
+            fontWeight:    800,
+            letterSpacing: '0.04em',
             textTransform: 'uppercase',
-            lineHeight:    1.1,
-            textShadow:    '0 1px 3px rgba(0,0,0,0.45)',
+            lineHeight:    1.2,
+            fontFamily:    "'Segoe UI', system-ui, Arial, sans-serif",
           }}>
             {courseTitle}
           </span>
         </div>
 
         {/* ── 2. "This is to certify that" label ── */}
-        {/* Sits just below the banner, at ~44.5 % */}
+        {/* Sits below the orange course title, at ~47 % */}
         <div style={{
           position:  'absolute',
-          top:       '44.2%',
+          top:       '47%',
           left:      0,
           width:     '100%',
           textAlign: 'center',
         }}>
           <span style={{
             color:         '#666',
-            fontSize:      'clamp(0.4rem, 1.5cqw, 0.85rem)',
+            fontSize:      'clamp(0.5rem, 1.8cqw, 1rem)',
             fontStyle:     'italic',
             letterSpacing: '0.02em',
           }}>
@@ -118,10 +115,10 @@ const CertificateTemplate = ({ data = {}, style = {}, className = '' }) => {
           </span>
         </div>
 
-        {/* ── 3. Recipient name ── large, centred, at ~47 % ── */}
+        {/* ── 3. Recipient name ── large, centred, at ~50 % ── */}
         <div style={{
           position:  'absolute',
-          top:       '46.8%',
+          top:       '50%',
           left:      '8%',
           width:     '84%',
           textAlign: 'center',
@@ -129,7 +126,7 @@ const CertificateTemplate = ({ data = {}, style = {}, className = '' }) => {
           <span style={{
             display:       'block',
             color:         '#003087',
-            fontSize:      'clamp(0.9rem, 4.5cqw, 2.8rem)',
+            fontSize:      'clamp(1.1rem, 5cqw, 3.2rem)',
             fontWeight:    700,
             fontFamily:    "Georgia, 'Times New Roman', serif",
             lineHeight:    1.15,
@@ -139,17 +136,17 @@ const CertificateTemplate = ({ data = {}, style = {}, className = '' }) => {
           </span>
         </div>
 
-        {/* ── 4. Completion description ── at ~55 % ── */}
+        {/* ── 4. Completion description ── at ~57 % ── */}
         <div style={{
           position:  'absolute',
-          top:       '54.5%',
+          top:       '57%',
           left:      '13%',
           width:     '74%',
           textAlign: 'center',
         }}>
           <span style={{
             color:      '#555',
-            fontSize:   'clamp(0.38rem, 1.45cqw, 0.8rem)',
+            fontSize:   'clamp(0.5rem, 1.8cqw, 1rem)',
             lineHeight: 1.65,
           }}>
             has successfully completed the training program and demonstrated
@@ -157,11 +154,11 @@ const CertificateTemplate = ({ data = {}, style = {}, className = '' }) => {
           </span>
         </div>
 
-        {/* ── 5. Modules section ── at ~60 % ── */}
+        {/* ── 5. Modules section ── at ~62.5 % ── */}
         {modules.length > 0 && (
           <div style={{
             position: 'absolute',
-            top:      '60%',
+            top:      '62.5%',
             left:     '10%',
             width:    '80%',
           }}>
@@ -170,13 +167,13 @@ const CertificateTemplate = ({ data = {}, style = {}, className = '' }) => {
               display:      'flex',
               alignItems:   'center',
               gap:          '0.4em',
-              marginBottom: '0.5%',
-              borderLeft:   '2.5px solid #1a56db',
-              paddingLeft:  '0.5em',
+              marginBottom: '0.6%',
+              borderLeft:   '3px solid #1a56db',
+              paddingLeft:  '0.6em',
             }}>
               <span style={{
                 color:         '#1a56db',
-                fontSize:      'clamp(0.32rem, 1.1cqw, 0.65rem)',
+                fontSize:      'clamp(0.42rem, 1.4cqw, 0.82rem)',
                 fontWeight:    700,
                 textTransform: 'uppercase',
                 letterSpacing: '0.1em',
@@ -185,47 +182,54 @@ const CertificateTemplate = ({ data = {}, style = {}, className = '' }) => {
               </span>
             </div>
 
-            {/* module rows */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4%' }}>
+            {/* module rows — open list style matching the reference image */}
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
               {modules.map((mod, i) => {
                 const Icon = ICON_MAP[mod.icon] || ICON_MAP.default;
                 return (
                   <div
                     key={i}
                     style={{
-                      display:      'flex',
-                      alignItems:   'flex-start',
-                      gap:          '0.6%',
-                      background:   'rgba(255,255,255,0.7)',
-                      border:       '1px solid rgba(26,86,219,0.1)',
-                      borderRadius: '3px',
-                      padding:      '0.5% 1%',
+                      display:       'flex',
+                      alignItems:    'flex-start',
+                      gap:           '0.8%',
+                      padding:       '0.6% 0.4% 0.6% 0.2%',
+                      borderBottom:  i < modules.length - 1
+                        ? '1px solid rgba(26,86,219,0.12)'
+                        : 'none',
                     }}
                   >
                     <Icon
                       style={{
                         color:     '#1a56db',
                         flexShrink: 0,
-                        marginTop:  '0.1em',
-                        width:      '1.8cqw',
-                        height:     '1.8cqw',
-                        minWidth:   '10px',
-                        minHeight:  '10px',
+                        marginTop:  '0.2em',
+                        width:      '2.2cqw',
+                        height:     '2.2cqw',
+                        minWidth:   '12px',
+                        minHeight:  '12px',
                       }}
                     />
-                    <div style={{ lineHeight: 1.3 }}>
+                    <div style={{ flex: 1 }}>
+                      {/* Title in SLOGBAA orange */}
                       <div style={{
-                        color:      '#1a1a2e',
-                        fontSize:   'clamp(0.35rem, 1.35cqw, 0.75rem)',
+                        color:      '#F58220',
+                        fontSize:   'clamp(0.45rem, 1.65cqw, 0.95rem)',
                         fontWeight: 700,
+                        lineHeight: 1.3,
+                        marginBottom: '0.2em',
                       }}>
                         {mod.title}
                       </div>
+                      {/* Description wraps to 2+ lines */}
                       {mod.description && (
                         <div style={{
-                          color:     '#666',
-                          fontSize:  'clamp(0.3rem, 1.05cqw, 0.6rem)',
-                          marginTop: '0.1em',
+                          color:      '#444',
+                          fontSize:   'clamp(0.38rem, 1.3cqw, 0.75rem)',
+                          lineHeight: 1.55,
+                          minHeight:  '2.2em',
+                          whiteSpace: 'normal',
+                          wordBreak:  'break-word',
                         }}>
                           {mod.description}
                         </div>

@@ -29,15 +29,15 @@ export const CertificateViewPage = () => {
         modules: [
           { 
             title: "Global Market Entry", 
-            description: "Advanced strategies for navigating international trade barriers and cultural nuances." 
+            description: "Understanding the rights and responsibilities of active citizens and how to participate meaningfully in international trade and community governance processes."
           },
           { 
             title: "Financial Risk Management", 
-            description: "Comprehensive analysis of currency volatility and global economic trends." 
+            description: "Gaining knowledge of how to analyse currency volatility, global economic trends, and build robust financial risk frameworks across emerging markets."
           },
           { 
             title: "Digital Transformation", 
-            description: "Leveraging AI and automation to scale operations in emerging markets." 
+            description: "Learning strategies to leverage AI and automation to scale operations, engage stakeholders, and promote transparency and accountability within organisations."
           }
         ]
       };
