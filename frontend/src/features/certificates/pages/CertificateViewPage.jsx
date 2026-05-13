@@ -1,8 +1,8 @@
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
 import { ChevronLeft, Loader2 } from 'lucide-react';
 import CertificatePreviewer from '../components/CertificatePreviewer';
+import { useCertificateDetail } from '../../../lib/hooks/use-certificates';
 
 /**
  * CertificateViewPage
@@ -12,37 +12,7 @@ import CertificatePreviewer from '../components/CertificatePreviewer';
 export const CertificateViewPage = () => {
   const { certificateId } = useParams();
 
-  // Mock fetching data - in a real app, this would call your API
-  const { data: certificate, isLoading, error } = useQuery({
-    queryKey: ['certificate', certificateId],
-    queryFn: async () => {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 800));
-      
-      // Mock data based on user requirements
-      return {
-        id: certificateId,
-        courseTitle: "Strategic Leadership in Global Business",
-        recipientName: "Jonathan Pacwa",
-        completionDate: "May 13, 2026",
-        certificateId: `SLG-${certificateId?.toUpperCase() || 'ABC-123'}`,
-        modules: [
-          { 
-            title: "Global Market Entry", 
-            description: "Understanding the rights and responsibilities of active citizens and how to participate meaningfully in international trade and community governance processes."
-          },
-          { 
-            title: "Financial Risk Management", 
-            description: "Gaining knowledge of how to analyse currency volatility, global economic trends, and build robust financial risk frameworks across emerging markets."
-          },
-          { 
-            title: "Digital Transformation", 
-            description: "Learning strategies to leverage AI and automation to scale operations, engage stakeholders, and promote transparency and accountability within organisations."
-          }
-        ]
-      };
-    }
-  });
+  const { data: certificate, isLoading, error } = useCertificateDetail(certificateId);
 
   if (isLoading) {
     return (

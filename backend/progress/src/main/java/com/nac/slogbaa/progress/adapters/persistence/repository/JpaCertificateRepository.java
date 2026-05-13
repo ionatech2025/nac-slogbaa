@@ -41,6 +41,29 @@ public interface JpaCertificateRepository extends JpaRepository<CertificateEntit
         String getFileUrl();
     }
 
+    /**
+     * Returns the completed modules (title + description) for a given trainee + certificate.
+     * Used by GET /api/certificates/{id} to populate the certificate view page.
+     */
+    @Query(value = """
+        SELECT m.title AS title, m.description AS description
+        FROM module_progress mp
+        JOIN trainee_progress tp ON tp.id = mp.trainee_progress_id
+        JOIN module m            ON m.id = mp.module_id
+        WHERE tp.trainee_id = :traineeId
+          AND tp.course_id  = :courseId
+          AND mp.status     = 'COMPLETED'
+        ORDER BY m.position ASC
+        """, nativeQuery = true)
+    List<CertificateModuleProjection> findCompletedModulesForCertificate(
+            @Param("traineeId") UUID traineeId,
+            @Param("courseId")  UUID courseId);
+
+    interface CertificateModuleProjection {
+        String getTitle();
+        String getDescription();
+    }
+
     @Query(value = """
         SELECT c.id AS id, c.trainee_id AS traineeId, c.course_id AS courseId,
                c.certificate_number AS certificateNumber, c.issued_date AS issuedDate,
