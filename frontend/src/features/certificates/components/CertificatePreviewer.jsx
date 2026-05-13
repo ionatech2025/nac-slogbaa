@@ -1,7 +1,8 @@
 import { useRef, useState } from 'react';
-import { Printer, RefreshCw, ChevronLeft, Image as ImageIcon, Loader2 } from 'lucide-react';
+import { Printer, RefreshCw, ChevronLeft, Image as ImageIcon, Loader2, FileText } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 import CertificateTemplate from './CertificateTemplate';
 
 /** Inlined print styles injected once at the top of the component */
@@ -82,6 +83,47 @@ const CertificatePreviewer = ({ certificateData }) => {
     }
   };
 
+  const handleDownloadPdf = async () => {
+    if (!certRef.current) return;
+    
+    try {
+      setIsCapturing(true);
+      
+      // 1. Capture high-res canvas (reuse the scale:3 for print quality)
+      const canvas = await html2canvas(certRef.current, {
+        scale: 3,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#fff',
+        windowWidth: 1200,
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+      
+      // 2. Initialize jsPDF for A4 portrait
+      const pdf = new jsPDF({
+        orientation: 'p',
+        unit: 'mm',
+        format: 'a4',
+        compress: true, // Optimizes file size
+      });
+
+      // 3. Add image to PDF - A4 dimensions are 210 x 297 mm
+      // No margins to ensure the background fills the page
+      pdf.addImage(imgData, 'PNG', 0, 0, 210, 297, undefined, 'FAST');
+      
+      // 4. Trigger download
+      const filename = `Certificate_${certificateData?.certificateId || 'Download'}.pdf`;
+      pdf.save(filename);
+      
+    } catch (err) {
+      console.error('Failed to generate PDF:', err);
+      alert('Could not generate PDF. Please use the Print option instead.');
+    } finally {
+      setIsCapturing(false);
+    }
+  };
+
   /* ── shell styles ── */
   const shell = {
     minHeight:      '100vh',
@@ -157,6 +199,15 @@ const CertificatePreviewer = ({ certificateData }) => {
     pointerEvents: isCapturing ? 'none' : 'auto',
   };
 
+  const btnPdf = {
+    ...btnBack,
+    color:      '#1a56db',
+    border:     '1px solid #bfdbfe',
+    background: '#eff6ff',
+    opacity:    isCapturing ? 0.6 : 1,
+    pointerEvents: isCapturing ? 'none' : 'auto',
+  };
+
   const btnPrint = {
     display:       'inline-flex',
     alignItems:    'center',
@@ -226,6 +277,18 @@ const CertificatePreviewer = ({ certificateData }) => {
               <ImageIcon size={15} />
             )}
             Download Image
+          </button>
+          <button
+            style={btnPdf}
+            onClick={handleDownloadPdf}
+            disabled={isCapturing}
+          >
+            {isCapturing ? (
+              <Loader2 size={15} className="animate-spin" />
+            ) : (
+              <FileText size={15} />
+            )}
+            Download PDF
           </button>
           <button style={btnPrint} onClick={handlePrint}>
             <Printer size={15} /> Print / Save as PDF
