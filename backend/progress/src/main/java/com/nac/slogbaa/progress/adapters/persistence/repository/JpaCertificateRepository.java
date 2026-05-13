@@ -19,14 +19,14 @@ public interface JpaCertificateRepository extends JpaRepository<CertificateEntit
 
     Optional<CertificateEntity> findByTraineeIdAndCourseId(UUID traineeId, UUID courseId);
 
-    List<CertificateEntity> findByTraineeIdAndRevokedFalseOrderByIssuedDateDesc(UUID traineeId);
+    List<CertificateEntity> findByTraineeIdAndStatusOrderByIssuedDateDesc(UUID traineeId, com.nac.slogbaa.progress.core.aggregate.CertificateStatus status);
 
     @Query(value = """
         SELECT c.id AS id, c.course_id AS courseId, co.title AS courseTitle, c.certificate_number AS certificateNumber,
                c.issued_date AS issuedDate, c.final_score_percent AS finalScorePercent, c.file_url AS fileUrl
         FROM certificate c
         JOIN course co ON co.id = c.course_id
-        WHERE c.trainee_id = :traineeId AND c.is_revoked = false
+        WHERE c.trainee_id = :traineeId AND c.status = 'ISSUED'
         ORDER BY c.issued_date DESC
         """, nativeQuery = true)
     List<TraineeCertificateProjection> findTraineeCertificatesWithCourse(@Param("traineeId") UUID traineeId);
@@ -53,7 +53,7 @@ public interface JpaCertificateRepository extends JpaRepository<CertificateEntit
         WHERE tp.trainee_id = :traineeId
           AND tp.course_id  = :courseId
           AND mp.status     = 'COMPLETED'
-        ORDER BY m.position ASC
+        ORDER BY m.module_order ASC
         """, nativeQuery = true)
     List<CertificateModuleProjection> findCompletedModulesForCertificate(
             @Param("traineeId") UUID traineeId,
@@ -67,7 +67,7 @@ public interface JpaCertificateRepository extends JpaRepository<CertificateEntit
     @Query(value = """
         SELECT c.id AS id, c.trainee_id AS traineeId, c.course_id AS courseId,
                c.certificate_number AS certificateNumber, c.issued_date AS issuedDate,
-               c.final_score_percent AS finalScorePercent, c.is_revoked AS revoked,
+               c.final_score_percent AS finalScorePercent, (c.status = 'REVOKED') AS revoked,
                (t.first_name || ' ' || t.last_name) AS traineeName,
                co.title AS courseTitle
         FROM certificate c
@@ -92,7 +92,7 @@ public interface JpaCertificateRepository extends JpaRepository<CertificateEntit
     @Query(value = """
         SELECT c.id AS id, c.trainee_id AS traineeId, c.course_id AS courseId,
                c.certificate_number AS certificateNumber, c.issued_date AS issuedDate,
-               c.final_score_percent AS finalScorePercent, c.is_revoked AS revoked,
+               c.final_score_percent AS finalScorePercent, (c.status = 'REVOKED') AS revoked,
                (t.first_name || ' ' || t.last_name) AS traineeName,
                co.title AS courseTitle
         FROM certificate c

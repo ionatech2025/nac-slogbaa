@@ -1,5 +1,6 @@
 package com.nac.slogbaa.progress.adapters.persistence.entity;
 
+import com.nac.slogbaa.progress.core.aggregate.CertificateStatus;
 import jakarta.persistence.*;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -51,8 +52,9 @@ public class CertificateEntity {
     @Column(name = "email_sent_at")
     private Instant emailSentAt;
 
-    @Column(name = "is_revoked", nullable = false)
-    private boolean revoked = false;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, length = 20)
+    private CertificateStatus status = CertificateStatus.ISSUED;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
@@ -164,12 +166,16 @@ public class CertificateEntity {
         this.emailSentAt = emailSentAt;
     }
 
-    public boolean isRevoked() {
-        return revoked;
+    public CertificateStatus getStatus() {
+        return status;
     }
 
-    public void setRevoked(boolean revoked) {
-        this.revoked = revoked;
+    public void setStatus(CertificateStatus status) {
+        this.status = status;
+    }
+
+    public boolean isRevoked() {
+        return status == CertificateStatus.REVOKED;
     }
 
     public Instant getCreatedAt() {

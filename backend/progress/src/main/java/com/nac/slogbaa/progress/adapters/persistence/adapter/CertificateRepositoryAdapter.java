@@ -2,6 +2,7 @@ package com.nac.slogbaa.progress.adapters.persistence.adapter;
 
 import com.nac.slogbaa.progress.adapters.persistence.entity.CertificateEntity;
 import com.nac.slogbaa.progress.adapters.persistence.repository.JpaCertificateRepository;
+import com.nac.slogbaa.progress.core.aggregate.CertificateStatus;
 import com.nac.slogbaa.progress.application.dto.CertificateSummaryResult;
 import com.nac.slogbaa.progress.application.port.out.CertificateRepositoryPort.NewCertificateData;
 import com.nac.slogbaa.progress.application.port.out.CertificateRepositoryPort;
@@ -79,16 +80,16 @@ public class CertificateRepositoryAdapter implements CertificateRepositoryPort {
         entity.setFinalScorePercent(data.finalScorePercent());
         entity.setVerificationCode(data.verificationCode());
         entity.setFileUrl(data.fileUrl());
-        entity.setRevoked(false);
+        entity.setStatus(CertificateStatus.ISSUED);
         entity.setCertificateTemplateVersion("v1");
         entity.setLayoutType("STANDARD");
-        jpaRepository.save(entity);
+        jpaRepository.saveAndFlush(entity);
     }
 
     @Override
     public void saveRevoked(UUID id, boolean revoked) {
         jpaRepository.findById(id).ifPresent(entity -> {
-            entity.setRevoked(revoked);
+            entity.setStatus(revoked ? CertificateStatus.REVOKED : CertificateStatus.ISSUED);
             jpaRepository.save(entity);
         });
     }
