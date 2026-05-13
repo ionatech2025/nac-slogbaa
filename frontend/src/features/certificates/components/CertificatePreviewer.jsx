@@ -1,6 +1,7 @@
-import { useRef } from 'react';
-import { Printer, RefreshCw, ChevronLeft } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { Printer, RefreshCw, ChevronLeft, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import html2canvas from 'html2canvas';
 import CertificateTemplate from './CertificateTemplate';
 
 /** Inlined print styles injected once at the top of the component */
@@ -39,9 +40,47 @@ const PRINT_CSS = `
  *  - Injects print-only CSS so the certificate fills an A4 page cleanly
  */
 const CertificatePreviewer = ({ certificateData }) => {
+  const [isCapturing, setIsCapturing] = useState(false);
   const certRef = useRef(null);
 
   const handlePrint = () => window.print();
+
+  const handleDownloadImage = async () => {
+    if (!certRef.current) return;
+    
+    try {
+      setIsCapturing(true);
+      
+      // html2canvas capture logic for high-fidelity output
+      const canvas = await html2canvas(certRef.current, {
+        scale: 3,               // 3x scale for crisp, print-quality text and graphics
+        useCORS: true,          // Ensures background images/external fonts load
+        logging: false,
+        backgroundColor: '#fff',
+        windowWidth: 1200,      // Fixes layout sizing during capture
+        onclone: (document) => {
+          // Optional: Force styles or hide elements in the clone if needed
+          const el = document.getElementById('cert-print-root');
+          if (el) el.style.boxShadow = 'none';
+        }
+      });
+
+      // Convert to image and trigger download
+      const image = canvas.toDataURL('image/png', 1.0);
+      const link = document.createElement('a');
+      const filename = `Certificate_${certificateData?.certificateId || 'Download'}.png`;
+      
+      link.href = image;
+      link.download = filename;
+      link.click();
+      
+    } catch (err) {
+      console.error('Failed to capture certificate:', err);
+      alert('Could not generate image. Please use the Print option instead.');
+    } finally {
+      setIsCapturing(false);
+    }
+  };
 
   /* ── shell styles ── */
   const shell = {
@@ -109,6 +148,15 @@ const CertificatePreviewer = ({ certificateData }) => {
     background: '#eff6ff',
   };
 
+  const btnImage = {
+    ...btnBack,
+    color:      '#059669',
+    border:     '1px solid #a7f3d0',
+    background: '#ecfdf5',
+    opacity:    isCapturing ? 0.6 : 1,
+    pointerEvents: isCapturing ? 'none' : 'auto',
+  };
+
   const btnPrint = {
     display:       'inline-flex',
     alignItems:    'center',
@@ -166,6 +214,18 @@ const CertificatePreviewer = ({ certificateData }) => {
             title="Regenerate"
           >
             <RefreshCw size={14} /> Regenerate
+          </button>
+          <button
+            style={btnImage}
+            onClick={handleDownloadImage}
+            disabled={isCapturing}
+          >
+            {isCapturing ? (
+              <Loader2 size={15} className="animate-spin" />
+            ) : (
+              <ImageIcon size={15} />
+            )}
+            Download Image
           </button>
           <button style={btnPrint} onClick={handlePrint}>
             <Printer size={15} /> Print / Save as PDF
