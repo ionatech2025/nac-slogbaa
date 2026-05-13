@@ -1,88 +1,190 @@
-import React, { useRef } from 'react';
+import { useRef } from 'react';
+import { Printer, RefreshCw, ChevronLeft } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import CertificateTemplate from './CertificateTemplate';
-import { Download, Printer, RefreshCw } from 'lucide-react';
+
+/** Inlined print styles injected once at the top of the component */
+const PRINT_CSS = `
+  @media print {
+    @page { size: A4 portrait; margin: 0; }
+
+    /* Hide everything… */
+    body > * { visibility: hidden !important; }
+
+    /* …except the certificate wrapper and its children */
+    #cert-print-root,
+    #cert-print-root * { visibility: visible !important; }
+
+    #cert-print-root {
+      position: fixed !important;
+      inset: 0 !important;
+      width: 210mm !important;
+      height: 297mm !important;
+      max-width: none !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      box-shadow: none !important;
+      border: none !important;
+      border-radius: 0 !important;
+    }
+  }
+`;
 
 /**
  * CertificatePreviewer
- * 
- * A wrapper component that provides controls to preview, print, and refresh certificate data.
+ *
+ * Full-page wrapper that:
+ *  - Scales the certificate preview responsively inside a max-width container
+ *  - Provides Print / Save-as-PDF and Back controls
+ *  - Injects print-only CSS so the certificate fills an A4 page cleanly
  */
 const CertificatePreviewer = ({ certificateData }) => {
-  const certificateRef = useRef();
+  const certRef = useRef(null);
 
-  const handlePrint = () => {
-    // Basic print functionality
-    // In a real app, you might use 'react-to-print' or a hidden iframe
-    window.print();
+  const handlePrint = () => window.print();
+
+  /* ── shell styles ── */
+  const shell = {
+    minHeight:      '100vh',
+    background:     'linear-gradient(135deg, #f0f4ff 0%, #e8f0fe 100%)',
+    display:        'flex',
+    flexDirection:  'column',
+    alignItems:     'center',
+    padding:        '2rem 1rem 4rem',
+    gap:            '1.5rem',
+  };
+
+  const toolbar = {
+    width:          '100%',
+    maxWidth:       '860px',
+    background:     '#ffffff',
+    borderRadius:   '12px',
+    border:         '1px solid #e2e8f0',
+    boxShadow:      '0 2px 8px rgba(0,0,0,0.06)',
+    padding:        '1rem 1.5rem',
+    display:        'flex',
+    alignItems:     'center',
+    justifyContent: 'space-between',
+    flexWrap:       'wrap',
+    gap:            '0.75rem',
+  };
+
+  const titleBlock = { display: 'flex', flexDirection: 'column', gap: '0.2rem' };
+
+  const titleStyle = {
+    margin:     0,
+    fontSize:   '1.2rem',
+    fontWeight: 700,
+    color:      '#1a1a2e',
+  };
+
+  const subtitleStyle = {
+    margin:    0,
+    fontSize:  '0.85rem',
+    color:     '#64748b',
+  };
+
+  const btnRow = { display: 'flex', gap: '0.6rem', alignItems: 'center' };
+
+  const btnBack = {
+    display:     'inline-flex',
+    alignItems:  'center',
+    gap:         '0.3rem',
+    padding:     '0.45rem 0.9rem',
+    fontSize:    '0.85rem',
+    fontWeight:  500,
+    color:       '#475569',
+    background:  'transparent',
+    border:      '1px solid #cbd5e1',
+    borderRadius:'8px',
+    cursor:      'pointer',
+    textDecoration: 'none',
+    transition:  'background 0.15s',
+  };
+
+  const btnRefresh = {
+    ...btnBack,
+    color:      '#1a56db',
+    border:     '1px solid #bfdbfe',
+    background: '#eff6ff',
+  };
+
+  const btnPrint = {
+    display:       'inline-flex',
+    alignItems:    'center',
+    gap:           '0.4rem',
+    padding:       '0.5rem 1.1rem',
+    fontSize:      '0.875rem',
+    fontWeight:    600,
+    color:         '#fff',
+    background:    'linear-gradient(135deg, #1a56db 0%, #1e40af 100%)',
+    border:        'none',
+    borderRadius:  '8px',
+    cursor:        'pointer',
+    boxShadow:     '0 2px 6px rgba(26,86,219,0.35)',
+    transition:    'transform 0.12s, box-shadow 0.12s',
+  };
+
+  /* certificate card wrapper */
+  const certCard = {
+    width:        '100%',
+    maxWidth:     '860px',
+    background:   '#ffffff',
+    borderRadius: '12px',
+    padding:      '12px',
+    boxShadow:    '0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06)',
+    border:       '1px solid #e2e8f0',
+  };
+
+  const hint = {
+    maxWidth:  '600px',
+    textAlign: 'center',
+    color:     '#94a3b8',
+    fontSize:  '0.8rem',
+    lineHeight: 1.6,
   };
 
   return (
-    <div className="flex flex-col items-center gap-8 p-8 bg-slate-100 min-h-screen">
-      {/* Controls Header */}
-      <div className="flex flex-wrap items-center justify-between w-full max-w-4xl bg-white p-4 rounded-xl shadow-sm border border-slate-200">
-        <div>
-          <h1 className="text-xl font-bold text-slate-800">Certificate Preview</h1>
-          <p className="text-sm text-slate-500">Review the certificate before issuance</p>
+    <div style={shell}>
+      {/* Injected print styles */}
+      <style dangerouslySetInnerHTML={{ __html: PRINT_CSS }} />
+
+      {/* Toolbar */}
+      <div style={toolbar}>
+        <div style={titleBlock}>
+          <h1 style={titleStyle}>Certificate Preview</h1>
+          <p style={subtitleStyle}>Review before issuing or printing</p>
         </div>
-        
-        <div className="flex gap-3">
-          <button 
+
+        <div style={btnRow}>
+          <Link to="/dashboard/certificates" style={btnBack}>
+            <ChevronLeft size={15} /> Back
+          </Link>
+          <button
+            style={btnRefresh}
             onClick={() => window.location.reload()}
-            className="flex items-center gap-2 px-4 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors border border-slate-200"
+            title="Regenerate"
           >
-            <RefreshCw className="w-4 h-4" /> Regenerate
+            <RefreshCw size={14} /> Regenerate
           </button>
-          
-          <button 
-            onClick={handlePrint}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-lg transition-all shadow-md active:scale-95"
-          >
-            <Printer className="w-4 h-4" /> Print / Save as PDF
+          <button style={btnPrint} onClick={handlePrint}>
+            <Printer size={15} /> Print / Save as PDF
           </button>
         </div>
       </div>
 
-      {/* Certificate Container with Scaling for Preview */}
-      <div className="w-full max-w-[800px] transition-all duration-500 animate-in fade-in zoom-in-95">
-        <div className="bg-white p-4 shadow-inner rounded-sm border border-slate-300">
-             <CertificateTemplate data={certificateData} />
+      {/* Certificate */}
+      <div style={certCard}>
+        <div id="cert-print-root" ref={certRef}>
+          <CertificateTemplate data={certificateData} />
         </div>
       </div>
 
-      {/* Info Alert */}
-      <div className="max-w-2xl text-center text-slate-500 text-sm">
-        <p>
-          Tip: For best results when saving as PDF, ensure "Background Graphics" is enabled in the print settings.
-          The certificate is designed at A4 proportions and will scale to fit the page.
-        </p>
-      </div>
-
-      {/* Print Styles */}
-      <style dangerouslySetInnerHTML={{ __html: `
-        @media print {
-          body * {
-            visibility: hidden;
-          }
-          .relative.w-full.overflow-hidden, .relative.w-full.overflow-hidden * {
-            visibility: visible;
-          }
-          .relative.w-full.overflow-hidden {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 210mm;
-            height: 297mm;
-            margin: 0;
-            padding: 0;
-            box-shadow: none;
-            border: none;
-          }
-          @page {
-            size: A4 portrait;
-            margin: 0;
-          }
-        }
-      `}} />
+      {/* Hint */}
+      <p style={hint}>
+        Tip: Click <strong>Print / Save as PDF</strong> and ensure
+        {' '}<em>Background graphics</em> is checked in the print dialog for best results.
+      </p>
     </div>
   );
 };
