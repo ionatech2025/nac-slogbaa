@@ -3,6 +3,7 @@ import { Link, useOutletContext, useNavigate } from 'react-router-dom'
 import { AdminNavigatePills } from '../components/admin/AdminNavigatePills.jsx'
 import { useQuery } from '@tanstack/react-query'
 import { Icon, icons } from '../../../shared/icons.jsx'
+import { Button } from '../../../shared/components/Button.jsx'
 import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle.js'
 import { Badge } from '../../../shared/components/Badge.jsx'
 import { Skeleton } from '../../../shared/components/Skeleton.jsx'
@@ -653,11 +654,29 @@ export function AdminReportsAnalyticsPage() {
     <div>
       {/* ── Hero Greeting ── */}
       <div style={s.hero} className="glass-enter">
-        <h2 style={s.greeting}>
-          {getGreeting()}, {displayName}
-        </h2>
-        <p style={s.dateLine}>{formatDate()}</p>
-        <p style={s.tagline}>Platform metrics, recent activity, and charts.</p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
+          <div>
+            <h2 style={s.greeting}>
+              {getGreeting()}, {displayName}
+            </h2>
+            <p style={s.dateLine}>{formatDate()}</p>
+            <p style={s.tagline}>Platform metrics, recent activity, and charts.</p>
+          </div>
+          {isSuperAdmin && (
+            <Button
+              variant="primary"
+              size="md"
+              onClick={() => alert('Generating full platform report... (CSV/PDF export functionality would go here)')}
+              style={{
+                boxShadow: '0 4px 12px rgba(245, 130, 32, 0.2)',
+                marginTop: '0.25rem'
+              }}
+            >
+              <Icon icon={icons.reports} size={18} />
+              Generate Report
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* ── KPI Stat Cards ── */}
