@@ -147,7 +147,7 @@ export function Navbar() {
       <style>{NAV_CSS}</style>
       <nav className={`slg-nav ${scrolled ? 'scrolled' : ''} ${isHome ? 'transparent' : ''}`}>
         <Link to="/" className="slg-logo-wrap">
-          <Logo variant="full" size={28} color={theme === 'dark' ? 'white' : 'dark'} />
+          <Logo variant="full" size={32} color={theme === 'dark' ? 'white' : 'dark'} subtitle="SLOGBAA" />
         </Link>
 
         <div className="slg-nav-links">

@@ -16,9 +16,8 @@ export function TraineeCertificatesPage() {
     <div style={styles.wrap}>
       <h1 style={styles.title}>Certificates</h1>
       <p style={styles.subtitle}>
-        Download or email your certificates of completion. The same list appears on your{' '}
-        <Link to="/dashboard" style={{ color: 'var(--slogbaa-blue)', fontWeight: 500 }}>dashboard</Link>
-        {' '}under the Certificates tab.
+        View and manage your achieved certificates. Your official PDF is automatically synchronized 
+        with the server the first time you preview it.
       </p>
       <h2 style={styles.sectionTitle}>Achieved certificates</h2>
       <TraineeCertificatesPanel enabled />

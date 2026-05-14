@@ -77,8 +77,10 @@ export function apiClient(token = null) {
       options.signal.addEventListener('abort', () => controller.abort())
     }
 
+    const isFormData = body instanceof FormData;
+
     const headers = {
-      ...(method !== 'GET' && method !== 'DELETE' ? { 'Content-Type': 'application/json' } : {}),
+      ...(method !== 'GET' && method !== 'DELETE' && !isFormData ? { 'Content-Type': 'application/json' } : {}),
       ...authHeaders,
       ...(options.headers || {}),
     }
@@ -87,7 +89,7 @@ export function apiClient(token = null) {
       credentials,
       headers,
       signal: controller.signal,
-      ...(body != null && method !== 'GET' && method !== 'DELETE' ? { body: JSON.stringify(body) } : {}),
+      ...(body != null && method !== 'GET' && method !== 'DELETE' ? { body: isFormData ? body : JSON.stringify(body) } : {}),
     }
     return fetch(url, opts)
       .then((res) => {

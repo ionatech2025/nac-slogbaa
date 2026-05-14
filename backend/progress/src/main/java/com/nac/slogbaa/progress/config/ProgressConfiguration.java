@@ -6,7 +6,6 @@ import com.nac.slogbaa.iam.application.port.out.StaffUserRepositoryPort;
 import com.nac.slogbaa.learning.application.port.out.CourseDetailsQueryPort;
 import com.nac.slogbaa.learning.application.port.out.CoursePublicationPort;
 import com.nac.slogbaa.learning.application.port.out.CourseSummaryQueryPort;
-import com.nac.slogbaa.shared.ports.CertificatePdfGeneratorPort;
 import com.nac.slogbaa.shared.ports.FileStoragePort;
 import com.nac.slogbaa.shared.ports.TraineeCourseQuizScorePort;
 import com.nac.slogbaa.shared.ports.TraineeNotificationPort;
@@ -169,17 +168,10 @@ public class ProgressConfiguration {
     public IssueCertificateUseCase issueCertificateUseCase(
             CertificateRepositoryPort certificateRepository,
             TraineeProgressRepositoryPort traineeProgressRepository,
-            CourseDetailsQueryPort courseDetailsQueryPort,
             TraineeCourseQuizScorePort traineeCourseQuizScorePort,
-            GetTraineeByIdUseCase getTraineeByIdUseCase,
-            CertificatePdfGeneratorPort pdfGenerator,
-            FileStoragePort fileStorage,
-            FileStoragePort fileStoragePort,
-            com.nac.slogbaa.progress.application.port.out.TraineeSettingsPort traineeSettingsPort,
-            TraineeNotificationPort traineeNotificationPort,
             org.springframework.context.ApplicationEventPublisher eventPublisher) {
-        return new IssueCertificateService(certificateRepository, traineeProgressRepository, courseDetailsQueryPort,
-                traineeCourseQuizScorePort, getTraineeByIdUseCase, pdfGenerator, fileStoragePort, traineeSettingsPort, traineeNotificationPort, eventPublisher);
+        return new IssueCertificateService(certificateRepository, traineeProgressRepository,
+                traineeCourseQuizScorePort, eventPublisher);
     }
 
     @Bean

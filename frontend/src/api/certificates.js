@@ -10,6 +10,16 @@ export async function getMyCertificates(token) {
 }
 
 /**
+ * GET /api/certificates/:id — full detail for a single certificate.
+ * Returns: { id, courseTitle, recipientName, completionDate, certificateId, modules[] }
+ */
+export async function getCertificateDetail(token, certificateId) {
+  assertToken(token)
+  const res = await apiClient(token).get(`/api/certificates/${certificateId}`)
+  return parseResponse(res)
+}
+
+/**
  * GET /api/certificates/:id/download — download certificate PDF (returns blob).
  */
 export async function downloadCertificate(token, certificateId) {
@@ -17,6 +27,19 @@ export async function downloadCertificate(token, certificateId) {
   const res = await apiClient(token).get(`/api/certificates/${certificateId}/download`, { timeout: 60_000 })
   if (!res.ok) throw new Error('Failed to download certificate.')
   return res.blob()
+}
+
+/**
+ * POST /api/certificates/:id/upload — upload a frontend-generated PDF to backend.
+ */
+export async function uploadCertificate(token, certificateId, pdfBlob) {
+  assertToken(token)
+  
+  const formData = new FormData()
+  formData.append('file', pdfBlob, `certificate_${certificateId}.pdf`)
+
+  const res = await apiClient(token).post(`/api/certificates/${certificateId}/upload`, formData)
+  return parseResponse(res)
 }
 
 /**

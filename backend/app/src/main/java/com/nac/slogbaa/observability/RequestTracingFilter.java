@@ -45,10 +45,10 @@ public class RequestTracingFilter extends OncePerRequestFilter {
             MDC.put(TRACE_ID, traceId);
             response.setHeader(REQUEST_ID_HEADER, traceId);
 
-            filterChain.doFilter(request, response);
-
-            // After auth filter runs, userId may be available
+            // If user is already authenticated (e.g. by a previous filter), populate now
             populateUserId();
+
+            filterChain.doFilter(request, response);
         } finally {
             MDC.clear();
         }

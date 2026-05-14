@@ -50,6 +50,7 @@ const ImpactStoriesPage = lazy(() => import('./pages/ImpactStoriesPage.jsx').the
 const ImpactStoryDetailPage = lazy(() => import('./pages/ImpactStoryDetailPage.jsx').then((m) => ({ default: m.ImpactStoryDetailPage })))
 const PublicLibraryPage = lazy(() => import('./pages/PublicLibraryPage.jsx').then((m) => ({ default: m.PublicLibraryPage })))
 const PublicCoursesPage = lazy(() => import('./pages/PublicCoursesPage.jsx').then((m) => ({ default: m.PublicCoursesPage })))
+const CertificateViewPage = lazy(() => import('../certificates/pages/CertificateViewPage.jsx').then((m) => ({ default: m.CertificateViewPage })))
 
 function Lazy({ children }) {
   return <Suspense fallback={<PageSkeleton />}>{children}</Suspense>
@@ -80,6 +81,8 @@ export function AppRoutes() {
           <Route path="live-sessions" element={<Lazy><LiveSessionsPage /></Lazy>} />
           <Route path="help" element={<Lazy><HelpPage /></Lazy>} />
         </Route>
+        {/* Full-page views still requiring trainee auth */}
+        <Route path="certificates/:certificateId/view" element={<Lazy><CertificateViewPage /></Lazy>} />
       </Route>
       <Route path="/admin" element={<RequireAdmin />}>
         <Route element={<Lazy><AdminLayout /></Lazy>}>
@@ -107,6 +110,7 @@ export function AppRoutes() {
           <Route path="users/:userType/:userId" element={<Lazy><AdminUserDetailPage /></Lazy>} />
         </Route>
       </Route>
+      <Route path="/certificates/:certificateId/view" element={<Lazy><CertificateViewPage /></Lazy>} />
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
   )
