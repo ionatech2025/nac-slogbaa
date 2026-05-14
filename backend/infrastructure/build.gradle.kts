@@ -9,4 +9,5 @@ dependencies {
 
     implementation("com.openhtmltopdf:openhtmltopdf-core:1.0.10")
     implementation("com.openhtmltopdf:openhtmltopdf-pdfbox:1.0.10")
+    implementation("org.jsoup:jsoup:1.18.3")
 }

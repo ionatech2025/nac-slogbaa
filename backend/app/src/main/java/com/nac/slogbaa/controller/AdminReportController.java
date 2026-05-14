@@ -1,8 +1,11 @@
 package com.nac.slogbaa.controller;
 
 import com.nac.slogbaa.controller.dto.ReportGenerationRequest;
+import com.nac.slogbaa.service.ReportGenerationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -10,7 +13,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Map;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 /**
  * Controller for handling platform reporting requests.
@@ -20,7 +24,12 @@ import java.util.Map;
 @RequestMapping("/api/admin/reports")
 public class AdminReportController {
 
+    private final ReportGenerationService reportGenerationService;
     private static final Logger log = LoggerFactory.getLogger(AdminReportController.class);
+
+    public AdminReportController(ReportGenerationService reportGenerationService) {
+        this.reportGenerationService = reportGenerationService;
+    }
 
     /**
      * Accepts an HTML payload and metadata to trigger report processing.
@@ -31,24 +40,29 @@ public class AdminReportController {
      */
     @PostMapping("/generate")
     @PreAuthorize("hasRole('SUPER_ADMIN')")
-    public ResponseEntity<Map<String, Object>> generateReport(@RequestBody ReportGenerationRequest request) {
+    public ResponseEntity<byte[]> generateReport(@RequestBody ReportGenerationRequest request) {
         log.info("Report generation requested: title='{}', generatedBy='{}', htmlLength={}", 
             request.title(), request.generatedBy(), 
             request.html() != null ? request.html().length() : 0);
 
-        // Security Note: In a production environment, the HTML string should be 
-        // sanitized or processed through a secure PDF engine (like Playwright, iText, or Flying Saucer)
-        // to prevent XSS or server-side resource exhaustion.
+        // 1. Generate PDF bytes
+        byte[] pdfBytes = reportGenerationService.generateReportBytes(request.html());
 
-        // Placeholder for actual PDF generation logic:
-        // byte[] pdfBytes = pdfService.generate(request.html());
-        // fileStorage.store(pdfBytes, ...);
+        // 2. Prepare filename
+        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
+        String safeTitle = (request.title() != null ? request.title() : "platform_report")
+                .replaceAll("[^a-zA-Z0-9]", "_")
+                .toLowerCase();
+        String filename = String.format("report_%s_%s.pdf", safeTitle, timestamp);
 
-        return ResponseEntity.ok(Map.of(
-            "message", "Report generation request received successfully",
-            "title", request.title(),
-            "timestamp", request.generatedAt(),
-            "status", "PENDING_PROCESSING"
-        ));
+        // 3. Store in background (optional, but good for persistence)
+        // We'll let the service handle the storage as well if needed, 
+        // but for immediate download, we return the bytes.
+        reportGenerationService.storeReportAsync(pdfBytes, filename);
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(pdfBytes);
     }
 }

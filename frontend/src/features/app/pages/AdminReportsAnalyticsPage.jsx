@@ -688,14 +688,25 @@ export function AdminReportsAnalyticsPage() {
       // 2. Generate HTML string
       const html = renderReportTemplate(reportData)
 
-      // 3. Send to backend
-      await generateReport(token, {
+      // 3. Send to backend and get Blob
+      const blob = await generateReport(token, {
         html,
         title: `Platform Performance Report - ${formatDate()}`,
         generatedBy: displayName
       })
 
-      alert('Report generated successfully and sent to backend.')
+      // 4. Trigger download
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.setAttribute('download', `Report_${new Date().getTime()}.pdf`)
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      window.URL.revokeObjectURL(url)
+
+      // Optional: Inform user
+      // alert('Report generated and download started.')
     } catch (err) {
       console.error('Report Error:', err)
       alert(`Failed to generate report: ${err.message}`)

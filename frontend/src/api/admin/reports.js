@@ -17,5 +17,10 @@ export async function generateReport(token, { html, title, generatedBy }) {
     generatedAt: new Date().toISOString()
   })
   
-  return parseResponse(res)
+  if (!res.ok) {
+    const errorBody = await res.json().catch(() => ({}))
+    throw new Error(errorBody.message || 'Failed to generate report')
+  }
+
+  return res.blob()
 }
