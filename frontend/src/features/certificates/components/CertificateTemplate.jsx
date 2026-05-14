@@ -2,11 +2,11 @@ import { CheckCircle, BookOpen, Star, Zap, Target, Calendar, Hash } from 'lucide
 
 /** Maps optional `icon` string → Lucide component */
 const ICON_MAP = {
-  default:     CheckCircle,
-  learning:    BookOpen,
+  default: CheckCircle,
+  learning: BookOpen,
   achievement: Star,
-  technical:   Zap,
-  strategic:   Target,
+  technical: Zap,
+  strategic: Target,
 };
 
 /**
@@ -31,22 +31,22 @@ const ICON_MAP = {
  */
 const CertificateTemplate = ({ data = {}, style = {}, className = '' }) => {
   const {
-    courseTitle    = 'Strategic Leadership in Global Business',
-    recipientName  = 'Jonathan Pacwa',
+    courseTitle = 'Strategic Leadership in Global Business',
+    recipientName = 'Jonathan Pacwa',
     completionDate = 'May 13, 2026',
-    certificateId  = 'CERT-SLG-2026-0001',
-    modules        = [],
+    certificateId = 'CERT-SLG-2026-0001',
+    modules = [],
   } = data;
 
   /* ── root: locked A4 portrait aspect-ratio ── */
   const root = {
-    position:     'relative',
-    width:        '100%',
-    aspectRatio:  '210 / 297',
-    overflow:     'hidden',
-    background:   '#fff',
-    userSelect:   'none',
-    fontFamily:   "'Segoe UI', system-ui, Arial, sans-serif",
+    position: 'relative',
+    width: '100%',
+    aspectRatio: '210 / 297',
+    overflow: 'hidden',
+    background: '#fff',
+    userSelect: 'none',
+    fontFamily: "'Segoe UI', system-ui, Arial, sans-serif",
     ...style,
   };
 
@@ -59,12 +59,12 @@ const CertificateTemplate = ({ data = {}, style = {}, className = '' }) => {
         alt=""
         role="presentation"
         style={{
-          position:      'absolute',
-          inset:         0,
-          width:         '100%',
-          height:        '100%',
-          objectFit:     'cover',
-          display:       'block',
+          position: 'absolute',
+          inset: 0,
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+          display: 'block',
           pointerEvents: 'none',
         }}
       />
@@ -77,20 +77,20 @@ const CertificateTemplate = ({ data = {}, style = {}, className = '' }) => {
         {/* ── 1. Course title ── below the blue pill banner, in SLOGBAA orange ── */}
         {/* Banner pill ends at ~43 %; title sits immediately below it */}
         <div style={{
-          position:  'absolute',
-          top:       '43%',
-          left:      '8%',
-          width:     '84%',
+          position: 'absolute',
+          top: '43%',
+          left: '8%',
+          width: '84%',
           textAlign: 'center',
         }}>
           <span style={{
-            color:         '#F58220',
-            fontSize:      'clamp(0.7rem, 2.8cqw, 1.6rem)',
-            fontWeight:    800,
+            color: '#F58220',
+            fontSize: 'clamp(0.7rem, 2.8cqw, 1.6rem)',
+            fontWeight: 800,
             letterSpacing: '0.04em',
             textTransform: 'uppercase',
-            lineHeight:    1.2,
-            fontFamily:    "'Segoe UI', system-ui, Arial, sans-serif",
+            lineHeight: 1.2,
+            fontFamily: "'Segoe UI', system-ui, Arial, sans-serif",
           }}>
             {courseTitle}
           </span>
@@ -99,16 +99,16 @@ const CertificateTemplate = ({ data = {}, style = {}, className = '' }) => {
         {/* ── 2. "This is to certify that" label ── */}
         {/* Sits below the orange course title, at ~47 % */}
         <div style={{
-          position:  'absolute',
-          top:       '47%',
-          left:      0,
-          width:     '100%',
+          position: 'absolute',
+          top: '47%',
+          left: 0,
+          width: '100%',
           textAlign: 'center',
         }}>
           <span style={{
-            color:         '#666',
-            fontSize:      'clamp(0.5rem, 1.8cqw, 1rem)',
-            fontStyle:     'italic',
+            color: '#666',
+            fontSize: 'clamp(0.5rem, 1.8cqw, 1rem)',
+            fontStyle: 'italic',
             letterSpacing: '0.02em',
           }}>
             This is to certify that
@@ -117,19 +117,19 @@ const CertificateTemplate = ({ data = {}, style = {}, className = '' }) => {
 
         {/* ── 3. Recipient name ── large, centred, at ~50 % ── */}
         <div style={{
-          position:  'absolute',
-          top:       '50%',
-          left:      '8%',
-          width:     '84%',
+          position: 'absolute',
+          top: '50%',
+          left: '8%',
+          width: '84%',
           textAlign: 'center',
         }}>
           <span style={{
-            display:       'block',
-            color:         '#003087',
-            fontSize:      'clamp(1.1rem, 5cqw, 3.2rem)',
-            fontWeight:    700,
-            fontFamily:    "Georgia, 'Times New Roman', serif",
-            lineHeight:    1.15,
+            display: 'block',
+            color: '#003087',
+            fontSize: 'clamp(1.1rem, 5cqw, 3.2rem)',
+            fontWeight: 700,
+            fontFamily: "Georgia, 'Times New Roman', serif",
+            lineHeight: 1.15,
             letterSpacing: '0.01em',
           }}>
             {recipientName}
@@ -138,15 +138,15 @@ const CertificateTemplate = ({ data = {}, style = {}, className = '' }) => {
 
         {/* ── 4. Completion description ── at ~57 % ── */}
         <div style={{
-          position:  'absolute',
-          top:       '57%',
-          left:      '13%',
-          width:     '74%',
+          position: 'absolute',
+          top: '57%',
+          left: '13%',
+          width: '74%',
           textAlign: 'center',
         }}>
           <span style={{
-            color:      '#555',
-            fontSize:   'clamp(0.5rem, 1.8cqw, 1rem)',
+            color: '#555',
+            fontSize: 'clamp(0.5rem, 1.8cqw, 1rem)',
             lineHeight: 1.65,
           }}>
             has successfully completed the training program and demonstrated
@@ -158,23 +158,23 @@ const CertificateTemplate = ({ data = {}, style = {}, className = '' }) => {
         {modules.length > 0 && (
           <div style={{
             position: 'absolute',
-            top:      '62.5%',
-            left:     '10%',
-            width:    '80%',
+            top: '62.5%',
+            left: '10%',
+            width: '80%',
           }}>
             {/* section label */}
             <div style={{
-              display:      'flex',
-              alignItems:   'center',
-              gap:          '0.4em',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.4em',
               marginBottom: '0.6%',
-              borderLeft:   '3px solid #1a56db',
-              paddingLeft:  '0.6em',
+              borderLeft: '3px solid #1a56db',
+              paddingLeft: '0.6em',
             }}>
               <span style={{
-                color:         '#1a56db',
-                fontSize:      'clamp(0.42rem, 1.4cqw, 0.82rem)',
-                fontWeight:    700,
+                color: '#1a56db',
+                fontSize: 'clamp(0.42rem, 1.4cqw, 0.82rem)',
+                fontWeight: 700,
                 textTransform: 'uppercase',
                 letterSpacing: '0.1em',
               }}>
@@ -190,31 +190,31 @@ const CertificateTemplate = ({ data = {}, style = {}, className = '' }) => {
                   <div
                     key={i}
                     style={{
-                      display:       'flex',
-                      alignItems:    'flex-start',
-                      gap:           '0.8%',
-                      padding:       '0.6% 0.4% 0.6% 0.2%',
-                      borderBottom:  i < modules.length - 1
+                      display: 'flex',
+                      alignItems: 'flex-start',
+                      gap: '0.8%',
+                      padding: '0.6% 0.4% 0.6% 0.2%',
+                      borderBottom: i < modules.length - 1
                         ? '1px solid rgba(26,86,219,0.12)'
                         : 'none',
                     }}
                   >
                     <Icon
                       style={{
-                        color:     '#1a56db',
+                        color: '#1a56db',
                         flexShrink: 0,
-                        marginTop:  '0.2em',
-                        width:      '2.2cqw',
-                        height:     '2.2cqw',
-                        minWidth:   '12px',
-                        minHeight:  '12px',
+                        marginTop: '0.2em',
+                        width: '2.2cqw',
+                        height: '2.2cqw',
+                        minWidth: '12px',
+                        minHeight: '12px',
                       }}
                     />
                     <div style={{ flex: 1 }}>
                       {/* Title in SLOGBAA orange */}
                       <div style={{
-                        color:      '#F58220',
-                        fontSize:   'clamp(0.45rem, 1.65cqw, 0.95rem)',
+                        color: '#F58220',
+                        fontSize: 'clamp(0.45rem, 1.65cqw, 0.95rem)',
                         fontWeight: 700,
                         lineHeight: 1.3,
                         marginBottom: '0.2em',
@@ -224,12 +224,12 @@ const CertificateTemplate = ({ data = {}, style = {}, className = '' }) => {
                       {/* Description wraps to 2+ lines */}
                       {mod.description && (
                         <div style={{
-                          color:      '#444',
-                          fontSize:   'clamp(0.38rem, 1.3cqw, 0.75rem)',
+                          color: '#444',
+                          fontSize: 'clamp(0.38rem, 1.3cqw, 0.75rem)',
                           lineHeight: 1.55,
-                          minHeight:  '2.2em',
+                          minHeight: '2.2em',
                           whiteSpace: 'normal',
-                          wordBreak:  'break-word',
+                          wordBreak: 'break-word',
                         }}>
                           {mod.description}
                         </div>
@@ -252,18 +252,18 @@ const CertificateTemplate = ({ data = {}, style = {}, className = '' }) => {
 
         {/* Completion date — replaces "Date for when the course is completed" */}
         <div style={{
-          position:  'absolute',
-          top:       '93.5%',
-          left:      '49%',       /* lines up with the date placeholder on the image */
+          position: 'absolute',
+          top: '96.2%',
+          left: '55%',       /* lines up with the date placeholder on the image */
           textAlign: 'left',
-          display:   'flex',
+          display: 'flex',
           alignItems: 'center',
-          gap:        '0.3em',
+          gap: '0.3em',
         }}>
           <Calendar style={{ color: '#1a56db', width: '1.4cqw', height: '1.4cqw', minWidth: '8px', minHeight: '8px' }} />
           <span style={{
-            color:      '#1a2044',
-            fontSize:   'clamp(0.3rem, 1.05cqw, 0.62rem)',
+            color: '#1a2044',
+            fontSize: 'clamp(0.3rem, 1.05cqw, 0.62rem)',
             fontWeight: 600,
           }}>
             {completionDate}
@@ -272,21 +272,21 @@ const CertificateTemplate = ({ data = {}, style = {}, className = '' }) => {
 
         {/* Certificate ID — small pill above the right signature */}
         <div style={{
-          position:   'absolute',
-          top:        '84%',
-          right:      '8%',
+          position: 'absolute',
+          top: '84%',
+          right: '8%',
           background: 'rgba(26,86,219,0.07)',
-          border:     '1px solid rgba(26,86,219,0.2)',
+          border: '1px solid rgba(26,86,219,0.2)',
           borderRadius: '4px',
-          padding:    '0.25% 0.8%',
-          display:    'flex',
+          padding: '0.25% 0.8%',
+          display: 'flex',
           alignItems: 'center',
-          gap:        '0.3em',
+          gap: '0.3em',
         }}>
           <Hash style={{ color: '#1a56db', width: '1.2cqw', height: '1.2cqw', minWidth: '7px', minHeight: '7px' }} />
           <span style={{
-            color:      '#1a2044',
-            fontSize:   'clamp(0.28rem, 0.95cqw, 0.55rem)',
+            color: '#1a2044',
+            fontSize: 'clamp(0.28rem, 0.95cqw, 0.55rem)',
             fontFamily: 'monospace',
             fontWeight: 600,
           }}>

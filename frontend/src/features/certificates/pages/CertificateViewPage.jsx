@@ -24,11 +24,15 @@ export const CertificateViewPage = () => {
   }
 
   if (error) {
+    console.error('[CertificateViewPage] Error loading certificate:', error);
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50 p-4">
         <div className="bg-white p-8 rounded-2xl shadow-sm border border-red-100 text-center max-w-md">
           <h2 className="text-2xl font-bold text-slate-900 mb-2">Oops!</h2>
-          <p className="text-slate-600 mb-6">We couldn't load this certificate. It might have been moved or doesn't exist.</p>
+          <p className="text-slate-600 mb-2">We couldn't load this certificate.</p>
+          <p className="text-red-500 text-sm mb-6 font-mono bg-slate-50 p-2 rounded">
+            {error?.message || 'It might have been moved or doesn\'t exist.'}
+          </p>
           <Link to="/dashboard/certificates" className="inline-flex items-center gap-2 text-blue-600 font-bold hover:underline">
             <ChevronLeft className="w-4 h-4" /> Back to Certificates
           </Link>

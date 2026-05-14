@@ -30,6 +30,19 @@ export async function downloadCertificate(token, certificateId) {
 }
 
 /**
+ * POST /api/certificates/:id/upload — upload a frontend-generated PDF to backend.
+ */
+export async function uploadCertificate(token, certificateId, pdfBlob) {
+  assertToken(token)
+  
+  const formData = new FormData()
+  formData.append('file', pdfBlob, `certificate_${certificateId}.pdf`)
+
+  const res = await apiClient(token).post(`/api/certificates/${certificateId}/upload`, formData)
+  return parseResponse(res)
+}
+
+/**
  * POST /api/certificates/:id/send-email — send certificate to trainee's email.
  */
 export async function sendCertificateEmail(token, certificateId) {

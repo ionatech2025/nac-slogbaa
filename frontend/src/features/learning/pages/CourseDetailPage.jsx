@@ -838,6 +838,7 @@ export function CourseDetailPage() {
   const [focusedBlockId, setFocusedBlockId] = useState(null)
   const [notesVisible, setNotesVisible] = useState(true)
   const [notesReadThrough, setNotesReadThrough] = useState(false)
+  const [isCompleting, setIsCompleting] = useState(false)
 
   const blocks = selectedModule?.contentBlocks ?? []
   const maxBlockOrder = blocks.length === 0 ? 0 : Math.max(0, ...blocks.map((b) => b.blockOrder ?? 0))
@@ -990,30 +991,52 @@ export function CourseDetailPage() {
   }, [modules, currentIndex, completedModuleIdSet])
 
   const handleNextModule = useCallback(async () => {
-    if (!selectedModule) return
+    if (!selectedModule || isCompleting) return
     
-    // Explicitly record completion of current module when "Next" is clicked
     try {
+      setIsCompleting(true)
       await recordModuleCompletion(token, courseId, selectedModule.id)
-      // Await invalidations to ensure the next module is "unlocked" before we navigate/redirect
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: queryKeys.courses.completedModules(courseId) }),
-        queryClient.invalidateQueries({ queryKey: queryKeys.courses.enrolled() })
+        queryClient.invalidateQueries({ queryKey: queryKeys.courses.enrolled() }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.certificates.mine() })
       ])
+
+      if (nextModule) {
+        navigate(`/dashboard/courses/${courseId}/modules/${nextModule.id}`)
+        setTimeout(() => {
+          if (articleRef.current) articleRef.current.scrollTop = 0
+        }, 0)
+      } else {
+        await queryClient.refetchQueries({ queryKey: queryKeys.courses.enrolled() })
+        setShowCelebration(true)
+      }
     } catch (err) {
       console.error('Failed to record module completion:', err)
+    } finally {
+      setIsCompleting(false)
     }
+  }, [nextModule, navigate, courseId, selectedModule, token, queryClient, isCompleting])
 
-    if (nextModule) {
-      navigate(`/dashboard/courses/${courseId}/modules/${nextModule.id}`)
-      // Scroll article to top for the new module
-      setTimeout(() => {
-        if (articleRef.current) articleRef.current.scrollTop = 0
-      }, 0)
-    } else {
-      setShowCelebration(true)
+  const handleViewCertificateClick = useCallback(async () => {
+    if (isCompleting) return
+    
+    // Proactively try to ensure certificate is issued if user clicks this button
+    // by re-recording the last module's completion (idempotent on backend).
+    if (modules.length > 0) {
+      const lastModule = modules[modules.length - 1]
+      try {
+        setIsCompleting(true)
+        await recordModuleCompletion(token, courseId, lastModule.id)
+        await queryClient.invalidateQueries({ queryKey: queryKeys.certificates.mine() })
+      } catch (e) {
+        console.warn("Retrying certificate issuance:", e)
+      } finally {
+        setIsCompleting(false)
+      }
     }
-  }, [nextModule, navigate, courseId, selectedModule, token, queryClient])
+    setShowCelebration(true)
+  }, [modules, token, courseId, queryClient, isCompleting])
 
   // Guard: If current module is locked, redirect to the first uncompleted module
   useEffect(() => {
@@ -1043,8 +1066,11 @@ export function CourseDetailPage() {
 
   // After a module quiz is passed and completion recorded, refresh progress + check course completion
   const handleModuleCompleted = useCallback(async () => {
-    queryClient.invalidateQueries({ queryKey: queryKeys.courses.enrolled() })
-    queryClient.invalidateQueries({ queryKey: queryKeys.courses.completedModules(courseId) })
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: queryKeys.courses.enrolled() }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.courses.completedModules(courseId) }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.certificates.mine() })
+    ])
     try {
       const list = await getEnrolledCourses(token)
       const thisCourse = list.find((c) => String(c.id) === String(courseId))
@@ -1464,11 +1490,20 @@ export function CourseDetailPage() {
                       {(!selectedModuleHasQuiz || selectedModuleCompleted) ? (
                         <button
                           type="button"
-                          onClick={handleNextModule}
-                          style={styles.nextStepBtn}
+                          onClick={completionPct >= 100 && !nextModule ? handleViewCertificateClick : handleNextModule}
+                          style={{
+                            ...styles.nextStepBtn,
+                            ...(isCompleting ? { opacity: 0.7, cursor: 'not-allowed' } : {}),
+                            ...(completionPct >= 100 && !nextModule ? { background: 'var(--slogbaa-green)' } : {})
+                          }}
+                          disabled={isCompleting}
                         >
-                          {nextModule ? (
+                          {isCompleting ? (
+                            'Processing...'
+                          ) : nextModule ? (
                             <>Next Module: {nextModule.title} <Icon icon={icons.arrowRight} size={18} /></>
+                          ) : completionPct >= 100 ? (
+                            <>View Certificate <Icon icon={icons.certificate} size={18} /></>
                           ) : (
                             <>Complete Course <Icon icon={icons.partyPopper} size={18} /></>
                           )}

@@ -81,6 +81,8 @@ export function AppRoutes() {
           <Route path="live-sessions" element={<Lazy><LiveSessionsPage /></Lazy>} />
           <Route path="help" element={<Lazy><HelpPage /></Lazy>} />
         </Route>
+        {/* Full-page views still requiring trainee auth */}
+        <Route path="certificates/:certificateId/view" element={<Lazy><CertificateViewPage /></Lazy>} />
       </Route>
       <Route path="/admin" element={<RequireAdmin />}>
         <Route element={<Lazy><AdminLayout /></Lazy>}>
