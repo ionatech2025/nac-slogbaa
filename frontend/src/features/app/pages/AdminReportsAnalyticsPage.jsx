@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Link, useOutletContext, useNavigate } from 'react-router-dom'
 import { AdminNavigatePills } from '../components/admin/AdminNavigatePills.jsx'
 import { useQuery } from '@tanstack/react-query'
@@ -16,6 +16,8 @@ import {
   useAdminEngagementAnalytics,
 } from '../../../lib/hooks/use-admin.js'
 import { getVisitorCount } from '../../../api/homepage.js'
+import { generateReport } from '../../../api/admin/reports.js'
+import { renderReportTemplate } from '../utils/report-template.js'
 import {
   PieChart,
   Pie,
@@ -650,6 +652,58 @@ export function AdminReportsAnalyticsPage() {
 
   const feedLoading = attemptsLoading || certsLoading
 
+  const [generatingReport, setGeneratingReport] = useState(false)
+
+  const handleGenerateReport = async () => {
+    if (generatingReport) return
+    setGeneratingReport(true)
+
+    try {
+      // 1. Map data for the template
+      const reportData = {
+        generationDate: formatDate(),
+        traineeCount: trainees.length,
+        publishedCourseCount: publishedCount,
+        certificateCount: activeCerts,
+        globalPassRate: passRate,
+        categoryBreakdown: [], // You could populate this if you have the logic here
+        districtBreakdown: [
+          { name: topDistrict, value: 'Top District' }
+        ],
+        totalReviews: engagement?.totalReviewCount ?? 0,
+        avgRating: Number(engagement?.combinedAverageRating ?? 0).toFixed(1),
+        totalQuestions: engagement?.traineeQuestionCount ?? 0,
+        totalVisitors: totalVisitors,
+        topCourses: topCourses.map(c => ({ title: c.title, moduleCount: c.moduleCount })),
+        recentActivity: activityFeed.map(a => ({
+          name: a.name,
+          type: a.type,
+          detail: a.detail,
+          date: timeAgo(a.date),
+          badgeClass: a.type === 'certificate' ? 'badge-success' : 'badge-blue'
+        })),
+        currentYear: new Date().getFullYear(),
+      }
+
+      // 2. Generate HTML string
+      const html = renderReportTemplate(reportData)
+
+      // 3. Send to backend
+      await generateReport(token, {
+        html,
+        title: `Platform Performance Report - ${formatDate()}`,
+        generatedBy: displayName
+      })
+
+      alert('Report generated successfully and sent to backend.')
+    } catch (err) {
+      console.error('Report Error:', err)
+      alert(`Failed to generate report: ${err.message}`)
+    } finally {
+      setGeneratingReport(false)
+    }
+  }
+
   return (
     <div>
       {/* ── Hero Greeting ── */}
@@ -666,14 +720,16 @@ export function AdminReportsAnalyticsPage() {
             <Button
               variant="primary"
               size="md"
-              onClick={() => alert('Generating full platform report... (CSV/PDF export functionality would go here)')}
+              onClick={handleGenerateReport}
+              disabled={generatingReport}
               style={{
                 boxShadow: '0 4px 12px rgba(245, 130, 32, 0.2)',
-                marginTop: '0.25rem'
+                marginTop: '0.25rem',
+                minWidth: 160
               }}
             >
-              <Icon icon={icons.reports} size={18} />
-              Generate Report
+              <Icon icon={generatingReport ? icons.loader : icons.reports} size={18} className={generatingReport ? 'spin' : ''} />
+              {generatingReport ? 'Generating...' : 'Generate Report'}
             </Button>
           )}
         </div>
