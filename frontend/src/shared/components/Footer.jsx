@@ -86,7 +86,7 @@ export function Footer() {
         <div className="slg-footer-inner">
           <div>
             <div style={{ marginBottom: '1.25rem' }}>
-              <Logo variant="full" size={28} color={theme === 'dark' ? 'white' : 'dark'} />
+              <Logo variant="full" size={32} color={theme === 'dark' ? 'white' : 'dark'} subtitle="SLOGBAA" />
             </div>
             <p className="slg-footer-text" style={{ maxWidth: 240 }}>
               NAC&rsquo;s inclusive online platform for civic leadership, advocacy, and community-led development across Uganda.

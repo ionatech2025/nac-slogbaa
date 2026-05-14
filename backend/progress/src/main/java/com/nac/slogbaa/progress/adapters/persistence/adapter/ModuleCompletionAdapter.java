@@ -33,10 +33,10 @@ public class ModuleCompletionAdapter implements ModuleCompletionPort {
                                             existing.setStatus("COMPLETED");
                                             existing.setCompletedAt(Instant.now());
                                             existing.setQuizStatus(quizPassed ? "PASSED" : "NOT_ATTEMPTED");
-                                            moduleProgressRepository.save(existing);
+                                            moduleProgressRepository.saveAndFlush(existing);
                                         } else if (quizPassed) {
                                             existing.setQuizStatus("PASSED");
-                                            moduleProgressRepository.save(existing);
+                                            moduleProgressRepository.saveAndFlush(existing);
                                         }
                                     },
                                     () -> {
@@ -46,7 +46,7 @@ public class ModuleCompletionAdapter implements ModuleCompletionPort {
                                         entity.setStatus("COMPLETED");
                                         entity.setCompletedAt(Instant.now());
                                         entity.setQuizStatus(quizPassed ? "PASSED" : "NOT_ATTEMPTED");
-                                        moduleProgressRepository.save(entity);
+                                        moduleProgressRepository.saveAndFlush(entity);
                                     }
                             );
                 });

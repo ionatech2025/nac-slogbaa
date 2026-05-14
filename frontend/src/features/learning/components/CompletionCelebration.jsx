@@ -311,7 +311,7 @@ export function CompletionCelebration({ courseTitle, onClose }) {
 
   const handleViewCertificate = () => {
     onClose?.()
-    navigate('/dashboard')
+    navigate('/dashboard/certificates')
   }
 
   const handleContinueLearning = () => {

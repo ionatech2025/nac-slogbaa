@@ -24,6 +24,7 @@ export const queryKeys = {
   certificates: {
     all: ['certificates'],
     mine: () => [...queryKeys.certificates.all, 'mine'],
+    detail: (id) => [...queryKeys.certificates.all, 'detail', id],
   },
 
   // === Reviews ===

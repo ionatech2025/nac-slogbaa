@@ -1,5 +1,6 @@
 package com.nac.slogbaa.progress.adapters.persistence.entity;
 
+import com.nac.slogbaa.progress.core.aggregate.CertificateStatus;
 import jakarta.persistence.*;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -13,7 +14,7 @@ import java.util.UUID;
 }, uniqueConstraints = {
         @UniqueConstraint(name = "uq_certificate_number", columnNames = "certificate_number"),
         @UniqueConstraint(name = "uq_certificate_verification", columnNames = "verification_code"),
-        @UniqueConstraint(name = "uq_certificate_trainee_course", columnNames = {"trainee_id", "course_id"})
+        @UniqueConstraint(name = "uq_certificate_trainee_course", columnNames = { "trainee_id", "course_id" })
 })
 public class CertificateEntity {
 
@@ -28,7 +29,7 @@ public class CertificateEntity {
     private UUID courseId;
 
     @Column(name = "certificate_number", nullable = false, length = 50)
-    private String certificateNumber;
+    private String certificateNumber; // acts as the certificate id in pdf
 
     @Column(name = "issued_date", nullable = false)
     private LocalDate issuedDate;
@@ -51,8 +52,9 @@ public class CertificateEntity {
     @Column(name = "email_sent_at")
     private Instant emailSentAt;
 
-    @Column(name = "is_revoked", nullable = false)
-    private boolean revoked = false;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, length = 20)
+    private CertificateStatus status = CertificateStatus.ISSUED;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
@@ -63,9 +65,12 @@ public class CertificateEntity {
     @PrePersist
     void prePersist() {
         Instant now = Instant.now();
-        if (id == null) id = UUID.randomUUID();
-        if (createdAt == null) createdAt = now;
-        if (updatedAt == null) updatedAt = now;
+        if (id == null)
+            id = UUID.randomUUID();
+        if (createdAt == null)
+            createdAt = now;
+        if (updatedAt == null)
+            updatedAt = now;
     }
 
     @PreUpdate
@@ -73,32 +78,119 @@ public class CertificateEntity {
         updatedAt = Instant.now();
     }
 
-    public UUID getId() { return id; }
-    public void setId(UUID id) { this.id = id; }
-    public UUID getTraineeId() { return traineeId; }
-    public void setTraineeId(UUID traineeId) { this.traineeId = traineeId; }
-    public UUID getCourseId() { return courseId; }
-    public void setCourseId(UUID courseId) { this.courseId = courseId; }
-    public String getCertificateNumber() { return certificateNumber; }
-    public void setCertificateNumber(String certificateNumber) { this.certificateNumber = certificateNumber; }
-    public LocalDate getIssuedDate() { return issuedDate; }
-    public void setIssuedDate(LocalDate issuedDate) { this.issuedDate = issuedDate; }
-    public int getFinalScorePercent() { return finalScorePercent; }
-    public void setFinalScorePercent(int finalScorePercent) { this.finalScorePercent = finalScorePercent; }
-    public String getCertificateTemplateVersion() { return certificateTemplateVersion; }
-    public void setCertificateTemplateVersion(String v) { this.certificateTemplateVersion = v; }
-    public String getLayoutType() { return layoutType; }
-    public void setLayoutType(String layoutType) { this.layoutType = layoutType; }
-    public String getVerificationCode() { return verificationCode; }
-    public void setVerificationCode(String verificationCode) { this.verificationCode = verificationCode; }
-    public String getFileUrl() { return fileUrl; }
-    public void setFileUrl(String fileUrl) { this.fileUrl = fileUrl; }
-    public Instant getEmailSentAt() { return emailSentAt; }
-    public void setEmailSentAt(Instant emailSentAt) { this.emailSentAt = emailSentAt; }
-    public boolean isRevoked() { return revoked; }
-    public void setRevoked(boolean revoked) { this.revoked = revoked; }
-    public Instant getCreatedAt() { return createdAt; }
-    public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
-    public Instant getUpdatedAt() { return updatedAt; }
-    public void setUpdatedAt(Instant updatedAt) { this.updatedAt = updatedAt; }
+    public UUID getId() {
+        return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
+    }
+
+    public UUID getTraineeId() {
+        return traineeId;
+    }
+
+    public void setTraineeId(UUID traineeId) {
+        this.traineeId = traineeId;
+    }
+
+    public UUID getCourseId() {
+        return courseId;
+    }
+
+    public void setCourseId(UUID courseId) {
+        this.courseId = courseId;
+    }
+
+    public String getCertificateNumber() {
+        return certificateNumber;
+    }
+
+    public void setCertificateNumber(String certificateNumber) {
+        this.certificateNumber = certificateNumber;
+    }
+
+    public LocalDate getIssuedDate() {
+        return issuedDate;
+    }
+
+    public void setIssuedDate(LocalDate issuedDate) {
+        this.issuedDate = issuedDate;
+    }
+
+    public int getFinalScorePercent() {
+        return finalScorePercent;
+    }
+
+    public void setFinalScorePercent(int finalScorePercent) {
+        this.finalScorePercent = finalScorePercent;
+    }
+
+    public String getCertificateTemplateVersion() {
+        return certificateTemplateVersion;
+    }
+
+    public void setCertificateTemplateVersion(String v) {
+        this.certificateTemplateVersion = v;
+    }
+
+    public String getLayoutType() {
+        return layoutType;
+    }
+
+    public void setLayoutType(String layoutType) {
+        this.layoutType = layoutType;
+    }
+
+    public String getVerificationCode() {
+        return verificationCode;
+    }
+
+    public void setVerificationCode(String verificationCode) {
+        this.verificationCode = verificationCode;
+    }
+
+    public String getFileUrl() {
+        return fileUrl;
+    }
+
+    public void setFileUrl(String fileUrl) {
+        this.fileUrl = fileUrl;
+    }
+
+    public Instant getEmailSentAt() {
+        return emailSentAt;
+    }
+
+    public void setEmailSentAt(Instant emailSentAt) {
+        this.emailSentAt = emailSentAt;
+    }
+
+    public CertificateStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(CertificateStatus status) {
+        this.status = status;
+    }
+
+    public boolean isRevoked() {
+        return status == CertificateStatus.REVOKED;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Instant getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Instant updatedAt) {
+        this.updatedAt = updatedAt;
+    }
 }

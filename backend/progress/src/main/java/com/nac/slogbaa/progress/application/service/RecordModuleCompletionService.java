@@ -7,15 +7,17 @@ import com.nac.slogbaa.progress.application.port.in.IssueCertificateUseCase;
 import com.nac.slogbaa.progress.application.port.in.RecordModuleCompletionUseCase;
 import com.nac.slogbaa.progress.application.port.out.ModuleCompletionPort;
 import com.nac.slogbaa.progress.application.port.out.TraineeProgressRepositoryPort;
-import org.springframework.context.ApplicationEventPublisher;
 import com.nac.slogbaa.shared.events.SystemActivityEvent;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
 /**
  * Records module completion. Rule: course is complete when all modules are completed.
  */
-public final class RecordModuleCompletionService implements RecordModuleCompletionUseCase {
+@Transactional
+public class RecordModuleCompletionService implements RecordModuleCompletionUseCase {
 
     private static final String STATUS_COMPLETED = "COMPLETED";
 
@@ -78,18 +80,22 @@ public final class RecordModuleCompletionService implements RecordModuleCompleti
                         courseId.toString(),
                         "Completed course"
                 ));
-            } catch (Exception ignored) {
+            } catch (Exception e) {
+                System.err.println("Failed to publish system activity event: " + e.getMessage());
             }
             try {
+                System.out.println("[RecordModuleCompletionService] Calling issueIfEligible for " + traineeId + " / " + courseId);
                 issueCertificateUseCase.issueIfEligible(traineeId, courseId);
-            } catch (Exception ignored) {
+            } catch (Exception e) {
+                System.err.println("Failed to issue certificate: " + e.getMessage());
+                e.printStackTrace();
             }
             try {
                 checkAndAwardBadgesUseCase.checkAndAward(traineeId, "FIRST_COMPLETION");
                 checkAndAwardBadgesUseCase.checkAndAward(traineeId, "COURSES_COMPLETED_3");
                 checkAndAwardBadgesUseCase.checkAndAward(traineeId, "COURSES_COMPLETED_5");
-            } catch (Exception ignored) {
-                // Badge checks must never break the main completion flow
+            } catch (Exception e) {
+                System.err.println("Failed to award badges: " + e.getMessage());
             }
             try {
                 String courseTitle = courseDetailsQueryPort.findCourseDetailsById(courseId)
@@ -102,13 +108,13 @@ public final class RecordModuleCompletionService implements RecordModuleCompleti
                         "Congratulations! You completed '" + courseTitle + "'",
                         "/dashboard/courses/" + courseId
                 );
-            } catch (Exception ignored) {
-                // Notification must never break the main completion flow
+            } catch (Exception e) {
+                System.err.println("Failed to create notification: " + e.getMessage());
             }
             try {
                 staffNotificationService.notifyCourseCompleted(traineeId, courseId);
-            } catch (Exception ignored) {
-                // staff notifications must never break the main completion flow
+            } catch (Exception e) {
+                System.err.println("Failed to notify staff: " + e.getMessage());
             }
         }
     }

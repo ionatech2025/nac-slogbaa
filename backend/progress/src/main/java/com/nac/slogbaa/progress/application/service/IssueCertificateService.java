@@ -1,101 +1,61 @@
 package com.nac.slogbaa.progress.application.service;
 
-import com.nac.slogbaa.iam.application.dto.result.TraineeDetails;
-import com.nac.slogbaa.iam.application.port.in.GetTraineeByIdUseCase;
-import com.nac.slogbaa.learning.application.dto.result.CourseDetails;
-import com.nac.slogbaa.learning.application.port.out.CourseDetailsQueryPort;
 import com.nac.slogbaa.progress.application.port.in.IssueCertificateUseCase;
 import com.nac.slogbaa.progress.application.port.out.CertificateRepositoryPort;
 import com.nac.slogbaa.progress.application.port.out.TraineeProgressRepositoryPort;
-import com.nac.slogbaa.progress.application.port.out.TraineeSettingsPort;
-import com.nac.slogbaa.shared.ports.CertificatePdfGeneratorPort;
-import com.nac.slogbaa.shared.ports.FileStoragePort;
-import com.nac.slogbaa.shared.ports.TraineeCourseQuizScorePort;
-import com.nac.slogbaa.shared.ports.TraineeNotificationPort;
-
 import java.time.LocalDate;
-import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 import org.springframework.context.ApplicationEventPublisher;
 import com.nac.slogbaa.shared.events.SystemActivityEvent;
+import com.nac.slogbaa.shared.ports.TraineeCourseQuizScorePort;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Issues certificate when trainee completes course. Generates PDF, stores it, optionally emails.
+ * Issues certificate metadata when trainee completes course.
+ * PDF generation is handled on the frontend for higher fidelity.
  */
-public final class IssueCertificateService implements IssueCertificateUseCase {
+@Transactional
+public class IssueCertificateService implements IssueCertificateUseCase {
 
     private final CertificateRepositoryPort certificateRepository;
     private final TraineeProgressRepositoryPort traineeProgressRepository;
-    private final CourseDetailsQueryPort courseDetailsQueryPort;
     private final TraineeCourseQuizScorePort traineeCourseQuizScorePort;
-    private final GetTraineeByIdUseCase getTraineeByIdUseCase;
-    private final CertificatePdfGeneratorPort pdfGenerator;
-    private final FileStoragePort fileStorage;
-    private final TraineeSettingsPort traineeSettingsPort;
-    private final TraineeNotificationPort traineeNotificationPort;
     private final ApplicationEventPublisher eventPublisher;
 
-    public IssueCertificateService(CertificateRepositoryPort certificateRepository,
-                                  TraineeProgressRepositoryPort traineeProgressRepository,
-                                  CourseDetailsQueryPort courseDetailsQueryPort,
-                                  TraineeCourseQuizScorePort traineeCourseQuizScorePort,
-                                  GetTraineeByIdUseCase getTraineeByIdUseCase,
-                                  CertificatePdfGeneratorPort pdfGenerator,
-                                  FileStoragePort fileStorage,
-                                  TraineeSettingsPort traineeSettingsPort,
-                                  TraineeNotificationPort traineeNotificationPort,
-                                  ApplicationEventPublisher eventPublisher) {
+    public IssueCertificateService(
+            CertificateRepositoryPort certificateRepository,
+            TraineeProgressRepositoryPort traineeProgressRepository,
+            TraineeCourseQuizScorePort traineeCourseQuizScorePort,
+            ApplicationEventPublisher eventPublisher) {
         this.certificateRepository = certificateRepository;
         this.traineeProgressRepository = traineeProgressRepository;
-        this.courseDetailsQueryPort = courseDetailsQueryPort;
         this.traineeCourseQuizScorePort = traineeCourseQuizScorePort;
-        this.getTraineeByIdUseCase = getTraineeByIdUseCase;
-        this.pdfGenerator = pdfGenerator;
-        this.fileStorage = fileStorage;
-        this.traineeSettingsPort = traineeSettingsPort;
-        this.traineeNotificationPort = traineeNotificationPort;
         this.eventPublisher = eventPublisher;
     }
 
     @Override
     public void issueIfEligible(UUID traineeId, UUID courseId) {
+        System.out.println("[IssueCertificateService] Checking eligibility for trainee: " + traineeId + ", course: " + courseId);
+        
+        // 1. Check if already issued
         if (certificateRepository.existsByTraineeIdAndCourseId(traineeId, courseId)) {
+            System.out.println("[IssueCertificateService] Certificate already exists. Skipping.");
             return;
         }
-        if (!traineeProgressRepository.existsByTraineeIdAndCourseId(traineeId, courseId)) {
-            return;
-        }
-        var progressOpt = traineeProgressRepository.findByTraineeId(traineeId).stream()
-                .filter(p -> p.getCourseId().equals(courseId))
-                .findFirst();
-        if (progressOpt.isEmpty() || !"COMPLETED".equals(progressOpt.get().getStatus())) {
-            return;
-        }
-        CourseDetails course = courseDetailsQueryPort.findCourseDetailsByIdIncludingUnpublished(courseId).orElse(null);
-        if (course == null) return;
-        TraineeDetails trainee = getTraineeByIdUseCase.getById(traineeId).orElse(null);
-        if (trainee == null) return;
 
+        // 2. Issuing metadata
+        System.out.println("[IssueCertificateService] Issuing new certificate metadata...");
+
+        // 3. Get score
         int scorePercent = traineeCourseQuizScorePort.getBestPassedScorePercent(traineeId, courseId)
                 .orElse(100);
-        String traineeName = trainee.getFirstName() + " " + trainee.getLastName();
-        String certificateNumber = "SLOGBA-" + LocalDate.now().getYear() + "-" + String.format("%04d", ThreadLocalRandom.current().nextInt(1, 9999));
+
+        // 4. Generate metadata
+        String certificateNumber = "SLOGBAA-" + LocalDate.now().getYear() + "-"
+                + String.format("%04d", ThreadLocalRandom.current().nextInt(1, 9999));
         String verificationCode = "verify-" + UUID.randomUUID().toString().replace("-", "").substring(0, 16);
         LocalDate issuedDate = LocalDate.now();
-
-        CertificatePdfGeneratorPort.CertificatePdfData pdfData = new CertificatePdfGeneratorPort.CertificatePdfData(
-                traineeName,
-                course.getTitle(),
-                certificateNumber,
-                issuedDate.toString(),
-                scorePercent,
-                course.getModules().stream().map(m -> m.getTitle()).toList()
-        );
-        byte[] pdfBytes = pdfGenerator.generatePdf(pdfData);
-
-        var storageResult = fileStorage.store(pdfBytes, certificateNumber + ".pdf", "application/pdf", "certificates");
-        String fileUrl = storageResult.url();
 
         certificateRepository.save(new CertificateRepositoryPort.NewCertificateData(
                 traineeId,
@@ -104,22 +64,21 @@ public final class IssueCertificateService implements IssueCertificateUseCase {
                 issuedDate,
                 scorePercent,
                 verificationCode,
-                fileUrl
+                null // No file URL initially; frontend will upload PDF upon preview
         ));
 
-        if (traineeSettingsPort.isCertificateEmailOptIn(traineeId)) {
-            try {
-                traineeNotificationPort.sendCertificateEmail(trainee.getEmail(), traineeName, course.getTitle(), pdfBytes);
-            } catch (Exception e) {
-            }
+        System.out.println("[IssueCertificateService] Saved certificate: " + certificateNumber);
+
+        // 5. Log activity
+        try {
+            eventPublisher.publishEvent(new SystemActivityEvent(
+                    null,
+                    "SYSTEM",
+                    "CREATE",
+                    courseId.toString(),
+                    "Issued certificate metadata for courseId " + courseId + " to traineeId " + traineeId));
+        } catch (Exception e) {
+            System.err.println("Failed to publish system activity event for certificate: " + e.getMessage());
         }
-        
-        eventPublisher.publishEvent(new SystemActivityEvent(
-                null,
-                "SYSTEM",
-                "CREATE",
-                courseId.toString(),
-                "Issued certificate for " + course.getTitle() + " to " + traineeName
-        ));
     }
 }

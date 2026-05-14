@@ -36,13 +36,13 @@ public class AdminDashboardController {
                 .map(dto -> new StaffSummaryResponse(dto.getId(), dto.getFullName(), dto.getEmail(), dto.getRole()))
                 .toList();
         List<TraineeSummaryResponse> trainees = result.getTrainees().stream()
-                .map(dto -> new TraineeSummaryResponse(dto.getId(), dto.getFullName(), dto.getEmail(), dto.getDistrictName(), dto.getGender(), dto.getTraineeCategory()))
+                .map(dto -> new TraineeSummaryResponse(dto.getId(), dto.getFullName(), dto.getEmail(),
+                        dto.getDistrictName().toUpperCase(), dto.getGender(), dto.getTraineeCategory()))
                 .toList();
         return ResponseEntity.ok(new DashboardOverviewResponse(
                 result.getStaffCount(),
                 result.getTraineeCount(),
                 staff,
-                trainees
-        ));
+                trainees));
     }
 }
