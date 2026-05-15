@@ -55,5 +55,11 @@ dependencies {
     // API documentation (OpenAPI 3.1 / Swagger UI)
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6")
 
+    // OpenPDF — backend-generated reports
+    implementation("com.github.librepdf:openpdf:1.3.39")
+
+    // XChart — analytics and chart rendering
+    implementation("org.knowm.xchart:xchart:3.8.8")
+
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
