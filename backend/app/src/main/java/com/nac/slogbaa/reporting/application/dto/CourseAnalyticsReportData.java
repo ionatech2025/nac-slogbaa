@@ -6,5 +6,8 @@ public record CourseAnalyticsReportData(
     ReportHeader header,
     CourseSummaryStats summaryStats,
     MultiSeriesChartData enrollmentVsCompletionTrendChart,
-    List<CoursePerformanceTableRow> performanceTable
+    List<CoursePerformanceTableRow> performanceTable,
+    List<AssessmentTableRow> assessmentTable,
+    List<LibraryResourceTableRow> libraryTable,
+    List<InteractionTableRow> interactionTable
 ) {}

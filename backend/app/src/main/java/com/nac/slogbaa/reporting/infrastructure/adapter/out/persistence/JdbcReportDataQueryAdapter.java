@@ -114,7 +114,90 @@ public class JdbcReportDataQueryAdapter implements ReportDataQueryPort {
             table.add(new CoursePerformanceTableRow(id, title, enrolled, compPct, df.format(rating)));
         }
         
-        return new CourseAnalyticsReportData(header, stats, chart, table);
+        // 1. Assessments
+        String asmSql = """
+            SELECT
+                c.title as course_name,
+                q.title as quiz_title,
+                t.first_name || ' ' || t.last_name as trainee_name,
+                case when qa.is_passed then 'Passed' else 'Failed' end as attempt_status,
+                CAST(qa.completed_at AS DATE) as date_attempted,
+                cert.id IS NOT NULL as cert_issued,
+                CAST(cert.issued_date AS DATE) as cert_date
+            FROM quiz_attempt qa
+            JOIN trainee_assessment ta ON qa.trainee_assessment_id = ta.id
+            JOIN trainee t ON ta.trainee_id = t.id
+            JOIN quiz q ON ta.quiz_id = q.id
+            JOIN module m ON ta.module_id = m.id
+            JOIN course c ON m.course_id = c.id
+            LEFT JOIN certificate cert ON cert.trainee_id = t.id AND cert.course_id = c.id
+            ORDER BY qa.completed_at DESC NULLS LAST
+            LIMIT 20
+        """;
+        List<AssessmentTableRow> assessments = new ArrayList<>();
+        for (Map<String, Object> r : jdbcTemplate.queryForList(asmSql)) {
+            assessments.add(new AssessmentTableRow(
+                String.valueOf(r.get("course_name")),
+                String.valueOf(r.get("quiz_title")),
+                String.valueOf(r.get("trainee_name")),
+                String.valueOf(r.get("attempt_status")),
+                r.get("date_attempted") != null ? String.valueOf(r.get("date_attempted")) : "-",
+                ((Boolean) r.getOrDefault("cert_issued", false)),
+                r.get("cert_date") != null ? String.valueOf(r.get("cert_date")) : "-"
+            ));
+        }
+        
+        // 2. Library Resources
+        String libSql = """
+            SELECT
+                c.title as course_name,
+                lr.title as resource_title,
+                lr.resource_type,
+                CAST(lr.uploaded_at AS DATE) as uploaded_date
+            FROM library_resource lr
+            JOIN course c ON lr.course_id = c.id
+            ORDER BY lr.uploaded_at DESC
+            LIMIT 20
+        """;
+        List<LibraryResourceTableRow> libraryResources = new ArrayList<>();
+        for (Map<String, Object> r : jdbcTemplate.queryForList(libSql)) {
+            libraryResources.add(new LibraryResourceTableRow(
+                String.valueOf(r.get("course_name")),
+                String.valueOf(r.get("resource_title")),
+                String.valueOf(r.get("resource_type")),
+                String.valueOf(r.get("uploaded_date"))
+            ));
+        }
+        
+        // 3. Interactions
+        String intSql = """
+            SELECT
+                c.title as course_name,
+                dt.title as thread_title,
+                coalesce(t.first_name || ' ' || t.last_name, su.full_name, 'Unknown') as author_name,
+                dt.author_type,
+                dt.reply_count,
+                CAST(dt.created_at AS DATE) as created_date
+            FROM discussion_thread dt
+            JOIN course c ON dt.course_id = c.id
+            LEFT JOIN trainee t ON dt.author_id = t.id AND dt.author_type = 'TRAINEE'
+            LEFT JOIN staff_user su ON dt.author_id = su.id AND dt.author_type = 'STAFF'
+            ORDER BY dt.created_at DESC
+            LIMIT 20
+        """;
+        List<InteractionTableRow> interactions = new ArrayList<>();
+        for (Map<String, Object> r : jdbcTemplate.queryForList(intSql)) {
+            interactions.add(new InteractionTableRow(
+                String.valueOf(r.get("course_name")),
+                String.valueOf(r.get("thread_title")),
+                String.valueOf(r.get("author_name")),
+                String.valueOf(r.get("author_type")),
+                ((Number) r.get("reply_count")).intValue(),
+                String.valueOf(r.get("created_date"))
+            ));
+        }
+        
+        return new CourseAnalyticsReportData(header, stats, chart, table, assessments, libraryResources, interactions);
     }
 
     @Override

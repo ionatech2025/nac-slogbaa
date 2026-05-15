@@ -147,6 +147,68 @@ public class OpenPdfGeneratorAdapter implements PdfGeneratorPort {
             rowIdx++;
         }
         doc.add(table);
+
+        // Table: Assessments
+        doc.add(Chunk.NEWLINE);
+        doc.add(new Paragraph("Assessments & Certificates", HEADER_FONT));
+        doc.add(Chunk.NEWLINE);
+        PdfPTable asmTable = new PdfPTable(7);
+        asmTable.setWidthPercentage(100);
+        asmTable.setWidths(new float[]{3f, 3f, 3f, 2f, 2f, 2f, 2f});
+        addTableHeader(asmTable, "Course", "Quiz", "Trainee", "Status", "Attempt Date", "Cert?", "Cert Date");
+        
+        rowIdx = 0;
+        for (var row : data.assessmentTable()) {
+            addTableCell(asmTable, row.courseName(), rowIdx);
+            addTableCell(asmTable, row.quizTitle(), rowIdx);
+            addTableCell(asmTable, row.traineeName(), rowIdx);
+            addTableCell(asmTable, row.attemptStatus(), rowIdx);
+            addTableCell(asmTable, row.dateAttempted(), rowIdx);
+            addTableCell(asmTable, row.certificateIssued() ? "Yes" : "No", rowIdx);
+            addTableCell(asmTable, row.certificateDate(), rowIdx);
+            rowIdx++;
+        }
+        doc.add(asmTable);
+
+        // Table: Library Resources
+        doc.add(Chunk.NEWLINE);
+        doc.add(new Paragraph("Library Resources Shared", HEADER_FONT));
+        doc.add(Chunk.NEWLINE);
+        PdfPTable libTable = new PdfPTable(4);
+        libTable.setWidthPercentage(100);
+        libTable.setWidths(new float[]{3f, 4f, 2f, 2f});
+        addTableHeader(libTable, "Course Name", "Resource Title", "Type", "Uploaded Date");
+        
+        rowIdx = 0;
+        for (var row : data.libraryTable()) {
+            addTableCell(libTable, row.courseName(), rowIdx);
+            addTableCell(libTable, row.resourceTitle(), rowIdx);
+            addTableCell(libTable, row.resourceType(), rowIdx);
+            addTableCell(libTable, row.uploadedDate(), rowIdx);
+            rowIdx++;
+        }
+        doc.add(libTable);
+
+        // Table: Interactions
+        doc.add(Chunk.NEWLINE);
+        doc.add(new Paragraph("Course Interactions", HEADER_FONT));
+        doc.add(Chunk.NEWLINE);
+        PdfPTable intTable = new PdfPTable(6);
+        intTable.setWidthPercentage(100);
+        intTable.setWidths(new float[]{3f, 4f, 3f, 2f, 1f, 2f});
+        addTableHeader(intTable, "Course", "Thread", "Author", "Role", "Replies", "Date");
+        
+        rowIdx = 0;
+        for (var row : data.interactionTable()) {
+            addTableCell(intTable, row.courseName(), rowIdx);
+            addTableCell(intTable, row.threadTitle(), rowIdx);
+            addTableCell(intTable, row.authorName(), rowIdx);
+            addTableCell(intTable, row.authorType(), rowIdx);
+            addTableCell(intTable, String.valueOf(row.replyCount()), rowIdx);
+            addTableCell(intTable, row.createdDate(), rowIdx);
+            rowIdx++;
+        }
+        doc.add(intTable);
     }
 
     private void renderTraineeProgress(Document doc, TraineeProgressReportData data) throws Exception {
