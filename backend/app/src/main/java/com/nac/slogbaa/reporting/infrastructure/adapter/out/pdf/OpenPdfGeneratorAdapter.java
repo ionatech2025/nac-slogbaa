@@ -26,6 +26,7 @@ import org.knowm.xchart.CategoryChart;
 import org.knowm.xchart.CategoryChartBuilder;
 import org.knowm.xchart.PieChart;
 import org.knowm.xchart.PieChartBuilder;
+import org.knowm.xchart.style.AxesChartStyler;
 import org.knowm.xchart.style.Styler;
 import org.springframework.stereotype.Component;
 
@@ -98,10 +99,8 @@ public class OpenPdfGeneratorAdapter implements PdfGeneratorPort {
 
         doc.add(Chunk.NEWLINE);
 
-        // Chart 2: Top Districts Bar Chart
         CategoryChart barChart = new CategoryChartBuilder().width(600).height(350).title(data.topDistrictsBarChart().seriesName()).build();
         styleChart(barChart.getStyler());
-        barChart.getStyler().setHasAnnotations(true);
         barChart.addSeries("Count", data.topDistrictsBarChart().labels(), data.topDistrictsBarChart().values());
         addImage(doc, BitmapEncoder.getBitmapBytes(barChart, BitmapEncoder.BitmapFormat.PNG));
     }
@@ -222,7 +221,9 @@ public class OpenPdfGeneratorAdapter implements PdfGeneratorPort {
         styler.setLegendBackgroundColor(Color.WHITE);
         styler.setLegendBorderColor(Color.WHITE);
         styler.setChartFontColor(new Color(33, 37, 41));
-        styler.setAxisTickLabelsColor(new Color(108, 117, 125));
+        if (styler instanceof AxesChartStyler axesStyler) {
+            axesStyler.setAxisTickLabelsColor(new Color(108, 117, 125));
+        }
     }
 
     private void addTableHeader(PdfPTable table, String... headers) {

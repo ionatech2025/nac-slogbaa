@@ -651,14 +651,34 @@ export function AdminReportsAnalyticsPage() {
   const feedLoading = attemptsLoading || certsLoading
 
   const [showPrintModal, setShowPrintModal] = useState(false)
+  const [selectedReportType, setSelectedReportType] = useState('EXECUTIVE_OVERVIEW')
+  const [isGenerating, setIsGenerating] = useState(false)
 
   const handleGenerateReport = () => {
     setShowPrintModal(true)
   }
 
-  const triggerPrint = () => {
-    window.print()
-    setShowPrintModal(false)
+  const triggerGeneration = async () => {
+    try {
+      setIsGenerating(true)
+      const res = await fetch('/api/admin/reports/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ reportType: selectedReportType })
+      })
+      if (!res.ok) throw new Error('Failed to request report')
+      const data = await res.json()
+      alert(`Report generation started! Job ID: ${data.jobId}. You will be notified when it's ready.`)
+      setShowPrintModal(false)
+    } catch (err) {
+      console.error(err)
+      alert('Failed to generate report.')
+    } finally {
+      setIsGenerating(false)
+    }
   }
 
   return (
@@ -704,7 +724,7 @@ export function AdminReportsAnalyticsPage() {
         }
       `}</style>
 
-      {/* ── Print Preview Modal ── */}
+      {/* ── Generate Report Modal ── */}
       {showPrintModal && (
         <div style={{
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
@@ -712,16 +732,49 @@ export function AdminReportsAnalyticsPage() {
           display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999
         }} className="no-print">
           <div style={{ background: 'var(--slogbaa-bg)', padding: '2rem', borderRadius: '16px', maxWidth: '500px', width: '90%', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}>
-            <h3 style={{ margin: '0 0 1rem', fontSize: '1.25rem', color: 'var(--slogbaa-text)' }}>Print Report Preview</h3>
+            <h3 style={{ margin: '0 0 1rem', fontSize: '1.25rem', color: 'var(--slogbaa-text)' }}>Generate Report</h3>
             <p style={{ color: 'var(--slogbaa-text-muted)', marginBottom: '1.5rem', lineHeight: 1.5 }}>
-              This will use your browser's native print engine to generate a high-fidelity PDF of the current dashboard, including all rich charts and analytics.
-              <br /><br />
-              <strong>Important:</strong> In the print dialog, ensure you check <strong>"Background graphics"</strong> so that the colors and charts render correctly.
+              Select the type of report you want to generate. This will process the data on the server and generate a high-fidelity PDF.
             </p>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '2rem' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                <input 
+                  type="radio" 
+                  name="reportType" 
+                  value="EXECUTIVE_OVERVIEW" 
+                  checked={selectedReportType === 'EXECUTIVE_OVERVIEW'} 
+                  onChange={(e) => setSelectedReportType(e.target.value)}
+                />
+                <span style={{ color: 'var(--slogbaa-text)' }}>Executive Overview</span>
+              </label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                <input 
+                  type="radio" 
+                  name="reportType" 
+                  value="COURSE_ANALYTICS" 
+                  checked={selectedReportType === 'COURSE_ANALYTICS'} 
+                  onChange={(e) => setSelectedReportType(e.target.value)}
+                />
+                <span style={{ color: 'var(--slogbaa-text)' }}>Course Analytics</span>
+              </label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                <input 
+                  type="radio" 
+                  name="reportType" 
+                  value="TRAINEE_PROGRESS" 
+                  checked={selectedReportType === 'TRAINEE_PROGRESS'} 
+                  onChange={(e) => setSelectedReportType(e.target.value)}
+                />
+                <span style={{ color: 'var(--slogbaa-text)' }}>Trainee Progress</span>
+              </label>
+            </div>
+
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
-              <Button variant="secondary" onClick={() => setShowPrintModal(false)}>Cancel</Button>
-              <Button variant="primary" onClick={triggerPrint}>
-                <Icon icon={icons.reports} size={18} style={{ marginRight: 6 }} /> Print / Save as PDF
+              <Button variant="secondary" onClick={() => setShowPrintModal(false)} disabled={isGenerating}>Cancel</Button>
+              <Button variant="primary" onClick={triggerGeneration} disabled={isGenerating}>
+                <Icon icon={icons.reports} size={18} style={{ marginRight: 6 }} /> 
+                {isGenerating ? 'Generating...' : 'Generate PDF'}
               </Button>
             </div>
           </div>
