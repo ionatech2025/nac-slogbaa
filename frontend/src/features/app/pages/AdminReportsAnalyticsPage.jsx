@@ -16,8 +16,6 @@ import {
   useAdminEngagementAnalytics,
 } from '../../../lib/hooks/use-admin.js'
 import { getVisitorCount } from '../../../api/homepage.js'
-import { generateReport } from '../../../api/admin/reports.js'
-import { renderReportTemplate } from '../utils/report-template.js'
 import {
   PieChart,
   Pie,
@@ -652,71 +650,84 @@ export function AdminReportsAnalyticsPage() {
 
   const feedLoading = attemptsLoading || certsLoading
 
-  const [generatingReport, setGeneratingReport] = useState(false)
+  const [showPrintModal, setShowPrintModal] = useState(false)
 
-  const handleGenerateReport = async () => {
-    if (generatingReport) return
-    setGeneratingReport(true)
+  const handleGenerateReport = () => {
+    setShowPrintModal(true)
+  }
 
-    try {
-      // 1. Map data for the template
-      const reportData = {
-        generationDate: formatDate(),
-        traineeCount: trainees.length,
-        publishedCourseCount: publishedCount,
-        certificateCount: activeCerts,
-        globalPassRate: passRate,
-        categoryBreakdown: [], // You could populate this if you have the logic here
-        districtBreakdown: [
-          { name: topDistrict, value: 'Top District' }
-        ],
-        totalReviews: engagement?.totalReviewCount ?? 0,
-        avgRating: Number(engagement?.combinedAverageRating ?? 0).toFixed(1),
-        totalQuestions: engagement?.traineeQuestionCount ?? 0,
-        totalVisitors: totalVisitors,
-        topCourses: topCourses.map(c => ({ title: c.title, moduleCount: c.moduleCount })),
-        recentActivity: activityFeed.map(a => ({
-          name: a.name,
-          type: a.type,
-          detail: a.detail,
-          date: timeAgo(a.date),
-          badgeClass: a.type === 'certificate' ? 'badge-success' : 'badge-blue'
-        })),
-        currentYear: new Date().getFullYear(),
-      }
-
-      // 2. Generate HTML string
-      const html = renderReportTemplate(reportData)
-
-      // 3. Send to backend and get Blob
-      const blob = await generateReport(token, {
-        html,
-        title: `Platform Performance Report - ${formatDate()}`,
-        generatedBy: displayName
-      })
-
-      // 4. Trigger download
-      const url = window.URL.createObjectURL(blob)
-      const link = document.createElement('a')
-      link.href = url
-      link.setAttribute('download', `Report_${new Date().getTime()}.pdf`)
-      document.body.appendChild(link)
-      link.click()
-      link.remove()
-      window.URL.revokeObjectURL(url)
-
-      // Optional: Inform user
-      // alert('Report generated and download started.')
-    } catch (err) {
-      console.error('Report Error:', err)
-      alert(`Failed to generate report: ${err.message}`)
-    } finally {
-      setGeneratingReport(false)
-    }
+  const triggerPrint = () => {
+    window.print()
+    setShowPrintModal(false)
   }
 
   return (
-    <div>
+    <div id="report-print-area">
+      <style>{`
+        @media print {
+          /* Hide the main app shell, sidebar, and navigate pills */
+          aside, nav, header, .admin-sidebar, .navigate-pills, .no-print {
+            display: none !important;
+          }
+          
+          /* Ensure the print area takes up the full page */
+          body {
+            background: #fff;
+            margin: 0;
+            padding: 0;
+          }
+
+          #report-print-area {
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            background: #fff;
+          }
+
+          /* Force background colors and glass effects to render (requires browser setting too) */
+          * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+
+          /* Adjust layout for A4 size */
+          .glass-card, .panel {
+            box-shadow: none !important;
+            border: 1px solid #e2e8f0 !important;
+            break-inside: avoid;
+            page-break-inside: avoid;
+          }
+
+          h2, h3, h4, p {
+            color: #000 !important;
+          }
+        }
+      `}</style>
+
+      {/* ── Print Preview Modal ── */}
+      {showPrintModal && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999
+        }} className="no-print">
+          <div style={{ background: 'var(--slogbaa-bg)', padding: '2rem', borderRadius: '16px', maxWidth: '500px', width: '90%', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}>
+            <h3 style={{ margin: '0 0 1rem', fontSize: '1.25rem', color: 'var(--slogbaa-text)' }}>Print Report Preview</h3>
+            <p style={{ color: 'var(--slogbaa-text-muted)', marginBottom: '1.5rem', lineHeight: 1.5 }}>
+              This will use your browser's native print engine to generate a high-fidelity PDF of the current dashboard, including all rich charts and analytics.
+              <br /><br />
+              <strong>Important:</strong> In the print dialog, ensure you check <strong>"Background graphics"</strong> so that the colors and charts render correctly.
+            </p>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
+              <Button variant="secondary" onClick={() => setShowPrintModal(false)}>Cancel</Button>
+              <Button variant="primary" onClick={triggerPrint}>
+                <Icon icon={icons.reports} size={18} style={{ marginRight: 6 }} /> Print / Save as PDF
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── Hero Greeting ── */}
       <div style={s.hero} className="glass-enter">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
@@ -729,18 +740,18 @@ export function AdminReportsAnalyticsPage() {
           </div>
           {isSuperAdmin && (
             <Button
+              className="no-print"
               variant="primary"
               size="md"
               onClick={handleGenerateReport}
-              disabled={generatingReport}
               style={{
                 boxShadow: '0 4px 12px rgba(245, 130, 32, 0.2)',
                 marginTop: '0.25rem',
                 minWidth: 160
               }}
             >
-              <Icon icon={generatingReport ? icons.loader : icons.reports} size={18} className={generatingReport ? 'spin' : ''} />
-              {generatingReport ? 'Generating...' : 'Generate Report'}
+              <Icon icon={icons.reports} size={18} />
+              Generate Report
             </Button>
           )}
         </div>
@@ -828,8 +839,8 @@ export function AdminReportsAnalyticsPage() {
             engagementLoading
               ? '—'
               : (engagement?.totalReviewCount > 0 && engagement?.combinedAverageRating != null
-                  ? Number(engagement.combinedAverageRating).toFixed(1)
-                  : '—')
+                ? Number(engagement.combinedAverageRating).toFixed(1)
+                : '—')
           }
           label="Avg course rating"
           loading={engagementLoading}
