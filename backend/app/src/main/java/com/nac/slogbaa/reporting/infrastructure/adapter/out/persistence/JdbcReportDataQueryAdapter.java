@@ -57,7 +57,7 @@ public class JdbcReportDataQueryAdapter implements ReportDataQueryPort {
         }
         SimpleChartData pie = new SimpleChartData("Status", pieLabels, pieValues);
         
-        List<Map<String, Object>> districtCounts = jdbcTemplate.queryForList("SELECT district_name, count(*) as cnt FROM trainee GROUP BY district_name ORDER BY cnt DESC LIMIT 5");
+        List<Map<String, Object>> districtCounts = jdbcTemplate.queryForList("SELECT UPPER(district_name) as district_name, count(*) as cnt FROM trainee GROUP BY UPPER(district_name) ORDER BY cnt DESC LIMIT 5");
         List<String> barLabels = new ArrayList<>();
         List<Double> barValues = new ArrayList<>();
         for (Map<String, Object> row : districtCounts) {
@@ -70,7 +70,31 @@ public class JdbcReportDataQueryAdapter implements ReportDataQueryPort {
         }
         SimpleChartData bar = new SimpleChartData("Districts", barLabels, barValues);
         
-        return new ExecutiveOverviewReportData(header, stats, pie, bar);
+        String staffSql = "SELECT full_name as name, email, staff_role as role, case when is_active then 'Active' else 'Inactive' end as status, CAST(last_login_at AS DATE) as last_login FROM staff_user ORDER BY created_at DESC";
+        List<StaffTableRow> staffTable = new ArrayList<>();
+        for (Map<String, Object> r : jdbcTemplate.queryForList(staffSql)) {
+            staffTable.add(new StaffTableRow(
+                String.valueOf(r.get("name")),
+                String.valueOf(r.get("email")),
+                String.valueOf(r.get("role")),
+                String.valueOf(r.get("status")),
+                r.get("last_login") != null ? String.valueOf(r.get("last_login")) : "Never"
+            ));
+        }
+
+        String traineeSql = "SELECT first_name || ' ' || last_name as name, email, UPPER(district_name) as district, trainee_category as category, case when is_active then 'Active' else 'Inactive' end as status FROM trainee ORDER BY created_at DESC LIMIT 50";
+        List<TraineeTableRow> traineeTable = new ArrayList<>();
+        for (Map<String, Object> r : jdbcTemplate.queryForList(traineeSql)) {
+            traineeTable.add(new TraineeTableRow(
+                String.valueOf(r.get("name")),
+                String.valueOf(r.get("email")),
+                String.valueOf(r.get("district")),
+                String.valueOf(r.get("category")),
+                String.valueOf(r.get("status"))
+            ));
+        }
+        
+        return new ExecutiveOverviewReportData(header, stats, pie, bar, staffTable, traineeTable);
     }
 
     @Override
@@ -197,7 +221,40 @@ public class JdbcReportDataQueryAdapter implements ReportDataQueryPort {
             ));
         }
         
-        return new CourseAnalyticsReportData(header, stats, chart, table, assessments, libraryResources, interactions);
+        String scoreSql = """
+            SELECT 
+                case 
+                    when score <= 20 then '0-20'
+                    when score <= 40 then '21-40'
+                    when score <= 60 then '41-60'
+                    when score <= 80 then '61-80'
+                    else '81-100'
+                end as range,
+                count(*) as cnt
+            FROM (
+                SELECT (points_earned * 100 / nullif(total_points, 0)) as score 
+                FROM quiz_attempt 
+                WHERE total_points > 0
+            ) as scores
+            GROUP BY 
+                case 
+                    when score <= 20 then '0-20'
+                    when score <= 40 then '21-40'
+                    when score <= 60 then '41-60'
+                    when score <= 80 then '61-80'
+                    else '81-100'
+                end
+        """;
+        List<Map<String, Object>> scoreCounts = jdbcTemplate.queryForList(scoreSql);
+        List<String> scoreLabels = List.of("0-20", "21-40", "41-60", "61-80", "81-100");
+        Map<String, Double> scoreMap = new java.util.HashMap<>();
+        for (Map<String, Object> r : scoreCounts) {
+            scoreMap.put(String.valueOf(r.get("range")), ((Number) r.get("cnt")).doubleValue());
+        }
+        List<Double> scoreValues = scoreLabels.stream().map(l -> scoreMap.getOrDefault(l, 0.0)).toList();
+        SimpleChartData quizDistChart = new SimpleChartData("Quiz Scores", scoreLabels, scoreValues);
+        
+        return new CourseAnalyticsReportData(header, stats, chart, table, assessments, libraryResources, interactions, quizDistChart);
     }
 
     @Override
@@ -237,6 +294,28 @@ public class JdbcReportDataQueryAdapter implements ReportDataQueryPort {
             logs.add(new WithdrawalLogTableRow("-", "-", "-", "No recent withdrawals"));
         }
         
-        return new TraineeProgressReportData(header, stats, logs);
+        String enrSql = "SELECT c.title, count(tp.id) as cnt FROM course c LEFT JOIN trainee_progress tp ON c.id = tp.course_id GROUP BY c.title ORDER BY cnt DESC LIMIT 20";
+        List<EnrollmentByCourseTableRow> enrollments = new ArrayList<>();
+        for (Map<String, Object> r : jdbcTemplate.queryForList(enrSql)) {
+            enrollments.add(new EnrollmentByCourseTableRow(
+                String.valueOf(r.get("title")),
+                ((Number) r.get("cnt")).intValue()
+            ));
+        }
+
+        List<Map<String, Object>> statusCounts = jdbcTemplate.queryForList("SELECT status, count(*) as cnt FROM trainee_progress WHERE status IN ('COMPLETED', 'FAILED') GROUP BY status");
+        List<String> dLabels = new ArrayList<>();
+        List<Double> dValues = new ArrayList<>();
+        for (Map<String, Object> r : statusCounts) {
+            dLabels.add(String.valueOf(r.get("status")));
+            dValues.add(((Number) r.get("cnt")).doubleValue());
+        }
+        if (dLabels.isEmpty()) {
+            dLabels.addAll(List.of("COMPLETED", "FAILED"));
+            dValues.addAll(List.of(1.0, 0.0));
+        }
+        SimpleChartData donutChart = new SimpleChartData("Completions vs Withdrawals", dLabels, dValues);
+        
+        return new TraineeProgressReportData(header, stats, logs, enrollments, donutChart);
     }
 }

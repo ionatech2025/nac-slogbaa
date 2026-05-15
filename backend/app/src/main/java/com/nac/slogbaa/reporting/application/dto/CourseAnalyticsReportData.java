@@ -9,5 +9,6 @@ public record CourseAnalyticsReportData(
     List<CoursePerformanceTableRow> performanceTable,
     List<AssessmentTableRow> assessmentTable,
     List<LibraryResourceTableRow> libraryTable,
-    List<InteractionTableRow> interactionTable
+    List<InteractionTableRow> interactionTable,
+    SimpleChartData quizScoreDistributionChart
 ) {}
