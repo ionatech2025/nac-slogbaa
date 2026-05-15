@@ -78,7 +78,7 @@ const CertificateTemplate = ({ data = {}, style = {}, className = '' }) => {
         {/* Banner pill ends at ~43 %; title sits immediately below it */}
         <div style={{
           position: 'absolute',
-          top: '43%',
+          top: '41.5%',
           left: '8%',
           width: '84%',
           textAlign: 'center',
@@ -86,8 +86,8 @@ const CertificateTemplate = ({ data = {}, style = {}, className = '' }) => {
           <span style={{
             color: '#F58220',
             fontSize: 'clamp(0.7rem, 2.8cqw, 1.6rem)',
-            fontWeight: 800,
-            letterSpacing: '0.04em',
+            fontWeight: 400,
+            letterSpacing: '0.02em',
             textTransform: 'uppercase',
             lineHeight: 1.2,
             fontFamily: "'Segoe UI', system-ui, Arial, sans-serif",
@@ -100,7 +100,7 @@ const CertificateTemplate = ({ data = {}, style = {}, className = '' }) => {
         {/* Sits below the orange course title, at ~47 % */}
         <div style={{
           position: 'absolute',
-          top: '47%',
+          top: '46%',
           left: 0,
           width: '100%',
           textAlign: 'center',
@@ -118,7 +118,7 @@ const CertificateTemplate = ({ data = {}, style = {}, className = '' }) => {
         {/* ── 3. Recipient name ── large, centred, at ~50 % ── */}
         <div style={{
           position: 'absolute',
-          top: '50%',
+          top: '48%',
           left: '8%',
           width: '84%',
           textAlign: 'center',
@@ -127,7 +127,7 @@ const CertificateTemplate = ({ data = {}, style = {}, className = '' }) => {
             display: 'block',
             color: '#003087',
             fontSize: 'clamp(1.1rem, 5cqw, 3.2rem)',
-            fontWeight: 700,
+            fontWeight: 500,
             fontFamily: "Georgia, 'Times New Roman', serif",
             lineHeight: 1.15,
             letterSpacing: '0.01em',
@@ -139,7 +139,7 @@ const CertificateTemplate = ({ data = {}, style = {}, className = '' }) => {
         {/* ── 4. Completion description ── at ~57 % ── */}
         <div style={{
           position: 'absolute',
-          top: '57%',
+          top: '54%',
           left: '13%',
           width: '74%',
           textAlign: 'center',

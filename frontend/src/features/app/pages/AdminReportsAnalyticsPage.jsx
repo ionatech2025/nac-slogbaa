@@ -1,8 +1,9 @@
-import { useMemo } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { Link, useOutletContext, useNavigate } from 'react-router-dom'
 import { AdminNavigatePills } from '../components/admin/AdminNavigatePills.jsx'
 import { useQuery } from '@tanstack/react-query'
 import { Icon, icons } from '../../../shared/icons.jsx'
+import { Button } from '../../../shared/components/Button.jsx'
 import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle.js'
 import { Badge } from '../../../shared/components/Badge.jsx'
 import { Skeleton } from '../../../shared/components/Skeleton.jsx'
@@ -649,15 +650,269 @@ export function AdminReportsAnalyticsPage() {
 
   const feedLoading = attemptsLoading || certsLoading
 
+  const [showPrintModal, setShowPrintModal] = useState(false)
+  const [selectedReportType, setSelectedReportType] = useState('EXECUTIVE_OVERVIEW')
+  const [activeJobId, setActiveJobId] = useState(null)
+  const [jobStatus, setJobStatus] = useState(null) // 'PENDING', 'PROCESSING', 'COMPLETED', 'FAILED'
+  const [jobError, setJobError] = useState(null)
+
+  const handleGenerateReport = () => {
+    setJobStatus(null)
+    setActiveJobId(null)
+    setJobError(null)
+    setShowPrintModal(true)
+  }
+
+  const triggerGeneration = async () => {
+    try {
+      setJobStatus('PENDING')
+      setJobError(null)
+      const res = await fetch('/api/admin/reports/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ reportType: selectedReportType })
+      })
+      if (!res.ok) throw new Error('Failed to request report')
+      const data = await res.json()
+      setActiveJobId(data.jobId)
+    } catch (err) {
+      console.error(err)
+      setJobStatus('FAILED')
+      setJobError('Failed to contact reporting service.')
+    }
+  }
+
+  useEffect(() => {
+    if (!activeJobId || jobStatus === 'COMPLETED' || jobStatus === 'FAILED') return
+
+    const checkStatus = async () => {
+      try {
+        const res = await fetch(`/api/admin/reports/jobs/${activeJobId}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        if (res.ok) {
+          const data = await res.json()
+          setJobStatus(data.status)
+          if (data.status === 'FAILED') {
+            setJobError(data.errorMessage || 'Report generation failed.')
+          }
+        }
+      } catch (err) {
+        console.error('Error polling status', err)
+      }
+    }
+
+    const intervalId = setInterval(checkStatus, 2000)
+    return () => clearInterval(intervalId)
+  }, [activeJobId, jobStatus, token])
+
+  const downloadReport = async () => {
+    try {
+      const res = await fetch(`/api/admin/reports/jobs/${activeJobId}/download`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (!res.ok) throw new Error('Download failed')
+      const blob = await res.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `report_${selectedReportType.toLowerCase()}.pdf`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      window.URL.revokeObjectURL(url)
+    } catch (e) {
+      console.error(e)
+      alert('Failed to download PDF')
+    }
+  }
+
   return (
-    <div>
+    <div id="report-print-area">
+      <style>{`
+        @media print {
+          /* Hide the main app shell, sidebar, and navigate pills */
+          aside, nav, header, .admin-sidebar, .navigate-pills, .no-print {
+            display: none !important;
+          }
+          
+          /* Ensure the print area takes up the full page */
+          body {
+            background: #fff;
+            margin: 0;
+            padding: 0;
+          }
+
+          #report-print-area {
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            background: #fff;
+          }
+
+          /* Force background colors and glass effects to render (requires browser setting too) */
+          * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+
+          /* Adjust layout for A4 size */
+          .glass-card, .panel {
+            box-shadow: none !important;
+            border: 1px solid #e2e8f0 !important;
+            break-inside: avoid;
+            page-break-inside: avoid;
+          }
+
+          h2, h3, h4, p {
+            color: #000 !important;
+          }
+        }
+      `}</style>
+
+      {/* ── Generate Report Modal ── */}
+      {showPrintModal && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999
+        }} className="no-print">
+          <style>{`
+            @keyframes pulse-ring {
+              0% { transform: scale(0.85); box-shadow: 0 0 0 0 rgba(245, 130, 32, 0.7); }
+              70% { transform: scale(1); box-shadow: 0 0 0 20px rgba(245, 130, 32, 0); }
+              100% { transform: scale(0.85); box-shadow: 0 0 0 0 rgba(245, 130, 32, 0); }
+            }
+            .animate-pulse-ring {
+              animation: pulse-ring 2s infinite cubic-bezier(0.215, 0.61, 0.355, 1);
+              border-radius: 50%;
+              background: rgba(245, 130, 32, 0.1);
+              padding: 1.5rem;
+              display: inline-flex;
+              color: var(--slogbaa-blue);
+            }
+          `}</style>
+          <div style={{ background: 'var(--slogbaa-bg)', padding: '2rem', borderRadius: '16px', maxWidth: '500px', width: '90%', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}>
+            
+            {jobStatus && jobStatus !== 'FAILED' && jobStatus !== 'COMPLETED' ? (
+              <div style={{ textAlign: 'center', padding: '1rem 0 0.5rem' }}>
+                <div style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'center' }}>
+                  <div className="animate-pulse-ring">
+                    <Icon icon={icons.reports} size={48} />
+                  </div>
+                </div>
+                <h4 style={{ color: 'var(--slogbaa-text)', margin: '0 0 0.5rem', fontSize: '1.25rem' }}>Preparing your report...</h4>
+                <p style={{ color: 'var(--slogbaa-text-muted)', fontSize: '0.9375rem', margin: 0 }}>This might take a few moments as we process the analytics and generate your PDF.</p>
+              </div>
+            ) : jobStatus === 'COMPLETED' ? (
+              <div style={{ textAlign: 'center', padding: '1rem 0 0.5rem' }}>
+                <div style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'center', color: 'var(--slogbaa-green)' }}>
+                  <Icon icon={icons.certificate || icons.reports} size={56} />
+                </div>
+                <h4 style={{ color: 'var(--slogbaa-text)', margin: '0 0 0.5rem', fontSize: '1.25rem' }}>Report Ready!</h4>
+                <p style={{ color: 'var(--slogbaa-text-muted)', fontSize: '0.9375rem', marginBottom: '2rem' }}>Your high-fidelity PDF report has been generated successfully.</p>
+                <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem' }}>
+                  <Button variant="secondary" onClick={() => setShowPrintModal(false)}>Close</Button>
+                  <Button variant="primary" onClick={downloadReport}>
+                    <Icon icon={icons.download || icons.reports} size={18} style={{ marginRight: 6 }} /> Download PDF
+                  </Button>
+                </div>
+              </div>
+            ) : jobStatus === 'FAILED' ? (
+              <div style={{ textAlign: 'center', padding: '1rem 0 0.5rem' }}>
+                <div style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'center', color: 'var(--slogbaa-error)' }}>
+                  <Icon icon={icons.warning || icons.error} size={56} />
+                </div>
+                <h4 style={{ color: 'var(--slogbaa-text)', margin: '0 0 0.5rem', fontSize: '1.25rem' }}>Generation Failed</h4>
+                <p style={{ color: 'var(--slogbaa-text-muted)', fontSize: '0.9375rem', marginBottom: '2rem' }}>{jobError}</p>
+                <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem' }}>
+                  <Button variant="secondary" onClick={() => setShowPrintModal(false)}>Close</Button>
+                  <Button variant="primary" onClick={() => { setJobStatus(null); setActiveJobId(null); }}>Try Again</Button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <h3 style={{ margin: '0 0 1rem', fontSize: '1.25rem', color: 'var(--slogbaa-text)' }}>Generate Report</h3>
+                <p style={{ color: 'var(--slogbaa-text-muted)', marginBottom: '1.5rem', lineHeight: 1.5 }}>
+                  Select the type of report you want to generate. This will process the data on the server and generate a high-fidelity PDF.
+                </p>
+                
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '2rem' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                    <input 
+                      type="radio" 
+                      name="reportType" 
+                      value="EXECUTIVE_OVERVIEW" 
+                      checked={selectedReportType === 'EXECUTIVE_OVERVIEW'} 
+                      onChange={(e) => setSelectedReportType(e.target.value)}
+                    />
+                    <span style={{ color: 'var(--slogbaa-text)' }}>Executive Overview</span>
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                    <input 
+                      type="radio" 
+                      name="reportType" 
+                      value="COURSE_ANALYTICS" 
+                      checked={selectedReportType === 'COURSE_ANALYTICS'} 
+                      onChange={(e) => setSelectedReportType(e.target.value)}
+                    />
+                    <span style={{ color: 'var(--slogbaa-text)' }}>Course Analytics</span>
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                    <input 
+                      type="radio" 
+                      name="reportType" 
+                      value="TRAINEE_PROGRESS" 
+                      checked={selectedReportType === 'TRAINEE_PROGRESS'} 
+                      onChange={(e) => setSelectedReportType(e.target.value)}
+                    />
+                    <span style={{ color: 'var(--slogbaa-text)' }}>Trainee Progress</span>
+                  </label>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
+                  <Button variant="secondary" onClick={() => setShowPrintModal(false)}>Cancel</Button>
+                  <Button variant="primary" onClick={triggerGeneration}>
+                    <Icon icon={icons.reports} size={18} style={{ marginRight: 6 }} /> 
+                    Generate PDF
+                  </Button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* ── Hero Greeting ── */}
       <div style={s.hero} className="glass-enter">
-        <h2 style={s.greeting}>
-          {getGreeting()}, {displayName}
-        </h2>
-        <p style={s.dateLine}>{formatDate()}</p>
-        <p style={s.tagline}>Platform metrics, recent activity, and charts.</p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
+          <div>
+            <h2 style={s.greeting}>
+              {getGreeting()}, {displayName}
+            </h2>
+            <p style={s.dateLine}>{formatDate()}</p>
+            <p style={s.tagline}>Platform metrics, recent activity, and charts.</p>
+          </div>
+          {isSuperAdmin && (
+            <Button
+              className="no-print"
+              variant="primary"
+              size="md"
+              onClick={handleGenerateReport}
+              style={{
+                boxShadow: '0 4px 12px rgba(245, 130, 32, 0.2)',
+                marginTop: '0.25rem',
+                minWidth: 160
+              }}
+            >
+              <Icon icon={icons.reports} size={18} />
+              Generate Report
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* ── KPI Stat Cards ── */}
@@ -742,8 +997,8 @@ export function AdminReportsAnalyticsPage() {
             engagementLoading
               ? '—'
               : (engagement?.totalReviewCount > 0 && engagement?.combinedAverageRating != null
-                  ? Number(engagement.combinedAverageRating).toFixed(1)
-                  : '—')
+                ? Number(engagement.combinedAverageRating).toFixed(1)
+                : '—')
           }
           label="Avg course rating"
           loading={engagementLoading}
