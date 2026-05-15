@@ -66,7 +66,7 @@ EXPOSE 8080
 
 # JVM container-awareness: cap heap at 75% of cgroup memory limit,
 # G1GC for balanced throughput/latency, crash fast on OOM instead of limping.
-ENV JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=75.0 -XX:+UseG1GC -XX:+ExitOnOutOfMemoryError"
+ENV JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=75.0 -XX:+UseG1GC -XX:+ExitOnOutOfMemoryError -Djava.awt.headless=true"
 
 # Distroless :nonroot images already default to a non-root UID,
 # but Semgrep requires an explicit USER directive before ENTRYPOINT.
