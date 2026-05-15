@@ -16,6 +16,7 @@ import {
   useAdminEngagementAnalytics,
 } from '../../../lib/hooks/use-admin.js'
 import { getVisitorCount } from '../../../api/homepage.js'
+import { apiClient } from '../../../api/client.js'
 import {
   PieChart,
   Pie,
@@ -667,13 +668,8 @@ export function AdminReportsAnalyticsPage() {
     try {
       setJobStatus('PENDING')
       setJobError(null)
-      const res = await fetch('/api/admin/reports/generate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({ reportType: selectedReportType })
+      const res = await apiClient(token).post('/api/admin/reports/generate', {
+        reportType: selectedReportType
       })
       if (!res.ok) throw new Error('Failed to request report')
       const data = await res.json()
@@ -690,9 +686,7 @@ export function AdminReportsAnalyticsPage() {
 
     const checkStatus = async () => {
       try {
-        const res = await fetch(`/api/admin/reports/jobs/${activeJobId}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        })
+        const res = await apiClient(token).get(`/api/admin/reports/jobs/${activeJobId}`)
         if (res.ok) {
           const data = await res.json()
           setJobStatus(data.status)
@@ -711,9 +705,7 @@ export function AdminReportsAnalyticsPage() {
 
   const downloadReport = async () => {
     try {
-      const res = await fetch(`/api/admin/reports/jobs/${activeJobId}/download`, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
+      const res = await apiClient(token).get(`/api/admin/reports/jobs/${activeJobId}/download`)
       if (!res.ok) throw new Error('Download failed')
       const blob = await res.blob()
       const url = window.URL.createObjectURL(blob)
