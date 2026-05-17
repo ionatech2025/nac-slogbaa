@@ -6,6 +6,8 @@ const GOAL_OPTIONS = [1, 3, 5, 10, 15, 20, 30]
 
 const styles = {
   card: {
+    position: 'relative',
+    zIndex: 50,
     padding: '1.25rem',
     borderRadius: 16,
     border: '1px solid var(--slogbaa-glass-border)',

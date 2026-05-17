@@ -74,173 +74,156 @@ const CertificateTemplate = ({ data = {}, style = {}, className = '' }) => {
          ══════════════════════════════════════════════════════════════ */}
       <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
 
-        {/* ── 1. Course title ── below the blue pill banner, in SLOGBAA orange ── */}
-        {/* Banner pill ends at ~43 %; title sits immediately below it */}
+        {/* ── CENTRAL CONTENT CONTAINER ── 
+            Using a flex column to dynamically flow text and prevent overlaps 
+            if the title or recipient name wraps to multiple lines. */}
         <div style={{
           position: 'absolute',
           top: '41.5%',
           left: '8%',
           width: '84%',
-          textAlign: 'center',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          zIndex: 10,
         }}>
-          <span style={{
+          {/* 1. Course title */}
+          <div style={{
             color: '#F58220',
             fontSize: 'clamp(0.7rem, 2.8cqw, 1.6rem)',
             fontWeight: 400,
             letterSpacing: '0.02em',
             textTransform: 'uppercase',
-            lineHeight: 1.2,
+            lineHeight: 1.1, /* Reduced from 1.2 to minimize vertical space on wrap */
             fontFamily: "'Segoe UI', system-ui, Arial, sans-serif",
+            textAlign: 'center',
+            marginBottom: '3%',
           }}>
             {courseTitle}
-          </span>
-        </div>
+          </div>
 
-        {/* ── 2. "This is to certify that" label ── */}
-        {/* Sits below the orange course title, at ~47 % */}
-        <div style={{
-          position: 'absolute',
-          top: '46%',
-          left: 0,
-          width: '100%',
-          textAlign: 'center',
-        }}>
-          <span style={{
+          {/* 2. "This is to certify that" label */}
+          <div style={{
             color: '#666',
             fontSize: 'clamp(0.5rem, 1.8cqw, 1rem)',
             fontStyle: 'italic',
             letterSpacing: '0.02em',
+            marginBottom: '1.5%',
           }}>
             This is to certify that
-          </span>
-        </div>
+          </div>
 
-        {/* ── 3. Recipient name ── large, centred, at ~50 % ── */}
-        <div style={{
-          position: 'absolute',
-          top: '48%',
-          left: '8%',
-          width: '84%',
-          textAlign: 'center',
-        }}>
-          <span style={{
-            display: 'block',
+          {/* 3. Recipient name */}
+          <div style={{
             color: '#003087',
             fontSize: 'clamp(1.1rem, 5cqw, 3.2rem)',
             fontWeight: 500,
             fontFamily: "Georgia, 'Times New Roman', serif",
             lineHeight: 1.15,
             letterSpacing: '0.01em',
+            textAlign: 'center',
+            marginBottom: '3.5%',
           }}>
             {recipientName}
-          </span>
-        </div>
+          </div>
 
-        {/* ── 4. Completion description ── at ~57 % ── */}
-        <div style={{
-          position: 'absolute',
-          top: '54%',
-          left: '13%',
-          width: '74%',
-          textAlign: 'center',
-        }}>
-          <span style={{
+          {/* 4. Completion description */}
+          <div style={{
             color: '#555',
             fontSize: 'clamp(0.5rem, 1.8cqw, 1rem)',
-            lineHeight: 1.65,
+            lineHeight: 1.5,
+            textAlign: 'center',
+            width: '88%',
+            marginBottom: '5%',
           }}>
             has successfully completed the training program and demonstrated
             exceptional proficiency in all modules listed below.
-          </span>
-        </div>
-
-        {/* ── 5. Modules section ── at ~62.5 % ── */}
-        {modules.length > 0 && (
-          <div style={{
-            position: 'absolute',
-            top: '62.5%',
-            left: '10%',
-            width: '80%',
-          }}>
-            {/* section label */}
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.4em',
-              marginBottom: '0.6%',
-              borderLeft: '3px solid #1a56db',
-              paddingLeft: '0.6em',
-            }}>
-              <span style={{
-                color: '#1a56db',
-                fontSize: 'clamp(0.42rem, 1.4cqw, 0.82rem)',
-                fontWeight: 700,
-                textTransform: 'uppercase',
-                letterSpacing: '0.1em',
-              }}>
-                Completed Modules
-              </span>
-            </div>
-
-            {/* module rows — open list style matching the reference image */}
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              {modules.map((mod, i) => {
-                const Icon = ICON_MAP[mod.icon] || ICON_MAP.default;
-                return (
-                  <div
-                    key={i}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'flex-start',
-                      gap: '0.8%',
-                      padding: '0.6% 0.4% 0.6% 0.2%',
-                      borderBottom: i < modules.length - 1
-                        ? '1px solid rgba(26,86,219,0.12)'
-                        : 'none',
-                    }}
-                  >
-                    <Icon
-                      style={{
-                        color: '#1a56db',
-                        flexShrink: 0,
-                        marginTop: '0.2em',
-                        width: '2.2cqw',
-                        height: '2.2cqw',
-                        minWidth: '12px',
-                        minHeight: '12px',
-                      }}
-                    />
-                    <div style={{ flex: 1 }}>
-                      {/* Title in SLOGBAA orange */}
-                      <div style={{
-                        color: '#F58220',
-                        fontSize: 'clamp(0.45rem, 1.65cqw, 0.95rem)',
-                        fontWeight: 700,
-                        lineHeight: 1.3,
-                        marginBottom: '0.2em',
-                      }}>
-                        {mod.title}
-                      </div>
-                      {/* Description wraps to 2+ lines */}
-                      {mod.description && (
-                        <div style={{
-                          color: '#444',
-                          fontSize: 'clamp(0.38rem, 1.3cqw, 0.75rem)',
-                          lineHeight: 1.55,
-                          minHeight: '2.2em',
-                          whiteSpace: 'normal',
-                          wordBreak: 'break-word',
-                        }}>
-                          {mod.description}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
           </div>
-        )}
+
+          {/* 5. Modules section */}
+          {modules.length > 0 && (
+            <div style={{
+              width: '95%',
+              display: 'flex',
+              flexDirection: 'column',
+            }}>
+              {/* section label */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.4em',
+                marginBottom: '1.5%',
+                borderLeft: '3px solid #1a56db',
+                paddingLeft: '0.6em',
+              }}>
+                <span style={{
+                  color: '#1a56db',
+                  fontSize: 'clamp(0.42rem, 1.4cqw, 0.82rem)',
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.1em',
+                }}>
+                  Completed Modules
+                </span>
+              </div>
+
+              {/* module rows */}
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                {modules.map((mod, i) => {
+                  const Icon = ICON_MAP[mod.icon] || ICON_MAP.default;
+                  return (
+                    <div
+                      key={i}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'flex-start',
+                        gap: '1.5%',
+                        padding: '1% 0.4% 1% 0.2%',
+                        borderBottom: i < modules.length - 1
+                          ? '1px solid rgba(26,86,219,0.12)'
+                          : 'none',
+                      }}
+                    >
+                      <Icon
+                        style={{
+                          color: '#1a56db',
+                          flexShrink: 0,
+                          marginTop: '0.2em',
+                          width: '2.2cqw',
+                          height: '2.2cqw',
+                          minWidth: '12px',
+                          minHeight: '12px',
+                        }}
+                      />
+                      <div style={{ flex: 1, textAlign: 'left' }}>
+                        <div style={{
+                          color: '#F58220',
+                          fontSize: 'clamp(0.45rem, 1.65cqw, 0.95rem)',
+                          fontWeight: 700,
+                          lineHeight: 1.3,
+                          marginBottom: '0.2em',
+                        }}>
+                          {mod.title}
+                        </div>
+                        {mod.description && (
+                          <div style={{
+                            color: '#444',
+                            fontSize: 'clamp(0.38rem, 1.3cqw, 0.75rem)',
+                            lineHeight: 1.4,
+                            whiteSpace: 'normal',
+                            wordBreak: 'break-word',
+                          }}>
+                            {mod.description}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* ── 6. Footer overlays ─────────────────────────────────────────
             The pre-printed image already has:
