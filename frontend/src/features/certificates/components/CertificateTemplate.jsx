@@ -19,13 +19,14 @@ const ICON_MAP = {
  *
  * All styles are inline (project uses vanilla CSS, no Tailwind).
  *
- * Background image layout reference:
+ * Background image layout reference & dynamic overlay positions:
  *   • SLOGBAA logo header:   0 – 10%
- *   • Partner logos:        10 – 18%
- *   • "CERTIFICATE OF COMPLETION" text: 18 – 38%
- *   • Blue banner pill:     38 – 43%   (decorative; title goes BELOW it)
- *   • Course title (orange): 43 – 46%  ← orange SLOGBAA-style heading
- *   • White content area:   46 – 84%   ← name, description, modules
+ *   • Partner logos:        10 – 18% (pre-printed on background)
+ *   • Dynamic content container: starts at 27%
+ *     - "Certificate of Completion" text: ~27 – 34%
+ *     - Styled blue/orange banner pill: ~34 – 38%
+ *     - Course title (orange): ~38 – 44%
+ *     - White content area (certify label, name, desc, modules): ~44 – 84%
  *   • Signatures section:   84 – 96%   ← pre-printed; we overlay date + cert-id
  *   • City / date footer:   92 – 100%
  */
@@ -79,7 +80,7 @@ const CertificateTemplate = ({ data = {}, style = {}, className = '' }) => {
             if the title or recipient name wraps to multiple lines. */}
         <div style={{
           position: 'absolute',
-          top: '41.5%',
+          top: '27%',
           left: '8%',
           width: '84%',
           display: 'flex',
@@ -87,17 +88,54 @@ const CertificateTemplate = ({ data = {}, style = {}, className = '' }) => {
           alignItems: 'center',
           zIndex: 10,
         }}>
+          {/* Certificate of Completion Header */}
+          <div style={{
+            color: '#003087',
+            fontSize: 'clamp(1.1rem, 3.8cqw, 2.2rem)',
+            fontWeight: 700,
+            letterSpacing: '0.1em',
+            textTransform: 'uppercase',
+            fontFamily: "Georgia, 'Times New Roman', serif",
+            textAlign: 'center',
+            marginBottom: '1.5%',
+          }}>
+            Certificate of Completion
+          </div>
+
+          {/* Styled Banner Pill */}
+          <div style={{
+            background: 'linear-gradient(135deg, #003087 0%, #1a56db 100%)',
+            color: '#ffffff',
+            padding: '0.35em 2em',
+            borderRadius: '50px',
+            fontSize: 'clamp(0.4rem, 1.2cqw, 0.72rem)',
+            fontWeight: 700,
+            letterSpacing: '0.12em',
+            textTransform: 'uppercase',
+            border: '1.5px solid #F58220',
+            boxShadow: '0 3px 8px rgba(0, 48, 135, 0.15)',
+            marginBottom: '3%',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            whiteSpace: 'nowrap',
+          }}>
+            <Star size={10} style={{ fill: '#F58220', stroke: '#F58220' }} />
+            <span>Professional Credential</span>
+            <Star size={10} style={{ fill: '#F58220', stroke: '#F58220' }} />
+          </div>
+
           {/* 1. Course title */}
           <div style={{
             color: '#F58220',
-            fontSize: 'clamp(0.7rem, 2.8cqw, 1.6rem)',
-            fontWeight: 400,
+            fontSize: 'clamp(0.7rem, 2.6cqw, 1.5rem)',
+            fontWeight: 600,
             letterSpacing: '0.02em',
             textTransform: 'uppercase',
-            lineHeight: 1.1, /* Reduced from 1.2 to minimize vertical space on wrap */
+            lineHeight: 1.15,
             fontFamily: "'Segoe UI', system-ui, Arial, sans-serif",
             textAlign: 'center',
-            marginBottom: '3%',
+            marginBottom: '2%',
           }}>
             {courseTitle}
           </div>
@@ -105,7 +143,7 @@ const CertificateTemplate = ({ data = {}, style = {}, className = '' }) => {
           {/* 2. "This is to certify that" label */}
           <div style={{
             color: '#666',
-            fontSize: 'clamp(0.5rem, 1.8cqw, 1rem)',
+            fontSize: 'clamp(0.5rem, 1.8cqw, 0.95rem)',
             fontStyle: 'italic',
             letterSpacing: '0.02em',
             marginBottom: '1.5%',
@@ -116,13 +154,13 @@ const CertificateTemplate = ({ data = {}, style = {}, className = '' }) => {
           {/* 3. Recipient name */}
           <div style={{
             color: '#003087',
-            fontSize: 'clamp(1.1rem, 5cqw, 3.2rem)',
+            fontSize: 'clamp(1.1rem, 4.8cqw, 3rem)',
             fontWeight: 500,
             fontFamily: "Georgia, 'Times New Roman', serif",
             lineHeight: 1.15,
             letterSpacing: '0.01em',
             textAlign: 'center',
-            marginBottom: '3.5%',
+            marginBottom: '2.5%',
           }}>
             {recipientName}
           </div>
@@ -130,11 +168,11 @@ const CertificateTemplate = ({ data = {}, style = {}, className = '' }) => {
           {/* 4. Completion description */}
           <div style={{
             color: '#555',
-            fontSize: 'clamp(0.5rem, 1.8cqw, 1rem)',
-            lineHeight: 1.5,
+            fontSize: 'clamp(0.5rem, 1.8cqw, 0.95rem)',
+            lineHeight: 1.45,
             textAlign: 'center',
             width: '88%',
-            marginBottom: '5%',
+            marginBottom: '4%',
           }}>
             has successfully completed the training program and demonstrated
             exceptional proficiency in all modules listed below.
