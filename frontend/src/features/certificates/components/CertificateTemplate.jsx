@@ -177,7 +177,7 @@ const CertificateTemplate = ({ data = {}, style = {}, className = '' }) => {
                 textTransform: 'uppercase',
                 whiteSpace: 'nowrap',
               }}>
-                Professional Credential
+                Deserved Achievement
               </span>
               <span style={{ color: orange, fontSize: cl('0.55rem', '1.5cqw', '0.85rem'), lineHeight: 1 }}>★</span>
             </div>
