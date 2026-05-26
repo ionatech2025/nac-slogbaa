@@ -103,7 +103,7 @@ const CertificateTemplate = ({ data = {}, style = {}, className = '' }) => {
     >
       {/* ── Background image ── */}
       <img
-        src="/certificates/certificate_background2.png"
+        src="/certificates/certificate_background3.jpeg"
         alt=""
         role="presentation"
         style={{
