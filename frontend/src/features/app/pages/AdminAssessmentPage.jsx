@@ -148,7 +148,7 @@ const styles = {
     flexShrink: 0,
   },
   tableWrap: {
-    overflow: 'hidden',
+    overflowX: 'auto',
     border: '1px solid var(--slogbaa-border)',
     borderRadius: 12,
     background: 'var(--slogbaa-surface)',

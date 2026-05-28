@@ -326,7 +326,7 @@ export function AdminLayout() {
 
         <main className="admin-main-content" style={styles.main}>
           {/* Identity header: white with thick orange bottom border */}
-          <header style={styles.identityHeader}>
+          <header className="admin-identity-header" style={styles.identityHeader}>
             <button
               type="button"
               className="mobile-menu-btn"
@@ -338,7 +338,7 @@ export function AdminLayout() {
             </button>
             <h1 style={styles.greeting}>Welcome back, {displayName}!</h1>
           </header>
-          <div style={styles.mainContent}>
+          <div className="admin-main-inner" style={styles.mainContent}>
             <Outlet context={outletContext} />
           </div>
         </main>

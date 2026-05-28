@@ -7,8 +7,8 @@ import { useAuth } from '../../iam/hooks/useAuth';
 import { uploadCertificate } from '../../../api/certificates';
 import CertificateTemplate from './CertificateTemplate';
 
-/** Inlined print styles injected once at the top of the component */
-const PRINT_CSS = `
+/** Inlined print and responsive styles injected once at the top of the component */
+const PAGE_CSS = `
   @media print {
     @page { size: A4 portrait; margin: 0; }
 
@@ -30,6 +30,53 @@ const PRINT_CSS = `
       box-shadow: none !important;
       border: none !important;
       border-radius: 0 !important;
+    }
+  }
+
+  /* Responsive styling for the toolbar and buttons on small screens */
+  @media (max-width: 768px) {
+    .cert-toolbar {
+      flex-direction: column !important;
+      align-items: stretch !important;
+      padding: 1rem !important;
+      gap: 1rem !important;
+    }
+
+    .cert-title-block {
+      text-align: center !important;
+    }
+
+    .cert-btn-row {
+      flex-wrap: wrap !important;
+      justify-content: center !important;
+      width: 100% !important;
+      gap: 0.5rem !important;
+    }
+
+    .cert-btn {
+      flex: 1 1 calc(50% - 0.25rem) !important;
+      justify-content: center !important;
+      padding: 0.5rem 0.75rem !important;
+      font-size: 0.8rem !important;
+      white-space: nowrap !important;
+      box-sizing: border-box !important;
+    }
+
+    .cert-btn-primary {
+      flex: 1 1 100% !important;
+    }
+
+    .cert-sync-indicator {
+      width: 100% !important;
+      justify-content: center !important;
+      margin-bottom: 0.25rem !important;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .cert-btn {
+      font-size: 0.75rem !important;
+      padding: 0.5rem 0.5rem !important;
     }
   }
 `;
@@ -302,27 +349,28 @@ const CertificatePreviewer = ({ certificateData }) => {
 
   return (
     <div style={shell}>
-      {/* Injected print styles */}
-      <style dangerouslySetInnerHTML={{ __html: PRINT_CSS }} />
+      {/* Injected print and responsive styles */}
+      <style dangerouslySetInnerHTML={{ __html: PAGE_CSS }} />
 
       {/* Toolbar */}
-      <div style={toolbar}>
-        <div style={titleBlock}>
+      <div className="cert-toolbar" style={toolbar}>
+        <div className="cert-title-block" style={titleBlock}>
           <h1 style={titleStyle}>Certificate Preview</h1>
           <p style={subtitleStyle}>Review before downloading or printing to PDF</p>
         </div>
 
-        <div style={btnRow}>
+        <div className="cert-btn-row" style={btnRow}>
           {isIssuing && (
-            <div style={syncIndicator}>
+            <div className="cert-sync-indicator" style={syncIndicator}>
               <CloudUpload size={14} className="animate-bounce" />
               Saving to server...
             </div>
           )}
-          <Link to="/dashboard/certificates" style={btnBack}>
+          <Link to="/dashboard/certificates" className="cert-btn" style={btnBack}>
             <ChevronLeft size={15} /> Back
           </Link>
           <button
+            className="cert-btn"
             style={btnRefresh}
             onClick={() => window.location.reload()}
             title="Regenerate"
@@ -330,6 +378,7 @@ const CertificatePreviewer = ({ certificateData }) => {
             <RefreshCw size={14} /> Regenerate
           </button>
           <button
+            className="cert-btn"
             style={btnImage}
             onClick={handleDownloadImage}
             disabled={isCapturing || isIssuing}
@@ -342,6 +391,7 @@ const CertificatePreviewer = ({ certificateData }) => {
             Download Image
           </button>
           <button
+            className="cert-btn"
             style={btnPdf}
             onClick={handleDownloadPdf}
             disabled={isCapturing || isIssuing}
@@ -353,7 +403,7 @@ const CertificatePreviewer = ({ certificateData }) => {
             )}
             Download PDF
           </button>
-          <button style={btnPrint} onClick={handlePrint} disabled={isIssuing}>
+          <button className="cert-btn cert-btn-primary" style={btnPrint} onClick={handlePrint} disabled={isIssuing}>
             <Printer size={15} /> Print / Save as PDF
           </button>
         </div>
