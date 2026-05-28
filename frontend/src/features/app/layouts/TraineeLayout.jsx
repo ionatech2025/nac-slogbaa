@@ -341,7 +341,7 @@ export function TraineeLayout() {
 
         <main className="trainee-main-content" style={mainStyle}>
           {showHeaderAndPills && (
-            <header style={identityHeaderStyle}>
+            <header className="trainee-identity-header" style={identityHeaderStyle}>
               <button
                 type="button"
                 className="trainee-mobile-menu-btn"

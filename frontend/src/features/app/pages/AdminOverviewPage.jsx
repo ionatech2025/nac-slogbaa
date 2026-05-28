@@ -125,7 +125,7 @@ const styles = {
     color: 'var(--slogbaa-text-muted)',
   },
   tableWrap: {
-    overflow: 'hidden',
+    overflowX: 'auto',
     border: '1px solid var(--slogbaa-border)',
     borderRadius: 12,
     background: 'var(--slogbaa-surface)',

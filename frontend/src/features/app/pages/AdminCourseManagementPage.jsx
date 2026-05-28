@@ -338,33 +338,37 @@ const ExpandedCourseDetail = memo(function ExpandedCourseDetail({ courseId, cour
       {enrollments.length === 0 ? (
         <p style={{ margin: '0.5rem 0', fontSize: '0.9375rem', color: 'var(--slogbaa-text-muted)' }}>No trainees enrolled.</p>
       ) : (
-        <table style={styles.enrollmentsTable}>
-          <thead>
-            <tr>
-              <th style={styles.enrollTh}>Trainee</th>
-              <th style={styles.enrollTh}>Enrolled</th>
-              <th style={styles.enrollTh}>Progress</th>
-              <th style={styles.enrollTh}>Completed modules</th>
-            </tr>
-          </thead>
-          <tbody>
-            {enrollments.map((en) => (
-              <tr key={en.traineeId}>
-                <td style={styles.enrollTd}>{en.traineeName}</td>
-                <td style={styles.enrollTd}>{en.enrollmentDate ?? '—'}</td>
-                <td style={styles.enrollTd}>
-                  <div style={styles.progressBar}>
-                    <div style={{ ...styles.progressFill, width: `${en.completionPercentage ?? 0}%` }} />
-                  </div>
-                  <span style={{ marginLeft: 8, fontSize: '0.8125rem' }}>{en.completionPercentage ?? 0}%</span>
-                </td>
-                <td style={styles.enrollTd}>
-                  {(en.completedModuleIds?.length ?? 0)} of {detail?.modules?.length ?? 0}
-                </td>
+        <div style={{ overflowX: 'auto', border: '1px solid var(--slogbaa-border)', borderRadius: 12, background: 'var(--slogbaa-surface)', marginBottom: '1.5rem' }}>
+          <table style={styles.enrollmentsTable}>
+            <thead>
+              <tr>
+                <th style={styles.enrollTh}>Trainee</th>
+                <th style={styles.enrollTh}>Enrolled</th>
+                <th style={styles.enrollTh}>Progress</th>
+                <th style={styles.enrollTh}>Completed modules</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {enrollments.map((en) => (
+                <tr key={en.traineeId}>
+                  <td style={styles.enrollTd}>{en.traineeName}</td>
+                  <td style={styles.enrollTd}>{en.enrollmentDate ?? '—'}</td>
+                  <td style={styles.enrollTd}>
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                      <div style={styles.progressBar}>
+                        <div style={{ ...styles.progressFill, width: `${en.completionPercentage ?? 0}%` }} />
+                      </div>
+                      <span style={{ marginLeft: 8, fontSize: '0.8125rem' }}>{en.completionPercentage ?? 0}%</span>
+                    </div>
+                  </td>
+                  <td style={styles.enrollTd}>
+                    {(en.completedModuleIds?.length ?? 0)} of {detail?.modules?.length ?? 0}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </>
   )
