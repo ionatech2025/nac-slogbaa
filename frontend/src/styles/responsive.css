@@ -30,6 +30,13 @@
   .trainee-main-inner {
     padding: 1rem !important;
   }
+  .admin-identity-header,
+  .trainee-identity-header {
+    padding: 1.25rem 1rem !important;
+  }
+  .admin-main-inner {
+    padding: 1rem !important;
+  }
 }
 
 /* Mobile: stack layouts, full-width elements */
@@ -74,6 +81,13 @@
     font-size: 0.9375rem;
   }
   .admin-main-content {
+    padding: 0.75rem !important;
+  }
+  .admin-identity-header,
+  .trainee-identity-header {
+    padding: 1rem 0.75rem !important;
+  }
+  .admin-main-inner {
     padding: 0.75rem !important;
   }
 }

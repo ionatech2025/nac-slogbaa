@@ -318,7 +318,7 @@ const styles = {
     borderRadius: 14,
     border: '1px solid var(--slogbaa-border)',
     boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
-    overflow: 'hidden',
+    overflowX: 'auto',
     marginBottom: '1.5rem',
   },
   table: {
