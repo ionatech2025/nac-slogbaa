@@ -21,9 +21,9 @@ const HERO_SLIDES = [
   },
   {
     eyebrow: 'Certificates & Recognition',
-    title: 'Earn Credentials That',
-    highlight: 'Open Doors',
-    subtitle: 'Pass assessments, receive downloadable certificates, and have your achievements emailed directly to you.',
+    title: 'The Future Is Civic.',
+    highlight: 'The Future Is',
+    subtitle: 'Strengthening citizen voices through education, advocacy, and digital engagement tools',
     accent: '#a78bfa',
   },
 ]
