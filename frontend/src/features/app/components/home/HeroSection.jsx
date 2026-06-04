@@ -21,8 +21,8 @@ const HERO_SLIDES = [
   },
   {
     eyebrow: 'Certificates & Recognition',
-    title: 'The Future Is Civic.',
-    highlight: 'The Future Is',
+    title: 'The Future Is Now.',
+    highlight: 'The Future Is Civic',
     subtitle: 'Strengthening citizen voices through education, advocacy, and digital engagement tools',
     accent: '#a78bfa',
   },
