@@ -12,7 +12,7 @@ public class AdminActivityLogEntity {
     @GeneratedValue
     private UUID id;
 
-    @Column(name = "actor_id", nullable = false)
+    @Column(name = "actor_id")
     private UUID actorId;
 
     @Column(name = "actor_email", nullable = false)
