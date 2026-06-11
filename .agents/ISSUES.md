@@ -32,3 +32,28 @@ The constraints on `admin_activity_log` were relaxed to support logging for any 
    - Dropped the `NOT NULL` constraint on the `actor_id` column.
 2. **JPA Entity Update (`AdminActivityLogEntity.java`):**
    - Removed `nullable = false` from the `@Column(name = "actor_id")` annotation to permit nulls during ORM inserts.
+
+## 2. Production Email Sending Bypassed / Inoperable (Dokploy Environments)
+
+### Date
+2026-06-11
+
+### Issue Description
+Even when configuring email-related environment variables (such as `EMAIL_ENABLED=true`, `EMAIL_PROVIDER=resend`, `RESEND_API_KEY`, and `EMAIL_VERIFICATION_REQUIRED=true`) in Dokploy, emails were not sent.
+
+#### Cause
+In `application-prod.properties`, the configuration was hardcoded to disable email operations:
+```properties
+app.email.enabled=false
+app.email.verification-required=false
+```
+Since production environments run under the `prod` Spring profile, these hardcoded properties overrode any env variables set in the environment or defined in `application.properties`.
+
+### Resolution
+Updated the `prod` properties file to correctly respect environment variables:
+1. **Properties File Update (`application-prod.properties`):**
+   - Changed the hardcoded `false` values to read from environment variables, defaulting to `false` if not set:
+     ```properties
+     app.email.enabled=${EMAIL_ENABLED:false}
+     app.email.verification-required=${EMAIL_VERIFICATION_REQUIRED:false}
+     ```
