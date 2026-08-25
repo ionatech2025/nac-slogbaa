@@ -34,7 +34,8 @@ public class FileUploadController {
     private static final Logger log = LoggerFactory.getLogger(FileUploadController.class);
 
     private static final Set<String> ALLOWED_SUBDIRS = Set.of(
-            "courses", "modules", "library", "profiles", "certificates"
+            "courses", "modules", "library", "profiles", "certificates",
+            "stories", "banners"
     );
 
     // JPEG: FF D8 FF, PNG: 89 50 4E 47, GIF: 47 49 46, WebP: RIFF....WEBP, PDF: %PDF, ZIP/DOCX/XLSX/PPTX: PK

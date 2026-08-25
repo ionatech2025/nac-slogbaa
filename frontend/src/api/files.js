@@ -1,25 +1,46 @@
 import { AuthError } from '../lib/query-client.js'
-import { parseResponse } from './client.js'
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? ''
 
 /** Matches backend `app.file.max-size-bytes` / multipart max (30 MB). */
 export const MAX_UPLOAD_BYTES = 30 * 1024 * 1024
 
+function uploadUrl() {
+  const base = API_BASE.replace(/\/$/, '')
+  return base ? `${base}/api/files/upload` : '/api/files/upload'
+}
+
+function parseUploadBody(status, text) {
+  let data = {}
+  try {
+    data = text ? JSON.parse(text) : {}
+  } catch {
+    data = {}
+  }
+  if (status === 401) throw new AuthError()
+  if (status === 413) {
+    throw new Error('This file is too large. Maximum size is 30 MB.')
+  }
+  if (status < 200 || status >= 300) {
+    throw new Error(data.detail ?? data.message ?? data.error ?? `Request failed (${status})`)
+  }
+  if (!data.url) {
+    throw new Error('Upload did not reach the file API. Refresh to load a new app version, then try again.')
+  }
+  return { url: data.url, size: data.size, contentType: data.contentType }
+}
+
 /**
  * File upload API. Uses multipart/form-data to POST to /api/files/upload.
- * Includes timeout (2 min), abort support, and consistent auth/error handling
- * matching the main apiClient pattern.
+ * Uses XHR so upload progress is visible and the request is not left pending
+ * when a static host (Vercel) returns HTML instead of JSON.
  *
- * Production must use VITE_API_BASE_URL so the file is sent to the backend,
- * not the Vercel frontend origin (which returns 413 above ~4.5 MB).
- *
- * @param {string} token - JWT token
- * @param {File} file - File to upload
- * @param {string} subdir - Storage subdirectory (e.g. 'courses', 'library')
- * @returns {Promise<{url: string, size: number, contentType: string}>}
+ * @param {string} token
+ * @param {File} file
+ * @param {string} subdir
+ * @param {{ onProgress?: (percent: number) => void }} [options]
  */
-export async function uploadFile(token, file, subdir) {
+export async function uploadFile(token, file, subdir, options = {}) {
   if (!token) throw new Error('Authentication required to upload files.')
   if (!file) throw new Error('No file provided.')
   if (!subdir?.trim()) throw new Error('Subdirectory is required (e.g. courses, library).')
@@ -28,40 +49,36 @@ export async function uploadFile(token, file, subdir) {
     throw new Error(`This file is ${mb} MB. Maximum size is 30 MB.`)
   }
 
-  const base = API_BASE.replace(/\/$/, '')
-  const url = base ? `${base}/api/files/upload` : '/api/files/upload'
-
   const formData = new FormData()
   formData.append('file', file)
   formData.append('subdir', subdir.trim())
 
-  const controller = new AbortController()
-  const timeoutId = setTimeout(() => controller.abort(), 120_000) // 2 min for uploads
+  const url = uploadUrl()
+  const { onProgress } = options
 
-  let res
-  try {
-    res = await fetch(url, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${token}` },
-      credentials: 'include',
-      body: formData,
-      signal: controller.signal,
-    })
-  } catch (err) {
-    clearTimeout(timeoutId)
-    if (err.name === 'AbortError') {
-      throw new Error('Upload timed out. Please try a smaller file or check your connection.')
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest()
+    xhr.open('POST', url)
+    xhr.timeout = 120_000
+    xhr.withCredentials = true
+    xhr.setRequestHeader('Authorization', `Bearer ${token}`)
+
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable && typeof onProgress === 'function') {
+        onProgress(Math.round((event.loaded / event.total) * 100))
+      }
     }
-    throw err
-  }
 
-  clearTimeout(timeoutId)
-
-  if (res.status === 401) throw new AuthError()
-  if (res.status === 413) {
-    throw new Error('This file is too large. Maximum size is 30 MB.')
-  }
-
-  const data = await parseResponse(res)
-  return { url: data.url, size: data.size, contentType: data.contentType }
+    xhr.onload = () => {
+      try {
+        resolve(parseUploadBody(xhr.status, xhr.responseText))
+      } catch (err) {
+        reject(err)
+      }
+    }
+    xhr.onerror = () => reject(new Error('Network error during upload. Please try again.'))
+    xhr.ontimeout = () => reject(new Error('Upload timed out. Please try a smaller file or check your connection.'))
+    xhr.onabort = () => reject(new Error('Upload was cancelled.'))
+    xhr.send(formData)
+  })
 }

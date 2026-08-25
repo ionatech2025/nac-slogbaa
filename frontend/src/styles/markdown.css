@@ -1,0 +1,150 @@
+/* GitHub-style markdown editor + rendered content */
+
+.md-editor {
+  border: 1px solid var(--slogbaa-border, var(--border));
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--slogbaa-bg, var(--bg));
+}
+
+.md-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  padding: 0.35rem 0.5rem;
+  border-bottom: 1px solid var(--slogbaa-border, var(--border));
+  background: var(--slogbaa-surface, var(--surface));
+}
+
+.md-toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-wrap: wrap;
+}
+
+.md-tool {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 30px;
+  height: 30px;
+  padding: 0 0.35rem;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--slogbaa-text, var(--text));
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.md-tool:hover,
+.md-tool:focus-visible {
+  background: rgba(245, 130, 32, 0.12);
+  color: var(--slogbaa-orange, var(--orange));
+  outline: none;
+}
+
+.md-tool[aria-pressed='true'] {
+  background: rgba(245, 130, 32, 0.18);
+  color: var(--slogbaa-orange, var(--orange));
+}
+
+.md-sep {
+  width: 1px;
+  height: 18px;
+  margin: 0 0.25rem;
+  background: var(--slogbaa-border, var(--border));
+}
+
+.md-textarea {
+  display: block;
+  width: 100%;
+  padding: 0.85rem 1rem;
+  border: none;
+  resize: vertical;
+  font-family: inherit;
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  background: var(--slogbaa-bg, var(--bg));
+  color: var(--slogbaa-text, var(--text));
+}
+
+.md-textarea:focus {
+  outline: none;
+}
+
+.md-textarea::placeholder {
+  color: var(--slogbaa-text-muted, var(--text-3));
+}
+
+.md-preview {
+  padding: 0.85rem 1rem;
+  min-height: 140px;
+  overflow: auto;
+}
+
+.md-content {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: inherit;
+}
+
+.md-content > *:first-child { margin-top: 0; }
+.md-content > *:last-child { margin-bottom: 0; }
+
+.md-content h1,
+.md-content h2,
+.md-content h3,
+.md-content h4 {
+  color: var(--slogbaa-text, var(--text));
+  font-weight: 700;
+  line-height: 1.25;
+  margin: 1.25em 0 0.5em;
+}
+
+.md-content h1 { font-size: 1.75rem; }
+.md-content h2 { font-size: 1.4rem; }
+.md-content h3 { font-size: 1.15rem; }
+
+.md-content p { margin: 0 0 0.9em; }
+
+.md-content ul,
+.md-content ol {
+  margin: 0 0 0.9em;
+  padding-left: 1.4rem;
+}
+
+.md-content li { margin: 0.2em 0; }
+
+.md-content blockquote {
+  margin: 1em 0;
+  padding: 0.15em 0 0.15em 1rem;
+  border-left: 4px solid var(--slogbaa-orange, var(--orange));
+  color: var(--slogbaa-text, var(--text));
+  font-style: italic;
+}
+
+.md-content code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.875em;
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+  background: rgba(127, 127, 127, 0.12);
+}
+
+.md-content a {
+  color: var(--slogbaa-orange, var(--orange));
+  text-decoration: underline;
+}
+
+.md-content hr {
+  border: none;
+  border-top: 1px solid var(--slogbaa-border, var(--border));
+  margin: 1.25em 0;
+}
+
+.md-content del { opacity: 0.75; }

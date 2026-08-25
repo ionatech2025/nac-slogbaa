@@ -18,6 +18,7 @@ import { TableSkeleton, SearchBarSkeleton } from '../../../shared/components/Adm
 import { exportToCsv } from '../../../shared/utils/csvExport.js'
 import { Breadcrumbs } from '../../../shared/components/Breadcrumbs.jsx'
 import { AdminNavigatePills } from '../components/admin/AdminNavigatePills.jsx'
+import { stripMarkdown } from '../../../shared/utils/markdown.js'
 
 const COURSE_FILTERS = [
   {
@@ -451,8 +452,10 @@ export function AdminLearningPage() {
                         <strong>{course.title}</strong>
                         {course.description && (
                           <div style={{ fontSize: '0.8125rem', color: 'var(--slogbaa-text-muted)', marginTop: 2 }}>
-                            {course.description.slice(0, 80)}
-                            {course.description.length > 80 ? '…' : ''}
+                            {(() => {
+                              const plain = stripMarkdown(course.description)
+                              return plain.length > 80 ? `${plain.slice(0, 80)}…` : plain
+                            })()}
                           </div>
                         )}
                       </div>

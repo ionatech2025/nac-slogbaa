@@ -1,4 +1,5 @@
 import { Icon, icons } from '../../../../shared/icons.jsx'
+import { MarkdownContent } from '../../../../shared/components/MarkdownContent.jsx'
 
 export function LibraryModal({ resource, onClose }) {
   if (!resource) return null
@@ -27,9 +28,10 @@ export function LibraryModal({ resource, onClose }) {
                 {resource.title}
               </h2>
               <div style={{ height: '4px', width: '50px', background: 'var(--orange)', borderRadius: '2px', marginBottom: '2rem' }} />
-              <p style={{ fontSize: '1.0625rem', color: 'var(--text-2)', lineHeight: 1.8, whiteSpace: 'pre-wrap' }}>
-                {resource.description || resource.fullDesc}
-              </p>
+              <MarkdownContent
+                markdown={resource.description || resource.fullDesc}
+                style={{ fontSize: '1.0625rem', color: 'var(--text-2)', lineHeight: 1.8 }}
+              />
             </div>
 
             <div className="slg-modal-footer">

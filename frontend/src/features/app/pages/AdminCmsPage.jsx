@@ -6,7 +6,9 @@ import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle.js'
 import { Breadcrumbs } from '../../../shared/components/Breadcrumbs.jsx'
 import { AdminNavigatePills } from '../components/admin/AdminNavigatePills.jsx'
 import { ConfirmModal } from '../../../shared/components/ConfirmModal.jsx'
+import { MarkdownEditor } from '../../../shared/components/MarkdownEditor.jsx'
 import { queryKeys } from '../../../lib/query-keys.js'
+import { stripMarkdown } from '../../../shared/utils/markdown.js'
 import * as api from '../../../api/homepage.js'
 
 const s = {
@@ -134,6 +136,12 @@ const CMS_STYLE = `
     margin-bottom: 1rem;
     background: #000;
   }
+  .cms-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+  }
+  .cms-form-full { grid-column: 1 / -1; }
   @media (max-width: 768px) {
     .cms-form-grid { grid-template-columns: 1fr; }
     .cms-form-full { grid-column: span 1; }
@@ -191,12 +199,12 @@ function CmsSection({ title, queryKey, fetchFn, createFn, updateFn, deleteFn, fi
   const [editingId, setEditingId] = useState(null)
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [uploading, setUploading] = useState(null) // key of the field being uploaded
+  const [uploadProgress, setUploadProgress] = useState(null)
   const [fileMode, setFileMode] = useState({}) // { [key]: 'upload' | 'url' }
 
   const truncateWords = (str, limit = 150) => {
     if (!str) return ''
-    // Strip markdown for preview
-    const plain = str.replace(/^[#>\s]+|##+|###+/gm, '')
+    const plain = stripMarkdown(str)
     const words = plain.split(/\s+/)
     if (words.length <= limit) return plain
     return words.slice(0, limit).join(' ') + '...'
@@ -211,14 +219,16 @@ function CmsSection({ title, queryKey, fetchFn, createFn, updateFn, deleteFn, fi
   const handleFileUpload = async (key, file, subdir = 'library') => {
     if (!file) return
     setUploading(key)
+    setUploadProgress(0)
     try {
-      const res = await api.uploadFile(token, file, subdir)
+      const res = await api.uploadFile(token, file, subdir, { onProgress: setUploadProgress })
       setForm(prev => ({ ...prev, [key]: res.url }))
     } catch (err) {
       console.error('Upload failed:', err)
       alert(`File upload failed: ${err.message}`)
     } finally {
       setUploading(null)
+      setUploadProgress(null)
     }
   }
 
@@ -285,16 +295,14 @@ function CmsSection({ title, queryKey, fetchFn, createFn, updateFn, deleteFn, fi
                   </label>
 
                   {f.type === 'textarea' ? (
-                    <>
-                      <textarea
-                        style={{ ...s.textarea, width: '100%', minHeight: '100px' }}
-                        value={form[f.key] || ''}
-                        onChange={(e) => setForm((p) => ({ ...p, [f.key]: e.target.value }))}
-                        required={f.required}
-                      />
-                      {f.instructions &&
-                        <div style={s.hint}>{f.instructions}</div>}
-                    </>
+                    <MarkdownEditor
+                      value={form[f.key] || ''}
+                      onChange={(value) => setForm((p) => ({ ...p, [f.key]: value }))}
+                      required={f.required}
+                      minHeight={f.minHeight || 140}
+                      placeholder={f.placeholder || 'Write with headings, lists, and quotes…'}
+                      aria-label={typeof f.label === 'string' ? f.label : f.key}
+                    />
                   ) : f.type === 'select' ? (
                     <select
                       style={{ ...s.input, width: '100%', height: '42px' }}
@@ -341,7 +349,9 @@ function CmsSection({ title, queryKey, fetchFn, createFn, updateFn, deleteFn, fi
                       {(fileMode[f.key] || 'upload') === 'upload' ? (
                         <div className="file-drop-zone" style={{ minHeight: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                           {uploading === f.key ? (
-                            <p style={{ color: 'var(--slogbaa-blue)', fontSize: '0.875rem' }}>Uploading...</p>
+                            <p style={{ color: 'var(--slogbaa-blue)', fontSize: '0.875rem' }}>
+                              Uploading{uploadProgress != null ? ` ${uploadProgress}%` : '…'}
+                            </p>
                           ) : form[f.key] ? (
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', width: '100%' }}>
                               <Icon icon={icons.check} size={16} color="var(--slogbaa-success)" />
@@ -587,11 +597,11 @@ export function AdminCmsPage() {
         ]}
       />
 
-      <CmsSection title="Civicg Library Resources" queryKey={queryKeys.admin.cms.libraryResources()} fetchFn={api.getAdminLibraryResources} createFn={api.createLibraryResource} updateFn={api.updateLibraryResource} deleteFn={api.deleteLibraryResource} token={token} isSuperAdmin={isSuperAdmin}
+      <CmsSection title="Civic Library Resources" queryKey={queryKeys.admin.cms.libraryResources()} fetchFn={api.getAdminLibraryResources} createFn={api.createLibraryResource} updateFn={api.updateLibraryResource} deleteFn={api.deleteLibraryResource} token={token} isSuperAdmin={isSuperAdmin}
         fields={[
           { key: 'title', label: 'Title', required: true },
           { key: 'category', label: 'Category', type: 'select', options: ['GENERAL', 'MANUAL', 'REPORT', 'POLICY'], required: true },
-          { key: 'description', label: 'Description', type: 'textarea', required: true },
+          { key: 'description', label: 'Description', type: 'textarea', required: true, minHeight: 140, placeholder: 'Describe this resource. Use the toolbar for lists and emphasis.' },
           { key: 'fileUrl', label: 'Resource File (PDF, etc.)', type: 'file', subdir: 'library', required: true },
           { key: 'imageUrl', label: 'Cover Image (JPEG, PNG)', type: 'file', subdir: 'library' },
           { key: 'sortOrder', label: 'Sort Order', type: 'number' },
@@ -609,11 +619,12 @@ export function AdminCmsPage() {
             type: 'textarea',
             required: true,
             fullWidth: true,
-            instructions: 'Use ## for headings, > for pull-quotes (e.g. > Quote / Author), and double-enter for paragraphs.'
+            minHeight: 240,
+            placeholder: 'Write the story. Use the toolbar for headings, lists, and quotes.',
           },
           { key: 'imageUrl', label: 'Story Image', type: 'file', subdir: 'stories' },
           { key: 'coursesCompleted', label: 'Courses Completed (Optional)' },
-          { key: 'projectImpact', label: 'Project Impact (Optional)', type: 'textarea' },
+          { key: 'projectImpact', label: 'Project Impact (Optional)', placeholder: 'e.g. 1,200+ Households' },
           { key: 'certification', label: 'Certification (Optional)' },
           { key: 'sortOrder', label: 'Sort Order', type: 'number' },
         ]}
