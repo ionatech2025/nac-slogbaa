@@ -10,6 +10,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 import org.springframework.security.access.AccessDeniedException;
 
@@ -46,6 +47,15 @@ public class GlobalExceptionHandler {
         if (ex.getMessage() != null && ex.getMessage().contains("Required request body is missing")) {
             detail.setDetail("Required request body is missing.");
         }
+        return detail;
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ProblemDetail handleUploadTooLarge(MaxUploadSizeExceededException ex) {
+        log.warn("Upload rejected: payload too large ({})", ex.getMessage());
+        ProblemDetail detail = ProblemDetail.forStatus(HttpStatus.PAYLOAD_TOO_LARGE);
+        detail.setTitle("File too large");
+        detail.setDetail("This file is too large. Maximum size is 30 MB.");
         return detail;
     }
 
