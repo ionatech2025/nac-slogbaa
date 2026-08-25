@@ -3,10 +3,16 @@ import { parseResponse } from './client.js'
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? ''
 
+/** Matches backend `app.file.max-size-bytes` / multipart max (30 MB). */
+export const MAX_UPLOAD_BYTES = 30 * 1024 * 1024
+
 /**
  * File upload API. Uses multipart/form-data to POST to /api/files/upload.
  * Includes timeout (2 min), abort support, and consistent auth/error handling
  * matching the main apiClient pattern.
+ *
+ * Production must use VITE_API_BASE_URL so the file is sent to the backend,
+ * not the Vercel frontend origin (which returns 413 above ~4.5 MB).
  *
  * @param {string} token - JWT token
  * @param {File} file - File to upload
@@ -17,6 +23,10 @@ export async function uploadFile(token, file, subdir) {
   if (!token) throw new Error('Authentication required to upload files.')
   if (!file) throw new Error('No file provided.')
   if (!subdir?.trim()) throw new Error('Subdirectory is required (e.g. courses, library).')
+  if (file.size > MAX_UPLOAD_BYTES) {
+    const mb = (file.size / (1024 * 1024)).toFixed(1)
+    throw new Error(`This file is ${mb} MB. Maximum size is 30 MB.`)
+  }
 
   const base = API_BASE.replace(/\/$/, '')
   const url = base ? `${base}/api/files/upload` : '/api/files/upload'
@@ -48,6 +58,9 @@ export async function uploadFile(token, file, subdir) {
   clearTimeout(timeoutId)
 
   if (res.status === 401) throw new AuthError()
+  if (res.status === 413) {
+    throw new Error('This file is too large. Maximum size is 30 MB.')
+  }
 
   const data = await parseResponse(res)
   return { url: data.url, size: data.size, contentType: data.contentType }

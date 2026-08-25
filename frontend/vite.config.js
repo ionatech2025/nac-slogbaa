@@ -16,19 +16,36 @@ export default defineConfig({
       registerType: 'autoUpdate',
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
+        navigateFallback: 'index.html',
+        navigateFallbackDenylist: [/^\/api\//, /^\/uploads\//],
         runtimeCaching: [
-          // API responses — NetworkFirst so fresh data wins, but stale content
-          // is served when offline (better than nothing).
-          // Excludes /api/auth/* to prevent stale auth responses from being cached.
+          // Never intercept API traffic (uploads are POST /api/files/upload).
+          // NetworkFirst + a 10s timeout previously hung large uploads and
+          // produced Workbox "no-response" errors on admin pages.
           {
-            urlPattern: /\/api\/(?!auth\/).*/i,
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'api-cache',
-              networkTimeoutSeconds: 10,
-              expiration: { maxEntries: 200, maxAgeSeconds: 24 * 60 * 60 },
-              cacheableResponse: { statuses: [0, 200] },
-            },
+            urlPattern: ({ url }) => url.pathname.startsWith('/api/'),
+            handler: 'NetworkOnly',
+            method: 'GET',
+          },
+          {
+            urlPattern: ({ url }) => url.pathname.startsWith('/api/'),
+            handler: 'NetworkOnly',
+            method: 'POST',
+          },
+          {
+            urlPattern: ({ url }) => url.pathname.startsWith('/api/'),
+            handler: 'NetworkOnly',
+            method: 'PUT',
+          },
+          {
+            urlPattern: ({ url }) => url.pathname.startsWith('/api/'),
+            handler: 'NetworkOnly',
+            method: 'PATCH',
+          },
+          {
+            urlPattern: ({ url }) => url.pathname.startsWith('/api/'),
+            handler: 'NetworkOnly',
+            method: 'DELETE',
           },
           // Static assets (JS / CSS / fonts) — CacheFirst with 30-day expiry
           {
@@ -50,7 +67,7 @@ export default defineConfig({
               cacheableResponse: { statuses: [0, 200] },
             },
           },
-          // Uploaded content — CacheFirst with 7-day expiry
+          // Uploaded content — CacheFirst with 7-day expiry (GET only)
           {
             urlPattern: /\/uploads\/.*/i,
             handler: 'CacheFirst',
@@ -77,21 +94,6 @@ export default defineConfig({
             options: {
               cacheName: 'google-fonts-webfonts',
               expiration: { maxEntries: 30, maxAgeSeconds: 365 * 24 * 60 * 60 },
-              cacheableResponse: { statuses: [0, 200] },
-            },
-          },
-          // Backend API — never cache via SW.
-          {
-            urlPattern: ({ url }) => url.pathname.startsWith('/api/'),
-            handler: 'NetworkOnly',
-          },
-          // Other external resources (CDNs, analytics, etc.) — StaleWhileRevalidate
-          {
-            urlPattern: /^https:\/\/(?!fonts\.googleapis\.com|fonts\.gstatic\.com).+/i,
-            handler: 'StaleWhileRevalidate',
-            options: {
-              cacheName: 'external-resources',
-              expiration: { maxEntries: 50, maxAgeSeconds: 7 * 24 * 60 * 60 },
               cacheableResponse: { statuses: [0, 200] },
             },
           },
