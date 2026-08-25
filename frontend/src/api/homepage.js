@@ -116,6 +116,6 @@ export async function deleteLibraryResource(token, id) {
 
 
 /** Admin: upload any file (goes to the backend origin, not the Vercel frontend). */
-export async function uploadFile(token, file, subdir = 'library') {
-  return postFileUpload(token, file, subdir)
+export async function uploadFile(token, file, subdir = 'library', options) {
+  return postFileUpload(token, file, subdir, options)
 }

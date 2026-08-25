@@ -5,6 +5,7 @@ import { LoadingButton } from '../../../../shared/components/LoadingButton.jsx'
 import { uploadFile } from '../../../../api/files.js'
 import { getAssetUrl } from '../../../../api/client.js'
 import { useCategories } from '../../../../lib/hooks/use-categories.js'
+import { MarkdownEditor } from '../../../../shared/components/MarkdownEditor.jsx'
 
 const styles = {
   form: { display: 'flex', flexDirection: 'column', gap: '1.25rem' },
@@ -200,12 +201,13 @@ export function EditCourseModal({ token, course, onClose, onSubmit }) {
         </div>
         <div style={styles.field}>
           <label style={styles.label} htmlFor="edit-desc">Description (optional)</label>
-          <textarea
+          <MarkdownEditor
             id="edit-desc"
             value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            style={styles.textarea}
-            placeholder="Brief description"
+            onChange={setDescription}
+            minHeight={120}
+            placeholder="Course overview. Use the toolbar for headings, lists, and quotes."
+            aria-label="Course description"
           />
         </div>
         {categories.length > 0 && (

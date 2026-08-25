@@ -1,10 +1,12 @@
 import { Link } from 'react-router-dom'
 import { Icon, icons } from '../../../../shared/icons.jsx'
+import { stripMarkdown } from '../../../../shared/utils/markdown.js'
 
 const truncateWords = (str, limit = 150) => {
   if (!str) return ''
-  const words = str.split(/\s+/)
-  if (words.length <= limit) return str
+  const plain = stripMarkdown(str)
+  const words = plain.split(/\s+/)
+  if (words.length <= limit) return plain
   return words.slice(0, limit).join(' ') + '...'
 }
 

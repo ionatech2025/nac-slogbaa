@@ -23,6 +23,8 @@ import {
   Bookmark, Star, StarHalf, Bell, BellDot, Settings, HelpCircle,
   Wifi, WifiOff, PartyPopper, Upload, UserMinus, Trash,
   ChevronDown, ChevronRight, ExternalLink, ArrowRight, Server, Timer,
+  Bold, Italic, Strikethrough, Heading1, Heading2, Heading3,
+  ListOrdered, Quote, Link, Code,
 } from 'lucide-react'
 
 /**
@@ -131,4 +133,15 @@ export const icons = {
   graduationCap: GraduationCap,
   server: Server,
   history: Timer,
+  bold: Bold,
+  italic: Italic,
+  strikethrough: Strikethrough,
+  heading1: Heading1,
+  heading2: Heading2,
+  heading3: Heading3,
+  listUl: List,
+  listOl: ListOrdered,
+  quote: Quote,
+  link: Link,
+  code: Code,
 }

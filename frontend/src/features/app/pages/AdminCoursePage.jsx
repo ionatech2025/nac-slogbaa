@@ -11,6 +11,7 @@ import { DiscussionPanel } from '../../learning/components/DiscussionPanel.jsx'
 import { ReviewSection } from '../../learning/components/ReviewSection.jsx'
 import { CardGridSkeleton } from '../../../shared/components/ContentSkeletons.jsx'
 import { useToast } from '../../../shared/hooks/useToast.js'
+import { MarkdownContent } from '../../../shared/components/MarkdownContent.jsx'
 
 const styles = {
   page: {
@@ -180,7 +181,7 @@ const ModuleCard = memo(function ModuleCard({ module, courseId, onMouseEnter, on
         Order: {module.moduleOrder ?? 0} &middot; {blockCount} block{blockCount !== 1 ? 's' : ''}
       </p>
       {module.description && (
-        <p style={styles.moduleCardDescription}>{module.description}</p>
+        <MarkdownContent markdown={module.description} style={styles.moduleCardDescription} />
       )}
       {module.hasQuiz && <Badge variant="success" style={{ marginTop: '0.5rem' }}>Has quiz</Badge>}
     </Link>
@@ -251,7 +252,7 @@ export function AdminCoursePage() {
         )}
         <div style={{ flex: 1, minWidth: 0 }}>
           <h1 style={styles.title}>{course.title}</h1>
-          {course.description && <p style={styles.description}>{course.description}</p>}
+          {course.description && <MarkdownContent markdown={course.description} style={styles.description} />}
           <Badge variant={course.published ? 'success' : 'default'} style={{ marginTop: '0.5rem' }}>
             {course.published ? 'Published' : 'Draft'}
           </Badge>

@@ -6,6 +6,7 @@ import { useDocumentTitle } from '../../../shared/hooks/useDocumentTitle.js'
 import { Breadcrumbs } from '../../../shared/components/Breadcrumbs.jsx'
 import { AdminNavigatePills } from '../components/admin/AdminNavigatePills.jsx'
 import { ConfirmModal } from '../../../shared/components/ConfirmModal.jsx'
+import { MarkdownEditor } from '../../../shared/components/MarkdownEditor.jsx'
 import { queryKeys } from '../../../lib/query-keys.js'
 import { useToast } from '../../../shared/hooks/useToast.js'
 import { getAssetUrl } from '../../../api/client.js'
@@ -457,7 +458,13 @@ export function AdminLiveSessionsPage() {
 
           <div>
             <label style={s.label}>Agenda / Session Details</label>
-            <textarea style={{ ...s.input, minHeight: 100, resize: 'vertical' }} value={form.sessionDetails} onChange={(e) => setForm((f) => ({ ...f, sessionDetails: e.target.value }))} placeholder="Outline the topics, bullet points, or instructions for trainees..." />
+            <MarkdownEditor
+              value={form.sessionDetails}
+              onChange={(sessionDetails) => setForm((f) => ({ ...f, sessionDetails }))}
+              minHeight={160}
+              placeholder="Outline topics, bullet points, or instructions for trainees…"
+              aria-label="Agenda / session details"
+            />
           </div>
 
           <div style={{ padding: '1.5rem', borderRadius: 20, border: '1px solid var(--slogbaa-border)', background: 'rgba(0,0,0,0.02)' }}>

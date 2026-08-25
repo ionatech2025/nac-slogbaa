@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Icon, icons } from '../icons.jsx'
 import { CommandPalette } from './CommandPalette.jsx'
 import { usePublishedCourses } from '../../lib/hooks/use-courses.js'
+import { stripMarkdown } from '../utils/markdown.js'
 
 /**
  * Static page entries for quick navigation.
@@ -51,9 +52,10 @@ export function GlobalSearchPalette({ open, onClose }) {
     const courseCommands = courses.map((course) => ({
       label: course.title,
       subtitle: course.description
-        ? course.description.length > 80
-          ? course.description.slice(0, 80) + '...'
-          : course.description
+        ? (() => {
+            const plain = stripMarkdown(course.description)
+            return plain.length > 80 ? `${plain.slice(0, 80)}...` : plain
+          })()
         : 'Course',
       icon: <Icon icon={icons.course} size={16} />,
       group: 'Courses',

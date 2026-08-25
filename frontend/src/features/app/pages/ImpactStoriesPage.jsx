@@ -8,11 +8,13 @@ import { CtaSection } from '../../../shared/components/CtaSection.jsx'
 import { Footer } from '../../../shared/components/Footer.jsx'
 import { getHomepageContent } from '../../../api/homepage.js'
 import { queryKeys } from '../../../lib/query-keys.js'
+import { stripMarkdown } from '../../../shared/utils/markdown.js'
 
 const truncateWords = (str, limit = 30) => {
   if (!str) return ''
-  const words = str.split(/\s+/)
-  if (words.length <= limit) return str
+  const plain = stripMarkdown(str)
+  const words = plain.split(/\s+/)
+  if (words.length <= limit) return plain
   return words.slice(0, limit).join(' ') + '...'
 }
 

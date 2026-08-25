@@ -132,11 +132,14 @@ import { useQuery } from '@tanstack/react-query'
 import { queryKeys } from '../../../lib/query-keys.js'
 import { getHomepageContent, recordVisit } from '../../../api/homepage.js'
 import { useEffect } from 'react'
+import { stripMarkdown } from '../../../shared/utils/markdown.js'
+import { MarkdownContent } from '../../../shared/components/MarkdownContent.jsx'
 
 const truncateWords = (str, limit = 150) => {
   if (!str) return ''
-  const words = str.split(/\s+/)
-  if (words.length <= limit) return str
+  const plain = stripMarkdown(str)
+  const words = plain.split(/\s+/)
+  if (words.length <= limit) return plain
   return words.slice(0, limit).join(' ') + '...'
 }
 
@@ -277,9 +280,10 @@ export function PublicLibraryPage() {
                     {modalResource.title}
                   </h2>
                   <div style={{ height: '4px', width: '50px', background: 'var(--orange)', borderRadius: '2px', marginBottom: '2rem' }} />
-                  <p style={{ fontSize: '1.0625rem', color: 'var(--text-2)', lineHeight: 1.8, whiteSpace: 'pre-wrap' }}>
-                    {modalResource.description}
-                  </p>
+                  <MarkdownContent
+                    markdown={modalResource.description}
+                    style={{ fontSize: '1.0625rem', color: 'var(--text-2)', lineHeight: 1.8 }}
+                  />
                 </div>
                 
                 <div className="slg-modal-footer">
