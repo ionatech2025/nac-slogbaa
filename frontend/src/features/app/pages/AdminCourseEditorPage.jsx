@@ -9,6 +9,7 @@ import { AddBlockModal } from '../components/admin/AddBlockModal.jsx'
 import { EditBlockModal } from '../components/admin/EditBlockModal.jsx'
 import { BlockOptionsMenu, applyTextStyle } from '../components/admin/BlockOptionsMenu.jsx'
 import { AddModuleModal } from '../components/admin/AddModuleModal.jsx'
+import { MarkdownContent } from '../../../shared/components/MarkdownContent.jsx'
 
 const styles = {
   page: {
@@ -403,7 +404,7 @@ export function AdminCourseEditorPage() {
 
       <header style={styles.header}>
         <h1 style={styles.title}>{course.title}</h1>
-        {course.description && <p style={styles.description}>{course.description}</p>}
+        {course.description && <MarkdownContent markdown={course.description} style={styles.description} />}
         <span style={{ ...styles.badge, ...(course.published ? {} : styles.badgeDraft) }}>
           {course.published ? 'Published' : 'Draft'}
         </span>
@@ -420,7 +421,7 @@ export function AdminCourseEditorPage() {
             <h2 style={styles.moduleTitle}>{module.title}</h2>
           </div>
           {module.description && (
-            <p style={{ margin: '0 0 1rem', fontSize: '0.9375rem', color: 'var(--slogbaa-text-muted)' }}>{module.description}</p>
+            <MarkdownContent markdown={module.description} style={{ margin: '0 0 1rem', fontSize: '0.9375rem', color: 'var(--slogbaa-text-muted)' }} />
           )}
 
           {/* Content blocks with + and options */}

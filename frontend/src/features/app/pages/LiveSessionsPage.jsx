@@ -6,6 +6,7 @@ import { queryKeys } from '../../../lib/query-keys.js'
 import { getAssetUrl } from '../../../api/client.js'
 import { getLiveSessions, registerForLiveSession, unregisterFromLiveSession } from '../../../api/liveSessions.js'
 import { useToast } from '../../../shared/hooks/useToast.js'
+import { MarkdownContent } from '../../../shared/components/MarkdownContent.jsx'
 
 const s = {
   wrap: { width: '100%', maxWidth: 900 },
@@ -145,9 +146,10 @@ function ActiveSessionCard({ session, regMut }) {
         <div style={{ flex: 1, minWidth: 280 }}>
           {session.description && <p style={{ margin: 0, fontSize: '0.9375rem', color: 'var(--slogbaa-text)', fontWeight: 500 }}>{session.description}</p>}
           {session.sessionDetails && (
-            <p style={{ margin: '0.5rem 0 0', fontSize: '0.875rem', color: 'var(--slogbaa-text-muted)', lineHeight: 1.5 }}>
-              {session.sessionDetails}
-            </p>
+            <MarkdownContent
+              markdown={session.sessionDetails}
+              style={{ margin: '0.5rem 0 0', fontSize: '0.875rem', color: 'var(--slogbaa-text-muted)' }}
+            />
           )}
         </div>
         

@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { FontAwesomeIcon, icons } from '../../../../shared/icons.jsx'
 import { getAssetUrl } from '../../../../api/client.js'
+import { stripMarkdown } from '../../../../shared/utils/markdown.js'
 
 import defaultCourseImg from '../../../../assets/images/courses/course1.jpg'
 
@@ -337,7 +338,7 @@ export function CourseCard({ course, enrolled, completionPercentage, onEnroll, o
             course.title
           )}
         </h3>
-        <p style={descriptionStyle}>{course.description}</p>
+        <p style={descriptionStyle}>{stripMarkdown(course.description)}</p>
         {(showMetaRow && metaItems?.length > 0) ? (
           <div style={styles.metaRow}>{metaItems.join(' · ')}</div>
         ) : (

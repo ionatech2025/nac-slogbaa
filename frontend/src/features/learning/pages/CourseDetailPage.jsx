@@ -17,6 +17,7 @@ import {
 } from '../../../lib/hooks/use-courses.js'
 import { queryKeys } from '../../../lib/query-keys.js'
 import { ConfirmModal } from '../../../shared/components/ConfirmModal.jsx'
+import { MarkdownContent } from '../../../shared/components/MarkdownContent.jsx'
 import { EditorJsReadOnly } from '../../app/components/admin/EditorJsReadOnly.jsx'
 import { ModuleQuizPanel } from '../../assessment/components/ModuleQuizPanel.jsx'
 import { SafeHtml } from '../../../shared/components/SafeHtml.jsx'
@@ -1259,7 +1260,7 @@ export function CourseDetailPage() {
                   <ArrowLeft size={14} aria-hidden /> Back to courses
                 </Link>
                 <h1 style={styles.courseTitleLms}>{course.title}</h1>
-                {course.description ? <p style={styles.courseDescLms}>{course.description}</p> : null}
+                {course.description ? <MarkdownContent markdown={course.description} style={styles.courseDescLms} /> : null}
               </div>
             </div>
             <div style={styles.courseSubHeaderActions}>

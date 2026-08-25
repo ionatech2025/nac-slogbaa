@@ -9,6 +9,7 @@ import { CtaSection } from '../../../shared/components/CtaSection.jsx'
 import { Footer } from '../../../shared/components/Footer.jsx'
 import { getHomepageContent } from '../../../api/homepage.js'
 import { queryKeys } from '../../../lib/query-keys.js'
+import { MarkdownContent } from '../../../shared/components/MarkdownContent.jsx'
 
 const STORY_DETAIL_CSS = `
   .slg-story-detail { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; line-height: 1.8; }
@@ -56,6 +57,25 @@ const STORY_DETAIL_CSS = `
   .slg-story-p { margin-bottom: 2rem; white-space: pre-wrap; }
   .slg-story-h2 { font-size: 2rem; font-weight: 300; margin: 4rem 0 1.5rem; color: var(--text); letter-spacing: -0.02em; }
   .slg-story-h3 { font-size: 1.5rem; font-weight: 500; margin: 3rem 0 1.25rem; color: var(--text); }
+
+  .slg-story-md.md-content { font-size: 1.125rem; color: var(--text-2); }
+  .slg-story-md.md-content h1,
+  .slg-story-md.md-content h2 {
+    font-family: 'DM Serif Display', serif; font-size: 2rem; font-weight: 300;
+    margin: 4rem 0 1.5rem; color: var(--text); letter-spacing: -0.02em;
+  }
+  .slg-story-md.md-content h1 { color: var(--orange); border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }
+  .slg-story-md.md-content h3 { font-size: 1.5rem; font-weight: 500; margin: 3rem 0 1.25rem; color: var(--text); }
+  .slg-story-md.md-content p { margin-bottom: 2rem; }
+  .slg-story-md.md-content blockquote {
+    position: relative; margin: 5rem -3rem; padding: 0 3rem;
+    border-left: 4px solid var(--orange); font-style: italic;
+  }
+  .slg-story-md.md-content blockquote p {
+    font-family: 'DM Serif Display', serif; font-size: 2.25rem; font-style: italic;
+    color: var(--text); line-height: 1.25; margin-bottom: 0;
+  }
+  @media (max-width: 960px) { .slg-story-md.md-content blockquote { margin: 4rem 0; padding: 0 2rem; } }
   
   .slg-pullquote {
     position: relative; margin: 5rem -3rem; padding: 0 3rem;
@@ -119,27 +139,6 @@ export function ImpactStoryDetailPage() {
 
   if (!story) return <div className="slg-loader">Loading story...</div>
 
-  // Simple Markdown-ish parser for storyText
-  const renderContent = (text) => {
-    if (!text) return null
-    const blocks = text.split(/\n\s*\n/)
-    return blocks.map((block, i) => {
-      const b = block.trim()
-      if (b.startsWith('# ')) return <h2 key={i} className="slg-story-h2 slg-serif" style={{ color: 'var(--orange)', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem' }}>{b.replace('# ', '')}</h2>
-      if (b.startsWith('## ')) return <h2 key={i} className="slg-story-h2 slg-serif">{b.replace('## ', '')}</h2>
-      if (b.startsWith('### ')) return <h3 key={i} className="slg-story-h3">{b.replace('### ', '')}</h3>
-      if (b.startsWith('> ')) {
-        return (
-          <blockquote key={i} className="slg-pullquote">
-            <p className="slg-quote-text">{b.replace('> ', '')}</p>
-            <cite className="slg-quote-cite">/ {story.authorName || story.name}</cite>
-          </blockquote>
-        )
-      }
-      return <p key={i} className="slg-story-p">{block}</p>
-    })
-  }
-
   return (
     <div className={`slg-page slg-story-detail ${theme}-theme`}>
       <style>{STORY_DETAIL_CSS}</style>
@@ -172,7 +171,7 @@ export function ImpactStoryDetailPage() {
           </div>
 
           <div className="slg-story-body">
-            {renderContent(story.storyText || story.preview)}
+            <MarkdownContent markdown={story.storyText || story.preview} className="slg-story-md" />
           </div>
         </article>
 

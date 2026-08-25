@@ -13,6 +13,8 @@ import { TableSkeleton, SearchBarSkeleton } from '../../../shared/components/Adm
 import { exportToCsv } from '../../../shared/utils/csvExport.js'
 import { Breadcrumbs } from '../../../shared/components/Breadcrumbs.jsx'
 import { AdminNavigatePills } from '../components/admin/AdminNavigatePills.jsx'
+import { MarkdownEditor } from '../../../shared/components/MarkdownEditor.jsx'
+import { stripMarkdown } from '../../../shared/utils/markdown.js'
 
 const RESOURCE_TYPES = [
   { value: 'DOCUMENT', label: 'Document' },
@@ -599,7 +601,10 @@ export function AdminLibraryPage() {
                     <strong>{r.title}</strong>
                     {r.description && (
                       <div style={{ fontSize: '0.8125rem', color: 'var(--slogbaa-text-muted)', marginTop: 2 }}>
-                        {r.description.slice(0, 80)}{r.description.length > 80 ? '...' : ''}
+                        {(() => {
+                          const plain = stripMarkdown(r.description)
+                          return plain.length > 80 ? `${plain.slice(0, 80)}...` : plain
+                        })()}
                       </div>
                     )}
                   </td>
@@ -708,11 +713,12 @@ export function AdminLibraryPage() {
             </div>
             <div style={styles.formRow}>
               <label style={styles.label}>Description</label>
-              <textarea
+              <MarkdownEditor
                 value={form.description}
-                onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-                style={{ ...styles.input, minHeight: 80 }}
+                onChange={(description) => setForm((f) => ({ ...f, description }))}
+                minHeight={100}
                 placeholder="Optional description"
+                aria-label="Description"
               />
             </div>
             <div style={styles.formRow}>
@@ -844,11 +850,12 @@ export function AdminLibraryPage() {
             </div>
             <div style={styles.formRow}>
               <label style={styles.label}>Description</label>
-              <textarea
+              <MarkdownEditor
                 value={form.description}
-                onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-                style={{ ...styles.input, minHeight: 80 }}
+                onChange={(description) => setForm((f) => ({ ...f, description }))}
+                minHeight={100}
                 placeholder="Optional description"
+                aria-label="Description"
               />
             </div>
             <div style={styles.formRow}>
