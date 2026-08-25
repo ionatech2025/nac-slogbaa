@@ -1,4 +1,5 @@
 import { apiClient, assertToken, parseResponse } from './client.js'
+import { uploadFile as postFileUpload } from './files.js'
 
 /** Public: fetch all active homepage content (no auth required) */
 export async function getHomepageContent() {
@@ -114,19 +115,7 @@ export async function deleteLibraryResource(token, id) {
 }
 
 
-/** Admin: upload any file */
+/** Admin: upload any file (goes to the backend origin, not the Vercel frontend). */
 export async function uploadFile(token, file, subdir = 'library') {
-  assertToken(token)
-  const formData = new FormData()
-  formData.append('file', file)
-  formData.append('subdir', subdir)
-  
-  const res = await fetch('/api/files/upload', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${token}`
-    },
-    body: formData
-  })
-  return parseResponse(res)
+  return postFileUpload(token, file, subdir)
 }
