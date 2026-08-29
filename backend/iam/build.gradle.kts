@@ -14,5 +14,5 @@ dependencies {
 
     runtimeOnly("org.postgresql:postgresql")
 
-    testImplementation("com.tngtech.archunit:archunit-junit5:1.3.0")
+    testImplementation("com.tngtech.archunit:archunit-junit5:1.4.1")
 }
