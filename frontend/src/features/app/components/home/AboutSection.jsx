@@ -35,7 +35,7 @@ export function AboutSection({ variant = 'white' }) {
 
           <div className="slg-about-visual">
             <img
-              src="/assets/images/homepage/community2.jpg"
+              src="/assets/images/homepage/about_2026.jpeg"
               alt="Putting communities first"
               style={{ width: '100%', height: '100%', objectFit: 'cover' }}
             />
