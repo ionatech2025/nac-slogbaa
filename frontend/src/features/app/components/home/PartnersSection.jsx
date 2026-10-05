@@ -1,8 +1,7 @@
 const PARTNER_LOGOS = [
   { name: 'Civil Connections', logoUrl: '/assets/images/logos/CivilConnectionsLogo.png', websiteUrl: 'https://civilconnections.org/' },
-  { name: 'UYONET', logoUrl: '/assets/images/logos/uyonet-logo.png', websiteUrl: 'https://uyonet.wordpress.com/' },
-  { name: 'ActionAid', logoUrl: '/assets/images/logos/Actionaid_logo.png', websiteUrl: 'https://uganda.actionaid.org/' },
-  { name: 'Oxfam', logoUrl: '/assets/images/logos/nac_logo.png', websiteUrl: 'https://nacuganda.org/' },
+  { name: 'Network for Active Citizens', logoUrl: '/assets/images/logos/nac_logo.png', websiteUrl: 'https://nacuganda.org/' },
+  { name: 'Dream Town', logoUrl: '/assets/images/logos/dreamTown_logo.png', websiteUrl: 'https://www.dreamtown.ngo/' },
 ]
 
 export function PartnersSection({ partners: cmsPartners, variant = 'white' }) {
